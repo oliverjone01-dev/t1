@@ -310,7 +310,8 @@ const GAP = readGapDaily(dp(GAP_DAILY_FILE));
 // Системный день (K2): строки дня без витрины «нет данных» (ненулевые остаются), стопы и чипы за них молчат,
 // но молча это пройти не должно.
 for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта равна нашей у ${Math.round(NO_SITE_DAY_SHARE * 100)}% строк и больше, строки без витрины за день «нет данных»; проверить витрину и съём`);
-if (GAP.manual) console.log(`gap_daily: ручных снятий из ${GAP_MANUAL_FILE}: ${GAP.manual}`);
+// Сторож файла ручных снятий: строка в логе всегда, пропажа файла видна (ФЕНИКС #489 R3), живой тест её ловит.
+console.log(`gap_daily: ${GAP_MANUAL_FILE} ${GAP.manualFile ? "на месте" : "НЕ НАЙДЕН"}, ручных снятий применено: ${GAP.manual}`);
 for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} - цена сайта равна нашей у ${Math.round(NO_SITE_DAY_WARN * 100)}-${Math.round(NO_SITE_DAY_SHARE * 100)}% строк дня: значения как есть, нули у зрелых карточек могут быть ложными; проверить витрину и съём`);
 // ГРАФИК «СОИНВЕСТ» И «ЦЕНА НА ВИТРИНЕ» ЦЕЛИКОМ ИЗ gap_daily (решение Ивана 29.09, вариант 1).
 // coinv_daily кончился 24.09, дальше съём кабинета пишет только gap_daily, и на графике с 25.09
@@ -2578,7 +2579,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     : `не просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%${c.v2.days < 7 ? ` (вторая неполная, ${c.v2.days} дн)` : ""}`;
   const stops = [
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
-    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день, ложный стоп снимает аналитик записью о сбое за этот день` : "",
+    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день - сообщить Ивану, аналитик снимет стоп записью о сбое за этот день` : "",
   ].filter(Boolean);
   const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${fewClean
@@ -3567,8 +3568,9 @@ if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} пр�
 const GAP_LAST_ANY = [...GAP.days, ...GAP.systemDays, ...GAP.warnDays].sort().pop() ?? "";
 const GAP_RECENT = (d: string) => !GAP_LAST_ANY || d >= addDays(GAP_LAST_ANY, -7);
 const GAP_SYS_RECENT = GAP.systemDays.filter(GAP_RECENT), GAP_WARN_RECENT = GAP.warnDays.filter(GAP_RECENT);
-const GAP_NOTICE = GAP_SYS_RECENT.length || GAP_WARN_RECENT.length
-  ? `<div class="mrow warnv">${GAP_SYS_RECENT.length ? `Срез ${GAP_SYS_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей почти у всех товаров - это сбой витрины или съёма; такие товары за этот день не засчитаны, стопы и чипы за него не считаются, остальные значения дня остаются. Если OZON на самом деле перестал доплачивать всем, плашка повторится на следующий день - проверить карточки вручную. ` : ""}${GAP_WARN_RECENT.length ? `Срез ${GAP_WARN_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей у заметной части товаров (${Math.round(NO_SITE_DAY_WARN * 100)}-${Math.round(NO_SITE_DAY_SHARE * 100)}%) - нули за этот день могут быть сбоем витрины, проверить карточки.` : ""}</div>`
+const GAP_MANUAL_RECENT = GAP.manualRows.filter((m) => GAP_RECENT(m.date));
+const GAP_NOTICE = GAP_SYS_RECENT.length || GAP_WARN_RECENT.length || GAP_MANUAL_RECENT.length
+  ? `<div class="mrow warnv">${GAP_SYS_RECENT.length ? `Срез ${GAP_SYS_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей почти у всех товаров - это сбой витрины или съёма; такие товары за этот день не засчитаны, стопы и чипы за них не считаются, товары с разрывом за этот день остаются. Если OZON на самом деле перестал доплачивать всем, плашка повторится на следующий день - проверить карточки вручную. ` : ""}${GAP_WARN_RECENT.length ? `Срез ${GAP_WARN_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей у заметной части товаров (${Math.round(NO_SITE_DAY_WARN * 100)}-${Math.round(NO_SITE_DAY_SHARE * 100)}%) - нули за этот день могут быть сбоем витрины, проверить карточки.` : ""}${GAP_MANUAL_RECENT.length ? ` Снято вручную как сбой витрины: ${GAP_MANUAL_RECENT.map((m) => `${esc(m.art)} ${DM(m.date)}${m.reason ? ` (${esc(m.reason)})` : ""}`).join(", ")}.` : ""}</div>`
   : "";
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`

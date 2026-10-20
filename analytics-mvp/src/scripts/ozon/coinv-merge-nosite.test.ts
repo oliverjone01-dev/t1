@@ -142,4 +142,11 @@ describe("системный день в срезе (K2 ФЕНИКСА iter4, И
     expect(systemDays).toEqual([]);
     expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 47)).toHaveLength(60);
   });
+
+  it("утро со значением и вечер без витрины в одном срезе: день не системный, значение утра пишется", () => {
+    const morning = slice("2026-10-19", 60, 0), evening = slice("2026-10-19", 60, 60);
+    const { systemDays, rows } = mergeCoinv(stored("2026-10-12", 60), [...morning, ...evening]);
+    expect(systemDays).toEqual([]);
+    expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 47)).toHaveLength(60);
+  });
 });

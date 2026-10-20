@@ -60,8 +60,14 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     s.coinv_pct === 0 || (s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller));
   // Доля по одной строке на (день, артикул), как в gap-daily.ts: срез утром и вечером за один день не удваивает
   // знаменатель (ФЕНИКС #488, проба на 30 артикулах x 2 среза). Побеждает последняя строка артикула в срезе.
+  // Утро и вечер в одном срезе: строка без витрины не заменяет снятое значение того же дня (то же правило M1,
+  // что у gap-daily.ts при чтении файла), иначе доля дня расходится с gap-daily (ФЕНИКС #489 R5).
   const lastOfDay = new Map<string, SliceRow>();
-  for (const s of slice) lastOfDay.set(key(s.date, s.art), s);
+  for (const s of slice) {
+    const k = key(s.date, s.art), cur = lastOfDay.get(k);
+    if (cur && siteMissingOf(s) && !siteMissingOf(cur)) continue;
+    lastOfDay.set(k, s);
+  }
   // Строка, которую правило дня M1 всё равно сохранит (снятое значение того же дня уже лежит), в долю не идёт:
   // иначе WARNING о системном дне там, где gap-daily его не даёт (ФЕНИКС #488 iter2).
   const keptByM1 = (s: SliceRow): boolean => {
@@ -90,7 +96,7 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     // соинвестом (Иван 16.10 «пиши нет данных», 19.10: со SKU или без, но только у карточки без истории разрыва).
     // Тогда поле не пишем, ставим метку no_site. У карточки с историей ноль пишется нулём: это стоп-сигнал
     // теста 4 и чип плана «OZON не доплачивает?», список акций его не заменяет (ФЕНИКС 19.10, проба Z2). Правило
-    // то же, что в gap-daily.ts (markNoSite), с одной оговоркой: история здесь только из stored, строки одного
+    // то же, что в gap-daily.ts (markNoSiteEx), с одной оговоркой: история здесь только из stored, строки одного
     // среза за несколько дней историей друг для друга не считаются (ФЕНИКС iter4, проба R3).
     const sameAsOurs = s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller);
     const siteMissing = siteMissingOf(s);

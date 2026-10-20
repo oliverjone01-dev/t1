@@ -27,8 +27,12 @@ export const GAP_DAILY_FILE = "gap_daily.ndjson";
  *  на (день, артикул). Мак пишет gap_daily своей копией дважды в день и стирает метки no_site (подтверждено
  *  автокоммитом 19.10 20:50, ФЕНИКС #488 W1), а этот файл он не трогает, поэтому запись переживает срезы.
  *  Чтение (readGapMarked) ставит такой строке gap_daily метку no_site, как будто она лежит в файле: метка
- *  главнее истории, стоп теста 4 и чип плана гаснут. Запись делает аналитик (автор ветки) после проверки
- *  карточки на витрине: `{"date":"2026-10-19","art":"GGK-02-3-3-80","reason":"сбой витрины","by":"...","ts":"..."}`. */
+ *  главнее истории, стоп теста 4 и чип плана гаснут. Запись действует только на строку, где цена сайта равна
+ *  нашей (разрыв 0 или site_to_seller 1): если поздний срез уже исправил день на ненулевой, запись ничего не
+ *  делает и исправленное значение не прячет (Codex #489 P2). Маршрут: менеджер сообщает Ивану о ложном стопе,
+ *  аналитик (автор ветки) проверяет карточку на витрине и добавляет строку коммитом в main через PR, мерж Ивана:
+ *  `{"date":"2026-10-19","art":"GGK-02-3-3-80","reason":"сбой витрины","by":"...","ts":"..."}`. На странице
+ *  снятие видно строкой «снято вручную» в окне 7 дней (build-tests.ts). */
 export const GAP_MANUAL_FILE = "gap_manual.ndjson";
 
 // ЧТО ИЗ ФАЙЛА НЕ ИДЁТ В РЕПОЗИТОРИЙ. Исходный срез Ивана нёс ещё site и seller, то есть цену
@@ -69,11 +73,16 @@ export interface GapRead {
    *  warning - частичный сбой витрины, при котором нули у зрелых карточек могут быть ложными (как SAME_BEFORE_WARN
    *  у снимка цен API). */
   warnDays: string[];
-  /** Строки, снятые вручную через GAP_MANUAL_FILE. */
+  /** Строки, снятые вручную через GAP_MANUAL_FILE (применённые записи). */
   manual: number;
+  /** Применённые записи ручного файла - для строки «снято вручную» на странице. */
+  manualRows: ManualRow[];
+  /** Файл ручных снятий на месте (сторож: мак или чистка data/ не должны его потерять). */
+  manualFile: boolean;
 }
+export interface ManualRow { date: string; art: string; reason?: string; by?: string }
 
-const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0, systemDays: [], warnDays: [], manual: 0 };
+const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0, systemDays: [], warnDays: [], manual: 0, manualRows: [], manualFile: false };
 
 /** Системный день (K2 ФЕНИКСА iter4, Иван 19.10 «да, 90% дня = нет данных»): если цена сайта равна нашей у
  *  NO_SITE_DAY_SHARE строк дня и больше, это сбой витрины или съёма, а не 10 карточек теста и 29 карточек плана,
@@ -106,8 +115,8 @@ const siteMissing = (r: GapRow): boolean => r.no_site === true || priceEqualsOur
  *  19.10]). У карточки с историей ноль остаётся нулём: это стоп-сигнал теста 4 «разрыв обвалился к нулю»
  *  (build-tests.ts) и чип плана «OZON не доплачивает?» (plan-tab.ts). Список акций acts_daily стоп не заменяет:
  *  у 50 выходов из «Эластичного бустинга» разрыв ни разу не падал ниже 10 (ФЕНИКС 19.10, проба Z2).
- *  Правило то же, что в coinv-merge.ts (noSite по истории stored). Прямые читатели gap_daily (plan-tab.ts,
- *  build-tests.ts) берут строки через markNoSite и фильтруют этим предикатом - копий правила нет. */
+ *  Правило то же, что в coinv-merge.ts (noSite по истории stored). Все читатели gap_daily (readGapDaily,
+ *  plan-tab.ts, build-tests.ts) берут строки через readGapMarked и фильтруют этим предикатом - копий правила нет. */
 export const noSite = (r: GapRow): boolean => r.no_site === true;
 
 /** Одна строка на (день, артикул) и метка no_site по истории артикула. Чистая функция, входные объекты не меняет.
@@ -118,9 +127,9 @@ export const noSite = (r: GapRow): boolean => r.no_site === true;
  *    заменять утренний в писателе на маке (W1, открыто Ивану).
  *  - История считается по всему файлу: был ли у артикула день РАНЬШЕ этой даты с ненулевым разрывом. Порядок
  *    строк в файле роли не играет, более поздний день историей не считается (первый день карточки - «нет
- *    данных», даже если назавтра 47 %). Готовая метка no_site из файла главнее истории - этим же снимается
- *    ложный стоп: если ноль у зрелой карточки оказался сбоем витрины, строке в gap_daily ставится no_site: true
- *    (скрипт v8/fix_nodata_1610.py этого не делает, он помечает только строки без истории), и стоп гаснет.
+ *    данных», даже если назавтра 47 %). Готовая метка no_site из файла главнее истории. Ложный стоп снимается
+ *    записью в GAP_MANUAL_FILE (readGapMarked ставит метку при чтении): метку прямо в gap_daily стирает мак
+ *    (Иван 20.10), скрипт v8/fix_nodata_1610.py помечает только строки без истории.
  *  - Системный день (NO_SITE_DAY_SHARE): все строки дня без витрины - «нет данных» независимо от истории. */
 export function markNoSite(input: GapRow[]): GapRow[] { return markNoSiteEx(input).rows; }
 
@@ -167,26 +176,27 @@ export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: str
 }
 
 /** Ключи (день|артикул) ручных снятий из GAP_MANUAL_FILE рядом с gap_daily. Нет файла - нет снятий. */
-export function readGapManual(dir: string): Set<string> {
+export function readGapManual(dir: string): { keys: Map<string, ManualRow>; exists: boolean } {
   const p = join(dir, GAP_MANUAL_FILE);
-  const out = new Set<string>();
-  if (!existsSync(p)) return out;
+  const keys = new Map<string, ManualRow>();
+  if (!existsSync(p)) return { keys, exists: false };
   for (const l of readFileSync(p, "utf-8").split("\n").filter((x) => x.trim())) {
     try {
-      const r = JSON.parse(l) as { date?: string; art?: string };
+      const r = JSON.parse(l) as ManualRow;
       const d = String(r.date || "").slice(0, 10), art = String(r.art || "").trim();
-      if (d && art) out.add(`${d}|${art}`);
+      if (d && art) keys.set(`${d}|${art}`, { date: d, art, reason: r.reason, by: r.by });
     } catch { /* битая строка ручного файла снятие не делает */ }
   }
-  return out;
+  return { keys, exists: true };
 }
 
 /** Строки gap_daily с метками: одна на (день, артикул), ручные снятия как метка файла, затем markNoSiteEx.
  *  Единственная точка входа для всех читателей файла (readGapDaily, plan-tab.ts, build-tests.ts) - копий нет. */
-export function readGapMarked(path: string): { rows: GapRow[]; systemDays: string[]; warnDays: string[]; bad: number; manual: number } {
-  if (!existsSync(path)) return { rows: [], systemDays: [], warnDays: [], bad: 0, manual: 0 };
+export function readGapMarked(path: string): { rows: GapRow[]; systemDays: string[]; warnDays: string[]; bad: number; manual: number; manualRows: ManualRow[]; manualFile: boolean } {
+  if (!existsSync(path)) return { rows: [], systemDays: [], warnDays: [], bad: 0, manual: 0, manualRows: [], manualFile: false };
   const manual = readGapManual(dirname(path));
   const parsed: GapRow[] = [];
+  const manualRows: ManualRow[] = [];
   let bad = 0, manualN = 0;
   for (const l of readFileSync(path, "utf-8").trim().split("\n").filter(Boolean)) {
     let r: GapRow;
@@ -194,11 +204,13 @@ export function readGapMarked(path: string): { rows: GapRow[]; systemDays: strin
     const d = String(r.date || "").slice(0, 10);
     const art = String(r.art || "").trim();
     if (!d || !art) { bad += 1; continue; }
-    if (manual.has(`${d}|${art}`) && r.no_site !== true) { r = { ...r, no_site: true }; manualN += 1; }
+    // Только на строку без витрины: исправленное поздним срезом ненулевое значение запись не прячет.
+    const mr = manual.keys.get(`${d}|${art}`);
+    if (mr && r.no_site !== true && priceEqualsOurs(r)) { r = { ...r, no_site: true }; manualN += 1; manualRows.push(mr); }
     parsed.push(r);
   }
   const m = markNoSiteEx(parsed);
-  return { rows: m.rows, systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN };
+  return { rows: m.rows, systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN, manualRows, manualFile: manual.exists };
 }
 
 export function readGapDaily(path: string): GapRead {
@@ -226,5 +238,5 @@ export function readGapDaily(path: string): GapRead {
     // Ноль у карточки с историей проходит сюда как есть: честный 0, а не «нет данных».
     rows.push({ date: d, art, observed: true, in_panel: true, gap_pct: v, oa_source: src });
   }
-  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN, systemDays: marked.systemDays, warnDays: marked.warnDays, manual: marked.manual };
+  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN, systemDays: marked.systemDays, warnDays: marked.warnDays, manual: marked.manual, manualRows: marked.manualRows, manualFile: marked.manualFile };
 }

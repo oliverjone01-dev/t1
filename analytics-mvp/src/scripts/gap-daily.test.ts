@@ -150,11 +150,15 @@ describe("гейт плато на живом gap_daily", () => {
     const ctl = controlByDay(G.rows, new Set([...AD, ...SIB]));
     // Честный ноль у соседа (OZON перестал доплачивать, Иван 19.10) - событие, а не шум метода: такие дни из
     // проверки шума исключаются, иначе тест красный навсегда (ФЕНИКС #488 iter2, E091).
+    // Ноль у любой стороны пары: у самой карточки или у соседа по объединённой карточке, с которым она
+    // сравнивается (Codex #489 P2, ФЕНИКС #489 L5).
     const zeroDays = new Set(G.rows.filter((r) => r.gap_pct === 0).map((r) => `${r.date}|${r.art}`));
     const worst = Math.max(...SIB.map((a) => {
-      const ser = sibsOf(a).length ? pairGapSeries(G.rows, a, sibsOf(a)) : gapSeries(G.rows, a, ctl);
+      const sibs = sibsOf(a);
+      const ser = sibs.length ? pairGapSeries(G.rows, a, sibs) : gapSeries(G.rows, a, ctl);
       const r = readiness({ art: a, on }, ser, new Map(), BASE_MIN);
-      return Math.max(0, ...r.series.filter((p) => !zeroDays.has(`${p.date}|${a}`)).map((p) => Math.abs(p.shift)));
+      const zeroAt = (d: string) => zeroDays.has(`${d}|${a}`) || sibs.some((x) => zeroDays.has(`${d}|${x}`));
+      return Math.max(0, ...r.series.filter((p) => !zeroAt(p.date)).map((p) => Math.abs(p.shift)));
     }));
     // Порог +8 держится, пока шум метода много меньше его. Граница 2 пункта взята с запасом:
     // на 24.09 худший сосед даёт 0.7. Если тест упадёт, порог надо пересматривать, а не правку
@@ -413,8 +417,26 @@ describe("ручные снятия ложных стопов: gap_manual.ndjson
     expect(readGapDaily(p).rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(0);
   });
 
-  it("живой файл ручных снятий: каждая запись - день и артикул, которые есть в gap_daily", () => {
-    if (!existsSync("data/" + GAP_MANUAL_FILE) || !existsSync("data/" + GAP_DAILY_FILE)) return;
+  it("запись на ненулевую строку (поздний срез исправил день) ничего не делает", () => {
+    const fixed = [mature[0]!, { ...mature[1]!, gap_pct: 48.55, site_to_seller: 0.51 }];
+    const p = withManual(fixed, [{ date: "2026-10-19", art: "GGK-02-3-3-80", reason: "сбой витрины" }]);
+    const r = readGapDaily(p);
+    expect(r.rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(48.55);
+    expect(r.manual).toBe(0);
+    expect(r.manualRows).toEqual([]);
+  });
+
+  it("применённые записи возвращаются для строки «снято вручную» на странице; файл есть - manualFile true", () => {
+    const p = withManual(mature, [{ date: "2026-10-19", art: "GGK-02-3-3-80", reason: "сбой витрины", by: "тест" }]);
+    const r = readGapDaily(p);
+    expect(r.manualRows).toEqual([{ date: "2026-10-19", art: "GGK-02-3-3-80", reason: "сбой витрины", by: "тест" }]);
+    expect(r.manualFile).toBe(true);
+    expect(readGapDaily(tmp(mature)).manualFile).toBe(false);
+  });
+
+  it("живой файл ручных снятий на месте (сторож: мак или чистка data/ не должны его потерять) и каждая запись - день и артикул из gap_daily", () => {
+    if (!existsSync("data/" + GAP_DAILY_FILE)) return;
+    expect(existsSync("data/" + GAP_MANUAL_FILE)).toBe(true);
     const keys = new Set(readFileSync("data/" + GAP_DAILY_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => { const r = JSON.parse(l); return `${r.date}|${r.art}`; }));
     const manual = readFileSync("data/" + GAP_MANUAL_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
     for (const m of manual) {

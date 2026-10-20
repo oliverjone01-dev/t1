@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-lost_items_csv",
-  "at": "2026-10-20T11:04:17.748Z",
+  "at": "2026-10-20T12:27:13.274Z",
   "headers": [
     "PLACEMENT_PROGRAM",
     "PARTNER_ID",
@@ -50,6 +50,6 @@
   ],
   "sample_masked": [],
   "campaign": "149001087",
-  "ym": "2026-03",
+  "ym": "2026-04",
   "file": "lost_items.csv"
 }

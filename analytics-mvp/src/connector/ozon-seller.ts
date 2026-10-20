@@ -13,6 +13,8 @@ const SELLER_HOST = "https://api-seller.ozon.ru";
 // Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
 const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
 const ACCRUAL_GAP_MS = 300;
+const POSTING_PAGE = 100;        // /v3/posting/fbo/list и /v4/posting/fbs/list: страница до 100
+const POSTING_PAGE_CAP = 2000;   // 200 000 отправлений - прежний потолок offset-пагинации
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Порядок метрик важен: ответ - массив в этом же порядке (DOC_02 §2.1).
@@ -415,19 +417,32 @@ export class OzonSeller {
       })),
       financial_data: p.financial_data ?? null,
     });
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: { financial_data: true } });
-      const arr: any[] = d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBO"));
-      if (arr.length < 1000) break;
-    }
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: { financial_data: true } });
-      const arr: any[] = d.result?.postings ?? d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBS"));
-      if (arr.length < 1000) break;
-    }
+    for (const p of await this.listPostings("FBO", from, to, true)) out.push(mapP(p, "FBO"));
+    for (const p of await this.listPostings("FBS", from, to, true)) out.push(mapP(p, "FBS"));
     return out;
+  }
+
+  // Список отправлений за период [since, to] по дате заказа, одна схема за вызов.
+  // OZON 19.10.2026 отключил /v2/posting/fbo/list (HTTP 400 {"code":9,"message":"obsolete method
+  // cannot be used"}, прогон orders-backfill 39402400842); замена - /v3/posting/fbo/list и
+  // /v4/posting/fbs/list: курсор вместо offset, страница до 100, sort_dir вместо dir, ответ
+  // {postings, has_next, cursor}. Цена товара в v3 приходит строкой - Number() её читает.
+  // Курсор, который не сдвинулся при has_next - ошибка, а не бесконечный цикл (fail-closed).
+  private async listPostings(scheme: "FBO" | "FBS", since: string, to: string, financial: boolean): Promise<any[]> {
+    const path = scheme === "FBO" ? "/v3/posting/fbo/list" : "/v4/posting/fbs/list";
+    const out: any[] = [];
+    let cursor = "";
+    for (let page = 0; page < POSTING_PAGE_CAP; page++) {
+      const d = await this.post<any>(path, { cursor, filter: { since, to }, limit: POSTING_PAGE, sort_dir: "asc", translit: false, with: { financial_data: financial } });
+      const arr: any[] = d.postings ?? d.result?.postings ?? (Array.isArray(d.result) ? d.result : []);
+      for (const p of arr) if (p?.posting_number) out.push(p);
+      const hasNext = Boolean(d.has_next ?? d.result?.has_next);
+      const next = String(d.cursor ?? d.result?.cursor ?? "");
+      if (!hasNext || !arr.length) return out;
+      if (!next || next === cursor) throw new Error(`OZON ${path}: has_next без нового курсора после страницы ${page + 1}`);
+      cursor = next;
+    }
+    throw new Error(`OZON ${path}: больше ${POSTING_PAGE_CAP} страниц по ${POSTING_PAGE} - окно ${since}..${to} слишком велико`);
   }
 
   // Возвраты за период (/v1/returns/list). Нужны, чтобы вычесть выручку возвращённых заказов из блока
@@ -464,18 +479,7 @@ export class OzonSeller {
   async postingNumbers(dateFrom: string, dateTo: string): Promise<string[]> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const nums = new Set<string>();
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: {} });
-      const arr: any[] = d.result ?? [];
-      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
-      if (arr.length < 1000) break;
-    }
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: {} });
-      const arr: any[] = d.result?.postings ?? d.result ?? [];
-      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
-      if (arr.length < 1000) break;
-    }
+    for (const scheme of ["FBO", "FBS"] as const) for (const p of await this.listPostings(scheme, from, to, false)) nums.add(String(p.posting_number));
     return [...nums];
   }
 }

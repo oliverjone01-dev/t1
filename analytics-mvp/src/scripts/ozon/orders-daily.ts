@@ -8,7 +8,7 @@
 // Строка: {order, d, status, sku, offer, units, revenue, commission, delivery, acquiring, storage,
 //          buyer_delivery, ads, other, payout}. Знак сборов - как отдаёт OZON (fee < 0).
 // payout = revenue + Σ(все начисления). §15-сверку (Σ по заказам = P&L) делаем на этапе сборки блока.
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { OzonSeller } from "../../connector/ozon-seller.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
@@ -25,6 +25,15 @@ export function annotation(level: "error" | "notice", text: string, secrets: str
   t = t.replace(/\r/g, "").replace(/\n/g, "%0A");
   if (t.length > 1500) t = t.slice(0, 1500) + "…";
   return `::${level}::${t}`;
+}
+
+// Инвариант перед записью: заказов не меньше 99% прошлого файла (заказы из кабинета не исчезают,
+// отменённые остаются со статусом; 1% - запас на единичные чистки OZON). Пустая или усохшая выдача
+// после смены контракта эндпоинта (другое имя поля списка, пустая схема) роняет сборку, а не
+// перезаписывает файл (К7). Прежний файл остаётся, прогон краснеет, причина - в аннотации.
+export function checkRowCount(prev: number, next: number): string | null {
+  if (prev > 0 && next < prev * 0.99) return `заказов ${next} меньше 99% прошлого файла (${prev}) - файл не перезаписан`;
+  return null;
 }
 
 const SECRETS = [process.env.OZON_SELLER_CLIENT_ID || "", process.env.OZON_SELLER_API_KEY || ""];
@@ -120,6 +129,9 @@ async function main() {
       dl: dlvByDate[p.posting_number] ? Object.entries(dlvByDate[p.posting_number]!).map(([d, v]) => [d, Math.round(v)]).filter((x) => x[1]) : null,
     });
   }
+  const prevRows = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).length : 0;
+  const bad = checkRowCount(prevRows, rows.length);
+  if (bad) throw new Error(bad);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка
   const T = rows.reduce((a, r) => ({ rev: a.rev + r.revenue, com: a.com + r.commission, pay: a.pay + r.payout, u: a.u + r.units }), { rev: 0, com: 0, pay: 0, u: 0 });

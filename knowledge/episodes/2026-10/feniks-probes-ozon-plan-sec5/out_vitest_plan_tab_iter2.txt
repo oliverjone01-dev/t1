@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /tmp/claude-0/-home-user-t1/1943908c-c4c7-568a-bd65-621494b42509/scratchpad/iter2run/head/analytics-mvp
+
+ ✓ src/scripts/plan-tab.test.ts (101 tests) 1506ms
+
+ Test Files  1 passed (1)
+      Tests  101 passed (101)
+   Start at  10:36:46
+   Duration  2.48s (transform 197ms, setup 0ms, collect 585ms, tests 1.51s, environment 0ms, prepare 81ms)
+

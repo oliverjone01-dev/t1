@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceChanges, wkDelta, PLAN_CARDS_FILE } from "./plan-tab.js";
+import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceChanges, wkDelta, ordWindow, deltaNote, DELTA_MIN_DAYS, DELTA_MIN_ORDERS, PLAN_CARDS_FILE } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -151,6 +151,26 @@ describe("wkDelta - дельта заказов артикула в шт/нед,
   it("8 шт за 14 дн против 7 шт за 4 дн: 12,3 - 4,0 = +8,3 в неделю", () => expect(wkDelta(8, 14, 7, 4)).toBe(8.3));
   it("одинаковый темп - 0", () => expect(wkDelta(14, 14, 4, 4)).toBe(0));
   it("нет дней окна с 15.10 - null, не 0 (К7)", () => { expect(wkDelta(5, 14, 0, 0)).toBeNull(); expect(wkDelta(5, 0, 1, 4)).toBeNull(); });
+});
+
+describe("ordWindow - сумма заказов и дни из одного окна, конец не позже 28.10 (Codex #490 P2, ФЕНИКС #490 G1)", () => {
+  it("заказы по 18.10 - окно 15-18.10, 4 дня", () => expect(ordWindow("2026-10-15", "2026-10-28", "2026-10-18")).toEqual({ end: "2026-10-18", days: 4 }));
+  it("заказы по 29.10 и дальше - окно режется концом плана 28.10, 14 дней, сумма тоже до 28.10", () => {
+    expect(ordWindow("2026-10-15", "2026-10-28", "2026-10-29")).toEqual({ end: "2026-10-28", days: 14 });
+    expect(ordWindow("2026-10-15", "2026-10-28", "2026-11-05")).toEqual({ end: "2026-10-28", days: 14 });
+  });
+  it("заказов с 15.10 ещё нет - пустое окно, 0 дней", () => {
+    expect(ordWindow("2026-10-15", "2026-10-28", "2026-10-14")).toEqual({ end: "", days: 0 });
+    expect(ordWindow("2026-10-15", "2026-10-28", "")).toEqual({ end: "", days: 0 });
+  });
+});
+
+describe("deltaNote - Δ серым с причиной, пока данных мало или цена в окне не менялась (ФЕНИКС #490 G2)", () => {
+  it("окно короче порога дней", () => expect(deltaNote(8, 7, 4, true)).toBe(`мало данных: окно 4 дн, нужно ${DELTA_MIN_DAYS}`));
+  it("заказов в двух окнах меньше порога", () => expect(deltaNote(2, 1, 7, true)).toBe(`мало данных: заказов 3, нужно ${DELTA_MIN_ORDERS}`));
+  it("цена в окне заказов не менялась", () => expect(deltaNote(4, 3, 7, false)).toBe("цена в окне не менялась"));
+  it("нет дней окна", () => expect(deltaNote(4, null, 0, true)).toBe("нет дней окна"));
+  it("данных хватает - null, Δ как есть", () => expect(deltaNote(4, 3, 7, true)).toBeNull());
 });
 
 describe("план v2 - корректировка Ивана 15.10", () => {

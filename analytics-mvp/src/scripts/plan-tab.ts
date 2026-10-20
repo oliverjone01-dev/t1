@@ -128,6 +128,25 @@ export function wkDelta(base: number, baseDays: number, after: number, afterDays
   if (!(baseDays > 0) || !(afterDays > 0)) return null;
   return Math.round((after / afterDays * 7 - base / baseDays * 7) * 10) / 10;
 }
+/** Окно заказов раздела 5: с начала плана по min(последний день заказов, конец окна плана 28.10), как порог карточки в блоке 1.
+ *  Сумма заказов и число дней берутся из одного окна: после 28.10 сумма не растёт, а делитель не режется отдельно
+ *  (Codex #490 P2, ФЕНИКС #490 G1). Заказов ещё нет - пустое окно, 0 дней. */
+export function ordWindow(start: string, w1: string, odLast: string): { end: string; days: number } {
+  if (!odLast || odLast < start) return { end: "", days: 0 };
+  const end = odLast < w1 ? odLast : w1;
+  return { end, days: daysIn(start, end) };
+}
+/** Когда Δ шт/нед показывать серым с пометкой, а не со знаком и цветом (ФЕНИКС #490 G2): окно короче DELTA_MIN_DAYS,
+ *  в двух окнах вместе меньше DELTA_MIN_ORDERS заказов, или цена в окне заказов не менялась (тогда Δ не про цену).
+ *  Пороги - допущения автора [ГИПОТЕЗА], записаны в decisions 2026-10-20. null - Δ показывается как есть. */
+export const DELTA_MIN_ORDERS = 5, DELTA_MIN_DAYS = 7;
+export function deltaNote(base: number, after: number | null, days: number, priceChangedInWindow: boolean): string | null {
+  if (after == null || !(days > 0)) return "нет дней окна";
+  if (days < DELTA_MIN_DAYS) return `мало данных: окно ${days} дн, нужно ${DELTA_MIN_DAYS}`;
+  if (base + after < DELTA_MIN_ORDERS) return `мало данных: заказов ${base + after}, нужно ${DELTA_MIN_ORDERS}`;
+  if (!priceChangedInWindow) return "цена в окне не менялась";
+  return null;
+}
 export const PRICE_BASE = "2026-10-14";
 /** Статус снижения цены к плану (Иван 15.10: «ждём - кого?», показывать факт, если уже поменяли).
  *  Смотрим на последнюю цену, а не на дату: снижение раньше срока или частичное видно сразу.
@@ -466,8 +485,10 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (r.d >= (prLast.get(r.offer)?.[0] ?? "")) prLast.set(r.offer, [r.d, Number(r.price)]);
     if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
   }
-  // Заказы артикула: база 01-14.10 (14 дн) и окно с 15.10 по последний день заказов (nIn дней), дельта в шт/нед (Иван 20.10).
+  // Заказы артикула: база 01-14.10 (14 дн) и окно с 15.10 по min(последний день заказов, 28.10) - одно окно для суммы
+  // и для дней (ordWindow), дельта в шт/нед (Иван 20.10; Codex #490 P2, ФЕНИКС #490 G1).
   const ORD_BASE: [string, string] = ["2026-10-01", "2026-10-14"], ORD_BASE_DAYS = 14;
+  const OW = ordWindow(START, W1, OD_LAST);
   const artUnits = (art: string, a: string, b: string): number => { let t = 0; for (const [k, v] of odArt) { const [o, d] = k.split("|"); if (o === art && d! >= a && d! <= b) t += v; } return t; };
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
   for (const r of readGapMarked(dp("gap_daily.ndjson")).rows) {
@@ -486,9 +507,13 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const ps = priceStatus(now, p.price_now, p.price_new, when, today), key = ps.key === "нет цены" ? "не снижена" : ps.key;
     pst[key] = (pst[key] ?? 0) + 1; if (gp != null && gp < 10) pst.eb = (pst.eb ?? 0) + 1;
     const chg = priceChanges(prHist.get(p.art), PRICE_BASE);
-    const uB = artUnits(p.art, ORD_BASE[0], ORD_BASE[1]), uA = nIn ? artUnits(p.art, START, OD_LAST) : null;
-    const dW = uA == null ? null : wkDelta(uB, ORD_BASE_DAYS, uA, nIn);
-    const dTxt = dW == null ? "-" : `<span style="color:${dW > 0 ? "#34D399" : dW < 0 ? "#FF7A7E" : "inherit"}">${dW > 0 ? "+" : ""}${F(dW, 1)}</span>`;
+    const uB = artUnits(p.art, ORD_BASE[0], ORD_BASE[1]), uA = OW.days ? artUnits(p.art, START, OW.end) : null;
+    const dW = uA == null ? null : wkDelta(uB, ORD_BASE_DAYS, uA, OW.days);
+    const note = deltaNote(uB, uA, OW.days, chg.some((c) => c.d >= START && c.d <= OW.end));
+    // Δ со знаком и цветом только когда данных хватает; иначе серым и с причиной (ФЕНИКС #490 G2: иначе шум читается как эффект).
+    const dTxt = dW == null ? "-" : note
+      ? `<span class="muted" title="${esc(note)}">${dW > 0 ? "+" : ""}${F(dW, 1)}</span><div class="muted s">${esc(note)}</div>`
+      : `<span style="color:${dW > 0 ? "#34D399" : dW < 0 ? "#FF7A7E" : "inherit"}">${dW > 0 ? "+" : ""}${F(dW, 1)}</span>`;
     r6.push(`<tr><td>${esc(p.when)}</td><td>${esc(p.art)}<div class="muted s">${esc(String(p.name).slice(0, 46))}</div></td>`
       + `<td class="r">${F(priceAt(prHist.get(p.art), PRICE_BASE))}</td>`
       + `<td class="nw">${chg.length ? chg.map((c) => `${DM(c.d)} ${F(c.price)}`).join("<br>") : `<span class="muted">без смен</span>`}</td>`
@@ -500,10 +525,19 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th><th class="r" title="наша цена до плана, снимок цен 14.10">14.10, ₽</th>`
     + `<th title="дни после 14.10, когда цена сменилась к предыдущему наблюдению, и новая цена">Смены цены</th><th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
     + `<th class="r" title="заказы артикула 01-14.10, шт без отмен, день по Москве">Заказы 01-14.10</th>`
-    + `<th class="r" title="заказы артикула с 15.10 по ${OD_LAST ? DM(OD_LAST) : "-"} (${nIn} дн), шт без отмен; последние 3 дня досчитываются">С 15.10${nIn ? ` (${nIn} дн)` : ""}</th>`
-    + `<th class="r" title="темп с 15.10 минус темп 01-14.10, оба в штуках в неделю: окна разной длины в сырых штуках не сравнить">Δ шт/нед</th>`
+    + `<th class="r" title="заказы артикула ${DM(START)}-${OW.end ? DM(OW.end) : "-"} (${OW.days} дн, окно плана до ${DM(W1)}), шт без отмен; последние 3 дня досчитываются">С 15.10${OW.days ? ` (${OW.days} дн)` : ""}</th>`
+    + `<th class="r" title="темп с 15.10 минус темп 01-14.10, оба в штуках в неделю: окна разной длины в сырых штуках не сравнить. Серым - мало данных или цена в окне не менялась: направление, не эффект">Δ шт/нед</th>`
     + `<th class="r" title="Скидка OZON на 14.10, до плана: на сколько цена на сайте ниже нашей (gap_daily)">Скидка OZON 14.10</th>`
-    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - OZON, похоже, перестал доплачивать">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
+    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - OZON, похоже, перестал доплачивать">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`
+    + storeRateLine();
+  // Контроль для Δ артикула: весь магазин за те же окна (ФЕНИКС #490 G2). Без него рост артикула читается как эффект цены,
+  // хотя магазин мог вырасти так же.
+  function storeRateLine(): string {
+    if (!OW.days) return `<div class="muted s">Заказов с ${DM(START)} ещё нет: Δ не считается.</div>`;
+    const sB = sumMap(stU, ORD_BASE[0], ORD_BASE[1]), sA = sumMap(stU, START, OW.end), sD = wkDelta(sB, ORD_BASE_DAYS, sA, OW.days);
+    return `<div class="muted s">Весь магазин за те же окна, шт/нед: 01-14.10 ${F(sB / ORD_BASE_DAYS * 7, 1)}, ${DM(START)}-${DM(OW.end)} ${F(sA / OW.days * 7, 1)}`
+      + ` (Δ ${sD != null && sD > 0 ? "+" : ""}${F(sD, 1)}). Δ артикула - направление, не эффект цены: заказов по артикулу мало, сравнивать с магазином.</div>`;
+  }
 
   const DATA = {
     days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),

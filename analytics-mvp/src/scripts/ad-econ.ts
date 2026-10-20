@@ -9,33 +9,53 @@
 // сборы) и SKU-ряда за тот же период (Иван 20.10, 1б); если начислено в рядах расходится больше 1% или
 // канала за период нет - надбавки нет, причина возвращается в warn и выводится на странице.
 //
+// Строки «доставлен, выручка есть, комиссия 0» исключаются из ставки и из надбавки (их начислено и сборы
+// вычитаются и из канала - одна популяция): они занижали ставку ~1 п.п. (ФЕНИКС iter1 gap 2, Иван 20.10: «исключать»).
+// Надбавка только для периода, который закончился не позже matureTo (сегодня − UE_MATURE_DAYS): на свежих днях
+// эквайринг/хранение уже списаны (по дате начисления), а заказы ещё не доставлены - надбавка раздувалась до 11 п.п.
+// (ФЕНИКС iter2 B2).
+//
 // Функция - строка JS: её же выполняет страница (вставляется в <script>) и тест (new Function), чтобы
 // логика жила в одном месте.
-//   rows: [[дата, sku, начислено, к выплате], ...], ch: [[дата, начислено, сборы(<0)], ...], from/to: YYYY-MM-DD
-//   -> {by: {sku: {com, accr, days}}, topUp, warn: [..]}
-export const AD_ECON_JS = `function adEconPeriod(rows, ch, from, to){
-  var by = {}, A = 0, M = 0, warn = [];
+//   rows: [[дата, sku, начислено, к выплате, комиссия], ...], ch: [[дата, начислено, сборы(<0)], ...],
+//   from/to/matureTo: YYYY-MM-DD -> {by: {sku: {com, accr, days}}, topUp, warn: [..], excluded}
+// ueWhy - почему строку кампании нельзя посчитать (null - считаем): без выручки - весь расход в минус и «резать».
+export const UE_MATURE_DAYS = 14;
+export const AD_ECON_JS = `function adEconPeriod(rows, ch, from, to, matureTo){
+  var by = {}, A = 0, M = 0, XA = 0, XM = 0, nx = 0, warn = [];
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i]; if (!r || r[0] < from || r[0] > to) continue;
-    var a = +r[2] || 0, m = +r[3] || 0, s = by[r[1]] || (by[r[1]] = { accr: 0, amt: 0, days: 0 });
+    var a = +r[2] || 0, m = +r[3] || 0;
+    if (a > 0 && +r[4] === 0) { XA += a; XM += m; nx++; continue; }
+    var s = by[r[1]] || (by[r[1]] = { accr: 0, amt: 0, days: 0 });
     s.accr += a; s.amt += m; if (a > 0) s.days++; A += a; M += m;
   }
-  var CA = 0, CF = 0;
+  var CA = -XA, CF = -(XA - XM);
   for (var j = 0; j < ch.length; j++) { var c = ch[j]; if (!c || c[0] < from || c[0] > to) continue; CA += +c[1] || 0; CF += +c[2] || 0; }
   var topUp = null;
   if (!(A > 0)) warn.push('начислений за период нет: заказы ещё не доставлены');
+  else if (matureTo && to > matureTo) warn.push('период захватывает последние ${UE_MATURE_DAYS} дней - эквайринг и хранение не добавлены: OZON списывает их раньше, чем доставляются заказы');
   else if (!(CA > 0)) warn.push('канального ряда за период нет - ставка без эквайринга и хранения');
   else if (Math.abs(CA - A) / A > 0.01) warn.push('начислено в канале и по товарам расходится больше 1% - ставка без эквайринга и хранения');
   else { var t = (-CF / CA) * 100 - ((A - M) / A) * 100; if (t < 0) warn.push('надбавка за эквайринг и хранение отрицательная - взят 0'); topUp = Math.round(Math.max(0, t) * 10) / 10; }
   var out = {};
   for (var k in by) { var b = by[k]; if (!(b.accr > 0)) continue;
     out[k] = { com: Math.round(((b.accr - b.amt) / b.accr * 100 + (topUp || 0)) * 10) / 10, accr: Math.round(b.accr), days: b.days }; }
-  return { by: out, topUp: topUp, warn: warn };
+  return { by: out, topUp: topUp, warn: warn, excluded: nx };
+}
+function ueWhy(om, ord, com, cogsRub){
+  if (!(om > 0)) return 'выручки за период нет';
+  if (!(ord > 0)) return 'заказов за период нет';
+  if (com == null) return 'нет начислений по SKU за период (заказы ещё не доставлены)';
+  if (cogsRub == null) return 'нет себестоимости';
+  return null;
 }`;
 
-export type AdEconOut = { by: Record<string, { com: number; accr: number; days: number }>; topUp: number | null; warn: string[] };
-export type AdEconFn = (rows: unknown[][], ch: unknown[][], from: string, to: string) => AdEconOut;
-export const adEconPeriod: AdEconFn = new Function(AD_ECON_JS + "\nreturn adEconPeriod;")() as AdEconFn;
+export type AdEconOut = { by: Record<string, { com: number; accr: number; days: number }>; topUp: number | null; warn: string[]; excluded: number };
+export type AdEconFn = (rows: unknown[][], ch: unknown[][], from: string, to: string, matureTo?: string) => AdEconOut;
+const __fns = new Function(AD_ECON_JS + "\nreturn [adEconPeriod, ueWhy];")();
+export const adEconPeriod: AdEconFn = __fns[0];
+export const ueWhy: (om: number, ord: number, com: number | null | undefined, cogsRub: number | null | undefined) => string | null = __fns[1];
 
 // Строки ndjson -> компактные массивы для страницы. Строка, которая не объект или без даты/SKU, - битая:
 // пропускаем и считаем (решение 14.10: сломанные данные не роняют сайт, а видны на странице).
@@ -44,7 +64,7 @@ export function packAccrual(skuObjs: unknown[], chObjs: unknown[]): { rows: unkn
   const ok = (r: any) => r && typeof r === "object" && typeof r.d === "string";
   const rows: unknown[][] = [], ch: unknown[][] = [];
   const num = (v: unknown) => typeof v === "number" && Number.isFinite(v);
-  for (const r of skuObjs as any[]) { if (!ok(r) || r.sku == null || !num(r.accruals) || !num(r.amount)) { bad++; continue; } rows.push([r.d, String(r.sku), r.accruals, r.amount]); }
+  for (const r of skuObjs as any[]) { if (!ok(r) || r.sku == null || !num(r.accruals) || !num(r.amount) || !num(r.commission)) { bad++; continue; } rows.push([r.d, String(r.sku), r.accruals, r.amount, r.commission]); }
   for (const r of chObjs as any[]) { if (!ok(r) || !num(r.accruals) || !num(r.fees)) { bad++; continue; } ch.push([r.d, r.accruals, r.fees]); }
   return { rows, ch, bad };
 }

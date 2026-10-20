@@ -17,7 +17,7 @@ import { splitCpo } from "./cpo-split.js";
 import { cardSpread } from "./cpc-card-spread.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 import { ndLines, ndBad, ndBadNote } from "./nd-lines.js";
-import { AD_ECON_JS, UE_MATURE_DAYS, packAccrual } from "./ad-econ.js";
+import { AD_ECON_JS, UE_MATURE_DAYS, UE_STALE_DAYS, packAccrual } from "./ad-econ.js";
 // Битые строки данных - одна строка ::error:: в лог CI в конце сборки (ФЕНИКС iter10 gap 1).
 process.on("exit", () => { if (ndBad.length) console.log(`::error::katya: ${ndBadNote()}`); });
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
@@ -1251,7 +1251,7 @@ function warnStale(): void {
     try { let m = ""; for (const l of ndLines(dp(file))) { const r = JSON.parse(l); if (r && typeof r.d === "string" && (r.accruals || 0) > 0 && r.d > m) m = r.d; } return m || undefined; }
     catch { return undefined; }
   };
-  for (const [name, f] of [["начисления по SKU", "pnl_sku_accrual_daily.ndjson"], ["начисления канала", "pnl_channel_accrual_daily.ndjson"]] as const) {
+  if (IS_OZON) for (const [name, f] of [["начисления по SKU", "pnl_sku_accrual_daily.ndjson"], ["начисления канала", "pnl_channel_accrual_daily.ndjson"]] as const) {
     const d = accrLast(f), n = daysOld(d);
     if (n == null || n >= 7) { stale++; console.log(`::warning::ряд «${name}» (${f}) устарел или пуст: последний день с начислениями ${d || "нет"}${n != null ? ` (${n} дн от вчера)` : ""}. Проверь orders-backfill.yml.`); }
   }
@@ -1735,7 +1735,7 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   const readObjs = (f: string): unknown[] => { try { return ndLines(dp(f)).map((l) => JSON.parse(l)); } catch { return []; } };
   const ACCR = packAccrual(readObjs("pnl_sku_accrual_daily.ndjson"), readObjs("pnl_channel_accrual_daily.ndjson"));
   if (ACCR.bad) { const k = `pnl_*_accrual_daily.ndjson, строк без полей: ${ACCR.bad}`; if (!ndBad.includes(k)) ndBad.push(k); console.log(`::error::${k}`); }
-  if (!ACCR.rows.length) console.log("::warning::юнит-экономика рекламы: ряд начислений по SKU пуст - ставки сборов на странице не будет");
+  if (IS_OZON && !ACCR.rows.length) console.log("::warning::юнит-экономика рекламы: ряд начислений по SKU пуст - ставки сборов на странице не будет");
   const SKU_COGS_U: Record<string, number> = {};
   for (const sk in econCogs) if ((econCogs[sk] || 0) > 0) SKU_COGS_U[sk] = Math.round(econCogs[sk]!); // с/с ₽/шт, в т.ч. SKU атрибуции
   const campCss = `<style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`; // стили «Маркетинга», они же на «Реклама по карточкам»
@@ -1756,7 +1756,7 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const UE_MATURE_DAYS=${UE_MATURE_DAYS};const ACCR_ROWS=${J(ACCR.rows)};const ACCR_CH=${J(ACCR.ch)};const SKU_COGS_U=${J(SKU_COGS_U)};var ECON={};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const UE_MATURE_DAYS=${UE_MATURE_DAYS};const UE_STALE_DAYS=${UE_STALE_DAYS};const ACCR_LAST=${J(ACCR.last)};const ACCR_ROWS=${J(ACCR.rows)};const ACCR_CH=${J(ACCR.ch)};const SKU_COGS_U=${J(SKU_COGS_U)};var ECON={};
 ${AD_ECON_JS}
 const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const ADS_SKU_CAMP=${J(adsSkuByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
 // Per-SKU «Основная карточка» за период из кампании (без снимка RCACHE): SKU кампании + её
@@ -1908,10 +1908,10 @@ function renderUecon(a){
   // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
   var rows=[];var naSp=0,total=0;
   // Ставка сборов OZON за ВЫБРАННЫЙ период (Иван 20.10), расчёт - adEconPeriod (src/scripts/ad-econ.ts).
-  var _pd=periodDates(CURP),_pf=a.dateFrom||_pd.from,_pt=a.dateTo||_pd.to,_mt=new Date(Date.now()-UE_MATURE_DAYS*864e5).toISOString().slice(0,10),_ec=adEconPeriod(ACCR_ROWS,ACCR_CH,_pf,_pt,_mt);
+  var _pd=periodDates(CURP),_pf=a.dateFrom||_pd.from,_pt=a.dateTo||_pd.to,_msk=function(n){return new Date(Date.now()+3*36e5-n*864e5).toISOString().slice(0,10);},_mt=_msk(UE_MATURE_DAYS),_stale=(ACCR_LAST&&ACCR_LAST<_msk(UE_STALE_DAYS+1))?ACCR_LAST.split('-').reverse().join('.'):null,_ec=adEconPeriod(ACCR_ROWS,ACCR_CH,_pf,_pt,_mt);
   ECON={};for(var _k in SKU_COGS_U)ECON[_k]={com:null,days:0,cogsRub:SKU_COGS_U[_k]};
   for(var _s in _ec.by){var _b=_ec.by[_s];ECON[_s]={com:_b.com,days:_b.days,cogsRub:SKU_COGS_U[_s]!=null?SKU_COGS_U[_s]:null};}
-  var _src=document.getElementById('ue-src');if(_src)_src.innerHTML='Ставка сборов OZON - из начислений за выбранный период (доставленные заказы, по дате заказа)'+(_ec.topUp!=null?', плюс эквайринг и хранение кабинета '+String(_ec.topUp).replace('.',',')+' п.п.':'')+'; нет начислений по SKU за период - строка «нет данных»'+(_ec.excluded?'; исключено строк с выручкой и нулевой комиссией: '+_ec.excluded:'')+'.'+(_ec.warn.length?' <span style="color:#FF8A5A">'+_ec.warn.join('; ')+'.</span>':'');
+  var _src=document.getElementById('ue-src');if(_src)_src.innerHTML='Ставка сборов OZON - из начислений за выбранный период (доставленные заказы, по дате заказа)'+(_ec.topUp!=null?', плюс эквайринг и хранение кабинета '+String(_ec.topUp).replace('.',',')+' п.п.':'')+'; нет начислений по SKU за период - строка «нет данных»'+(_ec.excluded?'; исключено строк с выручкой и нулевой комиссией: '+_ec.excluded:'')+'.'+(_stale?' <span style="color:#FF5A5F">Ряд начислений не обновлялся с '+_stale+' - проверь сборщик (orders-backfill).</span>':'')+(_ec.warn.length?' <span style="color:#FF8A5A">'+_ec.warn.join('; ')+'.</span>':'');
   // Фильтр по статусу (множественный выбор активна/неактивна). По умолчанию - оба.
   var _fa=document.getElementById('ue-fa'),_fi=document.getElementById('ue-fi');
   var showA=_fa?_fa.checked:true, showI=_fi?_fi.checked:true;
@@ -1922,7 +1922,7 @@ function renderUecon(a){
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
     // Считаем только кампанию с выручкой и заказами за период, ставкой сборов SKU за период и с/с. Без выручки -
     // весь расход в минус и в «резать» (ФЕНИКС B7: не в «в плюс»); остальное - «нет данных», без подстановок.
-    e=e||{};var why=ueWhy(om,ordC,e.com,e.cogsRub);
+    e=e||{};var why=ueWhy(om,ordC,e.com,e.cogsRub,_stale);
     if(why){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,ord:ordC,na:true,zero:!(om>0),why:why});return;}
     // Средневзвешенно по SKU кампании из РЕАЛЬНОЙ атрибуции (выручка/заказы per-SKU из отчёта
     // продвижения): эфф. ставка сборов = Σ(выручка_sku×ставка_sku)/Σвыручка_sku; с/с ед. =

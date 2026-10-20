@@ -476,7 +476,6 @@ for (const r of salesRows) {
 try {
   for (const l of ndLines(dp("pnl_sku_accrual_daily.ndjson"))) {
     const r = JSON.parse(l); if (!r || typeof r !== "object" || typeof r.d !== "string" || typeof r.accruals !== "number" || typeof r.commission !== "number") continue;
-    if (r.accruals > 0 && r.commission === 0) continue; // доставлен с выручкой, комиссия 0 - вне ставки (Иван 20.10: «исключать»)
     const i = dayIdx(r.d); if (i < 0 || i >= TOTAL) continue;
     PROF_ACCR[i] = (PROF_ACCR[i] ?? 0) + r.accruals; PROF_COMM[i] = (PROF_COMM[i] ?? 0) + Math.abs(r.commission);
   }
@@ -1911,7 +1910,7 @@ function renderUecon(a){
   var _pd=periodDates(CURP),_pf=a.dateFrom||_pd.from,_pt=a.dateTo||_pd.to,_msk=function(n){return new Date(Date.now()+3*36e5-n*864e5).toISOString().slice(0,10);},_mt=_msk(UE_MATURE_DAYS),_stale=(ACCR_LAST&&ACCR_LAST<_msk(UE_STALE_DAYS+1))?ACCR_LAST.split('-').reverse().join('.'):null,_ec=adEconPeriod(ACCR_ROWS,ACCR_CH,_pf,_pt,_mt);
   ECON={};for(var _k in SKU_COGS_U)ECON[_k]={com:null,days:0,cogsRub:SKU_COGS_U[_k]};
   for(var _s in _ec.by){var _b=_ec.by[_s];ECON[_s]={com:_b.com,days:_b.days,cogsRub:SKU_COGS_U[_s]!=null?SKU_COGS_U[_s]:null};}
-  var _src=document.getElementById('ue-src');if(_src)_src.innerHTML='Ставка сборов OZON - из начислений за выбранный период (доставленные заказы, по дате заказа)'+(_ec.topUp!=null?', плюс эквайринг и хранение кабинета '+String(_ec.topUp).replace('.',',')+' п.п.':'')+'; нет начислений по SKU за период - строка «нет данных»'+(_ec.excluded?'; исключено строк с выручкой и нулевой комиссией: '+_ec.excluded:'')+'.'+(_stale?' <span style="color:#FF5A5F">Ряд начислений не обновлялся с '+_stale+' - проверь сборщик (orders-backfill).</span>':'')+(_ec.warn.length?' <span style="color:#FF8A5A">'+_ec.warn.join('; ')+'.</span>':'');
+  var _src=document.getElementById('ue-src');if(_src)_src.innerHTML='Ставка сборов OZON - из начислений за выбранный период (доставленные заказы, по дате заказа)'+(_ec.topUp!=null?', плюс эквайринг и хранение кабинета '+String(_ec.topUp).replace('.',',')+' п.п.'+(_ec.own?'':' (за '+_ec.topUpFrom.split('-').reverse().join('.')+'-'+_ec.topUpTo.split('-').reverse().join('.')+': в последних '+UE_MATURE_DAYS+' днях заказы ещё не доставлены)'):'')+'; нет начислений по SKU за период - строка «нет данных».'+(_stale?' <span style="color:#FF5A5F">Ряд начислений не обновлялся с '+_stale+' - проверь сборщик (orders-backfill).</span>':'')+(_ec.warn.length?' <span style="color:#FF8A5A">'+_ec.warn.join('; ')+'.</span>':'');
   // Фильтр по статусу (множественный выбор активна/неактивна). По умолчанию - оба.
   var _fa=document.getElementById('ue-fa'),_fi=document.getElementById('ue-fi');
   var showA=_fa?_fa.checked:true, showI=_fi?_fi.checked:true;

@@ -9,40 +9,48 @@
 // сборы) и SKU-ряда за тот же период (Иван 20.10, 1б); если начислено в рядах расходится больше 1% или
 // канала за период нет - надбавки нет, причина возвращается в warn и выводится на странице.
 //
-// Строки «доставлен, выручка есть, комиссия 0» исключаются из ставки и из надбавки (их начислено и сборы
-// вычитаются и из канала - одна популяция): они занижали ставку ~1 п.п. (ФЕНИКС iter1 gap 2, Иван 20.10: «исключать»).
-// Надбавка только для периода, который закончился не позже matureTo (сегодня − UE_MATURE_DAYS): на свежих днях
-// эквайринг/хранение уже списаны (по дате начисления), а заказы ещё не доставлены - надбавка раздувалась до 11 п.п.
-// (ФЕНИКС iter2 B2).
+// Надбавка считается за выбранный период, только если он закончился не позже matureTo (сегодня МСК −
+// UE_MATURE_DAYS): на свежих днях эквайринг/хранение уже списаны (по дате начисления), а заказы ещё не доставлены -
+// надбавка раздувалась до 11 п.п. (ФЕНИКС iter2 B2). Для свежего периода берётся надбавка последних
+// UE_TOPUP_WIN_DAYS дней, закончившихся в matureTo, с пометкой (Иван 20.10: «2 а»).
+// Строки «доставлен, выручка есть, комиссия 0» в расчёте остаются (Иван 20.10: «1 вернуть»): с ними ставка
+// сентября 49,52% против 49,51% в отчёте о реализации, без них 50,83% (ФЕНИКС iter3).
 //
 // Функция - строка JS: её же выполняет страница (вставляется в <script>) и тест (new Function), чтобы
 // логика жила в одном месте.
 //   rows: [[дата, sku, начислено, к выплате, комиссия], ...], ch: [[дата, начислено, сборы(<0)], ...],
-//   from/to/matureTo: YYYY-MM-DD -> {by: {sku: {com, accr, days}}, topUp, warn: [..], excluded}
+//   from/to/matureTo: YYYY-MM-DD -> {by: {sku: {com, accr, days}}, topUp, topUpFrom, topUpTo, own, warn: [..]}
 // ueWhy - почему строку кампании нельзя посчитать (null - считаем): без выручки - весь расход в минус и «резать».
 export const UE_MATURE_DAYS = 14;
 export const UE_STALE_DAYS = 7;   // ряд начислений старше - сборщик, а не недоставка (обычный лаг 3-5 дней)
-export const AD_ECON_JS = `function adEconPeriod(rows, ch, from, to, matureTo){
-  var by = {}, A = 0, M = 0, XA = 0, XM = 0, nx = 0, warn = [];
+export const UE_TOPUP_WIN_DAYS = 30;
+export const AD_ECON_JS = `function adEconTopUp(rows, ch, from, to){
+  var A = 0, M = 0, CA = 0, CF = 0;
+  for (var i = 0; i < rows.length; i++) { var r = rows[i]; if (!r || r[0] < from || r[0] > to) continue; A += +r[2] || 0; M += +r[3] || 0; }
+  for (var j = 0; j < ch.length; j++) { var c = ch[j]; if (!c || c[0] < from || c[0] > to) continue; CA += +c[1] || 0; CF += +c[2] || 0; }
+  if (!(A > 0)) return { t: null, warn: 'начислений за ' + from + '..' + to + ' нет' };
+  if (!(CA > 0)) return { t: null, warn: 'канального ряда за ' + from + '..' + to + ' нет - ставка без эквайринга и хранения' };
+  if (Math.abs(CA - A) / A > 0.01) return { t: null, warn: 'начислено в канале и по товарам расходится больше 1% - ставка без эквайринга и хранения' };
+  var t = (-CF / CA) * 100 - ((A - M) / A) * 100;
+  return { t: Math.round(Math.max(0, t) * 10) / 10, warn: t < 0 ? 'надбавка за эквайринг и хранение отрицательная - взят 0' : null };
+}
+function adEconPeriod(rows, ch, from, to, matureTo){
+  var by = {}, A = 0, warn = [];
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i]; if (!r || r[0] < from || r[0] > to) continue;
-    var a = +r[2] || 0, m = +r[3] || 0;
-    if (a > 0 && +r[4] === 0) { XA += a; XM += m; nx++; continue; }
-    var s = by[r[1]] || (by[r[1]] = { accr: 0, amt: 0, days: 0 });
-    s.accr += a; s.amt += m; if (a > 0) s.days++; A += a; M += m;
+    var a = +r[2] || 0, m = +r[3] || 0, s = by[r[1]] || (by[r[1]] = { accr: 0, amt: 0, days: 0 });
+    s.accr += a; s.amt += m; if (a > 0) s.days++; A += a;
   }
-  var CA = -XA, CF = XA - XM;   // сборы исключённых (к выплате − начислено, <0) уже в канале - снимаем их
-  for (var j = 0; j < ch.length; j++) { var c = ch[j]; if (!c || c[0] < from || c[0] > to) continue; CA += +c[1] || 0; CF += +c[2] || 0; }
-  var topUp = null;
+  var topUp = null, topUpFrom = from, topUpTo = to;
   if (!(A > 0)) warn.push('начислений за период нет: заказы ещё не доставлены');
-  else if (matureTo && to > matureTo) warn.push('период захватывает последние ${UE_MATURE_DAYS} дней - эквайринг и хранение не добавлены: OZON списывает их раньше, чем доставляются заказы');
-  else if (!(CA > 0)) warn.push('канального ряда за период нет - ставка без эквайринга и хранения');
-  else if (Math.abs(CA - A) / A > 0.01) warn.push('начислено в канале и по товарам расходится больше 1% - ставка без эквайринга и хранения');
-  else { var t = (-CF / CA) * 100 - ((A - M) / A) * 100; if (t < 0) warn.push('надбавка за эквайринг и хранение отрицательная - взят 0'); topUp = Math.round(Math.max(0, t) * 10) / 10; }
+  else {
+    if (matureTo && to > matureTo) { topUpTo = matureTo; topUpFrom = new Date(Date.parse(matureTo + 'T00:00:00Z') - (${UE_TOPUP_WIN_DAYS} - 1) * 864e5).toISOString().slice(0, 10); }
+    var tu = adEconTopUp(rows, ch, topUpFrom, topUpTo); topUp = tu.t; if (tu.warn) warn.push(tu.warn);
+  }
   var out = {};
   for (var k in by) { var b = by[k]; if (!(b.accr > 0)) continue;
     out[k] = { com: Math.round(((b.accr - b.amt) / b.accr * 100 + (topUp || 0)) * 10) / 10, accr: Math.round(b.accr), days: b.days }; }
-  return { by: out, topUp: topUp, warn: warn, excluded: nx };
+  return { by: out, topUp: topUp, topUpFrom: topUpFrom, topUpTo: topUpTo, own: topUpFrom === from && topUpTo === to, warn: warn };
 }
 function ueWhy(om, ord, com, cogsRub, staleSince){
   if (!(om > 0)) return 'выручки за период нет';
@@ -52,7 +60,7 @@ function ueWhy(om, ord, com, cogsRub, staleSince){
   return null;
 }`;
 
-export type AdEconOut = { by: Record<string, { com: number; accr: number; days: number }>; topUp: number | null; warn: string[]; excluded: number };
+export type AdEconOut = { by: Record<string, { com: number; accr: number; days: number }>; topUp: number | null; topUpFrom: string; topUpTo: string; own: boolean; warn: string[] };
 export type AdEconFn = (rows: unknown[][], ch: unknown[][], from: string, to: string, matureTo?: string) => AdEconOut;
 const __fns = new Function(AD_ECON_JS + "\nreturn [adEconPeriod, ueWhy];")();
 export const adEconPeriod: AdEconFn = __fns[0];

@@ -113,14 +113,20 @@ export function priceAt(h: Map<string, number> | undefined, d: string): number |
   for (const [k, x] of h) if (k <= d && k > best) { best = k; v = x; }
   return v;
 }
-/** Колонки цены: база (14.10) и каждый день после неё, когда цена хоть одного артикула сменилась к прошлому наблюдению. */
-export function priceColumns(hist: Map<string, Map<string, number>>, base: string): string[] {
-  const out = new Set<string>([base]);
-  for (const h of hist.values()) {
-    let prev: number | null = priceAt(h, base);
-    for (const d of [...h.keys()].filter((k) => k > base).sort()) { const v = h.get(d)!; if (prev != null && v !== prev) out.add(d); prev = v; }
-  }
-  return [...out].sort();
+/** Смены цены артикула после базы (14.10): только дни, когда цена отличается от предыдущего наблюдения, с новой ценой
+ *  (Иван 20.10: колонки дат убрать, оставить только смены). День без наблюдения сменой не считается. */
+export function priceChanges(h: Map<string, number> | undefined, base: string): Array<{ d: string; price: number }> {
+  const out: Array<{ d: string; price: number }> = [];
+  if (!h) return out;
+  let prev: number | null = priceAt(h, base);
+  for (const d of [...h.keys()].filter((k) => k > base).sort()) { const v = h.get(d)!; if (prev != null && v !== prev) out.push({ d, price: v }); prev = v; }
+  return out;
+}
+/** Разница темпа заказов в штуках в неделю: окно «с 15.10» (пока 4-14 дней) против базы 01-14.10 (14 дней).
+ *  Сырые штуки за окна разной длины сравнивать нельзя (К3), поэтому оба приводятся к неделе. Нет дней окна - null. */
+export function wkDelta(base: number, baseDays: number, after: number, afterDays: number): number | null {
+  if (!(baseDays > 0) || !(afterDays > 0)) return null;
+  return Math.round((after / afterDays * 7 - base / baseDays * 7) * 10) / 10;
 }
 export const PRICE_BASE = "2026-10-14";
 /** Статус снижения цены к плану (Иван 15.10: «ждём - кого?», показывать факт, если уже поменяли).
@@ -288,6 +294,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   // заказы
   const skuDayAll = new Map<string, number>();   // с отменами, для сверки с кабинетом
   const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
+  const odArt = new Map<string, number>();   // артикул|день -> шт без отмен (раздел 5, Иван 20.10)
   const ordRows = readNd(dp("orders_daily.ndjson"));
   const OD_RAW_LAST = ordRows.reduce((m, o) => o.d > m ? o.d : m, "");
   const canc = new Map<string, [number, number]>();
@@ -302,6 +309,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const u = Number(o.units) || 0, i = SKU_CARD.get(String(o.sku));
     if (i != null) add(od[i]!, o.d, u);
     add(stU, o.d, u); add(stRev, o.d, Number(o.revenue) || 0);
+    // заказы по артикулу (offer) для раздела 5 «Цена»: те же строки и правила, что у карточек (без отмен, день по Москве)
+    add(odArt, `${o.offer}|${o.d}`, u);
   }
   // реклама
   const asd = readNd(dp("ads_sku_daily.ndjson"));
@@ -451,13 +460,15 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
 
   // ---------- 5. цена артикулов плана
   const prLast = new Map<string, [string, number]>(), gapLast = new Map<string, [string, number]>();
-  const prHist = new Map<string, Map<string, number>>();   // артикул -> день -> цена (Иван 15.10: колонка 14.10 и колонка на каждую смену цены)
+  const prHist = new Map<string, Map<string, number>>();   // артикул -> день -> цена (Иван 15.10: было 14.10; Иван 20.10: только смены цены, без колонок дат)
   const priceArts = new Set(P.price.map((p) => p.art));
   for (const r of readNd(dp("prices_daily.ndjson"))) {
     if (r.d >= (prLast.get(r.offer)?.[0] ?? "")) prLast.set(r.offer, [r.d, Number(r.price)]);
     if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
   }
-  const PCOLS = priceColumns(prHist, PRICE_BASE);
+  // Заказы артикула: база 01-14.10 (14 дн) и окно с 15.10 по последний день заказов (nIn дней), дельта в шт/нед (Иван 20.10).
+  const ORD_BASE: [string, string] = ["2026-10-01", "2026-10-14"], ORD_BASE_DAYS = 14;
+  const artUnits = (art: string, a: string, b: string): number => { let t = 0; for (const [k, v] of odArt) { const [o, d] = k.split("|"); if (o === art && d! >= a && d! <= b) t += v; } return t; };
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
   for (const r of readGapMarked(dp("gap_daily.ndjson")).rows) {
     // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва;
@@ -474,13 +485,23 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const gTxt = gdd == null || Math.abs(gdd) < 0.05 ? "" : `<div class="s" style="color:${gdd > 0 ? "#34D399" : "#FF7A7E"}">${gdd > 0 ? "+" : ""}${F(gdd, 1)} п.п.</div>`;
     const ps = priceStatus(now, p.price_now, p.price_new, when, today), key = ps.key === "нет цены" ? "не снижена" : ps.key;
     pst[key] = (pst[key] ?? 0) + 1; if (gp != null && gp < 10) pst.eb = (pst.eb ?? 0) + 1;
+    const chg = priceChanges(prHist.get(p.art), PRICE_BASE);
+    const uB = artUnits(p.art, ORD_BASE[0], ORD_BASE[1]), uA = nIn ? artUnits(p.art, START, OD_LAST) : null;
+    const dW = uA == null ? null : wkDelta(uB, ORD_BASE_DAYS, uA, nIn);
+    const dTxt = dW == null ? "-" : `<span style="color:${dW > 0 ? "#34D399" : dW < 0 ? "#FF7A7E" : "inherit"}">${dW > 0 ? "+" : ""}${F(dW, 1)}</span>`;
     r6.push(`<tr><td>${esc(p.when)}</td><td>${esc(p.art)}<div class="muted s">${esc(String(p.name).slice(0, 46))}</div></td>`
-      + PCOLS.map((d) => `<td class="r">${F(priceAt(prHist.get(p.art), d))}</td>`).join("")
+      + `<td class="r">${F(priceAt(prHist.get(p.art), PRICE_BASE))}</td>`
+      + `<td class="nw">${chg.length ? chg.map((c) => `${DM(c.d)} ${F(c.price)}`).join("<br>") : `<span class="muted">без смен</span>`}</td>`
       + `<td class="r">${F(now)}<div class="muted s">${d0 ? DM(d0) : ""}</div></td><td class="r">${F(p.price_new)} <span class="muted">${esc(p.step)}</span></td>`
       + `<td><span class="chip ${ps.key === "снижена" ? "chip-done" : ps.key === "частично" ? "chip-mid" : ps.key === "по плану" ? "chip-off" : "chip-bad"}">${esc(ps.text)}</span></td>`
+      + `<td class="r">${uB}</td><td class="r">${uA == null ? "-" : uA}</td><td class="r">${dTxt}</td>`
       + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`}<div class="muted s">${gd ? DM(gd) : ""}</div>${gTxt}</td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">OZON не доплачивает?</span>` : ""}</td></tr>`);
   }
-  const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th>${PCOLS.map((d, k) => `<th class="r"${k ? ` title="цена сменилась ${DM(d)}"` : ""}>${DM(d)}</th>`).join("")}<th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
+  const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th><th class="r" title="наша цена до плана, снимок цен 14.10">14.10, ₽</th>`
+    + `<th title="дни после 14.10, когда цена сменилась к предыдущему наблюдению, и новая цена">Смены цены</th><th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
+    + `<th class="r" title="заказы артикула 01-14.10, шт без отмен, день по Москве">Заказы 01-14.10</th>`
+    + `<th class="r" title="заказы артикула с 15.10 по ${OD_LAST ? DM(OD_LAST) : "-"} (${nIn} дн), шт без отмен; последние 3 дня досчитываются">С 15.10${nIn ? ` (${nIn} дн)` : ""}</th>`
+    + `<th class="r" title="темп с 15.10 минус темп 01-14.10, оба в штуках в неделю: окна разной длины в сырых штуках не сравнить">Δ шт/нед</th>`
     + `<th class="r" title="Скидка OZON на 14.10, до плана: на сколько цена на сайте ниже нашей (gap_daily)">Скидка OZON 14.10</th>`
     + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - OZON, похоже, перестал доплачивать">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 

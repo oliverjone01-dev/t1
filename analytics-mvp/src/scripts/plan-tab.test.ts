@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns, PLAN_CARDS_FILE } from "./plan-tab.js";
+import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceChanges, wkDelta, PLAN_CARDS_FILE } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -132,14 +132,25 @@ describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»)
   });
 });
 
-describe("цена по датам (Иван 15.10: колонка 14.10 и колонка на каждую смену)", () => {
-  const h = new Map([["A", new Map([["2026-10-13", 100], ["2026-10-14", 100], ["2026-10-15", 100], ["2026-10-16", 90], ["2026-10-17", 90]])],
+describe("цена по датам (Иван 15.10: было 14.10; Иван 20.10: только смены цены, без колонок дат)", () => {
+  const h = new Map([["A", new Map([["2026-10-13", 100], ["2026-10-14", 100], ["2026-10-15", 100], ["2026-10-16", 90], ["2026-10-17", 90], ["2026-10-19", 100]])],
     ["B", new Map([["2026-10-12", 50], ["2026-10-18", 45]])]]);
   it("priceAt - последняя цена не позже дня", () => {
     expect(priceAt(h.get("B"), "2026-10-14")).toBe(50); expect(priceAt(h.get("A"), "2026-10-16")).toBe(90); expect(priceAt(h.get("B"), "2026-10-01")).toBeNull();
   });
-  it("колонки: 14.10 и дни смены цены любого артикула", () => expect(priceColumns(h, "2026-10-14")).toEqual(["2026-10-14", "2026-10-16", "2026-10-18"]));
-  it("без смен - только 14.10", () => expect(priceColumns(new Map([["A", new Map([["2026-10-14", 1], ["2026-10-15", 1]])]]), "2026-10-14")).toEqual(["2026-10-14"]));
+  it("смены: только дни, когда цена отличается от предыдущего наблюдения, с новой ценой; возврат к старой - тоже смена", () =>
+    expect(priceChanges(h.get("A"), "2026-10-14")).toEqual([{ d: "2026-10-16", price: 90 }, { d: "2026-10-19", price: 100 }]));
+  it("смена без наблюдения 14.10 считается от последней цены до базы", () => expect(priceChanges(h.get("B"), "2026-10-14")).toEqual([{ d: "2026-10-18", price: 45 }]));
+  it("без смен - пусто; нет истории - пусто", () => {
+    expect(priceChanges(new Map([["2026-10-14", 1], ["2026-10-15", 1]]), "2026-10-14")).toEqual([]);
+    expect(priceChanges(undefined, "2026-10-14")).toEqual([]);
+  });
+});
+
+describe("wkDelta - дельта заказов артикула в шт/нед, окна разной длины приводятся к неделе (Иван 20.10)", () => {
+  it("8 шт за 14 дн против 7 шт за 4 дн: 12,3 - 4,0 = +8,3 в неделю", () => expect(wkDelta(8, 14, 7, 4)).toBe(8.3));
+  it("одинаковый темп - 0", () => expect(wkDelta(14, 14, 4, 4)).toBe(0));
+  it("нет дней окна с 15.10 - null, не 0 (К7)", () => { expect(wkDelta(5, 14, 0, 0)).toBeNull(); expect(wkDelta(5, 0, 1, 4)).toBeNull(); });
 });
 
 describe("план v2 - корректировка Ивана 15.10", () => {

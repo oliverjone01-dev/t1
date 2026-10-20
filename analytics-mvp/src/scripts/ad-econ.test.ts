@@ -1,58 +1,68 @@
 import { describe, it, expect } from "vitest";
-import { adEcon, ECON_WIN_DAYS, type SkuAccrRow, type ChanRow } from "./ad-econ.js";
+import { adEconPeriod, packAccrual } from "./ad-econ.js";
 
-// Эталон посчитан вручную. Окно 60 дн. по последней дате ряда (2026-10-15): 2026-08-17..2026-10-15.
-// SKU A: 3 дня доставок, начислено 300, к выплате 150 -> 50%. SKU B: 1 день, 100/40 -> 60%, но мало дней ->
-// ставка категории «Столы» (A+B: 400/190 -> 52.5%). SKU C (другая категория, «Зеркала»): 3 дня, 300/180 -> 40%.
-// Строка A за 2026-08-16 вне окна. Ряд SKU за окно: 700 / 370 -> 47.14%; канал: 700, сборы -337 -> 48.14%;
-// надбавка за эквайринг и хранение = 1.0 п.п.
-const skuRows: SkuAccrRow[] = [
-  { d: "2026-08-16", sku: "A", accruals: 1000, amount: 0 },
-  { d: "2026-09-01", sku: "A", accruals: 100, amount: 50 },
-  { d: "2026-09-10", sku: "A", accruals: 100, amount: 50 },
-  { d: "2026-10-15", sku: "A", accruals: 100, amount: 50 },
-  { d: "2026-10-01", sku: "B", accruals: 100, amount: 40 },
-  { d: "2026-09-02", sku: "C", accruals: 100, amount: 60 },
-  { d: "2026-09-03", sku: "C", accruals: 100, amount: 60 },
-  { d: "2026-09-04", sku: "C", accruals: 100, amount: 60 },
+// Эталон посчитан вручную. Период 2026-09-01..2026-09-30.
+// SKU A: 3 дня, начислено 300, к выплате 150 -> 50%. SKU B: 1 день, 100/40 -> 60% (порога нет: только период).
+// SKU C: 2026-08-31 - вне периода, ставки нет. SKU D: начислено 0 - ставки нет.
+// SKU-ряд за период: 400 / 190 -> 52.5%; канал за период: 400, сборы -214 -> 53.5%; надбавка 1.0 п.п.
+const rows = [
+  ["2026-09-01", "A", 100, 50], ["2026-09-10", "A", 100, 50], ["2026-09-30", "A", 100, 50],
+  ["2026-09-15", "B", 100, 40],
+  ["2026-08-31", "C", 1000, 0],
+  ["2026-09-05", "D", 0, 0],
 ];
-const ch: ChanRow[] = [{ d: "2026-08-16", accruals: 1000, fees: -1000 }, { d: "2026-09-01", accruals: 700, fees: -337 }];
-const cat = (s: string) => (s === "C" ? "Зеркала" : "Столы");
-const live = [{ sku: "A", rev: 1000, units: 10 }, { sku: "B", price: 200 }];
-const cogs = { A: 20, B: 50, D: 30 };
+const ch = [["2026-08-31", 1000, -1000], ["2026-09-01", 400, -214], ["2026-10-01", 500, -500]];
+const P = ["2026-09-01", "2026-09-30"] as const;
 
-describe("юнит-экономика рекламы: ставка сборов из ряда начислений", () => {
-  const { econ, meta } = adEcon(skuRows, ch, cogs, live, cat, ["D", "E"]);
-  it("окно - последние 60 дней ряда", () => {
-    expect(ECON_WIN_DAYS).toBe(60);
-    expect(meta).toMatchObject({ from: "2026-08-17", to: "2026-10-15" });
+describe("ставка сборов OZON за выбранный период", () => {
+  const r = adEconPeriod(rows, ch, ...P);
+  it("ставка SKU = (начислено − к выплате) / начислено за дни периода + надбавка канала", () => {
+    expect(r.topUp).toBe(1);
+    expect(r.warn).toEqual([]);
+    expect(r.by.A).toEqual({ com: 51, accr: 300, days: 3 });
+    expect(r.by.B).toEqual({ com: 61, accr: 100, days: 1 });
   });
-  it("надбавка за эквайринг и хранение = ставка канала минус ставка SKU-ряда", () => {
-    expect(meta.topUp).toBe(1);
-    expect(meta.warn).toEqual([]);
+  it("вне периода и без начислений - ставки нет, без подстановок", () => {
+    expect(r.by.C).toBeUndefined();
+    expect(r.by.D).toBeUndefined();
   });
-  it("SKU с 3+ днями доставок - своя ставка плюс надбавка; с/с % от цены выручка/штуки", () => {
-    expect(econ.A).toMatchObject({ com: 51, comSrc: "по SKU, 3 дн. с доставками", price: 100, cogs: 20, be: 29, why: null, accr: 300 });
+  it("границы периода включительно: день to входит, день после - нет", () => {
+    expect(adEconPeriod(rows, ch, "2026-09-30", "2026-09-30").by.A).toMatchObject({ accr: 100, days: 1 });
+    expect(adEconPeriod(rows, ch, "2026-10-01", "2026-10-31").by).toEqual({});
   });
-  it("SKU с <3 днями - ставка категории; без продаж в окне - тоже категории", () => {
-    expect(econ.B.com).toBe(53.5);
-    expect(econ.B.comSrc).toContain("«Столы»");
-    expect(econ.B).toMatchObject({ price: 200, cogs: 25, be: 21.5 });
-    expect(econ.D).toMatchObject({ com: 53.5, cogsRub: 30, cogs: null, be: null, why: "нет цены" });
-    expect(econ.C.com).toBe(41);
+  it("канал расходится больше 1% - надбавки нет, причина в warn", () => {
+    const x = adEconPeriod(rows, [["2026-09-01", 500, -250]], ...P);
+    expect(x.topUp).toBeNull();
+    expect(x.warn[0]).toContain("расходится");
+    expect(x.by.A!.com).toBe(50);
   });
-  it("нет себестоимости - причина, а не 0", () => {
-    expect(econ.E).toMatchObject({ com: 53.5, cogsRub: null, be: null, why: "нет себестоимости" });
+  it("канала за период нет - надбавки нет, причина в warn", () => {
+    const x = adEconPeriod(rows, [], ...P);
+    expect(x.topUp).toBeNull();
+    expect(x.warn[0]).toContain("канального ряда");
   });
-  it("каналы расходятся больше 1% - надбавки нет и есть предупреждение", () => {
-    const r = adEcon(skuRows, [{ d: "2026-09-01", accruals: 800, fees: -400 }], cogs, live, cat, []);
-    expect(r.meta.topUp).toBeNull();
-    expect(r.meta.warn[0]).toContain("расходятся");
-    expect(r.econ.A.com).toBe(50);
+  it("отрицательная надбавка - 0 и предупреждение", () => {
+    const x = adEconPeriod(rows, [["2026-09-01", 400, -200]], ...P);
+    expect(x.topUp).toBe(0);
+    expect(x.warn[0]).toContain("отрицательная");
+    expect(x.by.A!.com).toBe(50);
   });
-  it("пустой ряд - пусто и предупреждение, не нули", () => {
-    const r = adEcon([], ch, cogs, live, cat, ["A"]);
-    expect(r.econ).toEqual({});
-    expect(r.meta.warn.length).toBe(1);
+  it("начислений за период нет - пусто и причина", () => {
+    const x = adEconPeriod(rows, ch, "2026-11-01", "2026-11-30");
+    expect(x.by).toEqual({});
+    expect(x.topUp).toBeNull();
+    expect(x.warn[0]).toContain("не доставлены");
+  });
+});
+
+describe("упаковка ряда начислений: битая строка пропускается и считается, сборка не падает", () => {
+  it("null, строка без даты или с нечисловой суммой - bad, остальное в массивах", () => {
+    const p = packAccrual(
+      [null, { d: "2026-09-01", sku: 1, accruals: 10, amount: 5 }, { sku: "x", accruals: 1, amount: 1 }, { d: "2026-09-02", sku: "y", accruals: null, amount: 1 }],
+      [{ d: "2026-09-01", accruals: 10, fees: -5 }, "мусор"],
+    );
+    expect(p.rows).toEqual([["2026-09-01", "1", 10, 5]]);
+    expect(p.ch).toEqual([["2026-09-01", 10, -5]]);
+    expect(p.bad).toBe(4);
   });
 });

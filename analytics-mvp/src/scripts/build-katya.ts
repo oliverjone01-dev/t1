@@ -17,7 +17,7 @@ import { splitCpo } from "./cpo-split.js";
 import { cardSpread } from "./cpc-card-spread.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 import { ndLines, ndBad, ndBadNote } from "./nd-lines.js";
-import { adEcon, ECON_WIN_DAYS, ECON_MIN_DAYS, type SkuAccrRow, type ChanRow, type LiveSku } from "./ad-econ.js";
+import { AD_ECON_JS, packAccrual } from "./ad-econ.js";
 // Битые строки данных - одна строка ::error:: в лог CI в конце сборки (ФЕНИКС iter10 gap 1).
 process.on("exit", () => { if (ndBad.length) console.log(`::error::katya: ${ndBadNote()}`); });
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
@@ -463,6 +463,23 @@ for (const r of salesRows) {
 const r4 = (a: number[]) => a.map((x) => Math.round(x * 10000) / 10000);
 for (const k in SUB_D_R) SUB_D_R[k] = r4(SUB_D_R[k]!);
 for (const k in PRODUCT_DAILY_REV) PRODUCT_DAILY_REV[k] = r4(PRODUCT_DAILY_REV[k]!);
+// «Рентабельность» OZON за ВЫБРАННЫЙ период (Иван 20.10: «рентабельность и комиссии только за выбранный период -
+// остальное не проставляй»; на графике только комиссия, не все сборы). По дням: выручка и с/с товаров с известной
+// с/с (заказы × с/с единицы, без подстановки маржи подкатегории), комиссия OZON за продажу и начислено - из ряда
+// pnl_sku_accrual_daily (доставленные заказы по дате заказа). Дни без начислений на графике пустые.
+const PROF_R = zD(), PROF_C = zD(), PROF_COMM = zD(), PROF_ACCR = zD();
+for (const r of salesRows) {
+  const i = dayIdx(r.d); if (i < 0 || i >= TOTAL) continue;
+  const cu = cogs[r.sku] || 0; if (!(cu > 0)) continue;
+  PROF_R[i] = (PROF_R[i] ?? 0) + r.rev / 1e6; PROF_C[i] = (PROF_C[i] ?? 0) + (cu * r.units) / 1e6;
+}
+try {
+  for (const l of ndLines(dp("pnl_sku_accrual_daily.ndjson"))) {
+    const r = JSON.parse(l); if (!r || typeof r !== "object" || typeof r.d !== "string" || typeof r.accruals !== "number" || typeof r.commission !== "number") continue;
+    const i = dayIdx(r.d); if (i < 0 || i >= TOTAL) continue;
+    PROF_ACCR[i] = (PROF_ACCR[i] ?? 0) + r.accruals; PROF_COMM[i] = (PROF_COMM[i] ?? 0) + Math.abs(r.commission);
+  }
+} catch { /* нет ряда - комиссии на графике нет */ }
 // P&L свода ПО ДНЯМ, разреженно: {ключ: {день: [поступление до общих, С\С, наша доставка,
 // штук нашей перевозки, из них с ведомостью, штук всего]}}. Ключи те же, что у PRODUCT_DAILY -
 // имя модели и артикул, чтобы строка любого уровня нашла свои числа.
@@ -845,6 +862,61 @@ function patchXyzMatrix(html: string): string {
     "    if(!(typeof s.cv==='number'&&s.cv>0)){ classified.splice(_i,1); continue; }\n" +
     "    s.xyz = (s.cv<=_cvP33)?'X':(s.cv<=_cvP67?'Y':'Z'); }"
   );
+}
+
+// «Обзор» OZON (Иван 20.10): без «План vs Факт» и «Клиентов»; «Рентабельность» - с/с и комиссия за выбранный
+// период из дневных рядов __PROF_* (см. PROF_R выше). Шаблон общий с Маркетом - правим только сборку OZON.
+function patchObzorOzon(html: string): string {
+  const rep = (from: string, to: string) => { if (!html.includes(from)) throw new Error(`patchObzorOzon: нет фрагмента «${from.slice(0, 60)}»`); html = html.split(from).join(to); };
+  rep(`  <section class="card" id="clients"></section>\n`, "");
+  rep(`function renderClients(){`, `function renderClients(){ if(!$('#clients')) return;`);
+  rep(`function renderClientsCompare(){`, `function renderClientsCompare(){ if(!$('#clients')) return;`);
+  // «План vs Факт» убран; в режиме сравнения тот же блок - «Структура продаж», его оставляем.
+  rep(`function renderPlanFact(){\n  if(state.compare.active){ return renderRevenueCompare(); }\n  ['#drill','#abcxyz','#seasonality','#profitability'].forEach(sel => { const el = $(sel); if(el) el.style.display = ''; });`,
+    `function renderPlanFact(){\n  const __pf = $('#planfact'); if(__pf) __pf.style.display = state.compare.active ? '' : 'none';\n  if(state.compare.active){ return renderRevenueCompare(); }\n  ['#drill','#abcxyz','#seasonality','#profitability'].forEach(sel => { const el = $(sel); if(el) el.style.display = ''; });\n  if(__pf){ __pf.innerHTML = ''; return; }`);
+  rep(`    let revSum = 0, costSum = 0;
+    Object.keys(DAILY_REV_CAT).forEach(id => {
+      // Берём только подкатегории (у которых задан SUBCAT_MARGIN)
+      if(SUBCAT_MARGIN[id] === undefined) return;
+      const r = sumRange(DAILY_REV_CAT[id], bStart, bEnd);
+      const m = SUBCAT_MARGIN[id];
+      revSum += r;
+      costSum += r * (1 - m / 100);
+    });`, `    const revSum = sumRange(window.__PROF_R || [], bStart, bEnd), costSum = sumRange(window.__PROF_C || [], bStart, bEnd);`);
+  const commFrom = html.indexOf(`  const SUBCAT_COMM = window.__SUBCAT_COMM || {};`);
+  const commEnd = `    b.comm = b.rev * b.commPct / 100;            // K ₽/день\n  });`;
+  const commTo = html.indexOf(commEnd, commFrom);
+  if (commFrom < 0 || commTo < 0) throw new Error("patchObzorOzon: нет блока комиссии");
+  html = html.slice(0, commFrom) + `  const PCOMM = window.__PROF_COMM || [], PACCR = window.__PROF_ACCR || [];
+  const hasComm = PACCR.some(v => v > 0);
+  buckets.forEach(b => {
+    const bEnd = b.start + b.len - 1;
+    const ac = sumRange(PACCR, b.start, bEnd), cm = sumRange(PCOMM, b.start, bEnd);
+    b.commPct = ac > 0 ? cm / ac * 100 : null;   // комиссия OZON за продажу / начислено, только дни бакета
+    b.comm = b.commPct == null ? null : b.rev * b.commPct / 100;
+  });` + html.slice(commTo + commEnd.length);
+  rep(`Math.max(...buckets.map(b => b.comm), 1)`, `Math.max(...buckets.map(b => b.comm || 0), 1)`);
+  rep(`Math.max(...buckets.map(b => b.commPct), 0.1)`, `Math.max(...buckets.map(b => b.commPct || 0), 0.1)`);
+  rep(`  let commBars = '';\n  buckets.forEach((b, i) => {`, `  let commBars = '';\n  buckets.forEach((b, i) => { if(b.comm == null) return;`);
+  rep(`buckets.map((b, i) => [xBar(i), pctScale(b.commPct)])`, `buckets.map((b, i) => b.commPct == null ? null : [xBar(i), pctScale(b.commPct)]).filter(Boolean)`);
+  rep(`    let r = 0, c = 0;
+    Object.keys(DAILY_REV_CAT).forEach(id => {
+      if(SUBCAT_MARGIN[id] === undefined) return;
+      const rv = sumRange(DAILY_REV_CAT[id], startIdx, endIdx);
+      r += rv;
+      c += rv * (1 - SUBCAT_MARGIN[id] / 100);
+    });`, `    const r = sumRange(window.__PROF_R || [], startIdx, endIdx), c = sumRange(window.__PROF_C || [], startIdx, endIdx);`);
+  rep(`  const totalComm = buckets.reduce((s,b) => s + b.comm * b.len, 0) / 1000;
+  const commShare = sumRev.rev > 0 ? (totalComm / sumRev.rev) * 100 : 0;`,
+    `  const totalComm = buckets.reduce((s,b) => s + (b.comm || 0) * b.len, 0) / 1000;
+  const commRev = buckets.reduce((s,b) => s + (b.comm == null ? 0 : b.rev * b.len), 0) / 1000;
+  const commShare = commRev > 0 ? (totalComm / commRev) * 100 : 0;
+  const commGap = buckets.some(b => b.comm == null);
+  const covAll = sumRange(window.__DAILY_REV_REAL || [], startIdx, endIdx);
+  const covPct = covAll > 0 ? Math.round(sumRev.rev / covAll * 100) : null;`);
+  rep("себестоимость — по достоверным строкам источника (≈74%) · ${hasComm?'комиссия по подкатегориям (снимок pnl-sku)':'комиссии нет источника'}",
+    "выручка и себестоимость - товары с известной с/с${covPct!=null?' ('+covPct+'% выручки периода)':''} · комиссия OZON за продажу - начисления по доставленным заказам этого периода${commGap?'; дни без начислений (заказы ещё не доставлены) на графике пустые, комиссия за период - только по дням с начислениями':''}");
+  return html;
 }
 
 function patchMarginHonesty(html: string): string {
@@ -1392,7 +1464,9 @@ if (dailyTotals.length) {
   html = patchMarginHonesty(html);
   html = patchXyzMatrix(html);
   html = patchRealDaily(html, {});
-  html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor") + REAL_DAILY_JS(false) + `<script>window.__GG_MAXD='${maxD}'</script>`);
+  if (IS_OZON) html = patchObzorOzon(html);
+  html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor") + REAL_DAILY_JS(false) + `<script>window.__GG_MAXD='${maxD}'</script>`
+    + (IS_OZON ? `<script>window.__PROF_R=${J(r4(PROF_R))};window.__PROF_C=${J(r4(PROF_C))};window.__PROF_COMM=${J(PROF_COMM.map(Math.round))};window.__PROF_ACCR=${J(PROF_ACCR.map(Math.round))};</script>` : ""));
   html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + GAPS_JS + "\n</body>");
   writeFileSync(op("katya.html"), html);
 }
@@ -1637,21 +1711,18 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   const campCard: Record<string, { sku: string; name: string }> = {};
   for (const [id, m] of Object.entries(campMeta)) { const c = offerToCard[(m as any).off]; if (c) campCard[id] = c; }
   // --- Юнит-экономика рекламы (модель Романа): безубыточная ДРР по SKU из комиссий+с/с ---
-  // ECON[sku] = {com: все сборы OZON %, comSrc, cogs: с/с % от цены, be: безубыточная ДРР %, why}. Расчёт и
-  // источники - src/scripts/ad-econ.ts (ряд начислений за 60 дн. + эквайринг/хранение кабинета, Иван 20.10).
+  // Ставка сборов OZON по SKU считается НА СТРАНИЦЕ за выбранный период (Иван 20.10): сюда - компактный ряд
+  // начислений по SKU и канала, расчёт - AD_ECON_JS из src/scripts/ad-econ.ts. С/с единицы - sku_cogs.json.
   // take-rate = ВСЕ сборы = (начислено − к выплате), а не поле commission (FENIX G1).
   const econCogs: Record<string, number> = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8"));
   const priceLive: Record<string, number> = {}; // текущая цена с витрины OZON, ₽ (live-снимок)
   for (const s of live.sku_table) if ((s as any).price != null) priceLive[String(s.sku)] = (s as any).price;
-  const econSkuRows: SkuAccrRow[] = [], econChRows: ChanRow[] = [];
-  try { for (const l of ndLines(dp("pnl_sku_accrual_daily.ndjson"))) econSkuRows.push(JSON.parse(l)); } catch { /* нет ряда - блок покажет «нет данных» */ }
-  try { for (const l of ndLines(dp("pnl_channel_accrual_daily.ndjson"))) econChRows.push(JSON.parse(l)); } catch { /* без надбавки, см. ECON_META.warn */ }
-  const { econ: SKU_ECON, meta: ECON_META } = adEcon(econSkuRows, econChRows, econCogs, live.sku_table as LiveSku[],
-    (sk) => taxOf(sk).category || "Прочее", Object.values(skuByCamp));
-  for (const w of ECON_META.warn) console.log(`::warning::юнит-экономика рекламы: ${w}`);
-  const econSrcNote = ECON_META.to
-    ? `Ставка сборов OZON - из начислений за ${ECON_META.from.split("-").reverse().join(".")}-${ECON_META.to.split("-").reverse().join(".")} (${ECON_WIN_DAYS} дн., доставленные заказы по дате заказа) плюс эквайринг и хранение кабинета ${ECON_META.topUp == null ? "(нет данных)" : ECON_META.topUp + " п.п."}; у SKU меньше ${ECON_MIN_DAYS} дн. с доставками - ставка категории. Начисления приходят после доставки, поэтому окно не совпадает с выбранным периодом.`
-    : "Ставки сборов нет: ряд начислений по SKU пуст.";
+  const readObjs = (f: string): unknown[] => { try { return ndLines(dp(f)).map((l) => JSON.parse(l)); } catch { return []; } };
+  const ACCR = packAccrual(readObjs("pnl_sku_accrual_daily.ndjson"), readObjs("pnl_channel_accrual_daily.ndjson"));
+  if (ACCR.bad) { const k = `pnl_*_accrual_daily.ndjson, строк без полей: ${ACCR.bad}`; if (!ndBad.includes(k)) ndBad.push(k); console.log(`::error::${k}`); }
+  if (!ACCR.rows.length) console.log("::warning::юнит-экономика рекламы: ряд начислений по SKU пуст - ставки сборов на странице не будет");
+  const SKU_COGS_U: Record<string, number> = {};
+  for (const sk in econCogs) if ((econCogs[sk] || 0) > 0) SKU_COGS_U[sk] = Math.round(econCogs[sk]!); // с/с ₽/шт, в т.ч. SKU атрибуции
   const campCss = `<style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`; // стили «Маркетинга», они же на «Реклама по карточкам»
   // Секция «Кампании: расход и статистика» - одна на «Маркетинг» и «Реклама по карточкам».
   const campSec = `<section class="card"><div class="card-h"><div><div class="card-title">Кампании: расход и статистика</div><div class="card-sub" id="src1"></div></div><div style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-2);white-space:nowrap">Статус:<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="top-fa" checked onchange="renderTop()"> активные</label><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="top-fi" checked onchange="renderTop()"> неактивные</label></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r" title="Показы за выбранный период (OZON Performance).">Показы</th><th class="r" title="Клики за период (OZON Performance).">Клики</th><th class="r" title="Рекламные добавления в корзину за период - из детального отчёта продвижения OZON (per-SKU, суммируется в кампанию). «—» - по кампании отчёт ещё не собран или это CPO.">В корзину</th><th class="r" title="CTR = Клики ÷ Показы × 100.">CTR</th><th class="r" title="Средняя стоимость клика = Расход ÷ Клики.">Ср. цена клика</th></tr></thead><tbody id="top"></tbody></table></div></section>`;
@@ -1659,7 +1730,7 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
   ${campSec}
-  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы</div><div class="card-sub">Экономика кампании за выбранный период. Ставка сборов OZON и с/с единицы - средневзвешенно по SKU кампании из реальной атрибуции OZON (веса - выручка/заказы по SKU за период), применяются к полной выручке/заказам кампании (OZON Performance). Где атрибуции по SKU нет (CPO/не собрано) - по основному SKU. «Выручка кампании» - полная выручка РК; «Выручка осн. карт.» - выручка только продвигаемой (основной) карточки за период. С/с произв. - производственная себестоимость (нет данных - «—» / причина в строке). ${econSrcNote}</div></div><div style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-2);white-space:nowrap">Статус:<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fa" checked onchange="renderUecon(lastA)"> активные</label><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fi" checked onchange="renderUecon(lastA)"> неактивные</label></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r" title="Расход кампании на рекламу за выбранный период. Источник: OZON Performance.">Расход</th><th class="r" title="Полная выручка кампании за период. Источник: OZON Performance.">Выручка кампании</th><th class="r" title="Выручка только основной (продвигаемой) карточки за период - атрибуция осн. SKU. Нет атрибуции - равна выручке кампании.">Выручка осн. карт.</th><th class="r" title="Заказано штук в рамках кампании за выбранный период (OZON Performance).">Заказано, шт</th><th class="r" title="ДРР = Расход ÷ Выручка кампании × 100.">ДРР</th><th class="r" title="Ср. цена за период = Выручка кампании ÷ заказы.">Ср. цена</th><th class="r" title="Комиссия = Выручка кампании × средневзвешенную ставку сборов OZON.">Комис., ₽</th><th class="r" style="color:var(--ink-3)" title="Средневзвешенная ставка всех сборов OZON по SKU кампании (веса - выручка по SKU). ⚖ - взвешено по атрибуции; иначе - по осн. SKU.">Комис., %</th><th class="r" title="Производственная себестоимость = средневзвешенная с/с единицы × заказы кампании. Нет данных - «—» / причина в строке.">С/с произв., ₽</th><th class="r" title="Прибыль ДО рекламы = Выручка кампании − сборы OZON − себестоимость.">Приб. до рекл., ₽</th><th class="r" title="Прибыль ПОСЛЕ рекламы = Приб. до рекл. − расход на рекламу.">Приб. после рекл., ₽</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы</div><div class="card-sub">Экономика кампании за выбранный период. Ставка сборов OZON и с/с единицы - средневзвешенно по SKU кампании из реальной атрибуции OZON (веса - выручка/заказы по SKU за период), применяются к полной выручке/заказам кампании (OZON Performance). Где атрибуции по SKU нет (CPO/не собрано) - по основному SKU. «Выручка кампании» - полная выручка РК; «Выручка осн. карт.» - выручка только продвигаемой (основной) карточки за период. С/с произв. - производственная себестоимость (нет данных - «—» / причина в строке). <span id="ue-src"></span></div></div><div style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-2);white-space:nowrap">Статус:<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fa" checked onchange="renderUecon(lastA)"> активные</label><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fi" checked onchange="renderUecon(lastA)"> неактивные</label></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r" title="Расход кампании на рекламу за выбранный период. Источник: OZON Performance.">Расход</th><th class="r" title="Полная выручка кампании за период. Источник: OZON Performance.">Выручка кампании</th><th class="r" title="Выручка только основной (продвигаемой) карточки за период - атрибуция осн. SKU. Нет атрибуции - равна выручке кампании.">Выручка осн. карт.</th><th class="r" title="Заказано штук в рамках кампании за выбранный период (OZON Performance).">Заказано, шт</th><th class="r" title="ДРР = Расход ÷ Выручка кампании × 100.">ДРР</th><th class="r" title="Ср. цена за период = Выручка кампании ÷ заказы.">Ср. цена</th><th class="r" title="Комиссия = Выручка кампании × средневзвешенную ставку сборов OZON.">Комис., ₽</th><th class="r" style="color:var(--ink-3)" title="Средневзвешенная ставка всех сборов OZON по SKU кампании (веса - выручка по SKU). ⚖ - взвешено по атрибуции; иначе - по осн. SKU.">Комис., %</th><th class="r" title="Производственная себестоимость = средневзвешенная с/с единицы × заказы кампании. Нет данных - «—» / причина в строке.">С/с произв., ₽</th><th class="r" title="Прибыль ДО рекламы = Выручка кампании − сборы OZON − себестоимость.">Приб. до рекл., ₽</th><th class="r" title="Прибыль ПОСЛЕ рекламы = Приб. до рекл. − расход на рекламу.">Приб. после рекл., ₽</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40% · клик - разбивка по SKU</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -1670,7 +1741,9 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const ADS_SKU_CAMP=${J(adsSkuByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ACCR_ROWS=${J(ACCR.rows)};const ACCR_CH=${J(ACCR.ch)};const SKU_COGS_U=${J(SKU_COGS_U)};var ECON={};
+${AD_ECON_JS}
+const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const ADS_SKU_CAMP=${J(adsSkuByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
 // Per-SKU «Основная карточка» за период из кампании (без снимка RCACHE): SKU кампании + её
 // суммы за выбранное окно (они уже точные из aggFromDaily). Синхронно, без async-загрузки.
 function cardRep(c){var cd=CAMP_CARD[String(c.id)];return cd?[{sku:cd.sku,name:cd.name,sp:c.sp||0,om:c.om||0,sold:c.o||0,omModel:0,soldModel:0}]:[];}
@@ -1819,6 +1892,11 @@ function renderUecon(a){
   // По КАМПАНИИ (не по отдельному SKU): расход/выручка/ДРР всей кампании, эконо-показатели
   // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
   var rows=[];var naSp=0,total=0;
+  // Ставка сборов OZON за ВЫБРАННЫЙ период (Иван 20.10), расчёт - adEconPeriod (src/scripts/ad-econ.ts).
+  var _pd=periodDates(CURP),_pf=a.dateFrom||_pd.from,_pt=a.dateTo||_pd.to,_ec=adEconPeriod(ACCR_ROWS,ACCR_CH,_pf,_pt);
+  ECON={};for(var _k in SKU_COGS_U)ECON[_k]={com:null,days:0,cogsRub:SKU_COGS_U[_k]};
+  for(var _s in _ec.by){var _b=_ec.by[_s];ECON[_s]={com:_b.com,days:_b.days,cogsRub:SKU_COGS_U[_s]!=null?SKU_COGS_U[_s]:null};}
+  var _src=document.getElementById('ue-src');if(_src)_src.innerHTML='Ставка сборов OZON - из начислений за выбранный период (доставленные заказы, по дате заказа)'+(_ec.topUp!=null?', плюс эквайринг и хранение кабинета '+String(_ec.topUp).replace('.',',')+' п.п.':'')+'; нет начислений по SKU за период - строка «нет данных».'+(_ec.warn.length?' <span style="color:#FF8A5A">'+_ec.warn.join('; ')+'.</span>':'');
   // Фильтр по статусу (множественный выбор активна/неактивна). По умолчанию - оба.
   var _fa=document.getElementById('ue-fa'),_fi=document.getElementById('ue-fi');
   var showA=_fa?_fa.checked:true, showI=_fi?_fi.checked:true;
@@ -1827,15 +1905,16 @@ function renderUecon(a){
     var isAct=(c.status==='активна');if((isAct&&!showA)||(!isAct&&!showI))return; // фильтр статуса
     total++;
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
-    // считаем, если есть ставка сборов и с/с; безубыток - из ECON или из выручки и заказов самой кампании
-    var econOk=!!(e&&e.com!=null&&e.cogsRub!=null&&(e.be!=null||(ordC>0&&om>0)));
-    if(!econOk){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,ord:ordC,na:true,why:e?(e.why||'нет цены'):'нет начислений и себестоимости по SKU'});return;}
+    // Считаем только кампанию с выручкой и заказами за период, ставкой сборов SKU за период и с/с. Без выручки -
+    // весь расход в минус и в «резать» (ФЕНИКС B7: не в «в плюс»); остальное - «нет данных», без подстановок.
+    e=e||{};var why=!(om>0)?'выручки за период нет':(!(ordC>0)?'заказов за период нет':(e.com==null?'нет начислений по SKU за период (заказы ещё не доставлены)':(e.cogsRub==null?'нет себестоимости':null)));
+    if(why){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,ord:ordC,na:true,zero:!(om>0),why:why});return;}
     // Средневзвешенно по SKU кампании из РЕАЛЬНОЙ атрибуции (выручка/заказы per-SKU из отчёта
     // продвижения): эфф. ставка сборов = Σ(выручка_sku×ставка_sku)/Σвыручка_sku; с/с ед. =
     // Σ(с/с_sku×заказы_sku)/Σзаказы_sku. Веса реальные, применяются к ПОЛНЫМ итогам кампании
     // (выручка/заказы Performance). omMain = выручка ОСНОВНОЙ карточки (атрибуция осн. SKU) - отд.
     // столбец. Нет атрибуции (CPO/не собрано) - ставка/с/с по осн. SKU, omMain = выручка кампании.
-    var com=e.com, cu=e.cogsRub, wSrc='по осн. SKU (нет атрибуции по SKU), '+(e.comSrc||'');
+    var com=e.com, cu=e.cogsRub, wSrc='по осн. SKU (нет атрибуции по SKU), '+e.days+' дн. с доставками за период';
     var omMain=null, omMainSrc='';
     var _ar=attrFor(c.id)||[];
     if(_ar.length){var sOm=0,sOmR=0,sSold=0,sSoldC=0;
@@ -1863,6 +1942,8 @@ function renderUecon(a){
   var calc=rows.filter(function(r){return !r.na;});
   var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
   var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
+  // кампании без выручки за период: весь расход - перерасход, в счёт «в минус» (ФЕНИКС B7)
+  rows.forEach(function(r){if(r.na&&r.zero){nCut++;burn-=(r.sp||0);}});
   var kc=function(lab,val,col){return '<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v" style="color:'+(col||'inherit')+'">'+val+'</div></div>';};
   if(elk)elk.innerHTML=kc('🟢 в плюс',nGo,'var(--up)')+kc('🟡 на грани',nEdge,'#E5B567')+kc('🔴 в минус',nCut,'var(--dn)')+kc('Потенциал зелёных, ₽',(profit>=0?'+':'')+fMln(profit),'var(--up)')+kc('Перерасход по минусовым, ₽',fMln(burn),'var(--dn)');
   rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});

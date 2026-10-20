@@ -1,0 +1,15 @@
+rev HEAD (46cd4bf): 3a19d7266e29c095
+rev 46cd4bf: 3a19d7266e29c095
+worktree: 3a19d7266e29c095
+rev 299cc0c (iter2, go 8,0): 4752851bf76c89a5
+запрос: 3a19d7266e29c095
+worktree против HEAD по analytics-mvp/ и knowledge/decisions.md: (пусто = нет правок)
+пути ветки с blob (минус traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/):
+  rev 299cc0c, merge-base 74a3280:
+    a7ccbef7d430 analytics-mvp/src/scripts/plan-tab.test.ts
+    afdc25767e2f analytics-mvp/src/scripts/plan-tab.ts
+    51c7d99ce1e2 knowledge/decisions.md
+  rev 46cd4bf, merge-base 180b575:
+    a7ccbef7d430 analytics-mvp/src/scripts/plan-tab.test.ts
+    afdc25767e2f analytics-mvp/src/scripts/plan-tab.ts
+    070eb3a5907c knowledge/decisions.md

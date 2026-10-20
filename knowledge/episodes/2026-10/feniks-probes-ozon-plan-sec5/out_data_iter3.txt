@@ -1,0 +1,42 @@
+файлов: old=71 new=71; только в old: []; только в new: []
+изменённые файлы (6): ['ads_30d.json', 'ads_periods.json', 'ads_sku_daily.ndjson', 'ads_sku_state.json', 'sku_cogs.json', 'skus_live_30d.json']
+
+входы раздела 5:
+  orders_daily.ndjson: old 31896722104f new 31896722104f -> без изменений
+  prices_daily.ndjson: old 5f44b21a4971 new 5f44b21a4971 -> без изменений
+  gap_daily.ndjson: old a3cb5608e3fa new a3cb5608e3fa -> без изменений
+  gap_manual.ndjson: old da39a3ee5e6b new da39a3ee5e6b -> без изменений
+  plan_2026-10-15_v4.json: old 8c1b4530b8ca new 8c1b4530b8ca -> без изменений
+  plan_card_groups_1510.json: old 5ed8c7000519 new 5ed8c7000519 -> без изменений
+  cabinet_orders_check.ndjson: нет ни в old, ни в new
+
+[old] orders_daily: строк 3881, (order, sku) уникальных 3881, последний сырой d 2026-10-18, последний день по Москве не позже сырого 2026-10-18
+[old] prices_daily: строк 14808, последний d 2026-10-20; gap_daily: строк 13860, последняя date 2026-10-20
+[old] окно раздела 5: 2026-10-15..min(2026-10-18, 2026-10-28) = 4 дн
+
+[new] orders_daily: строк 3881, (order, sku) уникальных 3881, последний сырой d 2026-10-18, последний день по Москве не позже сырого 2026-10-18
+[new] prices_daily: строк 14808, последний d 2026-10-20; gap_daily: строк 13860, последняя date 2026-10-20
+[new] окно раздела 5: 2026-10-15..min(2026-10-18, 2026-10-28) = 4 дн
+
+коммит 4641e9d, файлы:
+  4641e9d data: прямые снимки OZON (без n8n) 2026-10-20
+  
+   analytics-mvp/data/ads_30d.json                   |  2 +-
+   analytics-mvp/data/ads_periods.json               |  2 +-
+   analytics-mvp/data/ads_sku_daily.ndjson           | 48 ++++++++++++++++-------
+   analytics-mvp/data/ads_sku_state.json             |  2 +-
+   analytics-mvp/data/skus_live_30d.json             | 10 ++---
+   analytics-mvp/fixtures/ads_30d.json               |  2 +-
+   analytics-mvp/fixtures/ads_periods.json           |  2 +-
+   analytics-mvp/fixtures/skus_live_30d.json         | 10 ++---
+   analytics-mvp/public/katya-command.html           |  4 +-
+   analytics-mvp/public/katya-competitors.html       |  2 +-
+   analytics-mvp/public/katya-marketing.html         |  4 +-
+   analytics-mvp/public/katya-money.html             |  4 +-
+   analytics-mvp/public/katya-reklama-kartochki.html |  6 +--
+   analytics-mvp/public/katya-report.html            |  4 +-
+   analytics-mvp/public/katya-tests.html             |  6 +--
+   analytics-mvp/public/katya-tovary.html            |  2 +-
+   analytics-mvp/public/katya-voronka.html           |  2 +-
+   analytics-mvp/public/katya.html                   |  2 +-
+   18 files changed, 66 insertions(+), 48 deletions(-)

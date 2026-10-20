@@ -1,0 +1,26 @@
+дифф кода: iter2 (74a3280..299cc0c) и к новому main (origin/main..46cd4bf), пути: analytics-mvp/src/scripts/plan-tab.ts analytics-mvp/src/scripts/plan-tab.test.ts
+  md5 с index:   c6e9d2e5f876acf0f3c03cdc2bab29de  c6e9d2e5f876acf0f3c03cdc2bab29de
+  md5 без index: 73e1de5e3031535342a3154ac6f14ece  73e1de5e3031535342a3154ac6f14ece
+  побайтно равны, и со строками index
+  строк: 194 / 194
+  blob (74a3280 / origin/main / 299cc0c / 46cd4bf):
+    analytics-mvp/src/scripts/plan-tab.ts: af2992d8d7ff af2992d8d7ff afdc25767e2f afdc25767e2f 
+    analytics-mvp/src/scripts/plan-tab.test.ts: 8d189fac55dc 8d189fac55dc a7ccbef7d430 a7ccbef7d430 
+  файлы src/, которые main изменил после 74a3280: analytics-mvp/src/scripts/ad-econ.test.ts analytics-mvp/src/scripts/ad-econ.ts analytics-mvp/src/scripts/build-cogs-join.ts analytics-mvp/src/scripts/build-katya.ts 
+
+голова 46cd4bf: родители ea55e36 (ветка) и 180b575 (main)
+
+knowledge/decisions.md: строк голова 98, новый main 97
+  строк головы, которых нет в main: 1; строк main, которых нет в голове: 0
+  добавленная строка = строке ветки из iter2 (74a3280..299cc0c): True
+    - 2026-10-20 - **OZON, блок «План», раздел 5 «Цена» - только смены цены и заказы по артикулу (Иван 20.10: «убери столбцы с датами, оставь только те, г
+  строк, которые main добавил после 74a3280: 2, на месте в голове: 2
+    - 2026-10-20 - **OZON «Обзор» и «Маркетинг»: ставки и комиссия только за выбранный период (Иван 20.10: «чини, 
+    - 2026-10-15 - **OZON, N6b и G10 не делаем (Иван 15.10, «вариант 1»):** N6b - разные подсказки вкладки и «Отче
+  маркеров конфликта в голове: 0
+  порядок: строка ветки стоит выше записи #491 (новые сверху): True
+
+traces/2026-10-20/agents.jsonl: строк голова 51, сторона ветки 30, сторона main 42, общий предок 21
+  строк ветки в голове: 30 из 30; строк main в голове: 42 из 42
+  строк головы ни с одной стороны: 0; дублей: 0; не JSON: 0; маркеров конфликта: 0
+  схема agent-trace (голова): 51/51 строк valid по схеме agent-trace

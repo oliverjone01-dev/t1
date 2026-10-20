@@ -1,0 +1,188 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-ad-unit-econ-iter4-281d8ed1-20261020",
+  "timestamp": "2026-10-20T10:05:00+00:00",
+  "deliverable_ref": "ветка claude/practical-ritchie-q09eet @ 281d8ed1 (01199f79 rework iter3 + 281d8ed1 решения Ивана 20.10 «1 вернуть, 2 а»), audit_hash 9ec717ec522a16b4; self-check knowledge/episodes/2026-10/selfcheck-ozon-ad-unit-econ-20261020.md (iter3) + запрос A2A; спека knowledge/semantic/metrics/ozon-ad-unit-econ-take-rate.yaml v4; решения knowledge/decisions.md 2026-10-20 п.(6)",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 reestr после доработки (dialogs-registry, 7.5 / 8.5 / 7.5 / 8.5 / 8.5) - наш выше на 0.25. Каждое показанное число воспроизведено независимым пересчётом по тексту спеки (10 периодов, 7-239 ставок SKU, 0 расхождений больше 0,05 п.п., надбавка своего окна и окна 07.09-06.10), ставка комиссии сентября сверена с документом вне API (49,49% страница, 49,52% по периоду, 49,51% отчёт о реализации), Маркет байт-в-байт равен main, лог сборки Маркета тоже. Ниже полосы 8.5, потому что утверждение запроса об эквивалентности мутанта границы опровергнуто живым прогоном (0,9 против 1,0 на 38-208 SKU), новый код packAccrual.last без теста, а при умершем сборщике страница всё ещё пишет неверные причины",
+  "probes": [
+    {
+      "id": "X1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev HEAD = --rev 281d8ed1 = 9ec717ec522a16b4 = хешу запроса. Охват все 8 путей ветки от merge-base 81764e4b: ad-econ.ts, ad-econ.test.ts, build-katya.ts, спека, decisions.md проверены в этой итерации; MEMORY.md, sku_cogs.json, build-cogs-join.ts не менялись с 7f608e65 (git diff --stat 7f608e65..HEAD: 5 файлов), а с iter3 они не менялись с cc0739e5"
+    },
+    {
+      "id": "K1",
+      "result": "PARTIAL",
+      "evidence": "origin/main = 74a32803 (#489), merge-base ветки 81764e4b. git merge-tree --write-tree origin/main HEAD: CONFLICT в knowledge/decisions.md и traces/2026-10-20/agents.jsonl, код сливается чисто (main менял gap-daily, plan-tab, build-tests, coinv-merge; ветка ad-econ, build-katya, build-cogs-join). vitest на полном дереве слияния (git archive f7d58bc5 analytics-mvp, k1full.sh): 1125/1125 в 67 файлах; validate-facts.test.ts не загрузился только из-за отсутствия ../.github в архиве (ENOENT ym-snapshots.yml), на HEAD он 31/31. Разрешение конфликта decisions.md изменит audit_hash"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "realiz3.py: сентябрь документ 49,51%, API все строки 49,52%. obz3.cjs на сборке HEAD: «Комиссия: 12,0 млн ₽ · 49,5% от выручки 24,2 млн ₽ (дни с начислениями)», пересчёт 11,982 млн = 49,49% базы, ставка периода 49,52%"
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "indep4.py (по тексту спеки v4, не по AD_ECON_JS) против дампа страницы ue8.cjs: 10 периодов (сентябрь, август, июль, 01-19.10, 20.09-19.10, 07.09-06.10, 01-06.10, 01-07.10, 22.07-19.10, 13-19.10), 0 расхождений на 7-239 SKU. Надбавка: сентябрь 0,993 -> 1,0; август 1,141 -> 1,1; июль 1,588 -> 1,6; окно 07.09-06.10 1,036 -> 1,0; 01-06.10 своё окно 0,943 -> 0,9"
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "данные не менялись с iter3 (pnl_*_accrual_daily.ndjson от 19.10 13:15), (sku,d) 2726 = 2726 из iter3; исключения строк больше нет, счётчика нет"
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "подпись окна на странице = _ec.topUpFrom/topUpTo = спека v4 «последних 30 дней до этой границы» = decisions.md п.(6). Вид по умолчанию и 01-19.10: «(за 07.09.2026-06.10.2026: в последних 14 днях заказы ещё не доставлены)»; сентябрь и август - без пометки (own)"
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "14, 30 и 7 дней в подписи и расчёте из констант UE_MATURE_DAYS, UE_TOPUP_WIN_DAYS, UE_STALE_DAYS; даты окна из расчёта"
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "числа запроса воспроизведены на сборке HEAD: по умолчанию KPI 7/2/4, надбавка 1 п.п. за 07.09-06.10; сентябрь 6/1/3, надбавка 1; 01-19.10 6/1/5; «Обзор» сентябрь 12,0 млн · 49,5%. Раздела iter4 в файле self-check нет, числа только в запросе"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "надбавка чужого окна уходит на страницу с пометкой окна и причины; строка без выручки не может стать «в плюс» (ueWhy, тест). Остаток при умершем сборщике - в gaps 3-5"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "Маркет: 18 из 18 страниц сборки HEAD равны сборке main 81764e4b на тех же данных (без времени сборки); smoke OZON 21/21, Маркет 18/18"
+    },
+    {
+      "id": "R2",
+      "result": "PASS",
+      "evidence": "лог build-katya Маркета на HEAD побайтно равен логу main: «Страж свежести: снимки актуальны», 0 предупреждений о рядах начислений (в iter3 было 3)"
+    },
+    {
+      "id": "M1",
+      "result": "PARTIAL",
+      "evidence": "mut4.py: 12 из 16 мутантов убиты (окно 31 день, окно [from, matureTo], own всегда true, границы окна по каналу и SKU, warn окна, ueWhy stale, клэмп, конец окна = to, порог 1%). Живы: G1 to >= matureTo (не эквивалентен, см. gap 1), G5 own только по from, G11 и G12 в packAccrual.last"
+    },
+    {
+      "id": "F3",
+      "result": "PARTIAL",
+      "evidence": "build_sb4.sh sbs (ряды обрезаны после 01.10, код HEAD) + ue8.cjs, часы 2026-10-30T09:00Z: 01-19.10 - 9 из 9 строк «ряд начислений не обновлялся с 01.10.2026», красная плашка, CI 2 ::warning:: (18 дн от вчера). Остаток: сентябрь 1 строка с той же причиной при полном ряде; 13-19.10 в подписи «заказы ещё не доставлены»"
+    },
+    {
+      "id": "Z1",
+      "result": "PASS",
+      "evidence": "ue8.cjs, период 01-07.10: часы 2026-10-20T20:59Z (23:59 МСК) matureTo 06.10, окно 07.09-06.10, 1,0; часы 21:01Z (00:01 МСК 21.10) matureTo 07.10, своё окно, 0,9"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "vitest в репо 1148/1148 (68 файлов), ad-econ.test.ts 15/15; tsc: ad-econ.* 0 ошибок, build-katya.ts 5 (как на main)"
+    }
+  ],
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 9.0
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "weighted_total": 8.35,
+  "verdict": "go",
+  "primary_gap": "Тесты не защищают новый код iter4. Граница зрелости проверяется на сентябре ровно в 30 дней - единственном периоде, где окно совпадает с периодом, поэтому мутант to >= matureTo жив. Он не эквивалентен: при matureTo 06.10 период 01.10-06.10 даёт 0,9 против 1,0 и меняет ставки 38 из 38 SKU. Новый packAccrual.last без теста: мутант «первый день вместо последнего» ставит красную плашку на каждую сборку, тесты и smoke зелёные",
+  "gaps": [
+    "Тест границы зрелости не ловит to >= matureTo: фикстура - сентябрь ровно 30 дней, единственный случай, где окно [matureTo-29, matureTo] совпадает с периодом. Утверждение запроса «мутант эквивалентен» неверно: на живых данных при matureTo 06.10 период 01.10-06.10 даёт 0,9 (своё окно) против 1,0 у мутанта, меняются ставки 38 из 38 SKU; 21.09-06.10 0,9 против 1,0 (84 из 84); 01.08-06.10 1,1 против 1,0 (208 из 208). Совпадает только 07.09-06.10 [g1live.cjs, mut4.py: G1 SURVIVED]",
+    "packAccrual.last без теста: в фикстуре одна валидная строка. Живы G11 (день с нулевыми начислениями считается последним) и G12 (первый день вместо последнего). G12 ставит красную плашку «не обновлялся» на каждую сборку и заменяет все причины «нет данных», vitest и smoke зелёные. Спека v4 golden_rows: «мутанты зрелости и устаревшего ряда убиты» - верно только для ueWhy [mut4.py]",
+    "Умерший сборщик, закрытый период: причину «ряд начислений не обновлялся с 01.10.2026» получает и строка сентября, где ряд полный (у той же строки на живых данных «нет начислений по SKU за период»). _stale передаётся в ueWhy без проверки, заходит ли период за ACCR_LAST [build_sb4.sh sbs + ue8.cjs, часы 2026-10-30T09:00Z: сентябрь {не обновлялся: 1}]",
+    "Умерший сборщик, период без начислений (13-19.10): в подписи рядом с красной плашкой остаётся оранжевое «начислений за период нет: заказы ещё не доставлены»; приёмка iter3 выполнена для причин строк, не для подписи. Спека v4 known_limits противоречит себе: «Комиссия за сентябрь: страница 49,5%, отчёт о реализации 49,51%» и тут же «Сверки с документом (отчёт о реализации) нет» [ue8.cjs на out-sbs4; спека]",
+    "Окно надбавки задаётся часами зрителя, признак устаревания ряда - данными, в iter4 они не связаны. При умершем сборщике подпись «за 17.09.2026-16.10.2026» стоит над окном, где данных после 01.10 нет [песочница sbs]. Рассуждение: через 14 дней после остановки в окно войдут дни, снятые незрелыми; на незрелом окне надбавка в iter2 доходила до 11 п.п., отдельного предупреждения нет, есть только общая плашка",
+    "Ветка не сливается с main как есть: origin/main ушёл на 74a32803 (#489), git merge-tree даёт конфликт в knowledge/decisions.md (обе ветки дописали запись 20.10 в начало) и traces/2026-10-20/agents.jsonl. Код сливается чисто. После разрешения конфликта blob decisions.md изменится, audit_hash перестанет быть 9ec717ec522a16b4, и этот go слияние по К11 сам не откроет",
+    "Длинное тире: в добавленных строках ветки 3 знака U+2014 (2 знака пустой ячейки и образец для rep(), как в iter2-3); в коммитах iter4 новых 0 [git diff 81764e4b HEAD | grep '^+' | grep -c U+2014 = 3; git diff 7f608e65 HEAD = 0]"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Граница зрелости: мутант to >= matureTo жив и не эквивалентен",
+      "evidence": "node g1live.cjs (AD_ECON_JS из HEAD, живые ряды, matureTo 06.10): 07.09-06.10 1 / 1, 0 из 121; 01.10-06.10 0,9 / 1, 38 из 38; 21.09-06.10 0,9 / 1, 84 из 84; 01.08-06.10 1,1 / 1, 208 из 208. python3 -I mut4.py: SURVIVED G1",
+      "checkpoint": "accuracy_2",
+      "weight": -0.15
+    },
+    {
+      "gap": "packAccrual.last без теста, спека завышает список убитых мутантов",
+      "evidence": "python3 -I mut4.py: SURVIVED G11, G12; ad-econ.test.ts: packAccrual на одной валидной строке, expect(p.last).toBe('2026-09-01')",
+      "checkpoint": "accuracy_2",
+      "weight": -0.1
+    },
+    {
+      "gap": "Причина «не обновлялся» на закрытом периоде",
+      "evidence": "bash build_sb4.sh sbs; node ue8.cjs out-sbs4/katya-marketing.html 2026-09-01:2026-09-30 2026-10-30T09:00:00Z: na reasons {ряд начислений не обновлялся с 01.10.2026: 1}; на out-h4 у той же строки «нет начислений по SKU за период»",
+      "checkpoint": "accuracy_3",
+      "weight": -0.15
+    },
+    {
+      "gap": "«Заказы ещё не доставлены» в подписи при умершем сборщике; противоречие в known_limits спеки",
+      "evidence": "ue8.cjs out-sbs4 13-19.10: warn [начислений за период нет: заказы ещё не доставлены] рядом с «Ряд начислений не обновлялся с 01.10.2026»; спека v4 known_limits строки 2 и 4",
+      "checkpoint": "accuracy_3",
+      "weight": -0.1
+    },
+    {
+      "gap": "Окно по часам зрителя не связано с ACCR_LAST",
+      "evidence": "ue8.cjs out-sbs4 01-19.10: window 2026-09-17..2026-10-16 при данных по 01.10, подпись «за 17.09.2026-16.10.2026». Дальнейшее - рассуждение (снимка незрелых данных после остановки нет), опора: iter2 B2, до 11 п.п. на незрелом окне",
+      "checkpoint": "insight_12",
+      "weight": -0.2
+    },
+    {
+      "gap": "Конфликт слияния с main, хеш изменится",
+      "evidence": "git rev-parse origin/main = 74a32803; git merge-base origin/main HEAD = 81764e4b; git merge-tree --write-tree --name-only origin/main HEAD: CONFLICT knowledge/decisions.md, traces/2026-10-20/agents.jsonl; audit_hash.py: decisions.md входит в хеш",
+      "checkpoint": "risk_24",
+      "weight": -0.15
+    },
+    {
+      "gap": "Длинное тире в строках ветки",
+      "evidence": "git diff 81764e4b HEAD -- analytics-mvp/src knowledge/semantic knowledge/decisions.md | grep '^+' | grep -c U+2014 = 3; то же по 7f608e65..HEAD = 0",
+      "checkpoint": "brand_18",
+      "weight": -0.15
+    }
+  ],
+  "rework_tz": "Go. Решения Ивана 20.10 («1 вернуть, 2 а») реализованы и воспроизведены, rework iter3 закрыт: пункты 1, 2, 4 полностью, 3 частично, 5 и 6 сняты решениями. До слияния обязательно одно: слить main в ветку, в decisions.md оставить обе записи 20.10 без правки текста. После этого хеш изменится, поэтому нужна перепроверка хеша (diff к 281d8ed1 только в decisions.md и traces) или подтверждение Ивана. Gaps по порогам не блокируют, каждый правится 1-3 строками: 1) тест границы на периоде не в 30 дней: 01.10-06.10 при matureTo 06.10 даёт own true и надбавку своего окна, мутант to >= matureTo убит; 2) тест packAccrual.last на 3 строках с разными датами, последняя с нулевыми начислениями, - G11 и G12 убиты; 3) _stale в ueWhy только при _pt > ACCR_LAST; 4) при _stale не писать в подписи «заказы ещё не доставлены», конец окна надбавки min(matureTo, ACCR_LAST - 14) или без надбавки; 5) спека: строку «Сверки с документом нет» отнести к с/с, golden_rows - фактический список убитых мутантов",
+  "escalate_to": "Иван: (а) решения 1 и 2а реализованы. Ставка комиссии сентября совпала с отчётом о реализации: 49,49% на странице, 49,52% по периоду, 49,51% в документе. Надбавка вида по умолчанию 1,0 п.п. за 07.09-06.10 с пометкой окна. (б) Слияние: main ушёл вперёд (#489), в decisions.md конфликт. Go привязан к содержимому 9ec717ec522a16b4; после разрешения конфликта гейт К11 потребует новый хеш или твоё подтверждение",
+  "confidence": 0.8,
+  "sources_of_truth": [
+    "analytics-mvp/data/realization_daily.ndjson (отчёт о реализации, вне API начислений)",
+    "analytics-mvp/data/pnl_sku_accrual_daily.ndjson, pnl_channel_accrual_daily.ndjson (19.10 13:15)",
+    "knowledge/semantic/metrics/ozon-ad-unit-econ-take-rate.yaml v4",
+    "knowledge/decisions.md 2026-10-20 п.(6)"
+  ],
+  "telemetry": {
+    "turns_used": 46
+  }
+}

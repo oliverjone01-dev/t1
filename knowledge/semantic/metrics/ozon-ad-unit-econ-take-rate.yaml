@@ -1,0 +1,48 @@
+id: ozon-ad-unit-econ-take-rate
+title: "Юнит-экономика рекламы OZON: ставка сборов и с/с по SKU (блок на «Маркетинге»)"
+version: 1
+status: approved
+owner: "Иван Раюшкин"
+approved_at: "2026-10-20"
+decision: "жать / держать / резать рекламную кампанию по прибыли после рекламы"
+good_direction: up
+entity: SKU
+key: [sku]
+type: ratio
+formula_text: >
+  com = (начислено − к выплате) / начислено × 100 по SKU за окно + надбавка за эквайринг и хранение;
+  надбавка = ставка всех сборов канала − ставка SKU-ряда за то же окно (если начислено в обоих рядах расходится
+  не больше 1%, иначе 0 и предупреждение в сборке); у SKU < 3 дн. с доставками в окне - ставка его категории.
+  cogs% = с/с единицы / средняя цена (выручка/штуки живого снимка 30 дн., иначе цена витрины).
+  be = 100 − com − cogs%. В строке кампании с заказами с/с = с/с единицы × заказы кампании (как было).
+code_module: analytics-mvp/src/scripts/ad-econ.ts
+ratio:
+  numerator: "сборы OZON (начислено − к выплате) за окно"
+  denominator: "начислено (цена × штуки доставленных) за окно"
+  same_entity: true
+  same_date_field: true
+  invariant: "0 <= com <= 100"
+filters:
+  include_statuses: [delivered]
+  exclude: []
+cancellations_returns:
+  mode: net
+  return_date_basis: order_date
+date_field: created   # дата заказа (posting), как в ряду pnl_sku_accrual_daily
+mode: period
+timezone: Europe/Moscow
+interval: "[to − 59 дн., to], to = последняя дата ряда с начислениями"
+partial_period: mark   # окно и его даты выведены в подписи блока
+additive_over_time: false
+accounting_basis: accrual
+empty_value: "null"    # нет ставки или с/с - «нет данных» / причина, не 0
+source:
+  endpoint: "data/pnl_sku_accrual_daily.ndjson + data/pnl_channel_accrual_daily.ndjson (accrual-API OZON), data/sku_cogs.json"
+decisions:
+  - "Иван 20.10: 1б - эквайринг и хранение добавлять к ставке SKU; 2а - SKU без доставок за 60 дн. - ставка категории; с/с GGT-46 (SKU 5632740461) = 12380 ₽"
+  - "Кампания с выручкой, но без юнит-экономики - «нет данных», а не минус весь расход; без выручки - минус расход"
+golden_rows: "analytics-mvp/src/scripts/ad-econ.test.ts (эталон посчитан вручную, 7 кейсов)"
+known_limits:
+  - "Окно не совпадает с выбранным периодом: начисления приходят после доставки (на 20.10 ряд по 15.10)"
+  - "Порог 3 дня с доставками - мой выбор взамен старого «< 5 операций»; на подтверждение Ивану"
+  - "Сверки с документом (отчёт о реализации) нет: оба ряда из API. Против старого ряда transaction/list за август: канал 50,3% против 52,0% (разный базис дат)"

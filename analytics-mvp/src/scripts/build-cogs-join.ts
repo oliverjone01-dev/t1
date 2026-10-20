@@ -52,6 +52,10 @@ function main() {
   // «GGT-03-2-4-L-80 - 10587р, GGTW-05-d120 - 4503р». Живут здесь, чтобы перечитывание листа их не стёрло.
   const MANUAL: Array<[string, number]> = [["GGT-03-2-4-L-80", 10587], ["GGTW-05-d120", 4503]];
   for (const [sku, cost] of MANUAL) if (!skuCost.has(sku)) skuCost.set(sku, cost);
+  // OZON, ключ - числовой SKU: GGT-46 (SKU 5632740461, кампания 40047060) в листе нет, цену назвал
+  // Иван 20.10.2026: «12380 р».
+  const MANUAL_OZON: Array<[string, number]> = [["5632740461", 12380]];
+  if (IS_OZON) for (const [sku, cost] of MANUAL_OZON) if (!skuCost.has(sku)) skuCost.set(sku, cost);
   // Запасной индекс по нормализованному артикулу - только для тех, кто не нашёлся точным ключом.
   const normCost = new Map<string, number>();
   for (const [k, v] of skuCost) { const n = normOffer(k); if (!normCost.has(n)) normCost.set(n, v); }

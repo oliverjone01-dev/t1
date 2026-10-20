@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readGapDaily, markNoSite, noSite, GAP_DAILY_FILE, type GapRow } from "./gap-daily.js";
+import { readGapDaily, markNoSite, markNoSiteEx, noSite, GAP_DAILY_FILE, NO_SITE_DAY_MIN, type GapRow } from "./gap-daily.js";
 import { gapSeries, controlByDay, median, pairGapSeries, readiness, BASE_MIN } from "./boost-readiness.js";
 
 const tmp = (lines: object[]): string => {
@@ -77,25 +77,38 @@ describe("живой файл data/gap_daily.ndjson", () => {
     }
   });
 
-  it("нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)", () => {
+  it("ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py)", () => {
+    // Правило, а не снимок (ФЕНИКС #487 iter4 L3, E091): честный ноль у зрелой карточки законен, новая карточка
+    // с мака приходит нулём без метки до скрипта v8 - оба состояния тест должен пропускать.
     const r = readGapDaily("data/" + GAP_DAILY_FILE);
     if (!r.exists) return;
     expect(r.noSite).toBeGreaterThanOrEqual(14);
-    expect(r.rows.filter((x) => x.gap_pct === 0)).toEqual([]);
+    const firstNonZero = new Map<string, string>();
+    for (const x of r.rows) if ((x.gap_pct ?? -1) > 0 && (firstNonZero.get(x.art) ?? "9999") > x.date) firstNonZero.set(x.art, x.date);
+    const zeroWithoutHistory = r.rows.filter((x) => x.gap_pct === 0 && !((firstNonZero.get(x.art) ?? "9999") < x.date)).map((x) => `${x.date} ${x.art}`);
+    expect(zeroWithoutHistory).toEqual([]);
   });
 
-  it("каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)", () => {
+  it("каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)", () => {
     if (!existsSync("data/" + GAP_DAILY_FILE)) return;
     const raw = readFileSync("data/" + GAP_DAILY_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
     const firstNonZero = new Map<string, string>();
     for (const r of raw) if (Number(r.gap_pct) > 0 && (firstNonZero.get(r.art) ?? "9999") > r.date) firstNonZero.set(r.art, r.date);
-    const marked = raw.filter((r) => r.no_site === true);
-    expect(marked.length).toBeGreaterThanOrEqual(14);
-    const withHistory = marked.filter((r) => (firstNonZero.get(r.art) ?? "9999") < r.date).map((r) => `${r.date} ${r.art}`);
+    // Число меток в файле не проверяем: пока скрипт v8 не прогнан, метки новой карточке ставит чтение (E091).
+    const inFile = raw.filter((r) => r.no_site === true);
+    const marked = markNoSiteEx(raw);
+    const byRead = marked.rows.filter(noSite);
+    // Метки файла - подмножество меток при чтении: чтение может добавить метку новой карточке, которую мак записал
+    // нулём до скрипта v8, но не может снять метку, лежащую в файле.
+    const readKeys = new Set(byRead.map((r) => `${r.date}|${r.art}`));
+    expect(inFile.filter((r) => !readKeys.has(`${r.date}|${r.art}`))).toEqual([]);
+    // Историю проверяем только у меток, которые добавило чтение, и вне системных дней: метка в файле у зрелой
+    // карточки законна - так снимают ложный стоп (Codex #488 P1, ФЕНИКС #488 L4); системный день метит всех.
+    const fileKeys = new Set(inFile.map((r) => `${r.date}|${r.art}`)), sysDays = new Set(marked.systemDays);
+    const withHistory = byRead
+      .filter((r) => !fileKeys.has(`${r.date}|${r.art}`) && !sysDays.has(r.date) && (firstNonZero.get(r.art) ?? "9999") < r.date)
+      .map((r) => `${r.date} ${r.art}`);
     expect(withHistory).toEqual([]);
-    // Чтение файла ставит те же метки, что лежат в нём: правило в коде и в скрипте правки данных одно.
-    const byRead = new Set(markNoSite(raw).filter(noSite).map((r) => `${r.date}|${r.art}`));
-    expect(byRead).toEqual(new Set(marked.map((r) => `${r.date}|${r.art}`)));
   });
 
   it("источники ряда - только наблюдения", () => {
@@ -305,5 +318,60 @@ describe("ноль у карточки с историей остаётся ну
     const out = markNoSite(input);
     expect(out.map((r) => [r.art, r.date, noSite(r)])).toEqual([["NEW", "2026-10-16", true], ["OLD", "2026-10-12", false], ["OLD", "2026-10-19", false]]);
     expect(input[0]!.no_site).toBeUndefined();
+  });
+});
+
+describe("системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10)", () => {
+  const day = (date: string, n: number, zeros: number, art = "A"): GapRow[] =>
+    Array.from({ length: n }, (_, i) => ({ date, art: `${art}${i}`, sku: "1", gap_pct: i < zeros ? 0 : 47, site_to_seller: i < zeros ? 1.0 : 0.53, src: "prices_raw" }));
+
+  it("все строки без витрины системного дня - «нет данных» даже у карточек с историей; стоп не зажигается", () => {
+    const rows = [...day("2026-10-12", 60, 0), ...day("2026-10-19", 60, 55)];
+    const { rows: out, systemDays } = markNoSiteEx(rows);
+    expect(systemDays).toEqual(["2026-10-19"]);
+    const d19 = out.filter((r) => r.date === "2026-10-19");
+    expect(d19.filter(noSite)).toHaveLength(55);
+    expect(d19.filter((r) => !noSite(r)).map((r) => r.gap_pct)).toEqual(Array(5).fill(47));
+    const r = readGapDaily(tmp(rows));
+    expect(r.systemDays).toEqual(["2026-10-19"]);
+    expect(r.rows.filter((x) => x.date === "2026-10-19")).toHaveLength(5);
+    expect(r.noSite).toBe(55);
+  });
+
+  it("ниже 90% - обычный день: ноль с историей остаётся нулём", () => {
+    const rows = [...day("2026-10-12", 60, 0), ...day("2026-10-19", 60, 50)];
+    const { rows: out, systemDays } = markNoSiteEx(rows);
+    expect(systemDays).toEqual([]);
+    expect(out.filter((r) => r.date === "2026-10-19" && noSite(r))).toHaveLength(0);
+    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0)).toHaveLength(50);
+  });
+
+  it(`меньше ${NO_SITE_DAY_MIN} строк в дне - правило дня не применяется: срез из одной новой карточки не системный день`, () => {
+    const rows = [...day("2026-10-12", 3, 0), ...day("2026-10-19", 3, 3)];
+    const { rows: out, systemDays } = markNoSiteEx(rows);
+    expect(systemDays).toEqual([]);
+    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(3);
+  });
+
+  it("порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен", () => {
+    if (!existsSync("data/" + GAP_DAILY_FILE)) return;
+    const r = readGapDaily("data/" + GAP_DAILY_FILE);
+    expect(r.systemDays.filter((d) => d <= "2026-10-19")).toEqual([]);
+    expect(r.warnDays.filter((d) => d <= "2026-10-19")).toEqual([]);
+  });
+
+  it("зона предупреждения 15-90%: значения как есть, день в warnDays", () => {
+    const rows = [...day("2026-10-12", 60, 0), ...day("2026-10-19", 60, 20)];
+    const { rows: out, systemDays, warnDays } = markNoSiteEx(rows);
+    expect(systemDays).toEqual([]);
+    expect(warnDays).toEqual(["2026-10-19"]);
+    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(20);
+  });
+
+  it("метка из файла у зрелой карточки (снятие ложного стопа) законна и остаётся", () => {
+    const rows = [...day("2026-10-12", 60, 0), { date: "2026-10-19", art: "A0", sku: "1", gap_pct: null as unknown as number, site_to_seller: null as unknown as number, no_site: true, src: "prices_raw" }];
+    const r = readGapDaily(tmp(rows));
+    expect(r.noSite).toBe(1);
+    expect(r.rows.filter((x) => x.date === "2026-10-19")).toEqual([]);
   });
 });

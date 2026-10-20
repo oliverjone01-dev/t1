@@ -23,7 +23,8 @@
 //  - Реклама: ads_sku_daily без «Оплаты за заказ», неделя чт-ср. Это расход: меньше плана - зелёный,
 //    до 120% - жёлтый, больше - красный (Иван 15.10 «везде меньше-зеленее»). Неделя до плана серая.
 //  - Цена: prices_daily.price (наша цена) против целевой; скидка OZON - gap_daily.gap_pct, ниже 10% -
-//    товар, похоже, выпал из Эластичного бустинга. Строка с меткой no_site (цена сайта равна нашей у карточки
+//    OZON, похоже, перестал доплачивать (выход из «Эластичного бустинга» разрыв не обваливает - ФЕНИКС 19.10 Z2,
+//    у 50 выходов ни разу ниже 10). Строка с меткой no_site (цена сайта равна нашей у карточки
 //    без истории) - «нет данных», не 0; ноль у карточки с историей - честный 0 и чип (Иван 19.10).
 // Пропуск - не ноль: дня нет в источнике - null, график рвётся, а не падает в ноль.
 import { readFileSync, existsSync } from "node:fs";
@@ -460,7 +461,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
   for (const r of markNoSite(readNd(dp("gap_daily.ndjson")))) {
     // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва;
-    // ноль у карточки с историей проходит и зажигает чип «выпал из бустинга?» (Иван 19.10).
+    // ноль у карточки с историей проходит и зажигает чип «OZON не доплачивает?» (Иван 19.10).
     if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null || gapNoSite(r)) continue;
     if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
     if (priceArts.has(r.art)) (gapHist.get(r.art) ?? gapHist.set(r.art, new Map()).get(r.art)!).set(r.date, Number(r.gap_pct));
@@ -477,11 +478,11 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
       + PCOLS.map((d) => `<td class="r">${F(priceAt(prHist.get(p.art), d))}</td>`).join("")
       + `<td class="r">${F(now)}<div class="muted s">${d0 ? DM(d0) : ""}</div></td><td class="r">${F(p.price_new)} <span class="muted">${esc(p.step)}</span></td>`
       + `<td><span class="chip ${ps.key === "снижена" ? "chip-done" : ps.key === "частично" ? "chip-mid" : ps.key === "по плану" ? "chip-off" : "chip-bad"}">${esc(ps.text)}</span></td>`
-      + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`}<div class="muted s">${gd ? DM(gd) : ""}</div>${gTxt}</td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
+      + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`}<div class="muted s">${gd ? DM(gd) : ""}</div>${gTxt}</td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">OZON не доплачивает?</span>` : ""}</td></tr>`);
   }
   const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th>${PCOLS.map((d, k) => `<th class="r"${k ? ` title="цена сменилась ${DM(d)}"` : ""}>${DM(d)}</th>`).join("")}<th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
     + `<th class="r" title="Скидка OZON на 14.10, до плана: на сколько цена на сайте ниже нашей (gap_daily)">Скидка OZON 14.10</th>`
-    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
+    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - OZON, похоже, перестал доплачивать">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 
   const DATA = {
     days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),

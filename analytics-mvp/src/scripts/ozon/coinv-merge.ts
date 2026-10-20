@@ -18,6 +18,7 @@
 // Запуск: npm run coinv:merge <файл среза>
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dp } from "../../paths.js";
+import { NO_SITE_DAY_SHARE, NO_SITE_DAY_MIN } from "../gap-daily.js";
 
 export interface SliceRow {
   date: string; art: string; sku?: string;
@@ -36,7 +37,7 @@ export const SLICE_SOURCE = "snapshot";
  *  за источник нельзя. */
 export const sourceOf = (s: SliceRow): string => String(s.src ?? "").trim() || SLICE_SOURCE;
 
-export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: StoredRow[]; added: number; updated: number; panelCarried: number } {
+export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: StoredRow[]; added: number; updated: number; panelCarried: number; systemDays: string[] } {
   const key = (d: string, a: string) => `${d}|${a}`;
   const by = new Map<string, StoredRow>();
   for (const r of stored) by.set(key(r.date, r.art), r);
@@ -52,6 +53,24 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     const f = firstPaid.get(r.art);
     if (f === undefined || r.date < f) firstPaid.set(r.art, r.date);
   }
+  // Системный день (K2, Иван 19.10): в срезе за день цена сайта равна нашей у NO_SITE_DAY_SHARE строк и больше
+  // при полном срезе (NO_SITE_DAY_MIN) - сбой витрины или съёма, все такие строки дня «нет данных» независимо
+  // от истории. Правило и пороги общие с gap-daily.ts (markNoSiteEx).
+  const siteMissingOf = (s: SliceRow): boolean =>
+    s.coinv_pct === 0 || (s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller));
+  // Доля по одной строке на (день, артикул), как в gap-daily.ts: срез утром и вечером за один день не удваивает
+  // знаменатель (ФЕНИКС #488, проба на 30 артикулах x 2 среза). Побеждает последняя строка артикула в срезе.
+  const lastOfDay = new Map<string, SliceRow>();
+  for (const s of slice) lastOfDay.set(key(s.date, s.art), s);
+  const dayTotal = new Map<string, number>(), dayMissing = new Map<string, number>();
+  for (const s of lastOfDay.values()) {
+    dayTotal.set(s.date, (dayTotal.get(s.date) ?? 0) + 1);
+    if (siteMissingOf(s)) dayMissing.set(s.date, (dayMissing.get(s.date) ?? 0) + 1);
+  }
+  const systemDays = [...dayTotal.entries()]
+    .filter(([d, n]) => n >= NO_SITE_DAY_MIN && (dayMissing.get(d) ?? 0) / n >= NO_SITE_DAY_SHARE)
+    .map(([d]) => d).sort();
+  const sysDay = new Set(systemDays);
   let added = 0, updated = 0, panelCarried = 0;
   for (const s of slice) {
     const k = key(s.date, s.art);
@@ -65,9 +84,10 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     // соинвестом (Иван 16.10 «пиши нет данных», 19.10: со SKU или без, но только у карточки без истории разрыва).
     // Тогда поле не пишем, ставим метку no_site. У карточки с историей ноль пишется нулём: это стоп-сигнал
     // теста 4 и чип плана «выпал из бустинга?», список акций его не заменяет (ФЕНИКС 19.10, проба Z2). Правило
-    // то же, что в gap-daily.ts (markNoSite).
+    // то же, что в gap-daily.ts (markNoSite), с одной оговоркой: история здесь только из stored, строки одного
+    // среза за несколько дней историей друг для друга не считаются (ФЕНИКС iter4, проба R3).
     const sameAsOurs = s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller);
-    const siteMissing = s.coinv_pct === 0 || sameAsOurs;
+    const siteMissing = siteMissingOf(s);
     const prevHas = prev != null && typeof prev.coinv_paid_pct === "number" && prev.coinv_paid_pct > 0;
     if (siteMissing && prevHas) {
       // Срез без витрины поверх снятого значения того же дня (утро снято, вечер нет): значение, SKU, цену
@@ -78,7 +98,7 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
       continue;
     }
     const hasHistory = (firstPaid.get(s.art) ?? "9999-99-99") < s.date;
-    const noSite = siteMissing && !hasHistory;
+    const noSite = siteMissing && (!hasHistory || sysDay.has(s.date));
     if (noSite) {
       // Повторный срез без витрины стирает прежний ложный 0 того же дня.
       delete row.coinv_paid_pct; row.no_site = true;
@@ -103,7 +123,7 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     by.set(k, row);
   }
   const rows = [...by.values()].sort((a, b) => a.date.localeCompare(b.date) || a.art.localeCompare(b.art));
-  return { rows, added, updated, panelCarried };
+  return { rows, added, updated, panelCarried, systemDays };
 }
 
 function main(): void {
@@ -116,8 +136,10 @@ function main(): void {
   const read = (p: string): any[] => readFileSync(p, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
   const stored: StoredRow[] = existsSync(path) ? read(path) : [];
   const slice: SliceRow[] = read(src);
-  const { rows, added, updated, panelCarried } = mergeCoinv(stored, slice);
+  const { rows, added, updated, panelCarried, systemDays } = mergeCoinv(stored, slice);
   writeFileSync(path, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  // Молчать нельзя: системный день это сбой витрины или съёма, его должен увидеть человек, а не только файл.
+  for (const d of systemDays) console.log(`coinv_daily.ndjson: WARNING ${d} - системный день: цена сайта равна нашей у ${Math.round(NO_SITE_DAY_SHARE * 100)}% строк и больше, весь день «нет данных»; проверить витрину и съём`);
   const days = [...new Set(rows.map((r) => r.date))].sort();
   console.log(`coinv_daily.ndjson: ${rows.length} строк, дней ${days.length} (${days[0]}..${days[days.length - 1]});`
     + ` из среза добавлено ${added}, обновлено ${updated}, флаг панели перенесён у ${panelCarried}`);

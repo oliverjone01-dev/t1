@@ -1,0 +1,22 @@
+constants: NO_SITE_DAY_SHARE=0.9 NO_SITE_DAY_MIN=50
+v0     systemDays=[] noSite=14 rows19=473 zeros19=0 lastDay=2026-10-19
+vMass  systemDays=["2026-10-19"] noSite=487 rows19=0 zeros19=0 lastDay=2026-10-18
+vS90   systemDays=["2026-10-19"] noSite=440 rows19=47 zeros19=0 lastDay=2026-10-19
+vS89   systemDays=[] noSite=14 rows19=473 zeros19=425 lastDay=2026-10-19
+vKeep  systemDays=["2026-10-19"] noSite=440 rows19=47 zeros19=0 lastDay=2026-10-19
+vN50   systemDays=["2026-10-19"] noSite=64 rows19=0 zeros19=0 lastDay=2026-10-18
+vN49   systemDays=[] noSite=14 rows19=49 zeros19=49 lastDay=2026-10-19
+vZ     systemDays=[] noSite=14 rows19=473 zeros19=2 lastDay=2026-10-19
+vU     systemDays=[] noSite=14 rows19=473 zeros19=0 lastDay=2026-10-19
+vP     systemDays=[] noSite=14 rows19=473 zeros19=0 lastDay=2026-10-19
+vPfix  systemDays=[] noSite=15 rows19=473 zeros19=0 lastDay=2026-10-19
+vZfix  systemDays=[] noSite=15 rows19=472 zeros19=1 lastDay=2026-10-19
+vKeep: 19.10 data rows 47, value differs from v0: 0, GGK-05-2-3-7040 = 50.3 (v0 50.3)
+n=50 zeros=45 share=0.9: systemDays=["2026-10-19"] honest zeros left=0
+n=50 zeros=44 share=0.88: systemDays=[] honest zeros left=44
+dup slice 30 arts x2: coinv-merge systemDays=["2026-10-19"] (counts 60 raw rows); gap-daily systemDays=[] (counts 30 deduped)
+   coinv 19.10: no_site 30, zero 0; gap 19.10 honest zeros 30
+coinv slice 20.10 all (473/473): systemDays=["2026-10-20"] no_site=473 zero=0 paid>0=0
+coinv slice 20.10 90% (426/473): systemDays=["2026-10-20"] no_site=426 zero=0 paid>0=47
+coinv slice 20.10 89% (425/473): systemDays=[] no_site=0 zero=425 paid>0=48
+negative gap at a card with history: priceEqualsOurs=true, markNoSite -> no_site=false, value kept=-5

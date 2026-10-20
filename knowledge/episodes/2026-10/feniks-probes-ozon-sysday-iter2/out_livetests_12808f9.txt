@@ -1,0 +1,102 @@
+== 12808f9 v0 exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 94ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vZ19 exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 117ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 62ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-02', …(5) }, …(2) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vZ20 exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 64ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 41ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-20', …(5) }, …(1) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vW exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 64ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vMass exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 126ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 35ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ Array(459) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vS90 exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 107ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 31ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ Array(414) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vS89 exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 114ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 38ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ Array(413) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vW15 exit=1  Tests 3 failed | 25 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 68ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 39ms
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 30ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-20', …(5) }, …(68) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 12808f9 vN50 exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 76ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 39ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-20', …(5) }, …(49) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+== 12808f9 vPfix exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 84ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 1 to be greater than or equal to 14
+== 12808f9 vZfix exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 175ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 103ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-02', …(5) }, …(1) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 1 to be greater than or equal to 14
+== 12808f9 vZsib exit=1  Tests 3 failed | 25 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 65ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 41ms
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 35ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-20', …(5) } ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 12808f9 vZsib19 exit=1  Tests 3 failed | 25 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 107ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 71ms
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 59ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ { date: '2026-10-19', …(5) } ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 12808f9 vZsibfix exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 52ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 1 to be greater than or equal to 14
+== 12808f9 vReal2b exit=1  Tests 2 failed | 26 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 162ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 42ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+AssertionError: expected [ Array(918) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+AssertionError: expected 0 to be greater than or equal to 14

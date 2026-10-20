@@ -1,0 +1,18 @@
+gap_daily raw rows 13401, after (day, art) dedupe 13401
+gap_daily: days 28 (2026-09-09..2026-10-19), rows/day min 463 max 514, dup keys 0
+  top share: 2026-10-16 9/473=1.9%, 2026-09-20 2/510=0.4%, 2026-10-10 1/464=0.2%, 2026-10-11 1/464=0.2%, 2026-10-12 1/465=0.2%
+  days with < 50 rows: 0 []
+  rule share>=0.9 n>=50: 0 days []
+  rule share>=0.5 n>=50: 0 days []
+  rule share>=0.1 n>=50: 0 days []
+  rule share>=0.05 n>=50: 0 days []
+  rule share>=0.9 n>=1: 0 days []
+coinv_daily rows 61940
+coinv_daily: days 127 (2026-06-12..2026-10-19), rows/day min 460 max 516, dup keys 0
+  top share: 2026-10-16 9/473=1.9%, 2026-10-17 9/473=1.9%, 2026-10-10 1/464=0.2%, 2026-10-11 1/464=0.2%, 2026-10-12 1/465=0.2%
+  days with < 50 rows: 0 []
+  rule share>=0.9 n>=50: 0 days []
+  rule share>=0.5 n>=50: 0 days []
+  rule share>=0.1 n>=50: 0 days []
+  rule share>=0.05 n>=50: 0 days []
+  rule share>=0.9 n>=1: 0 days []

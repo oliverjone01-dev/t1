@@ -1,0 +1,11 @@
+== ada2e83 v0 exit=0  Tests 28 passed (28)
+== ada2e83 vZ exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 51ms
+== ada2e83 vU exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 35ms
+== ada2e83 vW exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 42ms
+== ada2e83 vMass exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 99ms
+== ada2e83 vPfix exit=1  Tests 1 failed | 27 passed (28)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 45ms

@@ -1,0 +1,42 @@
+== e1c3a62 v0
+GGM-02-2-1       mode=pair points=27 dropped=0 worst=0.9 on 2026-10-01 own=52.64 partners: GGM-02-3-1=53.09 GGM-17-1-1=53.47
+GGM-02-3-1       mode=pair points=27 dropped=0 worst=1.1 on 2026-10-01 own=53.09 partners: GGM-02-2-1=52.64 GGM-17-1-1=53.47
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 1.1 (test: must be < 2 and > 0)
+== e1c3a62 vZsib
+GGM-02-2-1       mode=pair points=27 dropped=1 worst=0.9 on 2026-10-01 own=52.64 partners: GGM-02-3-1=53.09 GGM-17-1-1=53.47
+GGM-02-3-1       mode=pair points=27 dropped=1 worst=1.1 on 2026-10-01 own=53.09 partners: GGM-02-2-1=52.64 GGM-17-1-1=53.47
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 1.1 (test: must be < 2 and > 0)
+== e1c3a62 vZsib19
+GGM-02-2-1       mode=pair points=27 dropped=1 worst=0.9 on 2026-10-01 own=52.64 partners: GGM-02-3-1=53.09 GGM-17-1-1=53.47
+GGM-02-3-1       mode=pair points=27 dropped=1 worst=1.1 on 2026-10-01 own=53.09 partners: GGM-02-2-1=52.64 GGM-17-1-1=53.47
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 1.1 (test: must be < 2 and > 0)
+== e1c3a62 vW15
+GGM-02-2-1       mode=pair points=27 dropped=1 worst=0.9 on 2026-10-01 own=52.64 partners: GGM-02-3-1=53.09 GGM-17-1-1=53.47
+GGM-02-3-1       mode=pair points=27 dropped=1 worst=1.1 on 2026-10-01 own=53.09 partners: GGM-02-2-1=52.64 GGM-17-1-1=53.47
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 1.1 (test: must be < 2 and > 0)
+== e1c3a62 vZsib5
+GGM-02-2-1       mode=pair points=27 dropped=0 worst=45.2 on 2026-10-20 own=5 partners: GGM-02-3-1=49.86 GGM-17-1-1=-
+GGM-02-3-1       mode=pair points=27 dropped=0 worst=46.0 on 2026-10-20 own=49.86 partners: GGM-02-2-1=5 GGM-17-1-1=-
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 46.0 (test: must be < 2 and > 0)
+== e1c3a62 vZsibL
+GGM-02-2-1       mode=pair points=27 dropped=0 worst=0.9 on 2026-10-01 own=52.64 partners: GGM-02-3-1=53.09 GGM-17-1-1=53.47
+GGM-02-3-1       mode=pair points=27 dropped=0 worst=1.1 on 2026-10-01 own=53.09 partners: GGM-02-2-1=52.64 GGM-17-1-1=53.47
+GGM-17-1-1       mode=pair points=21 dropped=0 worst=0.4 on 2026-09-24 own=47.91 partners: GGM-02-2-1=47.68 GGM-02-3-1=47.19
+GGL-01-M-2       mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+GGT-03-3-1-L-80  mode=single (sibs=[self]) points=0 dropped=0 worst=- own=- partners: 
+worst over placebo cards = 1.1 (test: must be < 2 and > 0)

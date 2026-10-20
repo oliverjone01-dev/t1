@@ -1,0 +1,12 @@
+tsc --noEmit on code copy e1c3a62: errors by file (PR files: gap-daily.ts, gap-daily.test.ts, build-tests.ts, plan-tab.ts, ozon/coinv-merge*.ts)
+     10 src/scripts/ozon/pnl-sku-daily.ts
+      9 src/scripts/ym/svod-ui.test.ts
+      5 src/scripts/ozon/acq-sku-daily.ts
+      5 src/scripts/build-katya.ts
+      4 src/scripts/ozon/pnl-sku-breakdown.ts
+      2 src/scripts/ym/validate-facts.test.ts
+      2 src/scripts/ozon/pnl-accrual-reconcile.ts
+      2 src/scripts/ozon/pnl-accrual-daily.ts
+      1 src/scripts/ym/tovary-ui.test.ts
+      1 src/scripts/ym/report-page-ym.ts
+total errors: 41

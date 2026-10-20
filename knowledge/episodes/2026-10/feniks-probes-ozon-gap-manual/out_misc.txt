@@ -1,0 +1,47 @@
+== H1 hash
+  --rev HEAD: ad03459c99c3edcb
+  --rev e0aab10a: ad03459c99c3edcb
+  --worktree: ad03459c99c3edcb
+  HEAD=e0aab10a origin/main=81764e4b merge-base=81764e4b
+  paths of the branch (minus excluded):
+    analytics-mvp/data/gap_manual.ndjson
+    analytics-mvp/src/scripts/build-tests.ts
+    analytics-mvp/src/scripts/gap-daily.test.ts
+    analytics-mvp/src/scripts/gap-daily.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge.ts
+    analytics-mvp/src/scripts/plan-tab.ts
+    knowledge/decisions.md
+    knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml
+  commit message [skip ci]: 0
+== M1 mac autocommits (author GENGLASS srez) on origin/main
+  count: 11, first: 2026-10-15 13:00:32 +0300
+  statuses:     114 M 
+  unique paths: 12
+  gap_manual among them: 0
+  e3968750: 10 files, gap_manual 0
+  c2c0aeba: 11 files, gap_manual 0
+  data files added by others after the first mac autocommit, present at e0aab10a:
+    analytics-mvp/data/plan_2026-10-15.json present
+    analytics-mvp/data/plan_2026-10-15_v2.json present
+    analytics-mvp/data/plan_2026-10-15_v3.json present
+    analytics-mvp/data/plan_2026-10-15_v4.json present
+    analytics-mvp/data/plan_card_groups_1510.json present
+== T3 CI head (gh api)
+  vitest + smoke: completed success id 118517055979
+== texts
+  'весь день' in src/spec/decisions: e0aab10a:knowledge/decisions.md:1 
+  old chip name: 0 files
+  stale procedure text in gap-daily.ts (метка no_site в gap_daily / через markNoSite):
+    110: *  build-tests.ts) берут строки через markNoSite и фильтруют этим предикатом - копий правила нет. */
+    118: *    заменять утренний в писателе на маке (W1, открыто Ивану).
+    122: *    ложный стоп: если ноль у зрелой карточки оказался сбоем витрины, строке в gap_daily ставится no_site: true
+  live test early return on absent manual file:
+    417:    if (!existsSync("data/" + GAP_MANUAL_FILE) || !existsSync("data/" + GAP_DAILY_FILE)) return;
+  window in build-tests.ts:
+    3567:const GAP_LAST_ANY = [...GAP.days, ...GAP.systemDays, ...GAP.warnDays].sort().pop() ?? "";
+    3568:const GAP_RECENT = (d: string) => !GAP_LAST_ANY || d >= addDays(GAP_LAST_ANY, -7);
+== C3 / C4 / D1 on added lines and self-check
+  added lines: 179; U+2014 added 0, self-check 0
+  anti-slop hits (21 phrases): 0
+  self-claimed X/10: 0

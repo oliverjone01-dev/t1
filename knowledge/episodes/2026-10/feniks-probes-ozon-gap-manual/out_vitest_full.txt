@@ -1,0 +1,7 @@
+ Test Files  1 failed | 66 passed (67)
+      Tests  1107 passed (1107)
+ FAIL  src/scripts/ym/validate-facts.test.ts [ src/scripts/ym/validate-facts.test.ts ]
+Error: ENOENT: no such file or directory, open '../.github/workflows/ym-snapshots.yml'
+-- validate-facts.test.ts with .github present in the copy:
+ Test Files  1 passed (1)
+      Tests  31 passed (31)

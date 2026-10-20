@@ -16,6 +16,19 @@ const OUT = "data/orders_daily.ndjson";
 
 function ymd(d: Date): string { return d.toISOString().slice(0, 10); }
 
+// Аннотации GitHub Actions (::error:: / ::notice::): лог прогона из облачной сессии недоступен
+// (хранилище логов отвечает 403), аннотации читаются через API check-runs. Ключи кабинета из текста
+// вырезаются, перевод строки кодируется %0A, длина ограничена (репозиторий публичный).
+export function annotation(level: "error" | "notice", text: string, secrets: string[] = []): string {
+  let t = text;
+  for (const sec of secrets) if (sec) t = t.split(sec).join("***");
+  t = t.replace(/\r/g, "").replace(/\n/g, "%0A");
+  if (t.length > 1500) t = t.slice(0, 1500) + "…";
+  return `::${level}::${t}`;
+}
+
+const SECRETS = [process.env.OZON_SELLER_CLIENT_ID || "", process.env.OZON_SELLER_API_KEY || ""];
+
 async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
   if (!clientId || !apiKey) { console.warn("orders-daily: OZON_SELLER_* нет - пропуск"); return; }
@@ -26,6 +39,7 @@ async function main() {
 
   const posts = await seller.postings(from, to);
   console.log(`  постингов: ${posts.length}`);
+  console.log(annotation("notice", `orders-daily: постингов ${posts.length} за ${from}..${to}`));
 
   // типы начислений -> бакеты
   let bmap: Record<number, Bucket> = {};
@@ -35,6 +49,7 @@ async function main() {
   const nums = posts.map((p) => p.posting_number).filter(Boolean);
   const acc = await seller.accrualPostings(nums);
   console.log(`  постингов с начислениями: ${acc.length}`);
+  console.log(annotation("notice", `orders-daily: постингов с начислениями ${acc.length}`));
   const accByOrder: Record<string, Record<Bucket, number>> = {};
   const zero = (): Record<Bucket, number> => ({ commission: 0, acquiring: 0, storage: 0, delivery: 0, buyerDelivery: 0, ads: 0, partner: 0, other: 0 });
   const nameById: Record<number, string> = {};
@@ -112,4 +127,12 @@ async function main() {
   console.log(`  записано: ${OUT}`);
 }
 
-main().catch((e) => { console.error("orders-daily FAIL:", e); process.exit(1); });
+// Запуск только как скрипт: при импорте (тесты) main не стартует.
+if (process.argv[1] && /orders-daily\.ts$/.test(process.argv[1])) {
+  main().catch((e) => {
+    console.error("orders-daily FAIL:", e);
+    const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    console.log(annotation("error", `orders-daily FAIL: ${msg}`, SECRETS));
+    process.exit(1);
+  });
+}

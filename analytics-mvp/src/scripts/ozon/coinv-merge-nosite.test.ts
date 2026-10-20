@@ -135,4 +135,11 @@ describe("системный день в срезе (K2 ФЕНИКСА iter4, И
     const { systemDays } = mergeCoinv(stored("2026-10-12", 30), [...morning, ...evening]);
     expect(systemDays).toEqual([]);
   });
+
+  it("строки, которые сохранит M1 (снятое значение дня уже лежит), в долю системного дня не идут", () => {
+    const st = [...stored("2026-10-12", 60), ...Array.from({ length: 60 }, (_, i) => ({ date: "2026-10-19", art: `A${i}`, sku: "1", coinv_paid_pct: 47 }))];
+    const { systemDays, rows } = mergeCoinv(st, slice("2026-10-19", 60, 60));
+    expect(systemDays).toEqual([]);
+    expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 47)).toHaveLength(60);
+  });
 });

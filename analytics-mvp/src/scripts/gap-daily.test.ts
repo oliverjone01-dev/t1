@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { readGapDaily, markNoSite, markNoSiteEx, noSite, GAP_DAILY_FILE, NO_SITE_DAY_MIN, type GapRow } from "./gap-daily.js";
+import { join, dirname } from "node:path";
+import { readGapDaily, readGapMarked, markNoSite, markNoSiteEx, noSite, GAP_DAILY_FILE, GAP_MANUAL_FILE, NO_SITE_DAY_MIN, type GapRow } from "./gap-daily.js";
 import { gapSeries, controlByDay, median, pairGapSeries, readiness, BASE_MIN } from "./boost-readiness.js";
 
 const tmp = (lines: object[]): string => {
@@ -148,10 +148,13 @@ describe("гейт плато на живом gap_daily", () => {
   it("плацебо-группа держится: соседи без рекламы не уходят от базы", () => {
     if (!G.exists || !SIB.length) return;
     const ctl = controlByDay(G.rows, new Set([...AD, ...SIB]));
+    // Честный ноль у соседа (OZON перестал доплачивать, Иван 19.10) - событие, а не шум метода: такие дни из
+    // проверки шума исключаются, иначе тест красный навсегда (ФЕНИКС #488 iter2, E091).
+    const zeroDays = new Set(G.rows.filter((r) => r.gap_pct === 0).map((r) => `${r.date}|${r.art}`));
     const worst = Math.max(...SIB.map((a) => {
       const ser = sibsOf(a).length ? pairGapSeries(G.rows, a, sibsOf(a)) : gapSeries(G.rows, a, ctl);
       const r = readiness({ art: a, on }, ser, new Map(), BASE_MIN);
-      return Math.max(0, ...r.series.map((p) => Math.abs(p.shift)));
+      return Math.max(0, ...r.series.filter((p) => !zeroDays.has(`${p.date}|${a}`)).map((p) => Math.abs(p.shift)));
     }));
     // Порог +8 держится, пока шум метода много меньше его. Граница 2 пункта взята с запасом:
     // на 24.09 худший сосед даёт 0.7. Если тест упадёт, порог надо пересматривать, а не правку
@@ -373,5 +376,50 @@ describe("системный день: цена сайта равна нашей
     const r = readGapDaily(tmp(rows));
     expect(r.noSite).toBe(1);
     expect(r.rows.filter((x) => x.date === "2026-10-19")).toEqual([]);
+  });
+});
+
+describe("ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10)", () => {
+  const withManual = (lines: object[], manual: object[]): string => {
+    const p = tmp(lines);
+    writeFileSync(join(dirname(p), GAP_MANUAL_FILE), manual.map((l) => JSON.stringify(l)).join("\n") + "\n", "utf-8");
+    return p;
+  };
+  const mature = [
+    { date: "2026-10-12", art: "GGK-02-3-3-80", sku: "1", gap_pct: 47, site_to_seller: 0.53, src: "prices_raw" },
+    { date: "2026-10-19", art: "GGK-02-3-3-80", sku: "1", gap_pct: 0, site_to_seller: 1.0, src: "prices_raw" },
+  ];
+
+  it("запись (день, артикул) гасит честный ноль у зрелой карточки: строка «нет данных», как метка в файле", () => {
+    const p = withManual(mature, [{ date: "2026-10-19", art: "GGK-02-3-3-80", reason: "сбой витрины", by: "тест" }]);
+    const r = readGapDaily(p);
+    expect(r.rows.map((x) => [x.date, x.gap_pct])).toEqual([["2026-10-12", 47]]);
+    expect(r.noSite).toBe(1);
+    expect(r.manual).toBe(1);
+    expect(readGapMarked(p).rows.find((x) => x.date === "2026-10-19")!.no_site).toBe(true);
+  });
+
+  it("без файла и с записью на другой день или артикул ноль остаётся нулём", () => {
+    expect(readGapDaily(tmp(mature)).rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(0);
+    const p = withManual(mature, [{ date: "2026-10-18", art: "GGK-02-3-3-80" }, { date: "2026-10-19", art: "OTHER" }]);
+    const r = readGapDaily(p);
+    expect(r.rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(0);
+    expect(r.manual).toBe(0);
+  });
+
+  it("битая строка ручного файла снятие не делает и чтение не ломает", () => {
+    const p = tmp(mature);
+    writeFileSync(join(dirname(p), GAP_MANUAL_FILE), "{не json\n", "utf-8");
+    expect(readGapDaily(p).rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(0);
+  });
+
+  it("живой файл ручных снятий: каждая запись - день и артикул, которые есть в gap_daily", () => {
+    if (!existsSync("data/" + GAP_MANUAL_FILE) || !existsSync("data/" + GAP_DAILY_FILE)) return;
+    const keys = new Set(readFileSync("data/" + GAP_DAILY_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => { const r = JSON.parse(l); return `${r.date}|${r.art}`; }));
+    const manual = readFileSync("data/" + GAP_MANUAL_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+    for (const m of manual) {
+      expect(typeof m.date).toBe("string"); expect(typeof m.art).toBe("string");
+      expect(keys.has(`${m.date}|${m.art}`)).toBe(true);
+    }
   });
 });

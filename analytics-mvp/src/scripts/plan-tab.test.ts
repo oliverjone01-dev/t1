@@ -306,7 +306,7 @@ describe("planBlock", () => {
   it("скидка OZON: было на 14.10, стало по последнему срезу, разница в п.п. (Иван 15.10)", () => {
     const html = planBlock("2026-10-17", fixture({ gap: [{ date: "2026-10-13", art: "A-1", gap_pct: 30 }, { date: "2026-10-14", art: "A-1", gap_pct: 20 }, { date: "2026-10-16", art: "A-1", gap_pct: 5 }] }))!.html;
     const row = html.slice(html.indexOf("Скидка OZON сейчас"));
-    expect(row).toContain(">20,0%<"); expect(row).toContain(">5,0%<"); expect(row).toContain("-15,0 п.п."); expect(row).toContain("выпал из бустинга?");
+    expect(row).toContain(">20,0%<"); expect(row).toContain(">5,0%<"); expect(row).toContain("-15,0 п.п."); expect(row).toContain("OZON не доплачивает?");
   });
   it("данные до 15.10 - только справочно: в факт и план периода не входят (Иван 15.10)", () => {
     const orders = [{ d: "2026-10-10", status: "delivered", sku: "1", units: 7, revenue: 7000 }, { d: "2026-10-15", status: "delivered", sku: "1", units: 2, revenue: 1000 },
@@ -336,7 +336,7 @@ describe("planBlock", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js); const j = D.days.indexOf("2026-10-16");
     expect(D.store.sp[j]).toBe(3600); expect(D.store.clk[j]).toBe(20);
   });
-  it("цена не снижена и выпал из бустинга - видно в статусах", () => {
+  it("цена не снижена и OZON не доплачивает - видно в статусах", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js);
     expect(D.price_st["не снижена"]).toBe(1);
     expect(D.price_st.eb).toBe(1);

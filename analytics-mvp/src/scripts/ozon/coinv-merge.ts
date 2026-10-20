@@ -58,8 +58,12 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
   // от истории. Правило и пороги общие с gap-daily.ts (markNoSiteEx).
   const siteMissingOf = (s: SliceRow): boolean =>
     s.coinv_pct === 0 || (s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller));
+  // Доля по одной строке на (день, артикул), как в gap-daily.ts: срез утром и вечером за один день не удваивает
+  // знаменатель (ФЕНИКС #488, проба на 30 артикулах x 2 среза). Побеждает последняя строка артикула в срезе.
+  const lastOfDay = new Map<string, SliceRow>();
+  for (const s of slice) lastOfDay.set(key(s.date, s.art), s);
   const dayTotal = new Map<string, number>(), dayMissing = new Map<string, number>();
-  for (const s of slice) {
+  for (const s of lastOfDay.values()) {
     dayTotal.set(s.date, (dayTotal.get(s.date) ?? 0) + 1);
     if (siteMissingOf(s)) dayMissing.set(s.date, (dayMissing.get(s.date) ?? 0) + 1);
   }

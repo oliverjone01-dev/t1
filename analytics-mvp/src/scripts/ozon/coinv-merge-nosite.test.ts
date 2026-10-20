@@ -129,4 +129,10 @@ describe("системный день в срезе (K2 ФЕНИКСА iter4, И
     expect(systemDays).toEqual([]);
     expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 0)).toHaveLength(3);
   });
+
+  it("доля дня считается по одной строке на артикул: срез утром и вечером за 30 артикулов - не системный день", () => {
+    const morning = slice("2026-10-19", 30, 30), evening = slice("2026-10-19", 30, 30);
+    const { systemDays } = mergeCoinv(stored("2026-10-12", 30), [...morning, ...evening]);
+    expect(systemDays).toEqual([]);
+  });
 });

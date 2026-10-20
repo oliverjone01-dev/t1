@@ -57,9 +57,13 @@ export interface GapRead {
   /** Системные дни: цена сайта равна нашей у NO_SITE_DAY_SHARE строк дня и больше - весь день «нет данных»
    *  (Иван 19.10 по K2 ФЕНИКСА). Читатель должен написать warning, а не молчать. */
   systemDays: string[];
+  /** Дни с долей строк без витрины от NO_SITE_DAY_WARN до NO_SITE_DAY_SHARE: значения как есть, но читатель пишет
+   *  warning - частичный сбой витрины, при котором нули у зрелых карточек могут быть ложными (как SAME_BEFORE_WARN
+   *  у снимка цен API). */
+  warnDays: string[];
 }
 
-const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0, systemDays: [] };
+const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0, systemDays: [], warnDays: [] };
 
 /** Системный день (K2 ФЕНИКСА iter4, Иван 19.10 «да, 90% дня = нет данных»): если цена сайта равна нашей у
  *  NO_SITE_DAY_SHARE строк дня и больше, это сбой витрины или съёма, а не 10 карточек теста и 29 карточек плана,
@@ -69,7 +73,11 @@ const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), wi
  *  стал бы «системным днём». История [ДАННЫЕ, gap_daily и coinv_daily на 19.10]: строк в дне 460-516, доля
  *  таких строк максимум 1,9 % (16.10, 9 новых GGT-03-5-1 из 473) - ни один прошлый день правило не задевает. */
 export const NO_SITE_DAY_SHARE = 0.9;
+/** Нижняя граница - допущение автора [ГИПОТЕЗА], не решение Ивана: срез мака всегда 460-516 строк, у снимка цен API
+ *  такой границы нет. */
 export const NO_SITE_DAY_MIN = 50;
+/** Зона предупреждения: доля от NO_SITE_DAY_WARN до NO_SITE_DAY_SHARE - значения как есть, warning читателю. */
+export const NO_SITE_DAY_WARN = 0.15;
 
 /** Строка, в которой цена на сайте равна нашей: разрыв 0 или site_to_seller 1. Сам по себе это ещё не «нет
  *  данных»: решает история артикула (markNoSite). */
@@ -107,7 +115,7 @@ export const noSite = (r: GapRow): boolean => r.no_site === true;
 export function markNoSite(input: GapRow[]): GapRow[] { return markNoSiteEx(input).rows; }
 
 /** То же, что markNoSite, плюс список системных дней (см. NO_SITE_DAY_SHARE). */
-export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: string[] } {
+export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: string[]; warnDays: string[] } {
   const last = new Map<string, GapRow>();
   for (const r of input) {
     const d = String(r.date || "").slice(0, 10);
@@ -135,6 +143,9 @@ export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: str
     .filter(([d, n]) => n >= NO_SITE_DAY_MIN && (dayMissing.get(d) ?? 0) / n >= NO_SITE_DAY_SHARE)
     .map(([d]) => d).sort();
   const sysDay = new Set(systemDays);
+  const warnDays = [...dayTotal.entries()]
+    .filter(([d, n]) => n >= NO_SITE_DAY_MIN && !sysDay.has(d) && (dayMissing.get(d) ?? 0) / n >= NO_SITE_DAY_WARN)
+    .map(([d]) => d).sort();
   const out: GapRow[] = [];
   for (const r of last.values()) {
     if (r.no_site === true || !priceEqualsOurs(r)) { out.push(r); continue; }
@@ -142,7 +153,7 @@ export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: str
     const f = firstNonZero.get(art);
     out.push(f !== undefined && f < d && !sysDay.has(d) ? r : { ...r, no_site: true });
   }
-  return { rows: out, systemDays };
+  return { rows: out, systemDays, warnDays };
 }
 
 export function readGapDaily(path: string): GapRead {
@@ -178,5 +189,5 @@ export function readGapDaily(path: string): GapRead {
     // Ноль у карточки с историей проходит сюда как есть: честный 0, а не «нет данных».
     rows.push({ date: d, art, observed: true, in_panel: true, gap_pct: v, oa_source: src });
   }
-  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN, systemDays: marked.systemDays };
+  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN, systemDays: marked.systemDays, warnDays: marked.warnDays };
 }

@@ -87,7 +87,6 @@ describe("живой файл data/gap_daily.ndjson", () => {
     for (const x of r.rows) if ((x.gap_pct ?? -1) > 0 && (firstNonZero.get(x.art) ?? "9999") > x.date) firstNonZero.set(x.art, x.date);
     const zeroWithoutHistory = r.rows.filter((x) => x.gap_pct === 0 && !((firstNonZero.get(x.art) ?? "9999") < x.date)).map((x) => `${x.date} ${x.art}`);
     expect(zeroWithoutHistory).toEqual([]);
-    expect(r.systemDays).toEqual([]);
   });
 
   it("каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)", () => {
@@ -97,12 +96,18 @@ describe("живой файл data/gap_daily.ndjson", () => {
     for (const r of raw) if (Number(r.gap_pct) > 0 && (firstNonZero.get(r.art) ?? "9999") > r.date) firstNonZero.set(r.art, r.date);
     // Число меток в файле не проверяем: пока скрипт v8 не прогнан, метки новой карточке ставит чтение (E091).
     const inFile = raw.filter((r) => r.no_site === true);
-    const byRead = markNoSite(raw).filter(noSite);
+    const marked = markNoSiteEx(raw);
+    const byRead = marked.rows.filter(noSite);
     // Метки файла - подмножество меток при чтении: чтение может добавить метку новой карточке, которую мак записал
     // нулём до скрипта v8, но не может снять метку, лежащую в файле.
     const readKeys = new Set(byRead.map((r) => `${r.date}|${r.art}`));
     expect(inFile.filter((r) => !readKeys.has(`${r.date}|${r.art}`))).toEqual([]);
-    const withHistory = byRead.filter((r) => (firstNonZero.get(r.art) ?? "9999") < r.date).map((r) => `${r.date} ${r.art}`);
+    // Историю проверяем только у меток, которые добавило чтение, и вне системных дней: метка в файле у зрелой
+    // карточки законна - так снимают ложный стоп (Codex #488 P1, ФЕНИКС #488 L4); системный день метит всех.
+    const fileKeys = new Set(inFile.map((r) => `${r.date}|${r.art}`)), sysDays = new Set(marked.systemDays);
+    const withHistory = byRead
+      .filter((r) => !fileKeys.has(`${r.date}|${r.art}`) && !sysDays.has(r.date) && (firstNonZero.get(r.art) ?? "9999") < r.date)
+      .map((r) => `${r.date} ${r.art}`);
     expect(withHistory).toEqual([]);
   });
 
@@ -348,8 +353,25 @@ describe("системный день: цена сайта равна нашей
     expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(3);
   });
 
-  it("порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]", () => {
+  it("порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен", () => {
     if (!existsSync("data/" + GAP_DAILY_FILE)) return;
-    expect(readGapDaily("data/" + GAP_DAILY_FILE).systemDays).toEqual([]);
+    const r = readGapDaily("data/" + GAP_DAILY_FILE);
+    expect(r.systemDays.filter((d) => d <= "2026-10-19")).toEqual([]);
+    expect(r.warnDays.filter((d) => d <= "2026-10-19")).toEqual([]);
+  });
+
+  it("зона предупреждения 15-90%: значения как есть, день в warnDays", () => {
+    const rows = [...day("2026-10-12", 60, 0), ...day("2026-10-19", 60, 20)];
+    const { rows: out, systemDays, warnDays } = markNoSiteEx(rows);
+    expect(systemDays).toEqual([]);
+    expect(warnDays).toEqual(["2026-10-19"]);
+    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(20);
+  });
+
+  it("метка из файла у зрелой карточки (снятие ложного стопа) законна и остаётся", () => {
+    const rows = [...day("2026-10-12", 60, 0), { date: "2026-10-19", art: "A0", sku: "1", gap_pct: null as unknown as number, site_to_seller: null as unknown as number, no_site: true, src: "prices_raw" }];
+    const r = readGapDaily(tmp(rows));
+    expect(r.noSite).toBe(1);
+    expect(r.rows.filter((x) => x.date === "2026-10-19")).toEqual([]);
   });
 });

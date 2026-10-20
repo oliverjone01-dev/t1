@@ -1,0 +1,32 @@
+2026-10-20: n 459, ceil(0.9 n) 414, ceil(0.15 n) 69
+v0       rows  13860  as is
+vZ19     rows  13860  honest zero 19.10 at GGK-02-3-3-80, GGT-48-2-2-100-180; GGM-20-2 02.10
+vZ20     rows  13860  honest zero 20.10 at GGK-02-3-3-80, GGT-48-2-2-100-180
+vU       rows  13860  unlabeled 0
+vW       rows  13861  new card 20.10 unlabeled zero
+vW21     rows  13861  new card 21.10 unlabeled zero (one-row day)
+vMass    rows  13860  20.10 rows -> zero: 459
+vS90     rows  13860  2026-10-20 zero 414 of 459 = 90.20%, test-4 zero 10, plan zero 29
+vS89     rows  13860  2026-10-20 zero 413 of 459 = 89.98%, test-4 zero 10, plan zero 29
+vW15     rows  13860  2026-10-20 zero 69 of 459 = 15.03%, test-4 zero 10, plan zero 29
+vW14     rows  13860  2026-10-20 zero 68 of 459 = 14.81%, test-4 zero 10, plan zero 29
+vN50     rows  13451  2026-10-20 cut to 50 rows all zero, test-4 10, plan 29
+vN49     rows  13450  2026-10-20 cut to 49 rows all zero, test-4 10, plan 29
+vKeep    rows  13860  2026-10-20 zero 414 of 459 = 90.20%, test-4 zero 9, plan zero 29, kept non-zero GGK-05-2-3-7040
+vP       rows  13860  glitch ('2026-10-15', 'GGK-02-3-3-80')
+vPfix    rows  13860  vP + no_site: true on the glitch row (procedure P1)
+vZfix    rows  13860  vZ19 + no_site: true on GGK-02-3-3-80 19.10
+vZ20fix  rows  13860  vZ20 + no_site: true on GGK-02-3-3-80 20.10
+vReal2   rows  13860  19.10 and 20.10 rows -> zero
+vMass19  rows  13860  19.10 rows -> zero
+vS90_19  rows  13860  2026-10-19 zero 426 of 473 = 90.06%, test-4 zero 10, plan zero 29
+vN50_19  rows  13437  2026-10-19 cut to 50 rows all zero, test-4 10, plan 29
+vOld     rows  13860  20.09 rows -> zero: 510
+vWarnOld rows  13860  2026-10-01 zero 94 of 469 = 20.04%, test-4 zero 0, plan zero 0
+vZsib     rows  13860  honest zero GGM-02-2-1 20.10
+vZsib19   rows  13860  honest zero GGM-02-2-1 19.10 only
+vZsibfix  rows  13860  vZsib19 + no_site label
+vZad      rows  13860  honest zero GGM-02-1-1 20.10
+vReal2b   rows  14319  20.10 and 21.10 all price == ours
+vReal3    rows  14778  20.10, 21.10, 22.10 all price == ours
+vSysWarn  rows  14319  20.10 system + 21.10 warn (92 of 459 zero)

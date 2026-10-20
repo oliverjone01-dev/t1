@@ -1,0 +1,4 @@
+coinv 30x2 zero: systemDays=[] rows of day=30 first values=[0,0,0]
+coinv 60x2 zero: systemDays=["2026-10-19"] rows of day=60 first values=["no_site","no_site","no_site"]
+coinv 60 morning ok + evening zero: systemDays=["2026-10-19"] rows of day=60 first values=[40,40,40]
+gap  60 morning ok + evening zero: systemDays=[] warnDays=[] values=[40,40,40]

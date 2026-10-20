@@ -1,0 +1,63 @@
+== 10049c0 v0 exit=0  Tests 34 passed (34)
+== 10049c0 vZ19 exit=0  Tests 34 passed (34)
+== 10049c0 vZ20 exit=0  Tests 34 passed (34)
+== 10049c0 vW exit=0  Tests 34 passed (34)
+== 10049c0 vW21 exit=0  Tests 34 passed (34)
+== 10049c0 vMass exit=0  Tests 34 passed (34)
+== 10049c0 vS90 exit=0  Tests 34 passed (34)
+== 10049c0 vS89 exit=0  Tests 34 passed (34)
+== 10049c0 vW15 exit=1  Tests 1 failed | 33 passed (34)
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 40ms
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 10049c0 vW14 exit=1  Tests 1 failed | 33 passed (34)
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 43ms
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 10049c0 vN50 exit=0  Tests 34 passed (34)
+== 10049c0 vN49 exit=0  Tests 34 passed (34)
+== 10049c0 vKeep exit=0  Tests 34 passed (34)
+== 10049c0 vP exit=0  Tests 34 passed (34)
+== 10049c0 vPfix exit=0  Tests 34 passed (34)
+== 10049c0 vZfix exit=0  Tests 34 passed (34)
+== 10049c0 vZ20fix exit=0  Tests 34 passed (34)
+== 10049c0 vReal2 exit=1  Tests 1 failed | 33 passed (34)
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 68ms
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 10049c0 vMass19 exit=1  Tests 1 failed | 33 passed (34)
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 65ms
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 10049c0 vS90_19 exit=1  Tests 1 failed | 33 passed (34)
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 70ms
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 10049c0 vN50_19 exit=1  Tests 1 failed | 33 passed (34)
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 66ms
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 10049c0 vOld exit=1  Tests 1 failed | 33 passed (34)
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 83ms
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-09-20' ] to deeply equal []
+== 10049c0 vWarnOld exit=1  Tests 2 failed | 32 passed (34)
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 38ms
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен 61ms
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 52 to be less than 2
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включительно не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]; позже системный день законен
+AssertionError: expected [ '2026-10-01' ] to deeply equal []
+== 10049c0 vZsib exit=1  Tests 1 failed | 33 passed (34)
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 41ms
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 10049c0 vZsib19 exit=1  Tests 1 failed | 33 passed (34)
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 41ms
+ FAIL  src/scripts/gap-daily.test.ts > гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы
+AssertionError: expected 51 to be less than 2
+== 10049c0 vZsibfix exit=0  Tests 34 passed (34)
+== 10049c0 vZad exit=0  Tests 34 passed (34)
+== 10049c0 vReal2b exit=0  Tests 34 passed (34)
+== 10049c0 vReal3 exit=0  Tests 34 passed (34)
+== 10049c0 vSysWarn exit=0  Tests 34 passed (34)

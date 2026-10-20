@@ -1,0 +1,16 @@
+== 81764e4 v0  Tests 34 passed (34)
+== 81764e4 v0x  Tests 34 passed (34)
+== 81764e4 vNZ  Tests 34 passed (34)
+== 81764e4 vW15  Tests 1 failed | 33 passed (34)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 27ms
+== 81764e4 vZ20m  Tests 34 passed (34)
+== 81764e4 vZsib  Tests 1 failed | 33 passed (34)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 33ms
+== 81764e4 vZsib19  Tests 1 failed | 33 passed (34)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 25ms
+== 81764e4 vZsib5  Tests 1 failed | 33 passed (34)
+AssertionError: expected 46 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 29ms

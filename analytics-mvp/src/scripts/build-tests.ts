@@ -24,7 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
-import { readGapDaily, noSite as gapNoSite, markNoSite, GAP_DAILY_FILE } from "./gap-daily.js";
+import { readGapDaily, noSite as gapNoSite, readGapMarked, GAP_DAILY_FILE, GAP_MANUAL_FILE, NO_SITE_DAY_SHARE, NO_SITE_DAY_WARN } from "./gap-daily.js";
 import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
@@ -307,9 +307,12 @@ const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 // из коэффициента, замороженного на 09.09. Подробнее - gap-daily.ts.
 // coinv_daily остаётся источником колонки «Соинвест» на странице: там он и уместен.
 const GAP = readGapDaily(dp(GAP_DAILY_FILE));
-// Системный день (K2): весь день «нет данных», стопы и чипы молчат, но молча это пройти не должно.
-for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта равна нашей у 90% строк и больше, весь день «нет данных»; проверить витрину и съём`);
-for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} - цена сайта равна нашей у 15-90% строк дня: значения как есть, нули у зрелых карточек могут быть ложными; проверить витрину и съём`);
+// Системный день (K2): строки дня без витрины «нет данных» (ненулевые остаются), стопы и чипы за них молчат,
+// но молча это пройти не должно.
+for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта равна нашей у ${Math.round(NO_SITE_DAY_SHARE * 100)}% строк и больше, строки без витрины за день «нет данных»; проверить витрину и съём`);
+// Сторож файла ручных снятий: строка в логе всегда, пропажа файла видна (ФЕНИКС #489 R3), живой тест её ловит.
+console.log(`gap_daily: ${GAP_MANUAL_FILE} ${GAP.manualFile ? "на месте" : "НЕ НАЙДЕН"}, ручных снятий применено: ${GAP.manual}`);
+for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} - цена сайта равна нашей у ${Math.round(NO_SITE_DAY_WARN * 100)}-${Math.round(NO_SITE_DAY_SHARE * 100)}% строк дня: значения как есть, нули у зрелых карточек могут быть ложными; проверить витрину и съём`);
 // ГРАФИК «СОИНВЕСТ» И «ЦЕНА НА ВИТРИНЕ» ЦЕЛИКОМ ИЗ gap_daily (решение Ивана 29.09, вариант 1).
 // coinv_daily кончился 24.09, дальше съём кабинета пишет только gap_daily, и на графике с 25.09
 // стояло «нет данных». Склеивать два файла нельзя: в coinv_daily соинвест от цены с картой Ozon,
@@ -2003,7 +2006,7 @@ const BID_TESTS = ((JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")).
 const gapByArt = new Map<string, Map<string, number>>();
 let LAST_SPEND = "";
 for (const r of readNd(dp("ads_sku_daily.ndjson"))) if (r.d > LAST_SPEND) LAST_SPEND = r.d;
-for (const r of markNoSite(readNd(dp(GAP_DAILY_FILE)))) {
+for (const r of readGapMarked(dp(GAP_DAILY_FILE)).rows) {
   // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва,
   // ноль у карточки с историей остаётся нулём (Иван 19.10).
   if (r.oa_used === true || r.gap_pct == null || gapNoSite(r)) continue;
@@ -2372,7 +2375,8 @@ function priceCalc(t: PriceTestDef): PriceCalc {
   // истории, системный день) в P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
   // Выход из «Эластичного бустинга» разрыв не обваливает (ФЕНИКС Z2: у 50 выходов ни разу ниже 10), поэтому
   // стоп так не объясняется. Стоп держится с первого дня обвала и показывает эту дату (ФЕНИКС iter4 P1):
-  // один ложный день (сбой витрины) снимается меткой no_site: true у строки в gap_daily, метка главнее истории.
+  // один ложный день (сбой витрины) снимается записью в gap_manual.ndjson (день, артикул): чтение ставит строке
+  // метку no_site, метка главнее истории; мак этот файл не трогает (Иван 20.10).
   const collapsed = test.flatMap((a) => {
     const since = [...P_GAP.entries()].filter(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10).map(([d]) => d).sort()[0];
     if (!since) return [];
@@ -2575,7 +2579,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     : `не просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%${c.v2.days < 7 ? ` (вторая неполная, ${c.v2.days} дн)` : ""}`;
   const stops = [
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
-    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день, стоп снимают вручную` : "",
+    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день - сообщить Ивану, аналитик снимет стоп записью о сбое за этот день` : "",
   ].filter(Boolean);
   const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${fewClean
@@ -3560,8 +3564,13 @@ const foldCards = (html: string): string => html
 const PLAN = planBlock(TODAY);
 if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} предупреждений: ${PLAN.warnings.slice(0, 3).join("; ")}`);
 // Плашка на странице (ФЕНИКС #488 R4): системный день и зона предупреждения видны менеджеру, а не только в логе сборки.
-const GAP_NOTICE = GAP.systemDays.length || GAP.warnDays.length
-  ? `<div class="mrow warnv">${GAP.systemDays.length ? `Срез ${GAP.systemDays.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей почти у всех товаров - это сбой витрины или съёма, день не засчитан, стопы и чипы за него не считаются. Если OZON на самом деле перестал доплачивать всем, это видно по такой же плашке на следующий день - проверить карточки вручную. ` : ""}${GAP.warnDays.length ? `Срез ${GAP.warnDays.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей у заметной части товаров (15-90%) - нули за этот день могут быть сбоем витрины, проверить карточки.` : ""}</div>`
+// Окно 7 дней от последнего дня ряда (ФЕНИКС #488 iter2 R4): системный день месячной давности плашкой не висит.
+const GAP_LAST_ANY = [...GAP.days, ...GAP.systemDays, ...GAP.warnDays].sort().pop() ?? "";
+const GAP_RECENT = (d: string) => !GAP_LAST_ANY || d >= addDays(GAP_LAST_ANY, -7);
+const GAP_SYS_RECENT = GAP.systemDays.filter(GAP_RECENT), GAP_WARN_RECENT = GAP.warnDays.filter(GAP_RECENT);
+const GAP_MANUAL_RECENT = GAP.manualRows.filter((m) => GAP_RECENT(m.date));
+const GAP_NOTICE = GAP_SYS_RECENT.length || GAP_WARN_RECENT.length || GAP_MANUAL_RECENT.length
+  ? `<div class="mrow warnv">${GAP_SYS_RECENT.length ? `Срез ${GAP_SYS_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей почти у всех товаров - это сбой витрины или съёма; такие товары за этот день не засчитаны, стопы и чипы за них не считаются, товары с разрывом за этот день остаются. Если OZON на самом деле перестал доплачивать всем, плашка повторится на следующий день - проверить карточки вручную. ` : ""}${GAP_WARN_RECENT.length ? `Срез ${GAP_WARN_RECENT.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей у заметной части товаров (${Math.round(NO_SITE_DAY_WARN * 100)}-${Math.round(NO_SITE_DAY_SHARE * 100)}%) - нули за этот день могут быть сбоем витрины, проверить карточки.` : ""}${GAP_MANUAL_RECENT.length ? ` Снято вручную как сбой витрины: ${GAP_MANUAL_RECENT.map((m) => `${esc(m.art)} ${DM(m.date)}${m.reason ? ` (${esc(m.reason)})` : ""}`).join(", ")}.` : ""}</div>`
   : "";
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`

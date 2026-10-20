@@ -1,0 +1,16 @@
+== e0aab10a v0  Tests 38 passed (38)
+== e0aab10a v0x  Tests 38 passed (38)
+== e0aab10a vNZ  Tests 38 passed (38)
+== e0aab10a vW15  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 36ms
+== e0aab10a vZ20m  Tests 38 passed (38)
+== e0aab10a vZsib  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 39ms
+== e0aab10a vZsib19  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 29ms
+== e0aab10a vZsib5  Tests 1 failed | 37 passed (38)
+AssertionError: expected 46 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 32ms

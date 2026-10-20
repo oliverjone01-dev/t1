@@ -1,0 +1,10 @@
+gap_daily rows 13860 last day 2026-10-20
+GGK-02-3-3-80 rows 11-14.10: [('2026-10-11', 47.19, 0.5281), ('2026-10-12', 46.73, 0.5327), ('2026-10-13', 46.13, 0.5387), ('2026-10-14', 46.06, 0.5394)]
+duplicate (day, art) keys: 0 | snap values: {None: 11045, 'вечер': 2356, 'утро': 459}
+after a day with gap 10+ (mature card): rows with 0 < gap < 10: 0 (0 arts); rows with gap == 0: 0 (0 arts)
+examples of non-zero values below 10 at mature cards: []
+  placebo GGM-02-2-1       days  29 values below 10: []
+  placebo GGM-02-3-1       days  29 values below 10: []
+  placebo GGM-17-1-1       days  23 values below 10: []
+  placebo GGL-01-M-2       days  29 values below 10: []
+  placebo GGT-03-3-1-L-80  days  29 values below 10: []

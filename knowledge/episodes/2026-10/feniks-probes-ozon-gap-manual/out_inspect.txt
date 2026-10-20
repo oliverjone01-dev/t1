@@ -1,0 +1,21 @@
+gap_daily rows 13860 days 29 first 2026-09-09 last 2026-10-20
+  2026-10-15 rows 464 price==ours 0 no_site 0
+  2026-10-16 rows 473 price==ours 9 no_site 0
+  2026-10-17 rows 473 price==ours 0 no_site 0
+  2026-10-18 rows 473 price==ours 0 no_site 0
+  2026-10-19 rows 473 price==ours 0 no_site 0
+  2026-10-20 rows 459 price==ours 0 no_site 0
+duplicate (day, art) keys: 0
+rows with no_site in file: 0
+gap_manual.ndjson: exists 0 bytes
+test-4: price_cut_hold start 2026-10-07 test arts 10 control 0
+placebo (test_sibling):
+  GGM-02-2-1         card 4681610246         pair partners ['GGM-02-3-1', 'GGM-17-1-1'] last-day gap [50.64]
+  GGM-02-3-1         card 4681610246         pair partners ['GGM-02-2-1', 'GGM-17-1-1'] last-day gap [49.86]
+  GGM-17-1-1         card 4681610246         pair partners ['GGM-02-2-1', 'GGM-02-3-1'] last-day gap []
+  GGL-01-M-2         card 6218562206         pair partners [] last-day gap [50.51]
+  GGT-03-3-1-L-80    card 5728188877         pair partners [] last-day gap [48.48]
+test_ad: ['GGM-02-1-1', 'GGM-17-2-1', 'GGL-07-XL-2', 'GGT-03-2-4-L-90', 'GGT-03-1-3-S-40']
+plan price arts: 29
+  GGK-02-3-3-80: in test-4 True, days 29, last 3 [('2026-10-18', 48.55), ('2026-10-19', 49.57), ('2026-10-20', 49.57)]
+  GGT-48-2-2-100-180: in test-4 False, days 29, last 3 [('2026-10-18', 56.57), ('2026-10-19', 54.98), ('2026-10-20', 54.98)]

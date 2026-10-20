@@ -1,0 +1,78 @@
+== H1 hash
+HEAD 10049c0b  origin/main 12808f9d  merge-base 12808f9
+audit_hash --rev HEAD = c2ca2c6ad8d8b511
+audit_hash --rev 10049c0 = c2ca2c6ad8d8b511
+audit_hash --worktree = c2ca2c6ad8d8b511
+-- hash paths (branch diff minus excluded)
+analytics-mvp/src/scripts/build-tests.ts
+analytics-mvp/src/scripts/gap-daily.test.ts
+analytics-mvp/src/scripts/gap-daily.ts
+analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+analytics-mvp/src/scripts/ozon/coinv-merge.ts
+analytics-mvp/src/scripts/plan-tab.test.ts
+analytics-mvp/src/scripts/plan-tab.ts
+analytics-mvp/tools/tests/tests.json
+knowledge/decisions.md
+knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml
+-- main ada2e83..12808f9 touching hash paths: []
+-- 2f5cd50..958b0a2 (merge of main) touching hash paths: []
+-- 30abf83..2f5cd50 touching hash paths: []
+-- files of 10049c0:
+analytics-mvp/src/scripts/build-tests.ts
+analytics-mvp/src/scripts/gap-daily.test.ts
+analytics-mvp/src/scripts/gap-daily.ts
+analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+analytics-mvp/src/scripts/ozon/coinv-merge.ts
+analytics-mvp/src/scripts/plan-tab.test.ts
+analytics-mvp/src/scripts/plan-tab.ts
+analytics-mvp/tools/tests/tests.json
+knowledge/decisions.md
+knowledge/episodes/2026-10/ozon-testy-scripts/v8/selfcheck-k2-p1-l3.md
+
+== T3 CI
+10049c0 Claude 2026-10-20 06:46:52 +0000: vitest + smoke success
+e3968750 GENGLASS srez 2026-10-19 20:50:31 +0300: vitest + smoke failure
+c2c0aeba GENGLASS srez 2026-10-20 07:50:25 +0300: vitest + smoke failure
+23b70ce3 GENGLASS srez 2026-10-19 07:50:29 +0300: vitest + smoke success
+
+== W1 mac rewrites gap_daily (labels of #487)
+no_site labels in gap_daily: ada2e83 14, e3968750^ 14, e3968750 0, HEAD 0
+e3968750 removed label lines: 14; changed rows by date:
+      2 +{"date": "2026-09-20"
+      1 +{"date": "2026-10-10"
+      1 +{"date": "2026-10-11"
+      1 +{"date": "2026-10-12"
+      9 +{"date": "2026-10-16"
+    473 +{"date": "2026-10-19"
+      2 -{"date": "2026-09-20"
+      1 -{"date": "2026-10-10"
+      1 -{"date": "2026-10-11"
+      1 -{"date": "2026-10-12"
+      9 -{"date": "2026-10-16"
+    473 -{"date": "2026-10-19"
+no_site labels in coinv_daily: ada2e83 21, HEAD 21
+
+== texts
+-- old chip name «выпал из бустинга?» at 10049c0:
+10049c0:analytics-mvp/src/scripts/gap-daily.ts:97: *  (build-tests.ts) и чип плана «выпал из бустинга?» (plan-tab.
+10049c0:analytics-mvp/src/scripts/ozon/coinv-merge.ts:86:    // теста 4 и чип плана «выпал из бустинга?», с�
+10049c0:knowledge/decisions.md:6:- 2026-10-19 - **OZON, соинвест «нет данных» вместо ложного 0 (Иван 16.
+-- «весь день» surfaces:
+10049c0:analytics-mvp/src/scripts/build-tests.ts:310:// Системный день (K2): весь день «нет данных», стопы и чипы мо
+10049c0:analytics-mvp/src/scripts/build-tests.ts:311:for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цен�
+10049c0:analytics-mvp/src/scripts/gap-daily.ts:57:  /** Системные дни: цена сайта равна нашей у NO_SITE_DAY_SHARE строк д�
+10049c0:knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml:76:  stop: "доля показов за день ниже половины базы 3 дня 
+-- hardcoded thresholds in page/log texts (build-tests.ts):
+10049c0:analytics-mvp/src/scripts/build-tests.ts:311:for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d
+10049c0:analytics-mvp/src/scripts/build-tests.ts:312:for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} 
+10049c0:analytics-mvp/src/scripts/build-tests.ts:3564:  ? `<div class="mrow warnv">${GAP.systemDays.length ? `Срез $
+-- decisions п.(6) fragments:
+по начисленным, 87 из 90 отгруженных
+читатель и слияние пишут warning и плашку на странице
+Зона 15-90% - значения как есть, warning и плашка (как SAME_BEFORE_WARN у снимка цен)
+(б) плашка в любой системный день, решение не менять - сделано
+ставит автор ветки или тот, кто правит данные
+-- self-check: «см. ниже» and what follows:
+46:Что изменилось (один коммит пов
+Не проверено: R3 по существу (настоящее массовое снятие доплаты) - ждёт решения Ивана; writer на маке (W1).
+-- em dash in added lines of 10049c0: 0

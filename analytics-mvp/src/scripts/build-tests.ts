@@ -307,6 +307,9 @@ const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 // из коэффициента, замороженного на 09.09. Подробнее - gap-daily.ts.
 // coinv_daily остаётся источником колонки «Соинвест» на странице: там он и уместен.
 const GAP = readGapDaily(dp(GAP_DAILY_FILE));
+// Системный день (K2): весь день «нет данных», стопы и чипы молчат, но молча это пройти не должно.
+for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта равна нашей у 90% строк и больше, весь день «нет данных»; проверить витрину и съём`);
+for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} - цена сайта равна нашей у 15-90% строк дня: значения как есть, нули у зрелых карточек могут быть ложными; проверить витрину и съём`);
 // ГРАФИК «СОИНВЕСТ» И «ЦЕНА НА ВИТРИНЕ» ЦЕЛИКОМ ИЗ gap_daily (решение Ивана 29.09, вариант 1).
 // coinv_daily кончился 24.09, дальше съём кабинета пишет только gap_daily, и на графике с 25.09
 // стояло «нет данных». Склеивать два файла нельзя: в coinv_daily соинвест от цены с картой Ozon,
@@ -2317,7 +2320,7 @@ interface PriceCalc {
   gBase: number | null; E: number | null; noise: number | null;
   vc: ReturnType<typeof verdictOf>;
   vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
-  vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
+  vStop: string | null; collapsed: { art: string; since: string; now: number | null; nowD: string }[]; baseCap: Map<string, number | null>;
   price: Array<{ a: string; st: "ждём" | "нет снимка" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
   /** Почему товар не засчитывается на последний день окна (E065): исключён Иваном, реклама за клик, вторая акция. */
   dirty: Map<string, string>;
@@ -2364,10 +2367,19 @@ function priceCalc(t: PriceTestDef): PriceCalc {
   const v1 = viewShare(P_VIEWS, vSet, t.старт, addDays(t.старт, 7));
   const v2 = viewShare(P_VIEWS, vSet, addDays(t.старт, 7), addDays(t.старт, 14));
   const vStop = viewsStop(P_VIEWS, vSet, t.старт, vBase.share);
-  // Обвал разрыва к нулю после старта - товар выпал из «Эластичного бустинга» (стоп-сигнал). Ноль у карточки с
-  // историей приходит из readGapDaily как 0 и срабатывает; «нет данных» (no_site, карточка без истории) в
-  // P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
-  const collapsed = test.filter((a) => [...P_GAP.entries()].some(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10));
+  // Обвал разрыва к нулю после старта - OZON перестал доплачивать за товар (стоп-сигнал: вернуть цену). Ноль у
+  // карточки с историей приходит из readGapDaily как 0 и срабатывает; «нет данных» (no_site, карточка без
+  // истории, системный день) в P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
+  // Выход из «Эластичного бустинга» разрыв не обваливает (ФЕНИКС Z2: у 50 выходов ни разу ниже 10), поэтому
+  // стоп так не объясняется. Стоп держится с первого дня обвала и показывает эту дату (ФЕНИКС iter4 P1):
+  // один ложный день (сбой витрины) снимается меткой no_site: true у строки в gap_daily, метка главнее истории.
+  const collapsed = test.flatMap((a) => {
+    const since = [...P_GAP.entries()].filter(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10).map(([d]) => d).sort()[0];
+    if (!since) return [];
+    // Текущий разрыв рядом с датой обвала: стоп, который уже отыгран (назавтра 48,5), виден как отыгранный.
+    const nowD = [...P_GAP.entries()].filter(([, m]) => m.has(a)).map(([d]) => d).sort().pop() ?? "";
+    return [{ art: a, since, now: nowD ? P_GAP.get(nowD)!.get(a) ?? null : null, nowD }];
+  });
   const price = test.map((a) => {
     const b = baseCap.get(a) ?? null;
     const after = [...(P_CAP.get(a) ?? new Map()).keys()].filter((d) => d >= t.старт).sort();
@@ -2563,7 +2575,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     : `не просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%${c.v2.days < 7 ? ` (вторая неполная, ${c.v2.days} дн)` : ""}`;
   const stops = [
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
-    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map(esc).join(", ")} - товар, похоже, выпал из «Эластичного бустинга», вернуть цену` : "",
+    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день, стоп снимают вручную` : "",
   ].filter(Boolean);
   const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${fewClean
@@ -3547,13 +3559,17 @@ const foldCards = (html: string): string => html
   .replace(/<\/section>/g, "</details></section>");
 const PLAN = planBlock(TODAY);
 if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} предупреждений: ${PLAN.warnings.slice(0, 3).join("; ")}`);
+// Плашка на странице (ФЕНИКС #488 R4): системный день и зона предупреждения видны менеджеру, а не только в логе сборки.
+const GAP_NOTICE = GAP.systemDays.length || GAP.warnDays.length
+  ? `<div class="mrow warnv">${GAP.systemDays.length ? `Срез ${GAP.systemDays.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей почти у всех товаров - это сбой витрины или съёма, день не засчитан, стопы и чипы за него не считаются. Если OZON на самом деле перестал доплачивать всем, это видно по такой же плашке на следующий день - проверить карточки вручную. ` : ""}${GAP.warnDays.length ? `Срез ${GAP.warnDays.map((d) => DM(d)).join(", ")}: цена на сайте равна нашей у заметной части товаров (15-90%) - нули за этот день могут быть сбоем витрины, проверить карточки.` : ""}</div>`
+  : "";
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}${PLAN?.css ?? ""}</style></head><body>`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
   + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
-  + `<div class="wrap"><div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
+  + `<div class="wrap">${GAP_NOTICE}<div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
   // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.
   + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`

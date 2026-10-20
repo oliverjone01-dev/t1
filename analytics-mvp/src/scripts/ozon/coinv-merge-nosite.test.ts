@@ -104,3 +104,35 @@ describe("coinv:merge - срез без SKU и с соинвестом 0", () =>
     expect(rows.find((x) => x.date === "2026-10-19")).toMatchObject({ coinv_paid_pct: 55, site_paid: 5000, cap: 11900 });
   });
 });
+
+describe("системный день в срезе (K2 ФЕНИКСА iter4, Иван 19.10: 90% дня = нет данных)", () => {
+  const slice = (date: string, n: number, zeros: number) =>
+    Array.from({ length: n }, (_, i) => ({ date, art: `A${i}`, sku: "1", coinv_pct: i < zeros ? 0 : 47, oa: i < zeros ? 85900 : 45100, seller: 85900 }));
+  const stored = (date: string, n: number) => Array.from({ length: n }, (_, i) => ({ date, art: `A${i}`, coinv_paid_pct: 47 }));
+
+  it("90% и больше строк дня без витрины: все они «нет данных» независимо от истории, день в systemDays", () => {
+    const { rows, systemDays } = mergeCoinv(stored("2026-10-12", 60), slice("2026-10-19", 60, 55));
+    expect(systemDays).toEqual(["2026-10-19"]);
+    const d = rows.filter((r) => r.date === "2026-10-19");
+    expect(d.filter((r) => r.no_site === true)).toHaveLength(55);
+    expect(d.filter((r) => r.coinv_paid_pct === 47)).toHaveLength(5);
+  });
+
+  it("ниже 90% - обычный день: ноль с историей пишется нулём", () => {
+    const { rows, systemDays } = mergeCoinv(stored("2026-10-12", 60), slice("2026-10-19", 60, 50));
+    expect(systemDays).toEqual([]);
+    expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 0)).toHaveLength(50);
+  });
+
+  it("маленький срез (меньше 50 строк) системным днём не бывает", () => {
+    const { rows, systemDays } = mergeCoinv(stored("2026-10-12", 3), slice("2026-10-19", 3, 3));
+    expect(systemDays).toEqual([]);
+    expect(rows.filter((r) => r.date === "2026-10-19" && r.coinv_paid_pct === 0)).toHaveLength(3);
+  });
+
+  it("доля дня считается по одной строке на артикул: срез утром и вечером за 30 артикулов - не системный день", () => {
+    const morning = slice("2026-10-19", 30, 30), evening = slice("2026-10-19", 30, 30);
+    const { systemDays } = mergeCoinv(stored("2026-10-12", 30), [...morning, ...evening]);
+    expect(systemDays).toEqual([]);
+  });
+});

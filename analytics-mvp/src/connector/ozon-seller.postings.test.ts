@@ -22,8 +22,8 @@ describe("OzonSeller.postings: v3 FBO + v4 FBS с курсором", () => {
     vi.stubGlobal("fetch", fetchMock);
     const out = await new OzonSeller({ clientId: "x", apiKey: "y" } as any).postings("2026-02-06", "2026-10-19");
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(fetchMock.mock.calls[0][0]).toBe("https://api-seller.ozon.ru/v3/posting/fbo/list");
-    expect(fetchMock.mock.calls[2][0]).toBe("https://api-seller.ozon.ru/v4/posting/fbs/list");
+    expect(fetchMock.mock.calls[0]![0]).toBe("https://api-seller.ozon.ru/v3/posting/fbo/list");
+    expect(fetchMock.mock.calls[2]![0]).toBe("https://api-seller.ozon.ru/v4/posting/fbs/list");
     expect(body(fetchMock, 0)).toEqual({
       cursor: "", filter: { since: "2026-02-06T00:00:00.000Z", to: "2026-10-19T23:59:59.999Z" },
       limit: 100, sort_dir: "asc", translit: false, with: { financial_data: true },

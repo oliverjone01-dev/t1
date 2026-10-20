@@ -13,6 +13,12 @@ const SELLER_HOST = "https://api-seller.ozon.ru";
 // Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
 const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
 const ACCRUAL_GAP_MS = 300;
+// Деньги из списков отправлений: v2 отдавал price числом или строкой, v3/v4 могут отдать объект
+// {amount, currency_code} (так читают сторонние клиенты). Одна функция на оба вида.
+export function moneyOf(v: unknown): number {
+  if (v && typeof v === "object") { const o = v as any; return Number(o.amount ?? o.value ?? o.price ?? 0) || 0; }
+  return Number(v ?? 0) || 0;
+}
 const POSTING_PAGE = 100;        // /v3/posting/fbo/list и /v4/posting/fbs/list: страница до 100
 const POSTING_PAGE_CAP = 2000;   // 200 000 отправлений - прежний потолок offset-пагинации
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -399,7 +405,7 @@ export class OzonSeller {
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
   // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
-  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any; raw: any }>> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const out: Array<any> = [];
     // src - откуда пришёл заказ: FBO (склад OZON) или FBS (склад продавца). rFBS (доставка силами
@@ -413,9 +419,10 @@ export class OzonSeller {
       src,
       products: (p.products ?? []).map((it: any) => ({
         sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),
-        qty: Number(it.quantity ?? 0), price: Number(it.price ?? 0),
+        qty: Number(it.quantity ?? 0), price: moneyOf(it.price),
       })),
       financial_data: p.financial_data ?? null,
+      raw: p, // сырой постинг: сборщик печатает его форму (имена полей и типы) в аннотацию прогона
     });
     for (const p of await this.listPostings("FBO", from, to, true)) out.push(mapP(p, "FBO"));
     for (const p of await this.listPostings("FBS", from, to, true)) out.push(mapP(p, "FBS"));

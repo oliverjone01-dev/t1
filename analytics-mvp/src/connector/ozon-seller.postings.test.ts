@@ -60,3 +60,12 @@ describe("OzonSeller.postings: v3 FBO + v4 FBS с курсором", () => {
       .rejects.toThrow(/\/v3\/posting\/fbo\/list -> HTTP 400: .*obsolete/);
   });
 });
+
+describe("moneyOf: цена числом, строкой или объектом", () => {
+  it("читает все три формы, мусор - 0", async () => {
+    const { moneyOf } = await import("./ozon-seller.js");
+    expect(moneyOf("15.5")).toBe(15.5); expect(moneyOf(20)).toBe(20);
+    expect(moneyOf({ amount: "99.9", currency_code: "RUB" })).toBe(99.9);
+    expect(moneyOf({ value: 7 })).toBe(7); expect(moneyOf(undefined)).toBe(0); expect(moneyOf("x")).toBe(0);
+  });
+});

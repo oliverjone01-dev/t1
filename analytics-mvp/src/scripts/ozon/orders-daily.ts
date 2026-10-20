@@ -9,7 +9,7 @@
 //          buyer_delivery, ads, other, payout}. Знак сборов - как отдаёт OZON (fee < 0).
 // payout = revenue + Σ(все начисления). §15-сверку (Σ по заказам = P&L) делаем на этапе сборки блока.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { OzonSeller } from "../../connector/ozon-seller.js";
+import { OzonSeller, moneyOf } from "../../connector/ozon-seller.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT = "data/orders_daily.ndjson";
@@ -36,6 +36,27 @@ export function checkRowCount(prev: number, next: number): string | null {
   return null;
 }
 
+// То же для денег: выручка и число заказов с paid не меньше 99% прошлого файла. Смена формы цены
+// в ответе OZON (20.10: v3 дал revenue 0 и paid null у всех 3905 заказов при верном числе строк)
+// иначе проходит молча и обнуляет деньги на страницах.
+export type Totals = { rows: number; revenue: number; paid: number };
+export function totalsOf(rows: Array<{ revenue?: number; paid?: number | null }>): Totals {
+  return { rows: rows.length, revenue: rows.reduce((s, r) => s + (r.revenue || 0), 0), paid: rows.filter((r) => r.paid != null).length };
+}
+export function checkTotals(prev: Totals, next: Totals): string | null {
+  const bad = checkRowCount(prev.rows, next.rows); if (bad) return bad;
+  if (prev.revenue > 0 && next.revenue < prev.revenue * 0.99) return `выручка ${next.revenue} меньше 99% прошлого файла (${prev.revenue}) - файл не перезаписан`;
+  if (prev.paid > 0 && next.paid < prev.paid * 0.99) return `заказов с paid ${next.paid} меньше 99% прошлого файла (${prev.paid}) - файл не перезаписан`;
+  return null;
+}
+
+// Форма значения: имена полей и типы, без значений (репозиторий публичный, аннотации открыты).
+export function shape(v: unknown, depth = 4): string {
+  if (Array.isArray(v)) return v.length ? `[${shape(v[0], depth)}]` : "[]";
+  if (v && typeof v === "object") return depth > 0 ? `{${Object.entries(v).map(([k, x]) => `${k}:${shape(x, depth - 1)}`).join(",")}}` : "{…}";
+  return v === null ? "null" : typeof v;
+}
+
 const SECRETS = [process.env.OZON_SELLER_CLIENT_ID || "", process.env.OZON_SELLER_API_KEY || ""];
 
 async function main() {
@@ -49,6 +70,12 @@ async function main() {
   const posts = await seller.postings(from, to);
   console.log(`  постингов: ${posts.length}`);
   console.log(annotation("notice", `orders-daily: постингов ${posts.length} за ${from}..${to}`));
+  // Проба контракта v3/v4: форма первого постинга каждой схемы (имена полей и типы), чтобы смену
+  // ответа OZON было видно в аннотациях прогона без логов.
+  for (const src of ["FBO", "FBS"]) {
+    const first = posts.find((p) => p.src === src);
+    if (first) console.log(annotation("notice", `orders-daily: форма постинга ${src}: ${shape(first.raw)}`));
+  }
 
   // типы начислений -> бакеты
   let bmap: Record<number, Bucket> = {};
@@ -118,7 +145,7 @@ async function main() {
     // quantity. Это «Реализовано на сумму» (F) отчёта о реализации по заказу; база налога = paid + G.
     // Нет financial_data - null (build-katya тогда оценивает базу долей).
     const fdp: any[] = (p as any).financial_data?.products ?? [];
-    const paidRaw = fdp.reduce((s, x) => s + (Number(x?.customer_price) || 0) * (Number(x?.quantity) || 1), 0);
+    const paidRaw = fdp.reduce((s, x) => s + moneyOf(x?.customer_price) * (Number(x?.quantity) || 1), 0);
     const paid = fdp.length && paidRaw > 0 ? Math.round(paidRaw * 100) / 100 : null;
     rows.push({
       order: p.posting_number, d: p.date, t: (p as any).ts || null, status: p.status, scheme,
@@ -129,8 +156,8 @@ async function main() {
       dl: dlvByDate[p.posting_number] ? Object.entries(dlvByDate[p.posting_number]!).map(([d, v]) => [d, Math.round(v)]).filter((x) => x[1]) : null,
     });
   }
-  const prevRows = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).length : 0;
-  const bad = checkRowCount(prevRows, rows.length);
+  const prevRows = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
+  const bad = checkTotals(totalsOf(prevRows), totalsOf(rows));
   if (bad) throw new Error(bad);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка

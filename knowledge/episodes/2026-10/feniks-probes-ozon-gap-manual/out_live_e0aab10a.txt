@@ -1,0 +1,31 @@
+== e0aab10a v0  Tests 38 passed (38)
+== e0aab10a v0x  Tests 38 passed (38)
+== e0aab10a vAll3  Tests 1 failed | 37 passed (38)
+AssertionError: expected [ '2026-10-18', '2026-10-19' ] to deeply equal []
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до
+== e0aab10a vBad  Tests 1 failed | 37 passed (38)
+   × ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10) > живой файл ручных снятий: каждая запись - де�
+== e0aab10a vDup  Tests 38 passed (38)
+== e0aab10a vKeep5  Tests 38 passed (38)
+== e0aab10a vMass  Tests 38 passed (38)
+== e0aab10a vMiss  Tests 1 failed | 37 passed (38)
+AssertionError: expected false to be true // Object.is equality
+   × ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10) > живой файл ручных снятий: каждая запись - де�
+== e0aab10a vNZ  Tests 38 passed (38)
+== e0aab10a vW15  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 43ms
+== e0aab10a vZ19m  Tests 38 passed (38)
+== e0aab10a vZ20  Tests 38 passed (38)
+== e0aab10a vZ20m  Tests 38 passed (38)
+== e0aab10a vZsib  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 53ms
+== e0aab10a vZsib19  Tests 1 failed | 37 passed (38)
+AssertionError: expected 51 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 53ms
+== e0aab10a vZsib5  Tests 1 failed | 37 passed (38)
+AssertionError: expected 46 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 41ms
+== e0aab10a vZsibL  Tests 38 passed (38)
+== e0aab10a vZsibm  Tests 38 passed (38)

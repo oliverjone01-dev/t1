@@ -1,0 +1,16 @@
+== e0aab10a probe_coinv_gm.mts
+coinv (a) 30x2 zero: systemDays=[] rows=30 values=[0]
+coinv (b) 60x2 zero: systemDays=["2026-10-19"] rows=60 values=["no_site"]
+coinv (c) stored morning + evening zero: systemDays=[] rows=60 values=[47]
+coinv (d) one slice morning ok + evening zero: systemDays=["2026-10-19"] rows=60 values=[40]
+gap   (d) same two cuts through gap_daily reader: systemDays=[] warnDays=[] values=[40]
+coinv (e) 60 kept by M1 + 40 new zero: systemDays=[] rows=100 values=[47,"no_site"]
+gap   (e) same through gap_daily reader: systemDays=[] warnDays=["2026-10-19"] values=[40,"no_site"]
+== 81764e4 probe_coinv_gm.mts
+coinv (a) 30x2 zero: systemDays=[] rows=30 values=[0]
+coinv (b) 60x2 zero: systemDays=["2026-10-19"] rows=60 values=["no_site"]
+coinv (c) stored morning + evening zero: systemDays=["2026-10-19"] rows=60 values=[47]
+coinv (d) one slice morning ok + evening zero: systemDays=["2026-10-19"] rows=60 values=[40]
+gap   (d) same two cuts through gap_daily reader: systemDays=[] warnDays=[] values=[40]
+coinv (e) 60 kept by M1 + 40 new zero: systemDays=["2026-10-19"] rows=100 values=[47,"no_site"]
+gap   (e) same through gap_daily reader: systemDays=[] warnDays=["2026-10-19"] values=[40,"no_site"]

@@ -1,0 +1,36 @@
+== e0aab10a v0
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=27 filtered=0 worst=0.9 on 2026-10-01 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=27 filtered=0 worst=1.1 on 2026-10-01 (no zero that day)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)
+== e0aab10a vZsib
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=27 filtered=1 worst=0.9 on 2026-10-01 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=27 filtered=0 worst=51.0 on 2026-10-20 (zero of partner GGM-02-2-1)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)
+== e0aab10a vZsib19
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=27 filtered=1 worst=0.9 on 2026-10-01 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=27 filtered=0 worst=51.0 on 2026-10-19 (zero of partner GGM-02-2-1)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)
+== e0aab10a vW15
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=27 filtered=1 worst=0.9 on 2026-10-01 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=27 filtered=0 worst=51.0 on 2026-10-20 (zero of partner GGM-02-2-1)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)
+== e0aab10a vZsib5
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=27 filtered=0 worst=45.2 on 2026-10-20 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=27 filtered=0 worst=46.0 on 2026-10-20 (no zero that day)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)
+== e0aab10a vZsibm
+GGM-02-2-1        mode=pair GGM-02-3-1+GGM-17-1-1 points=26 filtered=0 worst=0.9 on 2026-10-01 (no zero that day)
+GGM-02-3-1        mode=pair GGM-02-2-1+GGM-17-1-1 points=26 filtered=0 worst=1.1 on 2026-10-01 (no zero that day)
+GGM-17-1-1        mode=pair GGM-02-2-1+GGM-02-3-1 points=21 filtered=0 worst=0.4 on 2026-09-24 (no zero that day)
+GGL-01-M-2        mode=control points=0 filtered=0 worst=- (-)
+GGT-03-3-1-L-80   mode=control points=0 filtered=0 worst=- (-)

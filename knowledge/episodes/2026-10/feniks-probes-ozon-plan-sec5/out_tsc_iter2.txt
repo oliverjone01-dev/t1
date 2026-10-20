@@ -1,0 +1,5 @@
+errors head (299cc0c): 41  base (74a3280): 41
+в файлах PR (plan-tab.ts, plan-tab.test.ts) на голове:
+  0
+наборы ошибок base/head (без позиций) совпадают:
+  да

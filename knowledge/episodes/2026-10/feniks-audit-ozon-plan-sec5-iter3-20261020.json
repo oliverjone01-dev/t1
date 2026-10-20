@@ -1,0 +1,180 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-plan-sec5-46cd4bf-20261020",
+  "timestamp": "2026-10-20T14:20:00+03:00",
+  "deliverable_ref": "PR #490 oliverjone01-dev/t1, ветка claude/amazing-hawking-0trncq, голова 46cd4bf = слияние origin/main 180b575 в ветку (родители ea55e36 и 180b575); код-голова 299cc0c (iter2 go 8,0 на хеш 4752851bf76c89a5). Охват iter3: подтверждение хеша 3a19d7266e29c095 по всем трём путям ветки: analytics-mvp/src/scripts/plan-tab.ts, plan-tab.test.ts, knowledge/decisions.md",
+  "artifact_class": "dashboard",
+  "iteration": 3,
+  "audience": "Иван, внутренняя страница «Тесты», вкладка «План с 15.10», раздел 5 «Цена»",
+  "anchor": "8.1 feniks-return-reestr (после доработки, go) - наш артефакт ниже на 0.1, оценка iter2 8.0 перенесена без изменений: проверенное содержимое побайтно то же (blob plan-tab.ts и plan-tab.test.ts равны 299cc0c, строка decisions та же), раздел 5 на новых снимках равен iter2 побайтно. Причина iter2 «CI на голове не запускался» снята (прогон 39410924324 success на 46cd4bf), но она шла с весом 0 вместе с M1, поэтому балл не меняется. Ниже якоря остаются M1 (проводка без теста) и K14 (порог 5 заказов). Выше 7.9 timur-activation iter2: FAIL проб A/B7 нет. Дрейфа нет",
+  "sources_of_truth": [
+    "git: 299cc0c, 46cd4bf, 180b575, 74a3280, 4641e9d (blob, diff, merge-base)",
+    "analytics-mvp/data/orders_daily.ndjson, prices_daily.ndjson, gap_daily.ndjson, gap_manual.ndjson, plan_2026-10-15_v4.json, plan_card_groups_1510.json (на 46cd4bf и 74a3280)",
+    "GitHub API: repos/oliverjone01-dev/t1/commits/46cd4bf3f4868444f79b64efd61d13ec456980b8/check-runs, actions/runs/39410924324, pulls/490",
+    "schemas/agent-trace.json"
+  ],
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev HEAD, --rev 46cd4bf, --worktree = 3a19d7266e29c095 = запрос; --rev 299cc0c = 4752851bf76c89a5. Пути хеша и blob: plan-tab.test.ts a7ccbef7d430 и plan-tab.ts afdc25767e2f на 299cc0c и на 46cd4bf одинаковые; decisions.md 51c7d99ce1e2 -> 070eb3a5907c (в файл вошли строки main). Смена хеша - только из-за decisions.md. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_hash_iter3.txt"
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "git diff 74a3280 299cc0c и git diff origin/main 46cd4bf по plan-tab.ts и plan-tab.test.ts: md5 c6e9d2e5f876acf0f3c03cdc2bab29de у обоих (со строками index), без index 73e1de5e3031535342a3154ac6f14ece у обоих, 194 строки, cmp - равны. Main эти файлы не трогал: blob af2992d8d7ff и 8d189fac55dc на 74a3280 и 180b575. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_merge_iter3.txt"
+    },
+    {
+      "id": "D2",
+      "result": "PASS",
+      "evidence": "decisions.md, origin/main..46cd4bf: +1 / -0; добавленная строка равна строке iter2 (74a3280..299cc0c); обе строки, которые main добавил после 74a3280 (#491 от 2026-10-20 и N6b/G10 от 2026-10-15), на месте; маркеров конфликта 0; запись ветки выше #491. p_merge_iter3.py, knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_merge_iter3.txt"
+    },
+    {
+      "id": "D3",
+      "result": "PASS",
+      "evidence": "traces/2026-10-20/agents.jsonl на 46cd4bf: 51 строка = 30 ветки + 42 main - 21 общих с предком; лишних 0, дублей 0, не JSON 0, маркеров 0; validate.py agent-trace 51/51 valid. Вне хеша: knowledge/errors/registry.jsonl 84 = 83 main + E092 ветки, не JSON 0"
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "build-tests.ts: (a) код 46cd4bf + data 46cd4bf, (b) код 299cc0c + data 46cd4bf, (c) код 299cc0c + data 74a3280. a = b побайтно (вся страница). Раздел 5 (от details.pt-sec до его конца) 24566 байт, md5 3f1894291391d8f2306598faf82fbb65 в a, b, c и в трёх прогонах; window.PD с price_st равен; разделы 1-4 и «Как считаем» равны. 29 строк, плашки {частично 12, снижена 3, не снижена 5, по плану 9}, суммы 52 и 27, 29 из 29 Δ серые «мало данных: окно 4 дн, нужно 7», строка магазина 74,0 / 140,0 (Δ +66,0). Код #491 (ad-econ.ts, build-katya.ts, build-cogs-join.ts) не входит в 17 файлов импорта build-tests.ts. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_sec5_compare_iter3.txt"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "p_b_orders_independent_iter2.py (без изменений) на data 46cd4bf и странице (a): 0 расхождений из 29, шапка «С 15.10 (4 дн)», строка магазина посимвольно, инвариант (в) 0 нарушений; вывод побайтно равен out_b_orders_independent_iter2.txt. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_b_orders_independent_iter3.txt"
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "data 74a3280 против 46cd4bf: изменены 6 файлов (ads_30d, ads_periods, ads_sku_daily, ads_sku_state, sku_cogs, skus_live_30d). Входы раздела 5 без изменений: orders_daily 31896722104f, prices_daily 5f44b21a4971, gap_daily a3cb5608e3fa, gap_manual, plan v4, состав карточек. orders_daily 3881 строка, (order, sku) уникальны 3881, последний день 18.10: окно 4 дн, не 5. Отличия страниц b и c только вне вкладки «План»: шапка «Нет данных о рекламе или акциях за 19.10, 20.10 (реклама по 18.10)» -> «за 20.10 (реклама по 19.10)» и 222 отличия в карточках тестов (расход, ДРР, число дней). knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_data_iter3.txt"
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Бриф iter3: «снимки OZON 4641e9d (orders_daily, prices_daily, gap_daily и др.)». git show --stat 4641e9d: только ads_30d, ads_periods, ads_sku_daily, ads_sku_state, skus_live_30d (+ fixtures и public). Последний снимок orders_daily - 114c27e (19.10 04:56 UTC), данные по 18.10, поэтому условие «окно 5 дн» не наступило. Это неточность запроса, не артефакта"
+    },
+    {
+      "id": "E2",
+      "result": "PASS",
+      "evidence": "vitest src/scripts/plan-tab.test.ts на дереве 46cd4bf: 101 из 101. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_vitest_plan_tab_iter3.txt"
+    },
+    {
+      "id": "E3",
+      "result": "PASS",
+      "evidence": "gh api: прогон 39410924324 (#866) «Тесты аналитики (vitest + smoke обеих площадок)», event pull_request, head_sha 46cd4bf3f4868444f79b64efd61d13ec456980b8, completed success, 10:51:58-10:54:52Z; шаги vitest, сборщики OZON, сборка и смоук OZON, сборка и смоук Маркета - success. PR #490 open, base 180b575, mergeable_state clean. Лог задачи не скачался (403 на blob-хранилище): числа тестов CI не видел. knowledge/episodes/2026-10/feniks-probes-ozon-plan-sec5/out_ci_iter3.txt"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 8.0,
+    "insight": 6.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.0,
+  "verdict": "go",
+  "primary_gap": "M1: проводка G1/G2 в planBlock без теста - мутант с точным дефектом iter1 (сумма окна до OD_LAST) проходит 101 из 101",
+  "gaps": [
+    "M1 (следующий PR): тест planBlock на раздел 5 - фикстура S1/S1c (заказы по 29.10 и 05.11): шапка «(14 дн)», 17 шт, Δ +4,5, инвариант с блоком 1; и тест серого/цветного Δ и строки магазина. Сейчас мутанты M1-M4 выживают",
+    "K14 (следующий PR, до сборки с заказами по 21.10, по календарю 22-23.10): порог 5 заказов и сравнение со своей базой не отделяют фон магазина - при цене без эффекта к 28.10 в среднем 10,7 цветных ячеек (8,8 зелёных), при эффекте +30% 11,6. Пороги предложил ФЕНИКС в iter1 - это ошибка калибровки ФЕНИКСА, не автора. Предложение с числом: цвет только если заказы артикула отличаются от ожидаемых по темпу магазина за те же окна, двусторонний биномиальный p < 0,05, q = R·w/(14 + R·w); иначе серым «в пределах фона магазина». Решение о пороге - Иван",
+    "G2-остаток (следующий PR): в 19 из 29 серых ячеек виден знак («+8,3», «-2,0») - stats.md п.1 «ниже порога - мало данных, без стрелки и процента», iter1 «серым, без знака», decisions п.(4) и self-check п.9 описывают иначе. Число и знак - в title, в ячейке только причина; или поправить тексты",
+    "G5-остаток (следующий PR): условие «цена менялась в окне» красит Δ по заказам до смены (S8: +3,0 зелёным, все 8 заказов до 27.10; S7: GGM-02-2-1 красный -0,7). Окно артикула от дня первой смены или доля дней после смены рядом с Δ",
+    "G6 (следующий PR, согласен): переименование артикула плана при окне от 7 дней даёт красный -4,0 при живой карточке в блоке 1 (S6b); 0 из 29 сегодня. Заказы по SKU из plan_card_groups_1510.json или предупреждение",
+    "G7 (следующий PR, согласен): пометка выводимых GGM-02-2-1 и GGM-08-3-M; инвариант держится, 0 нарушений",
+    "Текст: self-check п.9 (знак в серых ячейках есть), «Инварианты: KONUX 13» (14 = 14 по 8 артикулам), дополнение iter2 про GGM-02-2-1; decisions п.(2) «по последний день orders_daily» без «до 28.10»",
+    "S9 (латентно): ordWindow полагается на daysIn с потолком 14 - при окне плана длиннее 14 дней сумма и дни разойдутся снова; проверка или тест на это допущение",
+    "Строка магазина в абсолютных шт/нед: +8,3 артикула и +66,0 магазина не сравнить; нужна относительная мера (магазин x1,89) или ожидаемое по магазину у артикула. Косметика: title «15.10--» при окне 0 дней"
+  ],
+  "rework_tz": "До слияния: ничего. CI на 46cd4bf зелёный (прогон 39410924324), хеш 3a19d7266e29c095 подтверждён, проверенное содержимое не изменилось. Следующим PR, как в iter2: (1) тесты planBlock на раздел 5 по фикстурам S1/S1c и серому/цветному Δ, чтобы мутанты M1-M4 из p_m_mutants_iter2.py были убиты; (2) до сборки с заказами по 21.10 - заменить правило цвета n >= 5 сравнением с темпом магазина (биномиальный p < 0,05) или не красить по артикулам, порог утверждает Иван; (3) в серых ячейках без знака и числа (stats.md п.1); (4) окно артикула от дня первой смены цены; (5) G6 заказы по SKU или предупреждение; (6) G7 пометка выводимых; (7) поправить self-check п.9, KONUX 14, decisions п.(2); (8) не писать литерал [skip ci] в коммитах, которые должны запускать CI",
+  "evidence_ledger": [
+    {
+      "gap": "Проводка G1/G2 в planBlock без теста",
+      "evidence": "python3 -I p_m_mutants_iter2.py <scratch>/head/analytics-mvp: M1 «artUnits(p.art, START, OW.end) -> OD_LAST» ВЫЖИЛ 101/101; M2, M3, M4 ВЫЖИЛИ; M5, M6 убиты. plan-tab.test.ts:156-174 - только помощники ordWindow и deltaNote",
+      "checkpoint": "actionability_10",
+      "weight": -1
+    },
+    {
+      "gap": "Порог 5 заказов не отделяет фон магазина с 7-го дня окна",
+      "evidence": "python3 -I p_d_noise_control_iter2.py: R = 1,892 (магазин 74 -> 140 шт/нед); 28.10, H0b: 10,7 цветных (8,8 / 1,9), H1 +30%: 11,6 (10,4 / 1,2); правило S: 0,2 и 0,1; при n = 5 значимых исходов нет",
+      "checkpoint": "risk_21",
+      "weight": -1
+    },
+    {
+      "gap": "Знак в серых ячейках, тексты описывают иначе",
+      "evidence": "python3 -I p_a3_iter1_vs_iter2.py: «Δ серым со знаком + или -: 19 из 29»; plan-tab.ts (299cc0c) ветка note: `${dW > 0 ? \"+\" : \"\"}${F(dW, 1)}` в span.muted; stats.md:6; selfcheck-plan-sec5.md п.9; decisions.md:6 п.(4)",
+      "checkpoint": "accuracy_3",
+      "weight": -1
+    },
+    {
+      "gap": "Смена цены в конце окна красит Δ по заказам до смены",
+      "evidence": "p_g_scenarios_iter2.mts S8: GGT-35-2-3 смены «27.10 110 000», с15 8, Δ ЗЕЛЁНЫЙ +3,0; S7: GGM-02-2-1 Δ КРАСНЫЙ -0,7",
+      "checkpoint": "insight_12",
+      "weight": -1
+    },
+    {
+      "gap": "Переименование при окне от 7 дней - ложный красный",
+      "evidence": "S6b: GGT-35-5-1 с15 0, Δ КРАСНЫЙ -4,0, блок 1 KONUX С 15.10 = 21",
+      "checkpoint": "risk_23",
+      "weight": -1
+    },
+    {
+      "gap": "Три утверждения self-check не совпали со сборкой",
+      "evidence": "selfcheck п.9 против out_a3 (19 из 29 со знаком); «KONUX 4+1+1+7+0 = 13» против out_b_orders_independent_iter2.txt (в): 14/14 по 8 артикулам; «GGM-02-2-1 цена в окне не менялась» против S7",
+      "checkpoint": "actionability_9",
+      "weight": -1
+    },
+    {
+      "gap": "Строка магазина в абсолютных единицах, сравнение с артикулом не читается",
+      "evidence": "строка «... 74,0, 15.10-18.10 140,0 (Δ +66,0) ... сравнивать с магазином» при Δ артикулов +8,3 ... -2,0; S4 title «заказы артикула 15.10-- (0 дн ...)»",
+      "checkpoint": "brand_20",
+      "weight": -1
+    },
+    {
+      "gap": "Нетривиальность и anti-median частичные: решения iter2 - реализация предложений ФЕНИКСА",
+      "evidence": "ordWindow = вариант (а) G1 iter1; deltaNote и строка магазина = §6 п.1-3 iter1; self-check п.14 «частично»",
+      "checkpoint": "insight_11, insight_14",
+      "weight": -2
+    },
+    {
+      "gap": "Практика A/B применена частично (порог и контроль есть, сравнения с контролем в правиле цвета нет, поправки на 29 сравнений нет)",
+      "evidence": "stats.md п.4, п.6; plan-tab.ts deltaNote не использует stU",
+      "checkpoint": "insight_15",
+      "weight": -1
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "confidence": 0.85
+}

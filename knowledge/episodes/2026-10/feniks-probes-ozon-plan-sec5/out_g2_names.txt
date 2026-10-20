@@ -1,0 +1,32 @@
+offer с символом | в orders_daily: нет
+offer с не-ASCII в orders_daily: ['GGTP-20-1х2', 'GGTP-20-2х2', 'GGTP-20-3х2']
+  GGT-35-5-1-100-180     строк orders_daily за всё время:  54  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGM-18-2-2             строк orders_daily за всё время: 102  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGT-03-3-3-E-16080     строк orders_daily за всё время: 157  последний день: 2026-10-17  строк prices_daily:  31  не-ASCII: -
+  GGM-16-2-3             строк orders_daily за всё время:  77  последний день: 2026-10-13  строк prices_daily:  31  не-ASCII: -
+  GGT-03-3-3-L-120       строк orders_daily за всё время:  65  последний день: 2026-10-10  строк prices_daily:  31  не-ASCII: -
+  GGL-09-2               строк orders_daily за всё время: 128  последний день: 2026-10-17  строк prices_daily:  31  не-ASCII: -
+  GGM-02-1-2             строк orders_daily за всё время:  71  последний день: 2026-10-16  строк prices_daily:  31  не-ASCII: -
+  GGT-03-3-5-E-16080     строк orders_daily за всё время:  22  последний день: 2026-09-28  строк prices_daily:  31  не-ASCII: -
+  GGM-16-1-2             строк orders_daily за всё время:  25  последний день: 2026-10-09  строк prices_daily:  31  не-ASCII: -
+  GGM-02-2-1             строк orders_daily за всё время:  17  последний день: 2026-10-08  строк prices_daily:  31  не-ASCII: -
+  GGM-01-1               строк orders_daily за всё время:  45  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGK-02-2-2-80          строк orders_daily за всё время:  33  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGT-35-2-3-100-180     строк orders_daily за всё время:  16  последний день: 2026-10-10  строк prices_daily:  31  не-ASCII: -
+  GGR-11-1               строк orders_daily за всё время:  32  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGT-35-3-3-100-180     строк orders_daily за всё время:  48  последний день: 2026-10-17  строк prices_daily:  31  не-ASCII: -
+  GGL-07-XL-2            строк orders_daily за всё время:  22  последний день: 2026-10-04  строк prices_daily:  31  не-ASCII: -
+  GGM-24-1               строк orders_daily за всё время:  24  последний день: 2026-10-11  строк prices_daily:  31  не-ASCII: -
+  GGT-35-1-3-100-180     строк orders_daily за всё время:  57  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGT-35-2-2-100-180     строк orders_daily за всё время:  13  последний день: 2026-10-18  строк prices_daily:  31  не-ASCII: -
+  GGM-23-3-1             строк orders_daily за всё время:  17  последний день: 2026-09-28  строк prices_daily:  31  не-ASCII: -
+  GGKP-02-1              строк orders_daily за всё время:  15  последний день: 2026-09-25  строк prices_daily:  31  не-ASCII: -
+  GGM-08-3-M             строк orders_daily за всё время:   2  последний день: 2026-09-24  строк prices_daily:  31  не-ASCII: -
+  GGM-16-1-3-LED         строк orders_daily за всё время:  11  последний день: 2026-09-06  строк prices_daily:  31  не-ASCII: -
+  GGT-48-2-2-100-180     строк orders_daily за всё время:   6  последний день: 2026-10-16  строк prices_daily:  31  не-ASCII: -
+  GGT-48-3-3-100-180     строк orders_daily за всё время:   2  последний день: 2026-09-24  строк prices_daily:  31  не-ASCII: -
+  GGT-48-5-1-100-180     строк orders_daily за всё время:   5  последний день: 2026-09-28  строк prices_daily:  31  не-ASCII: -
+  GGT-46-2-2-100         строк orders_daily за всё время:   0  последний день: -           строк prices_daily:  31  не-ASCII: -
+  GGT-46-3-3-100         строк orders_daily за всё время:   1  последний день: 2026-09-17  строк prices_daily:  31  не-ASCII: -
+  GGT-46-5-1-100         строк orders_daily за всё время:   0  последний день: -           строк prices_daily:  31  не-ASCII: -
+артикулы плана без единой строки в orders_daily за всю историю: ['GGT-46-2-2-100', 'GGT-46-5-1-100']

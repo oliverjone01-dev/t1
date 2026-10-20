@@ -1,0 +1,11 @@
+rev HEAD (48877ca): 4508a6af5c84c13d
+rev 49a7bf3: 4508a6af5c84c13d
+worktree: 4508a6af5c84c13d
+запрос: 4508a6af5c84c13d
+охват аудита: все пути ветки минус traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/:
+analytics-mvp/src/scripts/plan-tab.test.ts
+analytics-mvp/src/scripts/plan-tab.ts
+knowledge/decisions.md
+git diff 49a7bf3..48877ca:
+ knowledge/episodes/2026-10/ozon-testy-scripts/v8/selfcheck-plan-sec5.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)

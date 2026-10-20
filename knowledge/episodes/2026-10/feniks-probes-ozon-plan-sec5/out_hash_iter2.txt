@@ -1,0 +1,10 @@
+rev HEAD (4115088): 4752851bf76c89a5
+rev 299cc0c: 4752851bf76c89a5
+worktree: 4752851bf76c89a5
+запрос: 4752851bf76c89a5
+пути ветки (merge-base origin/main..HEAD) минус traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/:
+  analytics-mvp/src/scripts/plan-tab.test.ts
+  analytics-mvp/src/scripts/plan-tab.ts
+  knowledge/decisions.md
+data/ на 299cc0c против рабочего дерева: 
+data/ 74a3280..299cc0c: 

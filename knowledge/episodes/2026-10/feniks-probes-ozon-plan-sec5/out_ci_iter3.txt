@@ -1,0 +1,18 @@
+check-runs на 46cd4bf3f4868444f79b64efd61d13ec456980b8:
+vitest + smoke	completed	success	2026-10-20T10:51:58Z	2026-10-20T10:54:52Z	https://github.com/oliverjone01-dev/t1/actions/runs/39410924324/job/118588203019
+workflow runs по head_sha:
+39410924324	Тесты аналитики (vitest + smoke обеих площадок)	pull_request	completed	success	866	claude/amazing-hawking-0trncq
+шаги прогона 39410924324:
+  1 Set up job: success
+  2 Run actions/checkout@v4: success
+  3 Run actions/setup-node@v4: success
+  4 npm ci: success
+  5 vitest (числа и сверки): success
+  6 OZON: сборщики выгрузок «за заказ» (фикстуры xlsx): success
+  7 OZON: сборка и смоук: success
+  8 Яндекс Маркет: сборка и смоук: success
+  15 Post Run actions/setup-node@v4: success
+  16 Post Run actions/checkout@v4: success
+  17 Complete job: success
+PR #490:
+open	claude/amazing-hawking-0trncq	46cd4bf3f4868444f79b64efd61d13ec456980b8	main	180b57591203e6aa71380f5e16b8a81d7fc636db	clean	false

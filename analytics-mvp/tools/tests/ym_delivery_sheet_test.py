@@ -167,6 +167,15 @@ class DeliverySheetTests(unittest.TestCase):
         self.assertEqual(records[0]["tags"], "Яндекс")
         self.assertNotIn("PRIVATE-CANARY", sheet.render(records))
 
+    def test_latin_cyrillic_ledger_alias_is_one_document_without_rewriting_absent_history(self):
+        rows, _ = sheet.parse_tab(source(row(doc="M26-4639"), row(doc="М26-4639")), "active", "2026-10-20", {ORDER}, set())
+        old = dict(rows[0], vedomost="M26-4639")
+        absent, _ = sheet.merge([old], [], [])
+        self.assertEqual(absent, [old])
+        merged, _ = sheet.merge([old], rows, [])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual((merged[0]["vedomost"], merged[0]["ship"]), ("М26-4639", "1000"))
+
 
 if __name__ == "__main__":
     unittest.main()

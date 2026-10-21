@@ -45,6 +45,10 @@ def order_of(value, known, delivered):
     raise ValueError("ambiguous order number")
 
 
+def canonical_document_id(value):
+    return value.translate(str.maketrans({"M": "М", "C": "С"}))
+
+
 def identifiers(doc, offer):
     doc = clean(doc)
     if doc and not re.fullmatch(r"[МСMC]\d{2}-\d{1,8}", doc):
@@ -52,11 +56,11 @@ def identifiers(doc, offer):
     tokens = [token for token in re.split(r"[,;\s]+", str(offer or "").strip()) if token]
     if any(not re.fullmatch(r"GG[A-Z]{1,3}-[A-Z0-9]+(?:[.-][A-Z0-9]+)*", token) for token in tokens):
         raise ValueError("invalid offer identifier")
-    return doc, " ".join(tokens)
+    return canonical_document_id(doc), " ".join(tokens)
 
 
 def document(row):
-    return row["order"], row["vedomost"] or "~" + row["shipped"]
+    return row["order"], canonical_document_id(row["vedomost"]) or "~" + row["shipped"]
 
 
 def amount(value):

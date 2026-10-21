@@ -1,0 +1,54 @@
+[
+  {
+    "case": "new_marker_only",
+    "exit": 0,
+    "staged": [
+      "analytics-mvp/data/collector_status.json"
+    ],
+    "quiet_exit": 1,
+    "local_commit": true,
+    "money_blob_unchanged": true,
+    "passed": true
+  },
+  {
+    "case": "absent_marker",
+    "exit": 0,
+    "staged": [],
+    "quiet_exit": 0,
+    "local_commit": false,
+    "money_blob_unchanged": true,
+    "passed": true
+  },
+  {
+    "case": "changed_marker_plus_data",
+    "exit": 0,
+    "staged": [
+      "analytics-mvp/data/collector_status.json",
+      "analytics-mvp/data/orders_daily.ndjson"
+    ],
+    "quiet_exit": 1,
+    "local_commit": true,
+    "money_blob_unchanged": false,
+    "passed": true
+  },
+  {
+    "case": "unchanged_existing_marker",
+    "exit": 0,
+    "staged": [],
+    "quiet_exit": 0,
+    "local_commit": false,
+    "money_blob_unchanged": true,
+    "passed": true
+  },
+  {
+    "case": "unchanged_marker_plus_data",
+    "exit": 0,
+    "staged": [
+      "analytics-mvp/data/orders_daily.ndjson"
+    ],
+    "quiet_exit": 1,
+    "local_commit": true,
+    "money_blob_unchanged": false,
+    "passed": true
+  }
+]

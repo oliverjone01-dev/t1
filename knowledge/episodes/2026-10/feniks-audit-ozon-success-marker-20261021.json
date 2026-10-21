@@ -1,0 +1,186 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-success-marker-509e39c2-20261021",
+  "timestamp": "2026-10-21T15:41:50.167329+03:00",
+  "deliverable_ref": "codex/ozon-success-marker HEAD509e39c20b03e9f8f952003ba962040cf0e0dcc1; hash9a630a5fa76548f2",
+  "artifact_class": "mixed",
+  "iteration": 1,
+  "anchor": "8.5 timur-activation iter3: our8.55 is higher by0.05 because scope is one bounded staging operation and all challenged cases are independently executed, including localcommit readback. Below8.9 annotate because actual production persistence is not rerun yet.",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "Independent rev509e39c2 hash9a630a5fa76548f2. Only workflow included in hash; two episode files excluded by algorithm and reviewed. Untracked delivery spec explicitly outside commit scope."
+    },
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Actual unchanged stagingprefix extracted from committed YAML and run with bash-euo+git in5fresh temp repositories;5/5cases pass; local commits contain expectedmarker, unchanged moneyblob when only marker changes."
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Baseline586b1ca3 truly lacks collector_status despite updated financialdata; recordSuccess producers and orders explicit stage list inspected. Author3case evidence crosschecked with own5cases."
+    },
+    {
+      "id": "B2",
+      "result": "N/A",
+      "evidence": "No monetary formula/data/source/window changes. Financial3period reconciliation would not test this staging-only fix; prior postrun financial review remains separate."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Only exact collector_status path added; no duplicate content generation; oldmarker unchanged case no diff; no marker case exit0 with emptyindex."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Existing sourceHealth reads same collector_status file and through/loaded_at fields; marker-only newfile appears in index and local commit; no unrelated data staged by added lines."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "No financial hardcode or user metric introduced."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Temporary shell/git proof complete; actual next production-run push/readback still pending user-authorized merge."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Marker staged before gitdiff/commit guard; newmarker alone prevents quietskip; absentmarker tolerated; existing producer success records not fabricated or re-dated by this fix."
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "No selfclaimed score in product/selfcheck."
+    },
+    {
+      "id": "D2",
+      "result": "N/A",
+      "evidence": "No agentdelegation change."
+    },
+    {
+      "id": "D3",
+      "result": "N/A",
+      "evidence": "No agentfrontmatter change."
+    },
+    {
+      "id": "D4",
+      "result": "PASS",
+      "evidence": "Report JSON and trace schema validation run before delivery;25checkpoints and weighted8.55 independently summed."
+    },
+    {
+      "id": "D5",
+      "result": "N/A",
+      "evidence": "No roles/tiers changed."
+    },
+    {
+      "id": "D6",
+      "result": "N/A",
+      "evidence": "No skilltriggers changed."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Missing file simply not staged; existing commit/push hardfailure handling unchanged. Oldmarker unchanged produces no spuriouscommit."
+    },
+    {
+      "id": "D8",
+      "result": "PASS",
+      "evidence": "No new APIcalls/jobs/timebudget or retries; one local conditionalgitadd."
+    },
+    {
+      "id": "D9",
+      "result": "PASS",
+      "evidence": "No data/main/ref/memory changes by auditor; temporarygit commits localonly; no external pushes/publication. Untracked delivery doc outside auditedrev."
+    },
+    {
+      "id": "D10",
+      "result": "N/A",
+      "evidence": "No Coworkruntime scope."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "Real shellfragment parsed and executed in5cases; conditionalfilecheck quoted staticpath, no userinput interpolation added; existing stage whitelist preserved."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 0,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 6,
+    "brand_fit": 10,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.55,
+  "verdict": "go",
+  "primary_gap": "Actual main readback of persisted collector_status requires the next successful production run after authorized merge; not claimed by temporary repositories.",
+  "gaps": [
+    "Actual main readback of persisted collector_status requires the next successful production run after authorized merge; not claimed by temporary repositories.",
+    "If only some financial collectors succeed, old success records for others remain as before; failure attempts must remain visible through the separate existing failure manifest."
+  ],
+  "rework_tz": "",
+  "confidence": 0.96,
+  "p9_triggers_fired": [
+    "Financial freshness marker changes visibility but not monetary formulas; no externalfinancial accuracy claim."
+  ],
+  "sources_of_truth": [
+    "Exactcommitted .github/workflows/orders-backfill.yml at509e39c2",
+    "Author selfcheck25 and realstage3case JSON",
+    "Own5case actualbash/git fixtures, including localcommit/readback",
+    "Existing recordSuccess producer and sourceHealth consumer code; baseline586b1ca3 missingmarker verified"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Actual main readback of persisted collector_status requires the next successful production run after authorized merge; not claimed by temporary repositories.",
+      "evidence": "Current main586b1ca3 missing marker; independent-stage-probe.py demonstrates localindex/commit only; no productiondispatch or push performed by reviewer.",
+      "checkpoint": "accuracy_2",
+      "weight": -1
+    },
+    {
+      "gap": "If only some financial collectors succeed, old success records for others remain as before; failure attempts must remain visible through the separate existing failure manifest.",
+      "evidence": "recordSuccess updates only state[collector]; conditionalgitadd doesnot modifyJSON; selfcheck explicitly states oldsuccess preservation.",
+      "checkpoint": "risk_24",
+      "weight": -1
+    }
+  ],
+  "telemetry": {
+    "model": "Codex independent audit; not Claude/Opus"
+  }
+}

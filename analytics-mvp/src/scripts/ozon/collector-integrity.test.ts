@@ -112,6 +112,13 @@ describe("финансовый полный пересбор", () => {
 });
 
 describe("async отчёты кампаний", () => {
+  it("название товара Итого не отключает проверку чисел; настоящие totals не становятся SKU", async () => {
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv().split("\n")[0]+";Добавления в корзину\n20.10.2026;123;Итого;BROKEN;1;500;BROKEN\n");
+    const perf=new OzonPerformance({clientId:"x",clientSecret:"y"});
+    await expect(attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000)).rejects.toThrow("число");
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv()+"Всего;;;100;1;500\n");
+    expect(await attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000)).toHaveLength(1);
+  });
   it.each(["blank-sku","bad-cart"])("%s не проходит как успешный частичный отчёт", async kind => {
     put("ads_sku_daily.ndjson",[{d:"2026-10-20",cid:"1",sku:"123",sp:100,om:500,ca:0},{d:"2026-10-20",cid:"1",sku:"456",sp:25,om:100,ca:0}]);
     put("ads_sku_state.json",{"1":"2026-10-18"},false);

@@ -122,6 +122,7 @@ def parse_tab(text, tab, through, locations):
         row += [""] * max(0, 18 - len(row))
         if "OZON" not in row[0].upper():
             continue
+        counts["ozon_rows"] += 1
         try:
             # Historic columns are not interpreted using the modern schema.
             date = sheet_date(row[4], row[2])
@@ -278,11 +279,14 @@ def prepare(data, state, active, archive, now, locations=None):
         missing |= missing_ar
         counts = dict(collections.Counter(counts) + collections.Counter(counts_ar))
     events, retained = merge_events(state.get("events", []) if state else [], incoming, full)
-    known = {(e["order"], e["date"]) for e in events}
-    missing -= known
+    if full and not counts.get("ozon_rows"):
+        raise ValueError("both delivery tabs have no OZON rows")
+    if not full and not counts.get("ozon_rows"):
+        raise ValueError("empty active tab requires archive verification")
+    priced_now = {(e["order"], e["date"]) for e in incoming.values()}
     # On daily active-only reads keep unresolved receipts until archive recovery.
     if not full and state:
-        missing |= {tuple(x) for x in state.get("missing_keys", [])} - known
+        missing |= {tuple(x) for x in state.get("missing_keys", [])} - priced_now
     baseline_cities = state["baseline_cities"] if state else json.loads(data["delivery_cities.json"])
     historical = {}
     for file in FILES[:-1]:

@@ -45,6 +45,7 @@ async function main() {
     const from=shiftDay(day,-54);
     const rows = await attributionReport(perf,c.id,from,day,deadline,r=>console.log("CSV CORRECTION",JSON.stringify({cid:c.id,from:r.from,to:r.to,fields:Object.keys(r.values),undated:true})));
     console.log("CSV BOUNDS",JSON.stringify({cid:c.id,from,to:day,first:rows.map(r=>r.date).sort()[0],last:rows.map(r=>r.date).sort().at(-1),outside:[...new Set(rows.filter(r=>r.date<from||r.date>day).map(r=>r.date))]}));
+    if (rows.some(r=>r.date<from||r.date>day)) throw new Error("DATE-строки вне запрошенных московских суток");
     if (!rows.some(r=>r.date===day)) throw new Error(`В отчёте нет ${day} при положительном расходе; строк ${rows.length}, последняя дата ${rows.map(r=>r.date).sort().at(-1) ?? "нет"}`);
     return rows.length;
   });
@@ -61,6 +62,7 @@ async function main() {
       const rows=await attributionReport(client,c.id,from,to,deadline,()=>{});
       const outside=[...new Set(rows.filter(r=>r.date<from||r.date>to).map(r=>r.date))];
       console.log("BOUNDARY RESULT",JSON.stringify({cid:c.id,offset,from,to,first:rows.map(r=>r.date).sort()[0],last:rows.map(r=>r.date).sort().at(-1),outside,rows:rows.length}));
+      if (offset === "+03:00" && outside.length) throw new Error("MSK boundary did not constrain DATE rows");
       return rows.length;
     });
   }

@@ -54,7 +54,7 @@ def baseline():
 
 class DeliverySheetTests(unittest.TestCase):
     def prepare(self, active, archive=None, data=None, state=None, now=NOW):
-        return sheet.prepare(data or baseline(), state, active, archive if archive is not None else csv_text(), now, LOCATIONS)
+        return sheet.prepare(data or baseline(), state, active, archive if archive is not None else csv_text(row(date="4 октября")), now, LOCATIONS)
 
     def test_actual_money_mapping_and_replayed_copy(self):
         a = row()
@@ -77,7 +77,7 @@ class DeliverySheetTests(unittest.TestCase):
     def test_archive_move_is_not_a_deletion(self):
         out, _ = self.prepare(csv_text(row()))
         state = json.loads(out["delivery_sheet_state.json"])
-        next_out, next_status = sheet.prepare(out, state, csv_text(), None, NOW + dt.timedelta(hours=6))
+        next_out, next_status = sheet.prepare(out, state, csv_text(row(date="27 октября")), None, NOW + dt.timedelta(hours=6))
         self.assertEqual(next_out[sheet.FILES[1]], out[sheet.FILES[1]])
         self.assertEqual(next_status["events"], 1)
         self.assertFalse(next_status["archive_read"])
@@ -97,7 +97,8 @@ class DeliverySheetTests(unittest.TestCase):
     def test_future_closed_day_and_zero_are_distinct(self):
         _, status = self.prepare(csv_text(row(date="21 октября"), row(date="20 октября", ship="0")))
         self.assertEqual(status["events"], 0)
-        self.assertEqual(status["counts"], {"future_rows": 1, "zero_cost_rows": 1})
+        self.assertEqual(status["counts"]["future_rows"], 1)
+        self.assertEqual(status["counts"]["zero_cost_rows"], 1)
         self.assertEqual(sheet.closed_day(dt.datetime(2026, 10, 20, 20, 30, tzinfo=dt.timezone.utc)), "2026-10-19")
         self.assertEqual(sheet.closed_day(dt.datetime(2026, 10, 20, 21, 30, tzinfo=dt.timezone.utc)), "2026-10-20")
 
@@ -184,6 +185,17 @@ class DeliverySheetTests(unittest.TestCase):
         data = baseline(); data[sheet.FILES[1]] += '{"d":"2026-10-06","offer":"GGT-X","ship":3}\n'
         with self.assertRaisesRegex(ValueError, "not empty"):
             self.prepare(csv_text(row()), data=data)
+
+    def test_a_previously_priced_row_becoming_blank_is_visible(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        new, status = sheet.prepare(out, state, csv_text(row(ship="")), None, NOW + dt.timedelta(hours=6))
+        self.assertEqual(status["missing_cost"], 1)
+        self.assertEqual(new[sheet.FILES[1]], out[sheet.FILES[1]])
+
+    def test_empty_both_tabs_cannot_certify_a_success(self):
+        with self.assertRaisesRegex(ValueError, "no OZON"):
+            sheet.prepare(baseline(), None, csv_text(), csv_text(), NOW, LOCATIONS)
 
     def test_failed_fetch_or_parse_does_not_change_files(self):
         with tempfile.TemporaryDirectory() as directory:

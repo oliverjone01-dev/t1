@@ -231,6 +231,23 @@ class DeliverySheetTests(unittest.TestCase):
                 _, status = sheet.prepare(out, state, csv_text(changed), None, NOW + dt.timedelta(hours=6))
                 self.assertEqual(status["retained_unseen_events"], 1)
 
+    def test_positive_bill_and_existing_zero_placeholder_replay_identically(self):
+        source = csv_text(row(ship="1000"), row(ship="0"))
+        first, _ = self.prepare(source)
+        again, _ = self.prepare(source, data=first, state=json.loads(first["delivery_sheet_state.json"]))
+        for file in sheet.FILES:
+            self.assertEqual(first[file], again[file])
+
+    def test_additional_trip_never_replaces_accepted_primary(self):
+        first, _ = self.prepare(csv_text(row(ship="1000")))
+        primary = list(map(json.loads, first[sheet.FILES[0]].splitlines()))[-1]
+        for additional in (row(ship="2000", paid=""), row(date="6 октября", ship="2000", paid="")):
+            with self.subTest():
+                again, status = self.prepare(csv_text(row(ship="1000"), additional), data=first, state=json.loads(first["delivery_sheet_state.json"]))
+                self.assertEqual(list(map(json.loads, again[sheet.FILES[0]].splitlines()))[-1], primary)
+                self.assertEqual(list(map(json.loads, again[sheet.FILES[3]].splitlines()))[-1]["ship"], 2000)
+                self.assertEqual(status["ship"], 3000)
+
     def test_failed_fetch_or_parse_does_not_change_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); data = baseline()

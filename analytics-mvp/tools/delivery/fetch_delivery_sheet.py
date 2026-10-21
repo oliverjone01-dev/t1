@@ -201,13 +201,28 @@ def split_cents(amount, n):
     return [q + (i < rem) for i in range(n)]
 
 
-def project(events, baseline_orders, baseline_cities, sold=None):
+def project(events, baseline_orders, baseline_cities, sold=None, primary_keys=None):
     orders = {r["order"]: dict(r) for r in baseline_orders}
+    primary_keys = dict(primary_keys or {})
+    grouped = collections.defaultdict(list)
+    for event in events:
+        grouped[event["order"]].append(event)
+    for order, candidates in grouped.items():
+        if order in orders:
+            continue
+        if order not in primary_keys:
+            # Earliest shipment; a documented customer payment identifies the
+            # primary among same-day expenses. Persist this choice permanently.
+            first = min(candidates, key=lambda e: (e["date"], e["paid_cents"] is None, -e["ship_cents"]))
+            primary_keys[order] = event_key(first)
+        primary = tuple(primary_keys[order])
+        if primary not in {event_key(e) for e in candidates}:
+            raise ValueError("accepted primary shipment is missing")
     daily = collections.defaultdict(lambda: [0, 0, 0])
     city_daily = collections.defaultdict(lambda: [0, 0, 0, []])
     cities = {art: collections.Counter(dict(values)) for art, values in baseline_cities.items()}
     extra = []
-    for e in sorted(events, key=lambda x: (x["date"], x["order"], -x["ship_cents"])):
+    for e in sorted(events, key=lambda x: (x["order"], event_key(x) != tuple(primary_keys.get(x["order"], ())), x["date"], x["ship_cents"])):
         paid = e["paid_cents"]  # None stays visible in source status; legacy deliv is reference only.
         if e["order"] in orders:
             extra.append({"order": e["order"], "d_trip": e["date"], "ship": e["ship_cents"] / 100,
@@ -238,7 +253,7 @@ def project(events, baseline_orders, baseline_cities, sold=None):
                + sum(round(r["ship"] * 100) for r in extra))
     if any(value != total for value in derived):
         raise ValueError("shipment projection totals differ")
-    return list(orders.values()), sku_rows, city_rows, extra, {a: c.most_common(12) for a, c in sorted(cities.items())}
+    return list(orders.values()), sku_rows, city_rows, extra, {a: c.most_common(12) for a, c in sorted(cities.items())}, primary_keys
 
 
 def fetch_tab(tab):
@@ -293,7 +308,7 @@ def prepare(data, state, active, archive, now, locations=None):
         missing |= missing_ar
         counts = dict(collections.Counter(counts) + collections.Counter(counts_ar))
     previous = state.get("events", []) if state else []
-    if any((e["order"], e["date"]) in zero for e in previous):
+    if any((e["order"], e["date"]) in zero and event_key(e) not in incoming for e in previous):
         raise ValueError("accepted positive bill became zero or ambiguous zero trip; review required")
     events, _ = merge_events(previous, incoming, full)
     unseen = ({event_key(e) for e in previous} - incoming.keys() if full else
@@ -322,7 +337,7 @@ def prepare(data, state, active, archive, now, locations=None):
             elif not state:
                 raise ValueError("initial target window is not empty; review baseline")
     baseline_orders = [json.loads(x) for x in historical[FILES[0]]]
-    result = project(events, baseline_orders, baseline_cities)
+    result = project(events, baseline_orders, baseline_cities, primary_keys=state.get("primary_keys", {}) if state else {})
     # Historical lines (including old formatting) are retained byte for byte.
     outputs = {}
     old_ids = {r["order"] for r in baseline_orders}
@@ -334,6 +349,7 @@ def prepare(data, state, active, archive, now, locations=None):
     next_state = {"version": 1, "start": START, "loaded_at": stamp,
                   "archive_loaded_at": stamp if full else state["archive_loaded_at"],
                   "baseline_cities": baseline_cities, "locations": locations, "events": events,
+                  "primary_keys": result[5],
                   "unseen_keys": sorted(unseen),
                   "missing_keys": sorted(missing), "missing_cost": len(missing),
                   "undated_rows": counts.get("undated_rows", 0)}

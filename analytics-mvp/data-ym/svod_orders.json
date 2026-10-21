@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-10-21T12:36:33.880Z",
+  "generated_at": "2026-10-21T15:25:20.838Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-10-20",
   "split_check": {
@@ -41,9 +41,9 @@
       "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
     },
     {
-      "order": "56563946370",
-      "shipped": "7 мая",
-      "status": "Собственная доставка",
+      "order": "54812696769",
+      "shipped": "2 июля",
+      "status": "Доставлен",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
@@ -51,6 +51,41 @@
       "order": "56233996545",
       "shipped": "13 мая",
       "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56256574210",
+      "shipped": "20 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56392764865",
+      "shipped": "21 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56563946370",
+      "shipped": "7 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56589515585",
+      "shipped": "28 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56758515842",
+      "shipped": "15 мая",
+      "status": "Доставлен",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
@@ -69,27 +104,6 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "56758515842",
-      "shipped": "15 мая",
-      "status": "Доставлен",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "57062249408",
-      "shipped": "18 мая",
-      "status": "Доставлен",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "56256574210",
-      "shipped": "20 мая",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
       "order": "57062209153",
       "shipped": "20 мая",
       "status": "Собственная доставка",
@@ -97,23 +111,9 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "56392764865",
-      "shipped": "21 мая",
+      "order": "57062249408",
+      "shipped": "18 мая",
       "status": "Доставлен",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "57249746817",
-      "shipped": "25 мая",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "56589515585",
-      "shipped": "28 мая",
-      "status": "Собственная доставка",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
@@ -132,9 +132,23 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "54812696769",
-      "shipped": "2 июля",
+      "order": "57249746817",
+      "shipped": "25 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58779988547",
+      "shipped": "16 июля",
       "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58976380355",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
@@ -146,15 +160,15 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "59008517760",
-      "shipped": "13 июля",
+      "order": "58994962499",
+      "shipped": "17 июля",
       "status": "Собственная доставка",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "59046427331",
-      "shipped": "14 июля",
+      "order": "59008517760",
+      "shipped": "13 июля",
       "status": "Собственная доставка",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
@@ -174,50 +188,15 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "58779988547",
-      "shipped": "16 июля",
-      "status": "Доставлен",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "59150410752",
-      "shipped": "17 июля",
+      "order": "59046427331",
+      "shipped": "14 июля",
       "status": "Собственная доставка",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "58994962499",
-      "shipped": "17 июля",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "58976380355",
-      "shipped": "17 июля",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "59146346179",
+      "order": "59060109699",
       "shipped": "22 июля",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "59223823427",
-      "shipped": "23 июля",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "59197214657",
-      "shipped": "23 июля",
       "status": "Доставлен",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
@@ -230,15 +209,36 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "59572627331",
-      "shipped": "28 июля",
+      "order": "59146346179",
+      "shipped": "22 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59150410752",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59197214657",
+      "shipped": "23 июля",
       "status": "Доставлен",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "59060109699",
-      "shipped": "22 июля",
+      "order": "59223823427",
+      "shipped": "23 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59572627331",
+      "shipped": "28 июля",
       "status": "Доставлен",
       "ship": null,
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
@@ -265,18 +265,11 @@
       "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
     },
     {
-      "order": "62227988545",
-      "shipped": "28 сентября",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
-    },
-    {
-      "order": "62359294082",
-      "shipped": "29 сентября",
-      "status": "Собственная доставка",
-      "ship": null,
-      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+      "order": "62536179201",
+      "shipped": "",
+      "status": "Доставлен",
+      "ship": 7533,
+      "reason": "в Google-таблице нет даты отгрузки; новая отправка пока не добавлена в расход"
     }
   ],
   "months": [
@@ -1642,8 +1635,8 @@
           "result_points": 98514.11,
           "cogs": 17660,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -1708,8 +1701,8 @@
           "result_points": 119477.69,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4661.76,
+          "ship_known": true,
           "region": "Кузьмоловский"
         },
         {
@@ -1774,8 +1767,8 @@
           "result_points": 102275.74,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5374,
+          "ship_known": true,
           "region": "Ростов-на-Дону"
         },
         {
@@ -1906,8 +1899,8 @@
           "result_points": 69347.93,
           "cogs": 16067,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8146.76,
+          "ship_known": true,
           "region": "Воткинск"
         },
         {
@@ -1972,8 +1965,8 @@
           "result_points": 85188.04,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2038,8 +2031,8 @@
           "result_points": 98722.31,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5743.4,
+          "ship_known": true,
           "region": "Краснодар"
         },
         {
@@ -2104,8 +2097,8 @@
           "result_points": 76892.16,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2170,8 +2163,8 @@
           "result_points": 82708.43,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2236,8 +2229,8 @@
           "result_points": 77120.29,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3644.56,
+          "ship_known": true,
           "region": "Митяево"
         },
         {
@@ -2302,8 +2295,8 @@
           "result_points": 86083.85,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5521.78,
+          "ship_known": true,
           "region": "Самосырово"
         },
         {
@@ -2368,8 +2361,8 @@
           "result_points": 87931.57,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5071.1,
+          "ship_known": true,
           "region": "Тольятти"
         },
         {
@@ -2434,8 +2427,8 @@
           "result_points": 78207.37,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Солнечногорский район"
         },
         {
@@ -2566,8 +2559,8 @@
           "result_points": 79922.97,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4825.26,
+          "ship_known": true,
           "region": "Ульяновск"
         },
         {
@@ -2632,8 +2625,8 @@
           "result_points": 80656.28,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2698,8 +2691,8 @@
           "result_points": 101282.6,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2764,8 +2757,8 @@
           "result_points": 78878.4,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2922.65,
+          "ship_known": true,
           "region": "Самара"
         },
         {
@@ -2830,8 +2823,8 @@
           "result_points": 83893.7,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -2896,8 +2889,8 @@
           "result_points": 78187.88,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5333.58,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -2962,8 +2955,8 @@
           "result_points": 74511.08,
           "cogs": 15859,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7500,
+          "ship_known": true,
           "region": "Дюртюли"
         },
         {
@@ -3028,8 +3021,8 @@
           "result_points": 83647.86,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2710.96,
+          "ship_known": true,
           "region": "Дядьково"
         },
         {
@@ -3094,8 +3087,8 @@
           "result_points": 138830.26,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1500,
+          "ship_known": true,
           "region": "Балашиха"
         },
         {
@@ -3160,8 +3153,8 @@
           "result_points": 79385.52,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2738.41,
+          "ship_known": true,
           "region": "Липецк"
         },
         {
@@ -3886,8 +3879,8 @@
           "result_points": 24025.72,
           "cogs": 3230,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -3952,8 +3945,8 @@
           "result_points": 24159.47,
           "cogs": 3230,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Пушкино"
         },
         {
@@ -4568,8 +4561,25 @@
       ],
       "points_on_delivery": 58285.5,
       "cogs_cov": 100,
-      "ship_orders": 0,
-      "ship_cov": 0,
+      "ship_lost": 3453.62,
+      "ship_lost_orders": 1,
+      "ship_lost_daily": {
+        "2026-10-13": 3453.62
+      },
+      "ship_lost_rows": [
+        {
+          "order": "63033393283",
+          "d": "2026-10-13",
+          "v": 3453.62,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-35-3-3-100-180",
+          "name": "Стол раздвижной обеденный KONUX D100/180 х 100см, с металлическими ножками",
+          "line": "столы",
+          "city": "Саранск"
+        }
+      ],
+      "ship_orders": 24,
+      "ship_cov": 58.5,
       "points_after_ledger": 0,
       "points_after_ledger_orders": [],
       "fly_rows": [
@@ -4704,8 +4714,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 9500,
+          "ship_known": true,
           "region": "Городской округ Кызыл",
           "fly": true,
           "est_fee": 60570.63,
@@ -4773,8 +4783,8 @@
           "result_points": 0,
           "cogs": 15859,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7342.02,
+          "ship_known": true,
           "region": "Челябинск",
           "fly": true,
           "est_fee": 42906.26,
@@ -4842,8 +4852,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3644.02,
+          "ship_known": true,
           "region": "Саранск",
           "fly": true,
           "est_fee": 60570.63,
@@ -4911,8 +4921,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3363.41,
+          "ship_known": true,
           "region": "Муром",
           "fly": true,
           "est_fee": 61858.23,
@@ -4980,8 +4990,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6865.72,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 61747.21,
@@ -10191,8 +10201,8 @@
           "result_points": 39477.7,
           "cogs": 22598,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Красногорск"
         },
         {
@@ -11907,8 +11917,8 @@
           "result_points": 31622.88,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -14943,8 +14953,8 @@
           "result_points": 9794.12,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Жуковский"
         },
         {
@@ -17222,8 +17232,8 @@
           "city": "Иркутск"
         }
       ],
-      "ship_orders": 61,
-      "ship_cov": 48.8,
+      "ship_orders": 64,
+      "ship_cov": 51.2,
       "points_after_ledger": 0,
       "points_after_ledger_orders": []
     },
@@ -28938,12 +28948,12 @@
       "ship_lost": 37358.44,
       "ship_lost_orders": 9,
       "ship_lost_daily": {
-        "2026-08-06": 5840.5,
         "2026-08-03": 3050.61,
+        "2026-08-06": 5840.5,
         "2026-08-14": 4135.8,
         "2026-08-18": 2944.93,
-        "2026-08-23": 4215.1,
         "2026-08-22": 4215.1,
+        "2026-08-23": 4215.1,
         "2026-08-25": 5349.7,
         "2026-08-26": 4507.9,
         "2026-08-28": 3098.8
@@ -61394,9 +61404,9 @@
       "ship_lost": 17288.92,
       "ship_lost_orders": 4,
       "ship_lost_daily": {
-        "2026-05-17": 5403.38,
         "2026-05-02": 4073.58,
         "2026-05-14": 4421.58,
+        "2026-05-17": 5403.38,
         "2026-05-31": 3390.38
       },
       "ship_lost_rows": [

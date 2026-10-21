@@ -117,12 +117,18 @@ def parse_tab(text, tab, through, locations):
         raise ValueError(f"{tab}: empty sheet or changed headers")
     events = {}
     missing = set()
+    zero = set()
+    observed = set()
     counts = collections.Counter()
     for row_no, row in enumerate(rows[1:], 2):
         row += [""] * max(0, 18 - len(row))
         if "OZON" not in row[0].upper():
             continue
         counts["ozon_rows"] += 1
+        try:
+            observed.add(order_number(row[1]))
+        except ValueError:
+            pass  # Historic malformed identifiers are outside the write window.
         try:
             # Historic columns are not interpreted using the modern schema.
             date = sheet_date(row[4], row[2])
@@ -145,6 +151,7 @@ def parse_tab(text, tab, through, locations):
                 continue
             if ship == 0:
                 counts["zero_cost_rows"] += 1
+                zero.add((order, date))
                 continue
             paid = cents(row[12])
             fact = sheet_date(row[6], row[2])
@@ -167,17 +174,21 @@ def parse_tab(text, tab, through, locations):
         except (ValueError, MoneyError) as ex:
             # Do not include source values: they can contain personal data.
             raise ValueError(f"{tab}: row {row_no}, invalid date/order/amount") from None
-    return events, missing, dict(counts)
+    return events, missing, dict(counts), {"zero": zero, "orders": observed}
 
 
 def merge_events(previous, incoming, full):
     merged = {event_key(e): e for e in previous}
     old_groups = collections.defaultdict(set)
+    old_dates = collections.defaultdict(set)
     for key in merged:
         old_groups[key[:2]].add(key)
+        old_dates[(key[0], key[2])].add(key)
     for key in incoming:
         if key not in merged and old_groups[key[:2]] - incoming.keys():
             raise ValueError("changed price or ambiguous trip; full archive/review required")
+        if key not in merged and old_dates[(key[0], key[2])] - incoming.keys():
+            raise ValueError("changed date or ambiguous trip; full archive/review required")
     # Missing rows can have moved to archive. They are never silently deleted or
     # turned into zero. A full replay reports retained rows to the health UI.
     retained = len(merged.keys() - incoming.keys()) if full else 0
@@ -252,7 +263,7 @@ def fetch_tab(tab):
 
 
 def archive_needed(state, now):
-    if not state or state.get("missing_cost") or state.get("undated_rows"):
+    if not state or state.get("missing_cost") or state.get("undated_rows") or state.get("unseen_keys"):
         return True
     return ((now - dt.datetime.fromisoformat(state["archive_loaded_at"])).total_seconds() >= 7 * 86400
             or (now - dt.datetime.fromisoformat(state["loaded_at"])).total_seconds() > 36 * 3600)
@@ -261,10 +272,13 @@ def archive_needed(state, now):
 def prepare(data, state, active, archive, now, locations=None):
     locations = locations if locations is not None else state["locations"]
     through = closed_day(now)
-    incoming, missing, counts = parse_tab(active, "active", through, locations)
+    incoming, missing, counts, observed = parse_tab(active, "active", through, locations)
+    zero = observed["zero"]
     full = archive is not None
     if full:
-        ar, missing_ar, counts_ar = parse_tab(archive, "archive", through, locations)
+        ar, missing_ar, counts_ar, observed_ar = parse_tab(archive, "archive", through, locations)
+        zero |= observed_ar["zero"]
+        observed["orders"] |= observed_ar["orders"]
         # The same shipment across tabs must use the same validation as within a tab.
         for key, event in ar.items():
             if key in incoming:
@@ -278,7 +292,13 @@ def prepare(data, state, active, archive, now, locations=None):
             incoming[key] = event
         missing |= missing_ar
         counts = dict(collections.Counter(counts) + collections.Counter(counts_ar))
-    events, retained = merge_events(state.get("events", []) if state else [], incoming, full)
+    previous = state.get("events", []) if state else []
+    if any((e["order"], e["date"]) in zero for e in previous):
+        raise ValueError("accepted positive bill became zero or ambiguous zero trip; review required")
+    events, _ = merge_events(previous, incoming, full)
+    unseen = ({event_key(e) for e in previous} - incoming.keys() if full else
+              ({tuple(k) for k in state.get("unseen_keys", [])} |
+               {event_key(e) for e in previous if e["order"] in observed["orders"]}) - incoming.keys())
     if full and not counts.get("ozon_rows"):
         raise ValueError("both delivery tabs have no OZON rows")
     if not full and not counts.get("ozon_rows"):
@@ -314,12 +334,13 @@ def prepare(data, state, active, archive, now, locations=None):
     next_state = {"version": 1, "start": START, "loaded_at": stamp,
                   "archive_loaded_at": stamp if full else state["archive_loaded_at"],
                   "baseline_cities": baseline_cities, "locations": locations, "events": events,
+                  "unseen_keys": sorted(unseen),
                   "missing_keys": sorted(missing), "missing_cost": len(missing),
                   "undated_rows": counts.get("undated_rows", 0)}
     status = {"loaded_at": stamp, "through": through, "source": SHEET, "from": START,
               "archive_read": full, "events": len(events), "missing_cost": len(missing),
               "missing_customer_paid": sum(e["paid_cents"] is None for e in events),
-              "retained_unseen_events": retained, "undated_rows": next_state["undated_rows"],
+              "retained_unseen_events": len(unseen), "undated_rows": next_state["undated_rows"],
               "city_unknown": sum(e["city"] == "город не указан" for e in events),
               "ship": sum(e["ship_cents"] for e in events) / 100, "counts": counts,
               "outputs": {f: hashlib.sha256(s.encode()).hexdigest() for f, s in outputs.items()}}
@@ -353,6 +374,8 @@ def main():
     locations = parse_locations(fetch_tab("locations")) if archive is not None else state["locations"]
     try:
         outputs, status = prepare(data, state, active, archive, now, locations)
+        if archive is None and status["retained_unseen_events"]:
+            outputs, status = prepare(data, state, active, fetch_tab("archive"), now, locations)
     except ValueError:
         if archive is not None:
             raise

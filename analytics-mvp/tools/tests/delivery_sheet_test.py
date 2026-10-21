@@ -197,6 +197,40 @@ class DeliverySheetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no OZON"):
             sheet.prepare(baseline(), None, csv_text(), csv_text(), NOW, LOCATIONS)
 
+    def test_missing_event_warning_survives_next_active_only_read(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        lost, status = self.prepare(csv_text(row(date="27 октября")), data=out, state=state)
+        state = json.loads(lost["delivery_sheet_state.json"])
+        again, status = sheet.prepare(lost, state, csv_text(row(date="27 октября")), None, NOW + dt.timedelta(hours=6))
+        self.assertEqual(status["retained_unseen_events"], 1)
+        self.assertTrue(sheet.archive_needed(json.loads(again["delivery_sheet_state.json"]), NOW + dt.timedelta(hours=6)))
+        restored, status = self.prepare(csv_text(row()), data=again, state=json.loads(again["delivery_sheet_state.json"]))
+        self.assertEqual(status["retained_unseen_events"], 0)
+
+    def test_previously_accepted_positive_bill_cannot_become_a_silent_zero(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        with self.assertRaisesRegex(ValueError, "became zero"):
+            self.prepare(csv_text(row(ship="0")), data=out, state=state)
+
+    def test_moved_shipment_date_does_not_create_a_second_expense(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        with self.assertRaisesRegex(ValueError, "changed date"):
+            self.prepare(csv_text(row(date="8 октября")), data=out, state=state)
+        both, status = self.prepare(csv_text(row(), row(date="8 октября")), data=out, state=state)
+        self.assertEqual(status["events"], 2)
+        self.assertEqual(status["ship"], 11382)
+
+    def test_known_shipment_leaving_window_or_cancelled_is_never_silently_fresh(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        for changed in (row(date="4 октября"), row(date="27 октября"), row(**{"7": "ОТМЕНЕН"})):
+            with self.subTest():
+                _, status = sheet.prepare(out, state, csv_text(changed), None, NOW + dt.timedelta(hours=6))
+                self.assertEqual(status["retained_unseen_events"], 1)
+
     def test_failed_fetch_or_parse_does_not_change_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); data = baseline()

@@ -27,4 +27,5 @@ describe("delivery freshness and coverage",()=>{
   });
   it("a partial file replacement cannot be certified by old status",()=>expect(check((_,dir)=>writeFileSync(join(dir,"delivery_orders.ndjson"),"{\"ship\":1}\n")).status).toBe("error"));
   it("an old success marker does not certify today's load",()=>expect(check(s=>{s.loaded_at="2026-10-18T12:00:00Z";}).status).toBe("error"));
+  it("a retained missing shipment cannot be labelled complete",()=>expect(check(s=>{s.retained_unseen_events=1;}).status).toBe("warning"));
 });

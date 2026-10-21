@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 import { closedDay, shiftDay, readRows } from "./collector-integrity.js";
 
 export type SourceHealth = { source: string; through: string | null; expected: string; status: "ok" | "warning" | "error"; note: string };
@@ -40,10 +41,20 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   for (const [source, file, fields] of [
     ["CPO: ставки и позиции", "cpo_sku_status.ndjson", ["date", "d"]],
     ["CPO: ручная выгрузка", "cpo_sku_daily.ndjson", ["d"]],
-    ["Наша доставка: ручная ведомость", "delivery_sku_daily.ndjson", ["d"]],
   ] as Array<[string,string,string[]]>) {
     const through = maxDate(readRows(join(dir, file)), fields);
     out.push({ source, through, expected: to, status: through && through >= to ? "ok" : "warning", note: "Более поздние даты не подтверждены. Нужна новая выгрузка/съём кабинета" });
+  }
+  const delivery = json(join(dir,"delivery_sheet_status.json"));
+  if (delivery.loaded_at) {
+    const expectedFiles = ["delivery_orders.ndjson","delivery_sku_daily.ndjson","delivery_city_daily.ndjson","delivery_trips_extra.ndjson","delivery_cities.json"];
+    const complete = expectedFiles.every(file => existsSync(join(dir,file)) && delivery.outputs?.[file] === createHash("sha256").update(readFileSync(join(dir,file))).digest("hex"));
+    const fresh = delivery.through >= to && Number.isFinite(Date.parse(delivery.loaded_at)) && now.getTime() - Date.parse(delivery.loaded_at) <= 36*3600000 && Date.parse(delivery.loaded_at) <= now.getTime()+60000;
+    const incomplete = delivery.missing_cost || delivery.undated_rows || delivery.retained_unseen_events || delivery.city_unknown || delivery.missing_customer_paid;
+    out.push({source:"Наша доставка: Google Таблица",through:delivery.through ?? null,expected:to,status:!complete || !fresh ? "error" : incomplete ? "warning" : "ok",note:`Успешное чтение ${delivery.loaded_at}. Рейсов с 05.10: ${delivery.events}; без счёта: ${delivery.missing_cost}; без даты: ${delivery.undated_rows}; без оплаты клиента: ${delivery.missing_customer_paid}; без города: ${delivery.city_unknown}; сохранено исчезнувших строк: ${delivery.retained_unseen_events}. ${!complete ? "Выходные файлы не соответствуют успешной загрузке. " : ""}${!fresh ? "Нужна новая загрузка. " : ""}История по 04.10 сохранена. Дата чтения не гарантирует заполнение всех счетов перевозчика.`});
+  } else {
+    const through = maxDate(readRows(join(dir,"delivery_sku_daily.ndjson")),["d"]);
+    out.push({source:"Наша доставка: ручная ведомость",through,expected:to,status:"warning",note:"Автоматическое чтение Google Таблицы ещё не подтверждено"});
   }
   const periods = json(join(dir, "ads_periods.json")), ids = new Set<string>();
   for (const p of ["p7", "p30", "p90"]) for (const k of ["top_spend", "burners"]) for (const c of periods[p]?.[k] ?? []) ids.add(String(c.id));

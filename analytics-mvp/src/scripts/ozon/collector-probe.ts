@@ -42,10 +42,28 @@ async function main() {
     return csv;
   };
   for (const c of candidates) await probe(`DATE CSV ${c.id} ${day}`, async () => {
-    const rows = await attributionReport(perf,c.id,shiftDay(day,-54),day,deadline,r=>console.log("CSV CORRECTION",JSON.stringify({cid:c.id,from:r.from,to:r.to,fields:Object.keys(r.values),undated:true})));
+    const from=shiftDay(day,-54);
+    const rows = await attributionReport(perf,c.id,from,day,deadline,r=>console.log("CSV CORRECTION",JSON.stringify({cid:c.id,from:r.from,to:r.to,fields:Object.keys(r.values),undated:true})));
+    console.log("CSV BOUNDS",JSON.stringify({cid:c.id,from,to:day,first:rows.map(r=>r.date).sort()[0],last:rows.map(r=>r.date).sort().at(-1),outside:[...new Set(rows.filter(r=>r.date<from||r.date>day).map(r=>r.date))]}));
     if (!rows.some(r=>r.date===day)) throw new Error(`В отчёте нет ${day} при положительном расходе; строк ${rows.length}, последняя дата ${rows.map(r=>r.date).sort().at(-1) ?? "нет"}`);
     return rows.length;
   });
+  // Paired UTC/MSK requests over the same closed historical window. Read-only:
+  // no report rows or monetary values are printed or written to the repository.
+  for (const c of candidates.slice(0,2)) {
+    const to=shiftDay(day,-2), from=shiftDay(to,-6);
+    for (const offset of ["+00:00","+03:00"]) await probe(`DATE BOUNDARY ${c.id} ${offset}`,async()=>{
+      const client=new OzonPerformance({clientId:perfId,clientSecret});
+      client.requestStatistics=async(campaigns,dateFrom,dateTo,groupBy="DATE")=>{
+        const data=await (client as any).post("/api/client/statistics",{campaigns,from:`${dateFrom}T00:00:00${offset}`,to:`${dateTo}T23:59:59${offset}`,groupBy});
+        return String(data.UUID??data.uuid??data.id??"");
+      };
+      const rows=await attributionReport(client,c.id,from,to,deadline,()=>{});
+      const outside=[...new Set(rows.filter(r=>r.date<from||r.date>to).map(r=>r.date))];
+      console.log("BOUNDARY RESULT",JSON.stringify({cid:c.id,offset,from,to,first:rows.map(r=>r.date).sort()[0],last:rows.map(r=>r.date).sort().at(-1),outside,rows:rows.length}));
+      return rows.length;
+    });
+  }
   if (failures) throw new Error(`Не пройдены ${failures} проб`);
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

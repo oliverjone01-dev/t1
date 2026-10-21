@@ -300,6 +300,10 @@ jobs:
           # теряются. Бюджет ~12 мин (~5 кампаний/ночь). Без Perf-кредов - пропуск.
           npm run ads:sku:daily || { echo "реклама по SKU не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по SKU не обновлена"; }
 
+      - name: Наша доставка из Google Таблицы
+        run: |
+          python3 -B tools/delivery/fetch_delivery_sheet.py || { echo "доставка из Google Таблицы не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::сохранена прежняя ведомость доставки"; }
+
       - name: Проверка свежести и полноты источников
         if: always()
         run: |

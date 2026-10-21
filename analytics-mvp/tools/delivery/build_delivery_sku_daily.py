@@ -18,7 +18,7 @@
 #        data/delivery_cities.json       - {offer: [[город, кол-во], ...]} для примечания к столбцу
 #
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
-import openpyxl, glob, os, json, re, collections, datetime, sys
+import glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header, fix_order_no  # noqa: E402
 
@@ -114,6 +114,14 @@ def comment_codes(raw):
     return out
 
 
+def event_articles(e, sold=None):
+    """Одно утверждённое правило привязки рейса к проданному товару."""
+    sold = SOLD if sold is None else sold
+    return ([a for a in e["arts"] if a in sold]
+            or [a for a in e.get("com", []) if a in sold]
+            or e["arts"] or ["—"])
+
+
 def num(x):
     if x is None:
         return 0.0
@@ -156,6 +164,7 @@ def city_of(addr, left=None, right=None):
 
 
 def main():
+    import openpyxl
     files = sorted(glob.glob(os.path.join(RAW, "*.xlsx")))
     if not files:
         sys.exit("нет .xlsx в " + RAW)
@@ -255,12 +264,7 @@ def main():
         # 2) иначе если ячейка - комплектующее (столешница/подстолье) и это замена брака,
         #    в комментарии указан родительский стол - на него (реальный расход по браку того стола);
         # 3) иначе - как есть (или «—»).
-        cell_sold = [a for a in e["arts"] if a in SOLD]
-        if cell_sold:
-            arts = cell_sold
-        else:
-            com_sold = [a for a in e.get("com", []) if a in SOLD]
-            arts = com_sold or e["arts"] or ["—"]
+        arts = event_articles(e)
         share = e["ship"] / len(arts)     # мультиартикульная отправка - делим поровну
         dshare = e["deliv"] / len(arts)
         used += 1

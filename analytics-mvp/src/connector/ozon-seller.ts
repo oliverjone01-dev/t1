@@ -162,7 +162,9 @@ export class OzonSeller {
       const data = await this.post<{ result?: { data?: any[] } }>("/v1/analytics/data", {
         date_from: date, date_to: date, metrics, dimension: ["sku"], limit: 1000, sort: [{ key: "revenue", order: "DESC" }],
       });
-      return data.result?.data ?? [];
+      if (!Array.isArray(data.result?.data)) throw new Error("skuViewsDay: ответ без result.data");
+      if (data.result.data.length >= 1000) throw new Error("skuViewsDay: достигнут лимит страницы, ответ может быть обрезан");
+      return data.result.data;
     };
     let rows: any[]; let ext = true;
     try { rows = await fetchM(TOTALS_METRICS); }
@@ -217,7 +219,8 @@ export class OzonSeller {
       const data = await this.post<{ result?: { data?: any[] } }>("/v1/analytics/data", {
         date_from: dateFrom, date_to: dateTo, metrics, dimension: ["day"], limit: 1000, sort: [{ key: "revenue", order: "DESC" }],
       });
-      return data.result?.data ?? [];
+      if (!Array.isArray(data.result?.data)) throw new Error("dayTotals: ответ без result.data");
+      return data.result.data;
     };
     let rows: any[]; let ext = true;
     try { rows = await fetchM(TOTALS_METRICS); }
@@ -367,7 +370,8 @@ export class OzonSeller {
   // Справочник типов начислений (~124 шт): id -> имя. Основа маппинга type_id по категориям.
   async accrualTypes(): Promise<Array<{ id: number; name: string; description: string }>> {
     const d = await this.post<any>("/v1/finance/accrual/types", {}, ACCRUAL_RETRY);
-    const arr = d.accrual_types ?? d.result?.accrual_types ?? [];
+    const arr = d.accrual_types ?? d.result?.accrual_types;
+    if (!Array.isArray(arr) || !arr.length) throw new Error("accrualTypes: ответ без справочника");
     return arr.map((t: any) => ({ id: Number(t.id), name: String(t.name ?? ""), description: String(t.description ?? "") }));
   }
 
@@ -380,7 +384,10 @@ export class OzonSeller {
       if (!batch.length) continue;
       if (i) await pause(ACCRUAL_GAP_MS);
       const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch }, ACCRUAL_RETRY);
-      for (const p of (d.posting_accruals ?? d.result?.posting_accruals ?? [])) {
+      const rows = d.posting_accruals ?? d.result?.posting_accruals;
+      if (!Array.isArray(rows)) throw new Error("accrualPostings: ответ без posting_accruals");
+      for (const p of rows) {
+        if (!p.posting_number || !Array.isArray(p.accruals)) throw new Error("accrualPostings: неверная форма строки");
         out.push({ posting_number: String(p.posting_number ?? ""), accruals: p.accruals ?? [] });
       }
     }
@@ -392,16 +399,20 @@ export class OzonSeller {
   async accrualByDay(date: string): Promise<any[]> {
     const out: any[] = [];
     let lastId: any = "";
+    const seen = new Set<string>();
     for (let guard = 0; guard < 500; guard++) {
       const body: any = { date }; if (lastId) body.last_id = lastId;
       if (guard) await pause(ACCRUAL_GAP_MS);
       const d = await this.post<any>("/v1/finance/accrual/by-day", body, ACCRUAL_RETRY);
-      const arr = d.accruals ?? d.result?.accruals ?? [];
+      const arr = d.accruals ?? d.result?.accruals;
+      if (!Array.isArray(arr)) throw new Error("accrualByDay: ответ без accruals");
       for (const a of arr) out.push(a);
       lastId = d.last_id ?? d.result?.last_id ?? "";
-      if (!lastId || !arr.length) break;
+      if (!lastId) return out;
+      if (!arr.length || seen.has(String(lastId))) throw new Error("accrualByDay: пагинация не продвигается");
+      seen.add(String(lastId));
     }
-    return out;
+    throw new Error("accrualByDay: превышен предел страниц");
   }
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,

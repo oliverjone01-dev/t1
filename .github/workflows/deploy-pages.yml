@@ -75,8 +75,10 @@ concurrency:
 
 jobs:
   build-deploy:
-    # Для workflow_run деплоим только при успешном синке; для push/dispatch - всегда.
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    # OZON сохраняет проверенные части перед красным итогом. Публикуем их с видимой
+    # свежестью источников; сайт не замораживается из-за одной недоступной кампании.
+    # Код всегда берётся из main, без исполнения артефактов стороннего workflow.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' || (github.event.workflow_run.name == 'OZON snapshots (прямой, без n8n)' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'failure') }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}

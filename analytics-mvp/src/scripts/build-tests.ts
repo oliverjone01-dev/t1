@@ -13,6 +13,7 @@
 //
 // Запуск: npm run tests:page (или npm run katya, он зовёт этот скрипт).
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
+import { healthHtml } from "./ozon/source-health.js";
 import { dp, op, IS_OZON } from "../paths.js";
 import { loadCardMap, kinOfTests, collapseByCard, mapHealth } from "./card-kin.js";
 import {
@@ -453,9 +454,9 @@ function stopBlock(text: string): string {
     ? "данных по ставке оплаты за заказ в снимке нет вовсе"
     : cpoState.positions === 0
       ? `в кампании 0 позиций на ${LAST}`
-      : `в кампании 0 позиций на ${LAST}: последние ${cpoState.positions} ${plural(cpoState.positions, "позиция", "позиции", "позиций")} сняты ${cpoState.last}, и ставка по ним была ${cpoState.maxBid} %`;
+      : `снимок устарел: последние данные от ${cpoState.last}, в них ${cpoState.positions} ${plural(cpoState.positions, "позиция", "позиции", "позиций")} и максимальная ставка ${cpoState.maxBid} %. Текущее число позиций не подтверждено`;
   return `<div class="stop"><b>Стоп-сигнал не проверяется:</b> ${esc(why)}.`
-    + ` Правило на бумаге: ${esc(text)} Появятся позиции - правило вернётся, это видно в ежедневном файле.</div>`;
+    + ` Правило на бумаге: ${esc(text)} Нужен свежий снимок кабинета для проверки.</div>`;
 }
 
 /** Состояние выхода из акции в шапке карточки. Фиксировать дату руками не нужно: запись
@@ -3578,6 +3579,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
   + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
+  + healthHtml(dp(""))
   + `<div class="wrap">${GAP_NOTICE}<div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
   // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.

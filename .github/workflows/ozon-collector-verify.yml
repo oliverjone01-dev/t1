@@ -1,0 +1,36 @@
+name: OZON collector verification (read only)
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/ozon-collector-verify.yml
+      - analytics-mvp/src/scripts/ozon/collector-*.ts
+      - analytics-mvp/src/scripts/ozon/attribution-report.ts
+      - analytics-mvp/src/connector/ozon-*.ts
+permissions:
+  contents: read
+concurrency:
+  group: ozon-data
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Проверка форматов живого API без записи данных
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+          OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+          OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+        run: npx tsx src/scripts/ozon/collector-probe.ts

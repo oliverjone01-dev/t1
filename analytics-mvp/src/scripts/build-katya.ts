@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
+import { healthHtml } from "./ozon/source-health.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { cpoOrdersByDay, cpoExportCampaign } from "./cpo-orders-rev.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
@@ -1308,6 +1309,7 @@ const EXTRA_CSS = `
 .vf-conv b{color:#cfe8ef;font-size:12.5px}
 @media (max-width:700px){.kt-kpi{grid-template-columns:repeat(2,1fr)}.periods{flex-wrap:wrap}.main{padding:10px}}
 `;
+const sourceHealthHtml = IS_OZON ? healthHtml(dp("")) : "";
 function kshell(title: string, activeKey: string, body: string, pageJs: string): string {
   const snapTo = maxD;
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1332,7 +1334,7 @@ ${banner(activeKey)}${ndBad.length ? `<div style="margin:8px 16px;padding:8px 12
     <button class="pb" id="range-apply" style="margin-top:6px">Применить</button>
   </div>
 </header>
-<main class="main">${body}</main>
+${sourceHealthHtml}<main class="main">${body}</main>
 <script>window.__GG_MAXD='${maxD}';
 const MAXD='${maxD}', FLOOR='${pageFloor}';
 const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};

@@ -12,8 +12,8 @@
 // build-katya подмешивает их за текущий месяц (даты > последнего дня старого ряда), закрытые берёт из старых.
 //
 // Запуск: OZON_SELLER_* в env; из analytics-mvp: npx tsx src/scripts/ozon/pnl-accrual-daily.ts [FROM] [TO]
-import { writeFileSync } from "node:fs";
 import { OzonSeller } from "../../connector/ozon-seller.js";
+import { requireCredentials, requireFullHistory, validateRows, replaceSlice, readRows, atomicText as writeFileSync, closedDay, recordSuccess } from "./collector-integrity.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT_CH = "data/pnl_channel_accrual_daily.ndjson";
@@ -22,7 +22,6 @@ const OUT_AC = "data/pnl_account_accrual_daily.ndjson";
 // Нужны, чтобы видеть, в какую колонку «Общих расходов» попал каждый тип: так нашлось, что «Гибкий
 // график выплат» после 08.09 уходил в «Прочее», а не в «Штрафы» (Иван 25.09.2026, аудит «Денег»).
 const OUT_TYPES = "data/pnl_account_accrual_types.json";
-const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 // Категория кабинетного сбора по ИМЕНИ типа начисления (как bucketOf в pnl-account-daily, но по accrual-типам).
 function acctCat(name: string): "adv" | "fines" | "realfbs" | "badge" | "delivery" | "other" {
@@ -40,17 +39,20 @@ function acctCat(name: string): "adv" | "fines" | "realfbs" | "badge" | "deliver
   return "other";
 }
 
-async function main() {
+export async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
-  if (!clientId || !apiKey) { console.warn("pnl-accrual-daily: OZON_SELLER_* нет - пропуск"); return; }
+  requireCredentials(clientId, apiKey);
   const seller = new OzonSeller({ clientId, apiKey });
   const from = process.argv[2] || "2026-02-06";
-  const to = process.argv[3] || ymd(new Date(Date.now() - 86400000));
+  const to = process.argv[3] || closedDay();
+  requireFullHistory(from, to, [OUT_CH, OUT_AC, OUT_TYPES]);
   console.log(`pnl-accrual-daily: ${from}..${to}`);
 
   let bmap: Record<number, Bucket> = {};
   const nameById: Record<number, string> = {};
-  try { const types = await seller.accrualTypes(); bmap = bucketMap(types); for (const t of types) nameById[t.id] = t.name; } catch (e) { console.warn("  accrualTypes нет:", (e as Error).message); }
+  const types = await seller.accrualTypes();
+  if (!types.length) throw new Error("Пустой справочник типов начислений");
+  bmap = bucketMap(types); for (const t of types) nameById[t.id] = t.name;
 
   // --- КАНАЛЬНЫЙ ряд ---
   const ch: Record<string, { accruals: number; commission: number; delivery: number; fees: number; ops: number }> = {};
@@ -89,11 +91,11 @@ async function main() {
   for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) days.push(new Date(t).toISOString().slice(0, 10));
   let byDayRecs = 0;
   for (const day of days) {
-    let arr: any[] = [];
-    try { arr = await seller.accrualByDay(day); } catch { continue; }
+    const arr = await seller.accrualByDay(day);
     byDayRecs += arr.length;
     for (const a of arr) {
       const d = String(a?.date || day).slice(0, 10);
+      if (d < from || d > to) throw new Error(`Начисление вне окна: ${d}`);
       // ITEM: эквайринг/хранение (сервис канала) - в fees канала
       for (const sf of (a?.item_fees?.fees || [])) for (const f of (sf?.fees || [])) {
         const bk = (bmap[Number(f.type_id)] || "other") as Bucket;
@@ -119,18 +121,23 @@ async function main() {
   });
   const acRows = Object.keys(ac).sort().map((d) => { const r = ac[d]!; return { d, adv: Math.round(r.adv), fines: Math.round(r.fines), realfbs: Math.round(r.realfbs), badge: Math.round(r.badge), delivery: Math.round(r.delivery), other: Math.round(r.other) }; })
     .filter((r) => r.adv || r.fines || r.realfbs || r.badge || r.delivery || r.other);
+  for (const k in byType) for (const m in byType[k]!.months) byType[k]!.months[m] = Math.round(byType[k]!.months[m]!);
+
+  validateRows(chRows, (r: any) => r.d);
+  replaceSlice(readRows(OUT_CH), chRows, () => true);
+  validateRows(acRows, (r: any) => r.d);
+  replaceSlice(readRows(OUT_AC), acRows, () => true);
   writeFileSync(OUT_CH, chRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_AC, acRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  for (const k in byType) for (const m in byType[k]!.months) byType[k]!.months[m] = Math.round(byType[k]!.months[m]!);
   writeFileSync(OUT_TYPES, JSON.stringify(byType, null, 1) + "\n");
-
+  recordSuccess("pnl-accrual-daily", to);
   // само-сверка по месяцам
   const bm: Record<string, { acc: number; pay: number }> = {};
   for (const r of chRows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acc: 0, pay: 0 }); b.acc += r.accruals; b.pay += r.payout; }
   console.log(`  by-day записей ${byDayRecs} | канал строк ${chRows.length} | кабинет строк ${acRows.length}`);
   console.log("  канал по месяцам (Начислено | К выплате):");
-  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acc.toLocaleString("ru")} | ${bm[m].pay.toLocaleString("ru")}`);
+  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m]!.acc.toLocaleString("ru")} | ${bm[m]!.pay.toLocaleString("ru")}`);
   console.log(`  -> ${OUT_CH}, ${OUT_AC}`);
 }
 
-main().catch((e) => { console.error("pnl-accrual-daily FAIL:", e); process.exit(1); });
+if (process.argv[1] && /pnl-accrual-daily\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("pnl-accrual-daily FAIL:", e); process.exit(1); });

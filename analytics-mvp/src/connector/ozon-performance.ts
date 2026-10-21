@@ -73,6 +73,7 @@ export class OzonPerformance {
 
   async campaigns(): Promise<Array<{ id: string; title: string; state: string; advObjectType: string; placement: string[]; paymentType: string }>> {
     const data = await this.get<{ list?: any[] }>("/api/client/campaign");
+    if (!Array.isArray(data.list)) throw new Error("campaigns: ответ без list");
     return (data.list ?? []).map((c) => ({
       id: String(c.id),
       title: String(c.title ?? ""),
@@ -101,6 +102,7 @@ export class OzonPerformance {
       const ids = batch.map((id) => `campaignIds=${encodeURIComponent(id)}`).join("&");
       const qs = `${ids}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
       const data = await this.get<{ rows?: any[] }>(`/api/client/statistics/daily/json?${qs}`);
+      if (!Array.isArray(data.rows)) throw new Error("dailyStats: ответ без rows");
       for (const r of data.rows ?? []) {
         out.push({
           id: String(r.id ?? ""),

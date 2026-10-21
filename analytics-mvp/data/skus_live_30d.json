@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-09-21",
   "dateTo": "2026-10-20",
-  "generated_at": "2026-10-21T09:42:50.107Z",
+  "generated_at": "2026-10-21T10:14:11.604Z",
   "totals": {
     "rev": 31283529,
     "units": 442,
@@ -514,7 +514,7 @@
       "aov": 49784,
       "offer": "GGT-47-2-2-80",
       "stock": 29,
-      "pidx": 0.72,
+      "pidx": 0.71,
       "pcol": "SUPER",
       "price": 51900,
       "oos": 0
@@ -535,7 +535,7 @@
       "retp": 0,
       "aov": 31566,
       "offer": "GGT-12-2",
-      "stock": 105,
+      "stock": 104,
       "pidx": 0.79,
       "pcol": "RED",
       "price": 31566,

@@ -2,10 +2,11 @@
 
 > Файл самодостаточный. Новый аккаунт Claude читает его первым и подхватывает работу с первого запуска.
 > Владелец данных и решений - Иван Раюшкин (CMO). Язык работы - русский, только дефис (U+2014 запрещён).
+> **Работа продолжается в этом же репозитории `oliverjone01-dev/t1`, на этом же сайте `https://oliverjone01-dev.github.io/t1/`.** Новый репозиторий не создаётся, ключи не переносятся: они уже лежат в секретах этого репозитория и подставляются в workflows автоматически. Все обновления данных коммитятся в `main` этого репозитория и публикуются на этом сайте.
 
 ## 0. Первый запуск (сделать по порядку)
 
-1. Склонировать репозиторий `oliverjone01-dev/t1` (GitHub, private), рабочая папка проекта - `analytics-mvp/`.
+1. Доступ: аккаунт GitHub нового Claude должен иметь доступ к `oliverjone01-dev/t1` (Иван: Settings → Collaborators → добавить аккаунт с правом Write; в claude.ai нового аккаунта - подключить GitHub и выбрать этот репозиторий). В облачной сессии: `add_repo` owner `oliverjone01-dev`, repo `t1`, access `push`. Затем склонировать, рабочая папка проекта - `analytics-mvp/`.
 2. Прочитать `CLAUDE.md` в корне (правила системы, ФЕНИКС, Protocol 9, HITL), затем этот файл целиком.
 3. Проверить состояние:
    ```
@@ -44,17 +45,28 @@
 | Аудиты ФЕНИКСА | `knowledge/episodes/2026-10/feniks-audit-ozon-*.md` |
 | История сессий цепочки | `sessions/handoff/2026-10-*-ozon-*.md` (последний перед этим: `2026-10-20-ozon-testy-plan-tab-v20.md`) |
 
-## 2. Ключи (GitHub → Settings → Secrets and variables → Actions)
+## 2. Ключи: берутся из секретов этого же репозитория
 
-Значения GitHub не показывает. На новом месте их вводят заново из кабинетов OZON.
+Ключи OZON уже сохранены в `oliverjone01-dev/t1` → Settings → Secrets and variables → Actions. Workflows читают их сами через `${{ secrets.ИМЯ }}`. Новому аккаунту **ничего вводить и переносить не нужно**: достаточно доступа Write к репозиторию, чтобы запускать workflows и пушить код.
 
-| Секрет | Откуда | Кто использует |
-|---|---|---|
-| `OZON_SELLER_CLIENT_ID`, `OZON_SELLER_API_KEY` | seller.ozon.ru → Настройки → Seller API | orders-backfill, ozon-snapshots |
-| `OZON_PERF_CLIENT_ID`, `OZON_PERF_SECRET` | performance.ozon.ru → API | ozon-snapshots (реклама) |
-| `GITHUB_TOKEN` | встроенный | orders-backfill запускает ozon-snapshots |
+| Секрет (уже в репозитории) | Кто использует |
+|---|---|
+| `OZON_SELLER_CLIENT_ID`, `OZON_SELLER_API_KEY` | `orders-backfill.yml`, `ozon-snapshots.yml` (блок `env:` в начале файла) |
+| `OZON_PERF_CLIENT_ID`, `OZON_PERF_SECRET` | `ozon-snapshots.yml` (реклама OZON Performance) |
+| `GITHUB_TOKEN` | встроенный, `orders-backfill.yml` запускает им `ozon-snapshots.yml` |
 
-В облачной сессии Claude ключей OZON нет: сборщик локально не запустить. Проверка - прогон workflow на ветке (`gh workflow run orders-backfill.yml --ref <ветка>`), ошибка и форма ответа читаются аннотациями: `gh api repos/oliverjone01-dev/t1/actions/runs/<id>/jobs --jq '.jobs[0].id'` → `gh api repos/oliverjone01-dev/t1/check-runs/<job>/annotations`. Логи прогонов из облака отвечают 403.
+Правила:
+- Значения секретов не читать, не печатать и не копировать в код, логи или файлы. Новый сборщик берёт ключи только так: в workflow `env: { OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}, ... }`, в скрипте `process.env.OZON_SELLER_CLIENT_ID`.
+- Новый ключ (если понадобится) добавляет Иван в тех же Secrets этого репозитория; в коде только ссылка на имя.
+- Проверка, что секреты на месте, без их чтения: зелёный последний прогон `ozon-snapshots` (`gh run list --workflow ozon-snapshots.yml --limit 1`).
+
+Как проверять сборщик, раз в облачной сессии Claude ключей нет (они есть только у раннера GitHub Actions):
+```
+gh workflow run orders-backfill.yml --ref <ветка>            # прогон с секретами репозитория
+gh api repos/oliverjone01-dev/t1/actions/runs/<id>/jobs --jq '.jobs[0].id'
+gh api repos/oliverjone01-dev/t1/check-runs/<job>/annotations   # ошибка и форма ответа OZON
+```
+Логи прогонов из облака отвечают 403, поэтому сборщики пишут важное в аннотации (`::error::`, `::notice::`). Прогон на рабочей ветке коммитит данные в эту ветку; это допустимо только для пробы, боевые снимки идут в `main`.
 
 ## 3. Плановые сборщики: что, когда, куда
 
@@ -86,9 +98,25 @@
 ### 3.4 `.github/workflows/analytics-tests.yml`
 - vitest + smoke на pull_request и push в main по `analytics-mvp/**`. Литерал `[skip ci]` в сообщении головного коммита отключает его (E092): в прозе писать «без пропуска CI».
 
-### 3.5 Мак (не GitHub, рутины Ивана; не трогать)
-- Чат Claude на маке снимает seller.ozon.ru в Chrome (company_id 3971004) 07:00-08:30 и 20:00-22:00 МСК, коммитит в main напрямую: `gap_daily`, `boost_daily`, `acts_daily`, `store_moves`, `coinv_daily`, `cpo_sku_status`, `eb_daily`, `funnel_tests`, `cabinet_orders_check`, `reakciya.json`. Ключ строки и правила замены - в `knowledge/episodes/2026-10/ozon-testy-dannye-dlya-chata.md`. Кабинет только читать.
-- `coinv_daily` (стоит с 24.09) и `cpo_sku_status` (с 17.09) помечены «возобновить».
+### 3.5 Мак: съём кабинета OZON (рутина Ивана, работает с этим же репозиторием)
+- Работает на маке Ивана: чат Claude в Chrome под сессией Ивана снимает seller.ozon.ru (company_id 3971004) два раза в день и пушит в `main` этого репозитория. Поскольку репозиторий тот же, **перенастраивать ничего не нужно**: рутина продолжает работать, её коммиты запускают `orders-backfill` и обновляют сайт.
+- Новый аккаунт рутину не запускает и не трогает. Его зона: понимать её файлы, проверять, что они приходят, и не ломать их формат в билдерах.
+- Проверка, что съём идёт: `git log --oneline -3 origin/main -- analytics-mvp/data/reakciya.json` (коммиты «Реакция: срез кабинета за ГГГГ-ММ-ДД, утро/вечер (авто, мак)»).
+- Если рутину надо перезапустить или поставить на другой машине: инструкция для чата целиком - `knowledge/episodes/2026-10/ozon-testy-dannye-dlya-chata.md` §4 (скопировать текст в чат Claude на машине с Chrome, где открыт кабинет OZON под учёткой GENGLASS); эндпоинты кабинета - `analytics-mvp/tools/reakciya/README.md` и `КАБИНЕТ_эндпоинты.md`; сборка `reakciya.json` - `analytics-mvp/tools/reakciya/build.py`. Кабинет только читать.
+
+| Файл (пишет мак) | Что | Ключ строки | Когда |
+|---|---|---|---|
+| `funnel_tests.ndjson` | позиция, показы, карточка, корзина, заказано (`full` true/false) | товар `date+role+art`; агрегат `date+role+test_id+group` | утро (вчера целиком) + вечер |
+| `gap_daily.ndjson` | разрыв цены сайт / продавец | `date+art` | утро + вечер |
+| `boost_daily.ndjson` | буст | `date+art` | утро + вечер |
+| `acts_daily.ndjson` | акции, несколько строк на товар | `date+art+title+date_from+date_to`, заменять весь набор товара за дату | утро + вечер |
+| `store_moves.ndjson` | сдвиг цен магазина | `date` | утро + вечер |
+| `reakciya.json` | «Реакция» (`build.py`) | - | утро + вечер, push запускает `orders-backfill` |
+| `coinv_daily.ndjson` | соинвест от цены с картой Ozon | прежний | утро (помечен «возобновить», стоял с 24.09) |
+| `cpo_sku_status.ndjson` | статус оплаты за заказ | прежний | утро (помечен «возобновить», стоял с 17.09) |
+| `cabinet_orders_check.ndjson` | «Заказано, шт» по товарам 10 карточек плана, ноль пишется | `date+sku` | утро по четвергам и 29.10 |
+
+Общие правила файлов мака: поля `snap` (утро/вечер) и `ts` (время МСК); пропуск - отсутствие строки, а не ноль; повторный съём с тем же ключом заменяет строку; файл целиком не перезаписывается. Сливает утро и вечер `coinv-merge.ts`, разрыв - `gap-daily.ts`, ручные снятия ложных стопов - `gap_manual.ndjson` (#489).
 
 ### 3.6 Ручные выгрузки (автоматики нет)
 | Файл | Последний день | Источник |
@@ -160,6 +188,10 @@
 
 По-русски, коротко. Вопросы через AskUserQuestion с вариантом «(рекомендую)». Цифры объяснять простыми словами: где на странице и что это дало. Self-check строго 25 пунктов (`knowledge/feniks/eval-checklist.md`). Только дефис. Не писать «выглядит хорошо», «отлично подойдёт».
 
-## 10. Перенос на другой аккаунт GitHub (если репозиторий меняет владельца)
+## 10. Где работать и куда публиковать
 
-Пошагово - `HANDOFF.md` в корне (вариант B «только OZON-аналитика»: `analytics-mvp/` + workflows `orders-backfill.yml`, `ozon-snapshots.yml`, `deploy-pages.yml`, `analytics-tests.yml`). Ключи из раздела 2 вводятся заново, Actions и Pages включаются вручную, рутина мака перенастраивается на новый репозиторий (путь репо в промпте съёма).
+- Репозиторий тот же: `oliverjone01-dev/t1`. Код - в рабочей ветке `claude/<имя>` от `origin/main`, PR в `main`, мерж только по слову Ивана «мерж» после go ФЕНИКСА.
+- Данные: снимки и сборы коммитит бот GitHub Actions в `main`; руками данные в `main` не коммитить (кроме согласованных ручных выгрузок из раздела 3.6).
+- Сайт тот же: `https://oliverjone01-dev.github.io/t1/`. Публикация автоматическая: после `ozon-snapshots` и по cron 09:47 МСК `deploy-pages.yml` собирает `analytics-mvp/public` и выкладывает. Ручная пересборка: `gh workflow run deploy-pages.yml --ref main`.
+- Новые сборщики добавлять шагом в `orders-backfill.yml` или `ozon-snapshots.yml` (ключи - через `secrets.*` этого репозитория, раздел 2), файл - в `analytics-mvp/data/`, чтение - в билдере, страница пересоберётся сама.
+- `HANDOFF.md` в корне - про перенос в чужой репозиторий; для этой передачи он не нужен.

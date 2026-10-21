@@ -74,7 +74,7 @@ export async function main() {
       }
       const present = new Set(recs.map(r => r.d));
       if (daily.some(r => String(r.id) === id && r.d >= from && r.d <= to && r.sp > 0 && !present.has(r.d))) throw new Error("Неполный отчёт: нет SKU в день с расходом кампании");
-      const merged = replaceSlice(existing, recs, r => r.id === id && r.d >= from && r.d <= to);
+      const merged = replaceSlice(existing, recs, r => r.id === id && r.d >= from && r.d <= to, r => `${r.d}|${r.id}|${r.sku}`);
       merged.sort((a,b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id) || a.sku.localeCompare(b.sku));
       writeRows(OUT, merged, r => `${r.d}|${r.id}|${r.sku}`);
       existing = merged;

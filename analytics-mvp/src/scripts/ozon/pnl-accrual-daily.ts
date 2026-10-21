@@ -119,14 +119,13 @@ export async function main() {
     const r = ch[d]!;
     return { d, accruals: Math.round(r.accruals), commission: Math.round(r.commission), delivery: Math.round(r.delivery), fees: Math.round(r.fees), payout: Math.round(r.accruals + r.fees), ops: r.ops };
   });
-  const acRows = Object.keys(ac).sort().map((d) => { const r = ac[d]!; return { d, adv: Math.round(r.adv), fines: Math.round(r.fines), realfbs: Math.round(r.realfbs), badge: Math.round(r.badge), delivery: Math.round(r.delivery), other: Math.round(r.other) }; })
-    .filter((r) => r.adv || r.fines || r.realfbs || r.badge || r.delivery || r.other);
+  const acRows = Object.keys(ac).sort().map((d) => { const r = ac[d]!; return { d, adv: Math.round(r.adv), fines: Math.round(r.fines), realfbs: Math.round(r.realfbs), badge: Math.round(r.badge), delivery: Math.round(r.delivery), other: Math.round(r.other) }; });
   for (const k in byType) for (const m in byType[k]!.months) byType[k]!.months[m] = Math.round(byType[k]!.months[m]!);
 
   validateRows(chRows, (r: any) => r.d);
-  replaceSlice(readRows(OUT_CH), chRows, () => true);
+  replaceSlice(readRows(OUT_CH), chRows, () => true, (r: any) => r.d);
   validateRows(acRows, (r: any) => r.d);
-  replaceSlice(readRows(OUT_AC), acRows, () => true);
+  replaceSlice(readRows(OUT_AC), acRows, () => true, (r: any) => r.d);
   writeFileSync(OUT_CH, chRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_AC, acRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_TYPES, JSON.stringify(byType, null, 1) + "\n");

@@ -92,24 +92,27 @@ export async function main() {
       }
     }
   }
-  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd), prt: Math.round(r.prt), promo: Math.round(r.promo), com: Math.round(r.com), del: Math.round(r.del), oth: Math.round(r.oth) }))
-    .filter((r) => r.acq || r.sto || r.bd || r.prt || r.promo || r.com || r.del || r.oth);
-  const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
+  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd), prt: Math.round(r.prt), promo: Math.round(r.promo), com: Math.round(r.com), del: Math.round(r.del), oth: Math.round(r.oth) }));
+  const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) }));
   // ds = [[дата начисления, сумма], ...]: доход за доставку встаёт на день самой операции OZON (Codex, PR #447).
-  const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd), ds: Object.entries(bdOrdDays[order] || {}).sort().map(([d, v]) => [d, Math.round(v)]) })).filter((r) => r.bd).sort((a, b) => a.order.localeCompare(b.order));
+  const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd), ds: Object.entries(bdOrdDays[order] || {}).sort().map(([d, v]) => [d, Math.round(v)]) }));
   // Партнёры NON_ITEM (без SKU): кабинетный ряд по дням + per-order где есть ключ.
-  const prtCabRows = Object.entries(prtCab).map(([d, v]) => ({ d, prt: Math.round(v) })).filter((r) => r.prt).sort((a, b) => a.d.localeCompare(b.d));
-  const prtOrdRows = Object.entries(prtOrd).map(([order, v]) => ({ order, prt: Math.round(v) })).filter((r) => r.prt).sort((a, b) => a.order.localeCompare(b.order));
+  const prtCabRows = Object.entries(prtCab).map(([d, v]) => ({ d, prt: Math.round(v) }));
+  const prtOrdRows = Object.entries(prtOrd).map(([order, v]) => ({ order, prt: Math.round(v) }));
   validateRows(rows, (r: any) => `${r.d}|${r.sku}`);
-  replaceSlice(readRows(OUT), rows, () => true);
+  replaceSlice(readRows(OUT), rows, () => true, (r: any) => `${r.d}|${r.sku}`);
+  bdRows.sort((a,b) => a.d.localeCompare(b.d));
   validateRows(bdRows, (r: any) => r.d);
-  replaceSlice(readRows(OUT_BD), bdRows, () => true);
+  replaceSlice(readRows(OUT_BD), bdRows, () => true, (r: any) => r.d);
+  bdOrdRows.sort((a,b) => a.order.localeCompare(b.order));
   validateRows(bdOrdRows, (r: any) => r.order);
-  replaceSlice(readRows(OUT_BDO), bdOrdRows, () => true);
+  replaceSlice(readRows(OUT_BDO), bdOrdRows, () => true, (r: any) => r.order);
+  prtCabRows.sort((a,b) => a.d.localeCompare(b.d));
   validateRows(prtCabRows, (r: any) => r.d);
-  replaceSlice(readRows(OUT_PRTD), prtCabRows, () => true);
+  replaceSlice(readRows(OUT_PRTD), prtCabRows, () => true, (r: any) => r.d);
+  prtOrdRows.sort((a,b) => a.order.localeCompare(b.order));
   validateRows(prtOrdRows, (r: any) => r.order);
-  replaceSlice(readRows(OUT_PRTO), prtOrdRows, () => true);
+  replaceSlice(readRows(OUT_PRTO), prtOrdRows, () => true, (r: any) => r.order);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_BDO, bdOrdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");

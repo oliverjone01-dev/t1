@@ -9,6 +9,8 @@ const maxDate = (rows: any[], fields: string[]) => rows.flatMap(r => fields.map(
 export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   const to = closedDay(now), today = shiftDay(to, 1), out: SourceHealth[] = [];
   const status = json(join(dir, "collector_status.json"));
+  const attempt = json(join(dir, "collector_failures.json"));
+  if (attempt.failures?.length) out.push({source:"Последняя загрузка",through:attempt.attempted_at ?? null,expected:to,status:"error",note:attempt.failures.join("; ")});
   const defs: Array<[string, string, string[], string?]> = [
     ["Заказы", "orders_daily.ndjson", ["d"]], ["Продажи", "history.ndjson", ["date"]],
     ["Дневные итоги", "daily_totals.ndjson", ["date"]], ["Воронка SKU", "sku_views.ndjson", ["date"]],

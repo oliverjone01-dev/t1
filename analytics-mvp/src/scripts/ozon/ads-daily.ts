@@ -61,7 +61,7 @@ export async function main() {
       recs.push(...dailyRecords(rows, FLOOR, to));
     }
     recs.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    replaceSlice(readRows<DailyAdRec>(OUT), recs, () => true);
+    replaceSlice(readRows<DailyAdRec>(OUT), recs, () => true, r => `${r.d}|${r.id}`);
     writeRows(OUT, recs, r => `${r.d}|${r.id}`);
     console.log(`ads-daily: ПОЛНЫЙ пересбор ${FLOOR}..${to}: ${recs.length} строк (+показы/клики/корзина) -> ${OUT}`);
     return;
@@ -77,7 +77,7 @@ export async function main() {
     recs.push(...dailyRecords(rows, from, to));
   }
   if (!recs.length) throw new Error(`OZON не отдал строк за ${from}..${to}`);
-  const merged = replaceSlice(readRows<DailyAdRec>(OUT), recs, r => r.d >= from && r.d <= to);
+  const merged = replaceSlice(readRows<DailyAdRec>(OUT), recs, r => r.d >= from && r.d <= to, r => `${r.d}|${r.id}`);
   merged.sort((a,b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
   writeRows(OUT, merged, r => `${r.d}|${r.id}`);
   const days = new Set(recs.map((r) => r.d)).size;

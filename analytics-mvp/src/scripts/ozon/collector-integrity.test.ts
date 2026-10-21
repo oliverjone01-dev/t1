@@ -23,6 +23,7 @@ import { main as pnl } from "./pnl-accrual-daily.js";
 import { main as skuPnl } from "./pnl-sku-accrual-daily.js";
 import { main as adsSku } from "./ad-sku-daily.js";
 import { main as attr } from "./ad-attribution-daily.js";
+import { main as adsDaily } from "./ads-daily.js";
 import { sourceHealth, healthHtml } from "./source-health.js";
 
 const put = (name: string, value: unknown, nd = true) => writeFileSync(`data/${name}`, nd ? (value as any[]).map(r => JSON.stringify(r)).join("\n") + "\n" : JSON.stringify(value));
@@ -79,6 +80,8 @@ describe("целостность дневных загрузок", () => {
     expect(() => validateRows([{id:"x",sum:NaN}],r=>r.id)).toThrow();
     expect(() => replaceSlice([{d:"a"}],[],()=>true)).toThrow();
     expect(() => replaceSlice([], [{d:"a"}],()=>false)).toThrow();
+    expect(() => validateRows([{date:"2026-10-20"}],(r:any)=>`${r.date}|${r.sku}`)).toThrow();
+    expect(() => replaceSlice([{d:"a",sp:10}], [],()=>true,r=>r.d)).toThrow();
   });
 });
 
@@ -87,6 +90,12 @@ describe("финансовый полный пересбор", () => {
     it(`${name}: сбой дня не удаляет сохранённые строки и не пишет checkpoint`, async () => {
       put(file,[{d:"2026-10-19",sku:"123",sum:10},{d:"2026-10-20",sku:"123",sum:20}]);
       const before = raw(file); await expect(run()).rejects.toThrow("503");
+      expect(raw(file)).toBe(before); expect(existsSync("data/collector_status.json")).toBe(false);
+    });
+    it(`${name}: незаметный пустой второй день не удаляет прежний ненулевой ключ`, async () => {
+      vi.mocked(OzonSeller.prototype.accrualByDay).mockImplementation(async day => day === "2026-10-19" ? [{date:day,item_fees:{fees:[{sku:"123",fees:[{type_id:1,accrued:{amount:-10}}]}]},non_item_fee:{type_id:1,accrued:{amount:-10}}}] : []);
+      put(file,[{d:"2026-10-19",sku:"123",sum:-10},{d:"2026-10-20",sku:"123",sum:-20}]);
+      const before=raw(file); await expect(run()).rejects.toThrow("Неполный ответ");
       expect(raw(file)).toBe(before); expect(existsSync("data/collector_status.json")).toBe(false);
     });
   }
@@ -103,6 +112,24 @@ describe("финансовый полный пересбор", () => {
 });
 
 describe("async отчёты кампаний", () => {
+  it.each(["blank-sku","bad-cart"])("%s не проходит как успешный частичный отчёт", async kind => {
+    put("ads_sku_daily.ndjson",[{d:"2026-10-20",cid:"1",sku:"123",sp:100,om:500,ca:0},{d:"2026-10-20",cid:"1",sku:"456",sp:25,om:100,ca:0}]);
+    put("ads_sku_state.json",{"1":"2026-10-18"},false);
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(kind==="blank-sku" ? csv()+"20.10.2026;;повреждённая строка;25;1;100\n" : csv().split("\n")[0]+";Добавления в корзину\n20.10.2026;123;Товар;100;1;500;BROKEN\n");
+    const before=raw("ads_sku_daily.ndjson"); await expect(adsSku()).rejects.toThrow("Не обновлены кампании");
+    expect(raw("ads_sku_daily.ndjson")).toBe(before); expect(JSON.parse(raw("ads_sku_state.json"))["1"]).toBe("2026-10-18");
+  });
+  it("частичный dailyStats не удаляет вторую кампанию из непустого дня", async () => {
+    put("ads_daily.ndjson",[{d:"2026-10-20",id:"1",sp:100,vw:1},{d:"2026-10-20",id:"2",sp:50,vw:1}]);
+    vi.mocked(OzonPerformance.prototype.campaigns).mockResolvedValue([{id:"1"},{id:"2"}] as any);
+    vi.mocked(OzonPerformance.prototype.dailyStats).mockResolvedValue([{id:"1",date:"2026-10-20",spent:100,orders:0,ordersMoney:0,views:1,clicks:0,toCart:0,title:"A"}]);
+    const before=raw("ads_daily.ndjson"); await expect(adsDaily()).rejects.toThrow("Неполный ответ");
+    expect(raw("ads_daily.ndjson")).toBe(before);
+  });
+  it("явный ноль допустим, отсутствие старого ненулевого ключа требует проверки", () => {
+    expect(replaceSlice([{id:"1",sp:100}],[{id:"1",sp:0}],()=>true,r=>r.id)).toEqual([{id:"1",sp:0}]);
+    expect(() => replaceSlice([{id:"1",sp:100},{id:"2",sp:50}],[{id:"1",sp:10}],()=>true,r=>r.id)).toThrow("Неполный ответ");
+  });
   it.each(["request","state","download","format","timeout"])("%s: сохраняет старые строки и checkpoint кампании", async kind => {
     put("ads_sku_daily.ndjson",[{d:"2026-10-20",cid:"1",sku:"123",sp:100,om:500,ca:0}]);
     put("ads_sku_state.json",{"1":"2026-10-18"},false);
@@ -148,4 +175,10 @@ it("проверка источников видит отдельную дыру
   expect(rows.find(r=>r.source==="Полнота атрибуции кампаний")?.status).toBe("error");
   expect(rows.find(r=>r.source==="CPO: ставки и позиции")?.through).toBe("2026-09-17");
   const html = healthHtml(join(fixture.dir,"data")); expect(html).toContain("Более поздние даты не подтверждены"); expect(html).not.toContain("0 позиций");
+});
+
+it("последняя неудачная попытка видна даже при свежей максимальной дате", () => {
+  put("collector_failures.json",{attempted_at:"2026-10-21T12:00:00Z",failures:["реклама по дням не обновлена"]},false);
+  expect(sourceHealth(join(fixture.dir,"data")).find(r=>r.source==="Последняя загрузка")?.status).toBe("error");
+  expect(healthHtml(join(fixture.dir,"data"))).toContain("реклама по дням не обновлена");
 });

@@ -66,7 +66,7 @@ export async function main() {
       validateRows(recs, r => `${r.d}|${r.cid}|${r.sku}`);
       const present = new Set(recs.map(r => r.d));
       if (stats.some(r => r.id === cid && r.spent > 0 && !present.has(r.date))) throw new Error("Неполный отчёт: нет SKU в день с расходом кампании");
-      replaceSlice(existing, recs, r => r.cid === cid && r.d >= from && r.d <= to);
+      replaceSlice(existing, recs, r => r.cid === cid && r.d >= from && r.d <= to, r => `${r.d}|${r.cid}|${r.sku}`);
       fresh.push(...recs); processed.add(cid); state[cid] = today();
     } catch (e) { failures.push(cid); console.error(`ad-sku-daily: ${cid}: ${(e as Error).message}; прошлые строки сохранены`); }
   }

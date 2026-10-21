@@ -303,7 +303,12 @@ jobs:
       - name: Проверка свежести и полноты источников
         if: always()
         run: |
+          record_attempt () {
+            node -e 'const fs=require("fs"),p="/tmp/ozon-sync-failures.txt";const failures=fs.existsSync(p)?fs.readFileSync(p,"utf8").split(/\n/).filter(Boolean):["синк не начался"];fs.writeFileSync("data/collector_failures.json",JSON.stringify({attempted_at:new Date().toISOString(),failures})+"\n")'
+          }
+          record_attempt
           npx tsx src/scripts/ozon/source-health.ts || { echo "свежесть/полнота источников не подтверждена" >> /tmp/ozon-sync-failures.txt; echo "::warning::подробности в проверке источников и на дашборде"; }
+          record_attempt
 
       - name: Пересборка сайта из свежих снимков
         if: always()

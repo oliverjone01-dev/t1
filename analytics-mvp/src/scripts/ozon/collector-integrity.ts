@@ -18,7 +18,7 @@ export function validateRows<T>(rows: T[], key: (r: T) => string): void {
   };
   for (const r of rows) {
     const k = key(r);
-    if (!k || k.split("|").some(p => !p) || keys.has(k)) throw new Error(`Пустой/повторный ключ: ${k}`);
+    if (!k || k.split("|").some(p => !p || p === "undefined" || p === "null") || keys.has(k)) throw new Error(`Пустой/повторный ключ: ${k}`);
     keys.add(k); finite(r);
   }
 }
@@ -49,9 +49,15 @@ export function pendingDays(existingDates: string[], completed: string[], floor:
   return dates(floor, to).filter(d => !done.has(d) || d >= replay);
 }
 
-export function replaceSlice<T>(old: T[], fresh: T[], inside: (r: T) => boolean): T[] {
+export function replaceSlice<T>(old: T[], fresh: T[], inside: (r: T) => boolean, key?: (r: T) => string): T[] {
   if (fresh.some(r => !inside(r))) throw new Error("Ответ вышел за окно записи");
   if (old.some(inside) && !fresh.length) throw new Error("Непустой сохранённый срез нельзя заменить пустым ответом");
+  if (key) {
+    validateRows(fresh, key);
+    const incoming = new Set(fresh.map(key));
+    const missing = old.filter(inside).filter(r => Object.values(r as object).some(v => typeof v === "number" && v !== 0) && !incoming.has(key(r)));
+    if (missing.length) throw new Error(`Неполный ответ: отсутствуют ${missing.length} сохранённых ненулевых ключей (${missing.slice(0,3).map(key).join(", ")})`);
+  }
   return old.filter(r => !inside(r)).concat(fresh);
 }
 
@@ -87,7 +93,7 @@ export async function collectDaily<T>(options: {
   for (const day of pending) {
     const rows = await load(day);
     if (!Array.isArray(rows) || rows.some(r => date(r) !== day)) throw new Error(`Ответ не соответствует дню ${day}`);
-    merged = replaceSlice(merged, rows, r => date(r) === day);
+    merged = replaceSlice(merged, rows, r => date(r) === day, key);
   }
   merged.sort((a,b) => key(a).localeCompare(key(b)));
   writeRows(path, merged, key);

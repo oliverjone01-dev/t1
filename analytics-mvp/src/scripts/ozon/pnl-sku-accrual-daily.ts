@@ -68,9 +68,9 @@ export async function main() {
     r.amount = Math.round(r.accruals + r.commission + r.delivery + r.acquiring + r.storage + r.otherSvc);
     for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "otherSvc"]) r[k] = Math.round(r[k]);
     return r;
-  }).filter((r: any) => r.accruals || r.commission || r.amount);
+  });
   validateRows(out, (r: any) => `${r.d}|${r.sku}`);
-  replaceSlice(readRows(OUT), out, () => true);
+  replaceSlice(readRows(OUT), out, () => true, (r: any) => `${r.d}|${r.sku}`);
   writeFileSync(OUT, out.map((r) => JSON.stringify(r)).join("\n") + "\n");
   recordSuccess("pnl-sku-accrual-daily", to);
   // само-сверка по месяцам

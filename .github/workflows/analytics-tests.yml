@@ -13,11 +13,17 @@ on:
     paths:
       - "analytics-mvp/**"
       - ".github/workflows/analytics-tests.yml"
+      - ".github/workflows/ym-snapshots.yml"
+      - ".github/workflows/ym-repair-realization.yml"
+      - ".github/workflows/deploy-pages.yml"
   push:
     branches: [main]
     paths:
       - "analytics-mvp/**"
       - ".github/workflows/analytics-tests.yml"
+      - ".github/workflows/ym-snapshots.yml"
+      - ".github/workflows/ym-repair-realization.yml"
+      - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -53,6 +59,8 @@ jobs:
       # через границу месяцев), и сверки с выгрузками Ивана из кабинетов.
       - name: "vitest (числа и сверки)"
         run: npm test
+      - name: "Market realization incident recovery tests"
+        run: python3 -B src/scripts/ym/repair-realization-20261021.test.py
 
       # Сборщики ручных выгрузок «Оплата за заказ» (tools/cpo, tools/orders) на фикстурах xlsx: повтор месяца
       # не удваивает списания, копия файла побеждает оригинал, без «Период:» - отказ (ФЕНИКС O2, G4, G5, N4).

@@ -1,0 +1,22 @@
+[
+  {
+    "case": "success_marker_only",
+    "staged": [
+      "analytics-mvp/data/collector_status.json"
+    ],
+    "passed": true
+  },
+  {
+    "case": "no_marker",
+    "staged": [],
+    "passed": true
+  },
+  {
+    "case": "existing_marker_and_new_data",
+    "staged": [
+      "analytics-mvp/data/collector_status.json",
+      "analytics-mvp/data/orders_daily.ndjson"
+    ],
+    "passed": true
+  }
+]

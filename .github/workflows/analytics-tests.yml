@@ -15,6 +15,7 @@ on:
       - ".github/workflows/analytics-tests.yml"
       - ".github/workflows/ym-snapshots.yml"
       - ".github/workflows/ym-repair-realization.yml"
+      - ".github/workflows/ym-delivery-sync.yml"
       - ".github/workflows/deploy-pages.yml"
   push:
     branches: [main]
@@ -23,6 +24,7 @@ on:
       - ".github/workflows/analytics-tests.yml"
       - ".github/workflows/ym-snapshots.yml"
       - ".github/workflows/ym-repair-realization.yml"
+      - ".github/workflows/ym-delivery-sync.yml"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -72,6 +74,9 @@ jobs:
 
       - name: "OZON: Google-ведомость доставки (без сети)"
         run: python3 -B -m unittest discover -s tools/tests -p 'delivery_sheet_test.py' -v
+
+      - name: "Market: Google-ведомость доставки (без сети)"
+        run: python3 -B -m unittest discover -s tools/tests -p 'ym_delivery_sheet_test.py' -v
 
       # OZON: сборка из снимков репозитория плюс смоук-гейт контролов. Пишем в каталог вне
       # рабочего дерева, чтобы прогон не оставлял за собой изменённый public/.

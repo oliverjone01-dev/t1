@@ -1,5 +1,12 @@
 # KATYA для Яндекс Маркета (analytics-mvp, мультиплатформа)
 
+Наша доставка с 21.10.2026 ежедневно читается из Google-таблицы «Заказы RFBS/DBS»
+внутри `ym-snapshots.yml` (09:40 МСК). Ручной запуск без Market API: `ym-delivery-sync.yml`.
+Оба листа (активные + архив) сохраняются как `data-ym/delivery.csv` и `delivery_source.json`;
+`ym:derive` предпочитает этот проверенный снимок, до первого синка использует прежний fixture.
+История fixture сохраняется, новые отправки принимаются с 03.10.2026. Сумма без даты
+попадает в замечания доставки. Контракт: `knowledge/semantic/metrics/ym-delivery-sheet.yaml`.
+
 Дашборд KATYA на данных Яндекс Маркета БЕЗ копирования проекта: та же сборка `analytics-mvp`,
 параметризованная платформой. Ветка задачи: `claude/yandex-market-katya-dashboard-eeifol`.
 Основание: атомы 1-2 эпизода `knowledge/episodes/2026-06/feniks-veto-uploaded-docs-20260610.md`

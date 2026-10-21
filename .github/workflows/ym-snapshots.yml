@@ -199,6 +199,9 @@ jobs:
           YM_SHOWS_DAYS: ${{ github.event.inputs.shows_days || '7' }}
         run: npm run ym:shows || echo "::warning::показы не обновлены"
 
+      - name: Наша доставка из Google Таблицы (активные + архив, без изменения таблицы)
+        run: python3 -B tools/delivery/fetch_ym_delivery_sheet.py
+
       - name: Производные снимки контракта (history/daily_totals/skus_live/pnl_*)
         run: npm run ym:derive
 

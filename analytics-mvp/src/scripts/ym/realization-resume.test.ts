@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -28,6 +28,17 @@ function run(d: string, args: string[], budget = "10") {
   return (r.stdout || "") + (r.stderr || "");
 }
 describe("прогресс реализации восстанавливается вместе с месяцем", () => {
+  it("откаченный новый магазин не помечает старый снимок полностью покрытым", () => {
+    const d = seed();
+    writeFileSync(join(d, "realization_state.json"), JSON.stringify({ pairs: ["2026-06/2002"], by_month: { "2026-06": { shops_with_rows: ["2002"] } } }));
+    writeFileSync(join(d, "orders.ndjson"), ["1001", "2002"].map(campaign => JSON.stringify({ campaign, fin: "2026-06-10", status: "DELIVERED", delivered: 1 })).join("\n") + "\n");
+    expect(run(d, ["2026-06", "--rebuild"], "1")).toContain("realization: всего");
+    const st = read(d, "realization_state.json");
+    expect(st.pairs).toEqual(["2026-06/2002"]);
+    expect(st.by_month["2026-06"].shops_with_rows).toEqual(["2002"]);
+    expect(st.by_month["2026-06"].shops_pending).toEqual(["1001"]);
+    expect(existsSync(join(d, "realization_orders.ndjson"))).toBe(false);
+  }, 60000);
   it("частично скачанный месяц не заменяет полный старый месяц", () => {
     const d = seed();
     writeFileSync(join(d, "realization_monthly.ndjson"), JSON.stringify({ ym: "2026-06", sku: "SKU-1", sold: 2, ret: 0, amount: 2000, from: ["1001", "2002"] }) + "\n");

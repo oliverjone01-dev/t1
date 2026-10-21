@@ -212,6 +212,8 @@ async function realization(months: string[]) {
     for (const pair of [...donePairs]) if (pair.startsWith(`${ym}/`)) donePairs.delete(pair);
     for (const pair of originalPairs) if (pair.startsWith(`${ym}/`)) donePairs.add(pair);
     for (let i = ordRows.length - 1; i >= 0; i--) if (ordRows[i].ym === ym) ordRows.splice(i, 1);
+    withRows[ym] = new Set();
+    noDataDespiteSales[ym] = new Set();
     restored.add(ym);
   };
   if (!rebuild) {

@@ -1,0 +1,273 @@
+verify	Set up job	﻿2026-10-21T13:06:28.4274450Z Current runner version: '2.338.0'
+verify	Set up job	2026-10-21T13:06:28.4303346Z ##[group]Runner Image Provisioner
+verify	Set up job	2026-10-21T13:06:28.4304636Z Hosted Compute Agent
+verify	Set up job	2026-10-21T13:06:28.4305603Z Version: 20261012.601
+verify	Set up job	2026-10-21T13:06:28.4306576Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+verify	Set up job	2026-10-21T13:06:28.4308400Z Build Date: 2026-10-12T17:48:21Z
+verify	Set up job	2026-10-21T13:06:28.4309697Z Worker ID: {f536019d-05a4-4d02-a3f9-eb3749315413}
+verify	Set up job	2026-10-21T13:06:28.4310766Z Region: northcentralus
+verify	Set up job	2026-10-21T13:06:28.4311763Z Cloud: Azure
+verify	Set up job	2026-10-21T13:06:28.4312537Z ##[endgroup]
+verify	Set up job	2026-10-21T13:06:28.4314642Z ##[group]Operating System
+verify	Set up job	2026-10-21T13:06:28.4315666Z Ubuntu
+verify	Set up job	2026-10-21T13:06:28.4316336Z 24.04.5
+verify	Set up job	2026-10-21T13:06:28.4317156Z LTS
+verify	Set up job	2026-10-21T13:06:28.4317735Z ##[endgroup]
+verify	Set up job	2026-10-21T13:06:28.4318370Z ##[group]Runner Image
+verify	Set up job	2026-10-21T13:06:28.4319046Z Image: ubuntu-24.04
+verify	Set up job	2026-10-21T13:06:28.4320072Z Version: 20261012.334.1
+verify	Set up job	2026-10-21T13:06:28.4321193Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+verify	Set up job	2026-10-21T13:06:28.4322971Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+verify	Set up job	2026-10-21T13:06:28.4323978Z ##[endgroup]
+verify	Set up job	2026-10-21T13:06:28.4325173Z ##[group]GITHUB_TOKEN Permissions
+verify	Set up job	2026-10-21T13:06:28.4327611Z Contents: read
+verify	Set up job	2026-10-21T13:06:28.4328294Z Metadata: read
+verify	Set up job	2026-10-21T13:06:28.4328862Z ##[endgroup]
+verify	Set up job	2026-10-21T13:06:28.4331392Z Secret source: Actions
+verify	Set up job	2026-10-21T13:06:28.4332422Z Cache mode: write
+verify	Set up job	2026-10-21T13:06:28.4333644Z Prepare workflow directory
+verify	Set up job	2026-10-21T13:06:28.4766173Z Prepare all required actions
+verify	Set up job	2026-10-21T13:06:28.4815581Z Getting action download info
+verify	Set up job	2026-10-21T13:06:28.7447807Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+verify	Set up job	2026-10-21T13:06:28.8590924Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+verify	Set up job	2026-10-21T13:06:29.0658730Z Complete job name: verify
+verify	Run actions/checkout@v4	﻿2026-10-21T13:06:29.1361994Z ##[group]Run actions/checkout@v4
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1362956Z with:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1363659Z   repository: oliverjone01-dev/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1367600Z   token: ***
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1368121Z   ssh-strict: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1368766Z   ssh-user: git
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1369568Z   persist-credentials: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1370252Z   clean: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1370845Z   sparse-checkout-cone-mode: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1371496Z   fetch-depth: 1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1372058Z   fetch-tags: false
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1372628Z   show-progress: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1373255Z   lfs: false
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1373766Z   submodules: false
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1374383Z   set-safe-directory: true
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1374986Z   allow-unsafe-pr-checkout: false
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.1375866Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2376815Z Syncing repository: oliverjone01-dev/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2379620Z ##[group]Getting Git version info
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2380640Z Working directory is '/home/runner/work/t1/t1'
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2382127Z [command]/usr/bin/git version
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2497485Z git version 2.55.0
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2523152Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2541375Z Temporarily overriding HOME='/home/runner/work/_temp/e595f489-488c-4fea-882d-5303877c8381' before making global git config changes
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2543545Z Adding repository directory to the temporary git global config as a safe directory
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2549588Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/t1/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2604715Z Deleting the contents of '/home/runner/work/t1/t1'
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2609490Z ##[group]Initializing the repository
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2614567Z [command]/usr/bin/git init /home/runner/work/t1/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2704985Z hint: Using 'master' as the name for the initial branch. This default branch name
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2707553Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2709267Z hint: to use in all of your new repositories, which will suppress this warning,
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2710426Z hint: call:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2711026Z hint:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2711647Z hint: 	git config --global init.defaultBranch <name>
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2712725Z hint:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2713638Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2714999Z hint: 'development'. The just-created branch can be renamed via this command:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2715894Z hint:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2716430Z hint: 	git branch -m <name>
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2717017Z hint:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2718051Z hint: Disable this message with "git config set advice.defaultBranchName false"
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2719508Z Initialized empty Git repository in /home/runner/work/t1/t1/.git/
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2723013Z [command]/usr/bin/git remote add origin https://github.com/oliverjone01-dev/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2777240Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2778587Z ##[group]Disabling automatic garbage collection
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2782601Z [command]/usr/bin/git config --local gc.auto 0
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2816914Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2818013Z ##[group]Setting up auth
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2824385Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.2857027Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3198602Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3232064Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3462365Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3494571Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3682015Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3722747Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3724389Z ##[group]Fetching the repository
+verify	Run actions/checkout@v4	2026-10-21T13:06:29.3733678Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +74a7b76f9a16d9abc4e9cd6bcfc48941947d6ab3:refs/remotes/pull/496/merge
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.1991196Z From https://github.com/oliverjone01-dev/t1
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.1992892Z  * [new ref]         74a7b76f9a16d9abc4e9cd6bcfc48941947d6ab3 -> pull/496/merge
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.1996663Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.1998514Z ##[group]Determining the checkout info
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.2000976Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.2005954Z [command]/usr/bin/git sparse-checkout disable
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.2069548Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.2100286Z ##[group]Checking out the ref
+verify	Run actions/checkout@v4	2026-10-21T13:06:39.2103552Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/496/merge
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2181988Z Updating files:  45% (1355/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2214393Z Updating files:  46% (1364/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2242268Z Updating files:  47% (1394/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2275915Z Updating files:  48% (1423/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2310418Z Updating files:  49% (1453/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2348061Z Updating files:  50% (1482/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2380628Z Updating files:  51% (1512/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2410275Z Updating files:  52% (1542/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2432501Z Updating files:  53% (1571/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2439875Z Updating files:  54% (1601/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2449981Z Updating files:  55% (1631/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2457941Z Updating files:  56% (1660/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2465714Z Updating files:  57% (1690/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2476419Z Updating files:  58% (1720/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2487554Z Updating files:  59% (1749/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2496996Z Updating files:  60% (1779/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2507056Z Updating files:  61% (1809/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2520856Z Updating files:  62% (1838/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2529451Z Updating files:  63% (1868/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2540741Z Updating files:  64% (1897/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2549719Z Updating files:  65% (1927/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2560827Z Updating files:  66% (1957/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2572195Z Updating files:  67% (1986/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2581491Z Updating files:  68% (2016/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2592064Z Updating files:  69% (2046/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2602316Z Updating files:  70% (2075/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2615405Z Updating files:  71% (2105/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2624528Z Updating files:  72% (2135/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2636139Z Updating files:  73% (2164/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2644108Z Updating files:  74% (2194/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2655279Z Updating files:  75% (2223/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2665322Z Updating files:  76% (2253/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2675043Z Updating files:  77% (2283/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2684594Z Updating files:  78% (2312/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2699409Z Updating files:  79% (2342/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2733310Z Updating files:  80% (2372/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2751343Z Updating files:  81% (2401/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2780126Z Updating files:  82% (2431/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2802235Z Updating files:  83% (2461/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2818926Z Updating files:  84% (2490/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2854938Z Updating files:  85% (2520/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2884825Z Updating files:  86% (2550/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2953996Z Updating files:  87% (2579/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.2976249Z Updating files:  88% (2609/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3079984Z Updating files:  89% (2638/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3118063Z Updating files:  90% (2668/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3137244Z Updating files:  91% (2698/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3163255Z Updating files:  92% (2727/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3184787Z Updating files:  93% (2757/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3600484Z Updating files:  94% (2787/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3667542Z Updating files:  95% (2816/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3864083Z Updating files:  96% (2846/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3893260Z Updating files:  97% (2876/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.3936895Z Updating files:  98% (2905/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4013959Z Updating files:  99% (2935/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4015516Z Updating files: 100% (2964/2964)
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4017069Z Updating files: 100% (2964/2964), done.
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4050999Z Note: switching to 'refs/remotes/pull/496/merge'.
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4052090Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4053243Z You are in 'detached HEAD' state. You can look around, make experimental
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4055766Z changes and commit them, and you can discard any commits you make in this
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4058461Z state without impacting any branches by switching back to a branch.
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4060263Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4061277Z If you want to create a new branch to retain commits you create, you may
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4063635Z do so (now or later) by using -c with the switch command. Example:
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4065040Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4065595Z   git switch -c <new-branch-name>
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4066517Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4067069Z Or undo this operation with:
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4067870Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4068424Z   git switch -
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4069334Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4070433Z Turn off this advice by setting config variable advice.detachedHead to false
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4072065Z 
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4073979Z HEAD is now at 74a7b76 Merge ab7094cf6dc450b6c6b98919fe15a40294569e37 into 046c34007d71bae9742f62c2d93f7f3720661ad9
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4082803Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4123513Z [command]/usr/bin/git log -1 --format=%H
+verify	Run actions/checkout@v4	2026-10-21T13:06:40.4154788Z 74a7b76f9a16d9abc4e9cd6bcfc48941947d6ab3
+verify	Run actions/setup-node@v4	﻿2026-10-21T13:06:40.4543112Z ##[group]Run actions/setup-node@v4
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4544604Z with:
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4545649Z   node-version: 22
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4546720Z   always-auth: false
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4547780Z   check-latest: false
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4557491Z   token: ***
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.4558523Z ##[endgroup]
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.6005650Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.6009833Z (node:2299) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.6013861Z (Use `node --trace-deprecation ...` to show where the warning was created)
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.6016508Z ##[group]Environment details
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.9898838Z node: v22.23.3
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.9900419Z npm: 10.9.9
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.9901461Z yarn: 1.22.22
+verify	Run actions/setup-node@v4	2026-10-21T13:06:40.9902812Z ##[endgroup]
+verify	Run npm ci	﻿2026-10-21T13:06:41.0038591Z ##[group]Run npm ci
+verify	Run npm ci	2026-10-21T13:06:41.0039768Z ^[[36;1mnpm ci^[[0m
+verify	Run npm ci	2026-10-21T13:06:41.0243822Z shell: /usr/bin/bash -e {0}
+verify	Run npm ci	2026-10-21T13:06:41.0244289Z ##[endgroup]
+verify	Run npm ci	2026-10-21T13:06:42.1472583Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+verify	Run npm ci	2026-10-21T13:06:42.2653256Z npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+verify	Run npm ci	2026-10-21T13:06:44.3420126Z 
+verify	Run npm ci	2026-10-21T13:06:44.3421150Z added 147 packages, and audited 148 packages in 3s
+verify	Run npm ci	2026-10-21T13:06:44.3421772Z 
+verify	Run npm ci	2026-10-21T13:06:44.3422480Z 33 packages are looking for funding
+verify	Run npm ci	2026-10-21T13:06:44.3422955Z   run `npm fund` for details
+verify	Run npm ci	2026-10-21T13:06:44.3669657Z 
+verify	Run npm ci	2026-10-21T13:06:44.3670929Z 10 vulnerabilities (3 moderate, 5 high, 2 critical)
+verify	Run npm ci	2026-10-21T13:06:44.3671791Z 
+verify	Run npm ci	2026-10-21T13:06:44.3672235Z To address issues that do not require attention, run:
+verify	Run npm ci	2026-10-21T13:06:44.3673108Z   npm audit fix
+verify	Run npm ci	2026-10-21T13:06:44.3673793Z 
+verify	Run npm ci	2026-10-21T13:06:44.3674197Z To address all issues (including breaking changes), run:
+verify	Run npm ci	2026-10-21T13:06:44.3674864Z   npm audit fix --force
+verify	Run npm ci	2026-10-21T13:06:44.3675275Z 
+verify	Run npm ci	2026-10-21T13:06:44.3675493Z Run `npm audit` for details.
+verify	Проверка форматов живого API без записи данных	﻿2026-10-21T13:06:44.4087302Z ##[group]Run npx tsx src/scripts/ozon/collector-probe.ts
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4088016Z ^[[36;1mnpx tsx src/scripts/ozon/collector-probe.ts^[[0m
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4136141Z shell: /usr/bin/bash -e {0}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4136614Z env:
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4137261Z   OZON_SELLER_CLIENT_ID: ***
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4137776Z   OZON_SELLER_API_KEY: ***
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4138315Z   OZON_PERF_CLIENT_ID: ***
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4138953Z   OZON_PERF_SECRET: ***
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:44.4139438Z ##[endgroup]
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:47.0078237Z PROBE accrual/types: OK, строк 135
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:47.1996577Z PROBE accrual/by-day 2026-10-20: OK, строк 110
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:47.3729490Z OZON /v1/analytics/data: HTTP 429, повтор 1/5 через 1.2 с
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:53.2385049Z PROBE dayTotals 2026-10-20: OK, строк 1
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:57.3381686Z PROBE skuViewsDay 2026-10-20: OK, строк 600
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:06:58.0603597Z OZON /v1/finance/accrual/postings: HTTP 429, повтор 1/8 через 2.0 с
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:00.6618237Z PROBE postings + accrual/postings 2026-10-20: OK, строк 3
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:17.3063108Z CSV SHAPE {"lines":27,"header":"День;sku;Название товара;Предельная цена, ₽;Показы;Клики;CTR, %;Добавления в корзину;Средняя стоимость клика, ₽;Расход, ₽, с НДС;Продано товаров;Продажи в продвижении, ₽;Продано товаров модели;Продажи в продвижении с заказов модели, ₽;ДРР в продвижении, %;ДРР, %;Дата добавления","sample":[{"date":"15.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"15.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"15.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"15.10.2026","sku_present":true,"sku_numeric":true,"columns":17}],"unusual":[{"date":"Всего","sku_present":false,"sku_numeric":false,"columns":17}]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:17.3078185Z CSV BOUNDS {"cid":"45812525","from":"2026-08-27","to":"2026-10-20","first":"2026-10-15","last":"2026-10-20","outside":[]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:17.3080285Z PROBE DATE CSV 45812525 2026-10-20: OK, строк 24
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:24.1000742Z CSV SHAPE {"lines":50,"header":"День;sku;Название товара;Предельная цена, ₽;Показы;Клики;CTR, %;Добавления в корзину;Средняя стоимость клика, ₽;Расход, ₽, с НДС;Продано товаров;Продажи в продвижении, ₽;Продано товаров модели;Продажи в продвижении с заказов модели, ₽;ДРР в продвижении, %;ДРР, %;Дата добавления","sample":[{"date":"03.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"04.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"07.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"08.09.2026","sku_present":true,"sku_numeric":true,"columns":17}],"unusual":[{"date":"Корректировка","sku_present":false,"sku_numeric":false,"columns":17},{"date":"Всего","sku_present":false,"sku_numeric":false,"columns":17}]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:24.1006284Z CSV CORRECTION {"cid":"40015169","from":"2026-08-27","to":"2026-10-20","fields":["добавления в корзину","расход, ₽, с ндс","продано товаров","продажи в продвижении, ₽","продано товаров модели","продажи в продвижении с заказов модели, ₽"],"undated":true}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:24.1008398Z CSV BOUNDS {"cid":"40015169","from":"2026-08-27","to":"2026-10-20","first":"2026-09-03","last":"2026-10-20","outside":[]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:24.1010148Z PROBE DATE CSV 40015169 2026-10-20: OK, строк 46
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:31.4663481Z CSV SHAPE {"lines":145,"header":"День;sku;Название товара;Предельная цена, ₽;Показы;Клики;CTR, %;Добавления в корзину;Средняя стоимость клика, ₽;Расход, ₽, с НДС;Продано товаров;Продажи в продвижении, ₽;Продано товаров модели;Продажи в продвижении с заказов модели, ₽;ДРР в продвижении, %;ДРР, %;Дата добавления","sample":[{"date":"04.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"04.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"04.09.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"05.09.2026","sku_present":true,"sku_numeric":true,"columns":17}],"unusual":[{"date":"Корректировка","sku_present":false,"sku_numeric":false,"columns":17},{"date":"Всего","sku_present":false,"sku_numeric":false,"columns":17}]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:31.4679445Z CSV CORRECTION {"cid":"40047060","from":"2026-08-27","to":"2026-10-20","fields":["добавления в корзину","расход, ₽, с ндс","продано товаров","продажи в продвижении, ₽","продано товаров модели","продажи в продвижении с заказов модели, ₽"],"undated":true}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:31.4680815Z CSV BOUNDS {"cid":"40047060","from":"2026-08-27","to":"2026-10-20","first":"2026-09-04","last":"2026-10-20","outside":[]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:31.4681703Z PROBE DATE CSV 40047060 2026-10-20: OK, строк 141
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:43.9118229Z CSV SHAPE {"lines":17,"header":"День;sku;Название товара;Предельная цена, ₽;Показы;Клики;CTR, %;Добавления в корзину;Средняя стоимость клика, ₽;Расход, ₽, с НДС;Продано товаров;Продажи в продвижении, ₽;Продано товаров модели;Продажи в продвижении с заказов модели, ₽;ДРР в продвижении, %;ДРР, %;Дата добавления","sample":[{"date":"08.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"09.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"10.10.2026","sku_present":true,"sku_numeric":true,"columns":17},{"date":"11.10.2026","sku_present":true,"sku_numeric":true,"columns":17}],"unusual":[{"date":"Корректировка","sku_present":false,"sku_numeric":false,"columns":17},{"date":"Всего","sku_present":false,"sku_numeric":false,"columns":17}]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:43.9124946Z CSV CORRECTION {"cid":"44989034","from":"2026-08-27","to":"2026-10-20","fields":["добавления в корзину","расход, ₽, с ндс","продано товаров","продажи в продвижении, ₽","продано товаров модели","продажи в продвижении с заказов модели, ₽"],"undated":true}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:43.9127306Z CSV BOUNDS {"cid":"44989034","from":"2026-08-27","to":"2026-10-20","first":"2026-10-08","last":"2026-10-20","outside":[]}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:43.9128628Z PROBE DATE CSV 44989034 2026-10-20: OK, строк 13
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:56.6480188Z BOUNDARY RESULT {"cid":"45812525","offset":"+00:00","from":"2026-10-12","to":"2026-10-18","first":"2026-10-15","last":"2026-10-19","outside":["2026-10-19"],"rows":20}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:07:56.6481659Z PROBE DATE BOUNDARY 45812525 +00:00: OK, строк 20
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:08:09.6198013Z BOUNDARY RESULT {"cid":"45812525","offset":"+03:00","from":"2026-10-12","to":"2026-10-18","first":"2026-10-15","last":"2026-10-18","outside":[],"rows":16}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:08:09.6199983Z PROBE DATE BOUNDARY 45812525 +03:00: OK, строк 16
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:08:46.1208338Z BOUNDARY RESULT {"cid":"40015169","offset":"+00:00","from":"2026-10-12","to":"2026-10-18","first":"2026-10-12","last":"2026-10-19","outside":["2026-10-19"],"rows":8}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:08:46.1210620Z PROBE DATE BOUNDARY 40015169 +00:00: OK, строк 8
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:09:04.9465169Z BOUNDARY RESULT {"cid":"40015169","offset":"+03:00","from":"2026-10-12","to":"2026-10-18","first":"2026-10-12","last":"2026-10-18","outside":[],"rows":7}
+verify	Проверка форматов живого API без записи данных	2026-10-21T13:09:04.9467079Z PROBE DATE BOUNDARY 40015169 +03:00: OK, строк 7
+verify	Post Run actions/setup-node@v4	﻿2026-10-21T13:09:04.9763873Z Post job cleanup.
+verify	Post Run actions/setup-node@v4	2026-10-21T13:09:05.0977414Z (node:2518) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+verify	Post Run actions/setup-node@v4	2026-10-21T13:09:05.0978372Z (Use `node --trace-deprecation ...` to show where the warning was created)
+verify	Post Run actions/checkout@v4	﻿2026-10-21T13:09:05.1156114Z Post job cleanup.
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2024601Z [command]/usr/bin/git version
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2069715Z git version 2.55.0
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2112149Z Temporarily overriding HOME='/home/runner/work/_temp/51012042-c812-4649-87df-77077107f41a' before making global git config changes
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2113422Z Adding repository directory to the temporary git global config as a safe directory
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2118763Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/t1/t1
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2158346Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2191252Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2409685Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2436847Z http.https://github.com/.extraheader
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2451003Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2486642Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2716136Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+verify	Post Run actions/checkout@v4	2026-10-21T13:09:05.2766963Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+verify	Complete job	﻿2026-10-21T13:09:05.3153554Z Cleaning up orphan processes
+verify	Complete job	2026-10-21T13:09:05.3481389Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

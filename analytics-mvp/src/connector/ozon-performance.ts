@@ -145,7 +145,10 @@ export class OzonPerformance {
 
   async requestStatistics(campaigns: string[], dateFrom: string, dateTo: string, groupBy = "NO_GROUP_BY"): Promise<string> {
     const data = await this.post<any>("/api/client/statistics", {
-      campaigns, from: `${dateFrom}T00:00:00.000Z`, to: `${dateTo}T23:59:59.000Z`, groupBy,
+      // Performance DATE groups use Moscow calendar days. UTC midnight includes
+      // the first three hours of the following day and omits the period's start.
+      // Paired live probe 39603979177: +03:00 removes the extra calendar day.
+      campaigns, from: `${dateFrom}T00:00:00.000+03:00`, to: `${dateTo}T23:59:59.000+03:00`, groupBy,
     });
     return String(data.UUID ?? data.uuid ?? data.id ?? "");
   }

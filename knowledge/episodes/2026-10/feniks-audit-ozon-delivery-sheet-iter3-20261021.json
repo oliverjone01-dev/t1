@@ -1,0 +1,221 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-delivery-sheet-78714fd4-20261021",
+  "timestamp": "2026-10-21T16:27:48.367494+03:00",
+  "deliverable_ref": "Immutable 78714fd45dbb65547192657d4652a508110b61f4; complete branch product/spec scope:14 paths, hash905e4dee4cb823ce",
+  "artifact_class": "mixed",
+  "iteration": 3,
+  "anchor": "8.1 go dialogs-registry is the nearest anchor: our8.30 is slightly higher because source bounds, replay identity and failure preservation were independently exercised; production import and external carrier invoices remain unverified.",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "Own audit_hash --rev78714fd4 =905e4dee4cb823ce. All14 product/spec paths listed in covered-paths.txt reviewed across initial audit and deltas; earlier reports overstated count as15, exact filtered list is14. No product/data/ref/memory writes."
+    },
+    {
+      "id": "B1",
+      "result": "PARTIAL",
+      "evidence": "Approved Google sheet spec/probe, legacy decisions and actual GitHub API logs read. Author source93 events/362861.87 is a source observation, not an independent carrier-invoice reconciliation. Reviewer did not re-fetch raw contact-bearing Sheets data."
+    },
+    {
+      "id": "B2",
+      "result": "PARTIAL",
+      "evidence": "Legacy closed-period and current-window preservation exercised by existing tests; fullCI also runs three-period page comparisons. New source starts05Oct. No external money-family reconciliation or production Google run is claimed."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Own31/31 Python tests and focused fixtures pass: complete order/date/cents eventkey, repeated copies merge, distinct trips remain separate; cent totals and historical-byte prefix invariants hold."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Own59/59 targeted TypeScript tests pass including delivery health: missing bill, unknown values, retained missing event, stale marker and output hash mismatch cannot certify complete data. Source loaded_at and source completeness remain separate."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Only approved source/window/TZ constants introduced; no revenue/profit literals or generated HTML changed. Existing article selection shared with XLSX path."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Independently retrieved exact-head CI39607083577 and read-only live39607083706, both completed/success at78714fd4. Log confirms1232/1232 tests in73files,31Python,21OZON+18YM smoke."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Prior lifecycle blockers closed: unseen warnings persist; positive->solezero blocks; unchanged positive+zero source replays; accepted primary1000/paid7500 remains unchanged when adding2000 same-day or recovered earlier06Oct trip. Missing primary pointer blocks before projection."
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "Own frozen78714fd4 source import:31Python tests pass. Own four-target vitest:59/59. Commands in markdown; no network in these tests."
+    },
+    {
+      "id": "P2",
+      "result": "PASS",
+      "evidence": "iter3-counterexamples: prior sticky full1->partial1 + archive_neededtrue; solepositive->zero still throws; identical positive+zero first/replay both success."
+    },
+    {
+      "id": "P3",
+      "result": "PASS",
+      "evidence": "iter3-lifecycle: primary unchanged on recovered earlier trip; five output files byte-identical through replay/full archive move; lost2->partial2->full actual recovery0; total3000 unchanged."
+    },
+    {
+      "id": "P4",
+      "result": "PASS",
+      "evidence": "Exact-head live39607083706: five Seller probes and four default55day DATE reports pass; bounds all end20Oct, outside[]. Paired12-18Oct repeats UTC next-day19Oct vs MSK max18Oct (20/16 and8/7 rows). Request body tests cover day/week/year boundary."
+    },
+    {
+      "id": "P5",
+      "result": "PASS",
+      "evidence": "Public city from route whitelist only; raw address/contact/comment not emitted. Nullable customer payment preserved in state and warned, legacy deliv0 remains reference; reviewer reports contain only safe synthetic/source metadata."
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "No self-claimed audit score in product/selfcheck."
+    },
+    {
+      "id": "D4",
+      "result": "PASS",
+      "evidence": "Audit JSON and append-only trace validated against repository schemas."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Invalid headers/dates/money, ambiguity, zero transition and invalid primary stop before writes. Staged files fsync before rename; status last with hashes detects partial bundle."
+    },
+    {
+      "id": "D8",
+      "result": "PASS",
+      "evidence": "Three attempts,45sHTTP timeout,8MB response cap. Weekly/36h/missing-cost/unseen archive fallback bounded; old-source corrections can wait until next full read, explicitly disclosed."
+    },
+    {
+      "id": "D9",
+      "result": "PASS",
+      "evidence": "No secrets/source contacts logged by reviewer; no workflow dispatch, push, publication, refs or memory mutation. Temporary staging ignored."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "Exact-head hosted CI completed successfully:1232tests,31Python,21+18smoke. Main-only snapshot restriction and failure manifest retained."
+    },
+    {
+      "id": "D2",
+      "result": "N/A",
+      "evidence": "No agent role/tool/tier/skilltrigger/runtime configuration changed."
+    },
+    {
+      "id": "D3",
+      "result": "N/A",
+      "evidence": "No agent role/tool/tier/skilltrigger/runtime configuration changed."
+    },
+    {
+      "id": "D5",
+      "result": "N/A",
+      "evidence": "No agent role/tool/tier/skilltrigger/runtime configuration changed."
+    },
+    {
+      "id": "D6",
+      "result": "N/A",
+      "evidence": "No agent role/tool/tier/skilltrigger/runtime configuration changed."
+    },
+    {
+      "id": "D10",
+      "result": "N/A",
+      "evidence": "No agent role/tool/tier/skilltrigger/runtime configuration changed."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 10,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.3,
+  "verdict": "go",
+  "primary_gap": "No blocking code/fixture/live-format defect remains in the reviewed scope; production import has not run.",
+  "gaps": [
+    "Production delivery import and post-publication readback are not executed by this premerge review;93events/362861.87 is author source evidence, not independent invoice reconciliation.",
+    "No independent carrier invoice/bank family is available for a three-period financial reconciliation. Internal projection invariants and existing three-period page comparisons are narrower evidence.",
+    "Each file rename is atomic, the whole bundle is not a filesystem transaction. Status hashes expose a crash between renames; a production crash/restart recovery exercise remains operational follow-up.",
+    "Filled archived-row corrections can wait for weekly/36h/missing-data triggered archive refresh. Unknown cities and customer-paid gaps remain visible and are not invented as known values."
+  ],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "sources_of_truth": [
+    "Approved knowledge/semantic/metrics/ozon-delivery-sheet.yaml and Google/TZ source probes",
+    "Legacy knowledge/decisions.md93 and shared article selection implementation",
+    "Own frozen78714fd4 counterexamples/lifecycle fixtures and31Python+59TS results",
+    "Direct GitHub exact-head completed metadata/logs39607083577 and39607083706",
+    "Actual paired source results12-18Oct, default reports27Aug-20Oct"
+  ],
+  "p9_triggers_fired": [
+    "Carrier expense/source switch and API calendar changes require independent Step12.5 review. Scope is code/fixtures/live availability, not external financial certification."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Production delivery import and post-publication readback are not executed by this premerge review;93events/362861.87 is author source evidence, not independent invoice reconciliation.",
+      "evidence": "Production importer not dispatched; parent reports pending merge. Approved sourceprobe reports93events; no raw Sheets re-fetch by reviewer.",
+      "checkpoint": "accuracy_1",
+      "weight": -1
+    },
+    {
+      "gap": "No independent carrier invoice/bank family is available for a three-period financial reconciliation. Internal projection invariants and existing three-period page comparisons are narrower evidence.",
+      "evidence": "Only document-family Sheet source and internal outputs available for new delivery; no invoice/bank comparison in evidence.",
+      "checkpoint": "accuracy_2",
+      "weight": -1
+    },
+    {
+      "gap": "Each file rename is atomic, the whole bundle is not a filesystem transaction. Status hashes expose a crash between renames; a production crash/restart recovery exercise remains operational follow-up.",
+      "evidence": "write_bundle os.replace loop perfile; source-health verifies all five outputSHA256 against status; own hash-mismatch fixture passes.",
+      "checkpoint": "risk_24",
+      "weight": -1
+    },
+    {
+      "gap": "Filled archived-row corrections can wait for weekly/36h/missing-data triggered archive refresh. Unknown cities and customer-paid gaps remain visible and are not invented as known values.",
+      "evidence": "archive_needed weekly/36h/missing/undated/unseen; status counts missingpaid/cityunknown; own targeted tests.",
+      "checkpoint": "risk_23",
+      "weight": -1
+    }
+  ],
+  "telemetry": {
+    "model": "Codex independent audit by FENIKS role; not Claude/Opus"
+  }
+}

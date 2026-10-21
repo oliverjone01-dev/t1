@@ -1,0 +1,220 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-delivery-sheet-2babf545-20261021",
+  "timestamp": "2026-10-21T16:21:11.063047+03:00",
+  "deliverable_ref": "Immutable rev2babf54530c3c0f7292fdbaf9b819eb928ad71aa, hash0b75eba859e32a6b; subsequent report-only commits are outside product scope",
+  "artifact_class": "mixed",
+  "iteration": 2,
+  "anchor": "8.1 reestr-go is numericallynear, but our8.00 remainsreturn: counters/totals alone pass while entityidentity changes. The new primaryswap evidence is stronger than the prior warning-only gap and justifies no prematurego despite fixing stickywarnings.",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "Independent --rev2bab hash0b75eba859e32a6b. Full15product/spec paths from iter1 and reworkdelta reviewed; immutable Python import snapshot used. Later report/trace-only commits do not change producthash."
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Approvedspec5goldens/six-tab mapping and sourceprobe read; author source93events362861.87 not misrepresented as independent carrier-invoice reconciliation. Actual pairedAPI runmetadata/log independently fetched readonly."
+    },
+    {
+      "id": "B2",
+      "result": "PARTIAL",
+      "evidence": "New delivery05-20Oct scope; legacy up to04Oct is preserved by tests and code. No production Google importer yet and no independent carrier invoice family available; threeperiod financial reconciliation not claimed."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "25Python regressions independently pass: complete eventkey/order+date+cost; copiesmerge, distincttrips separate, cent splits conserved; old24 combined-trip baseline not repartitioned."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Prior stickywarning nowpersists and drives archive_needed; priorpositive->zero nowthrows; existing healthretainedcase tests warning."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Sourcewindow05Oct and Moscow offset are approved contract constants, not fabricatedmoney; no usermetric hardcodes added."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Independent API run39603979177 success metadata at9ff3951d and actual log confirm pairedUTC/MSK DATE effect; transport body tests now capture realfetch arguments including year-boundary."
+    },
+    {
+      "id": "B7",
+      "result": "FAIL",
+      "evidence": "Independent primaryswap fixture: acceptedprimary1000/paid7500, addactualsame-daytrip2000/paidNone whilekeepingoldsourcekey; projection rewritesprimary2000/paid0 and makesoldprimaryextra1000. Total3000doesnotprove firsttrip/accountingbasis invariance."
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "Own25Python tests and58targetedTS tests pass; sharedarticle rule, baselinebytepreservation, repeats/extra trips/invalidheaders/dates/money/stagefailure covered."
+    },
+    {
+      "id": "P2",
+      "result": "PASS",
+      "evidence": "Original bugs closed on immutable2bab: fullmissing1->nextpartial1, archive_neededtrue; priorpositive->solezero blocks."
+    },
+    {
+      "id": "P3",
+      "result": "PASS",
+      "evidence": "Changeddate/samecost withoutoldkey nowblocks; both actualold/new keys together allowed as separatetrips. This doesnot fix identity of first acceptedprimary when projectionresorts events."
+    },
+    {
+      "id": "P4",
+      "result": "PASS",
+      "evidence": "Independently fetched actualdefaultMSKlive39605088637: four campaignbounds all end20Oct,outsideempty; pairedUTC/MSK result remains confirmed. No regression inTZdelta."
+    },
+    {
+      "id": "P5",
+      "result": "PASS",
+      "evidence": "Publiccity is canonicalroute-whitelist only; safe outputevent schema excludes rawaddress/contact/comment. Error masks values. Existingprivacyfixtures pass; source state whitelist imported from declaredroutecolumns."
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "No selfclaimed audit score in product/selfcheck."
+    },
+    {
+      "id": "D2",
+      "result": "N/A",
+      "evidence": "Noagentdelegation changes."
+    },
+    {
+      "id": "D3",
+      "result": "N/A",
+      "evidence": "Noagentfrontmatter changes."
+    },
+    {
+      "id": "D4",
+      "result": "PASS",
+      "evidence": "JSON auditreport and trace schema validated before delivery;25checkpoints and weighted8.10 verified."
+    },
+    {
+      "id": "D5",
+      "result": "N/A",
+      "evidence": "No roles/tiers changed."
+    },
+    {
+      "id": "D6",
+      "result": "N/A",
+      "evidence": "No skilltrigger changes."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Sheetsadapter fails before writes on invalidsource; workflow recordsfailure and retains olddata. Eachtempwrite+fsync precedes renames; statuslast withhashes detects partialbundle, noallfiletransaction claimed."
+    },
+    {
+      "id": "D8",
+      "result": "PARTIAL",
+      "evidence": "45sHTTPtimeout,3boundedretries,8MBcap; archiveweekly/36h/unresolvedcosts. Knownunseen/zero conflict missing from persistent scheduler state causes currentblocker."
+    },
+    {
+      "id": "D9",
+      "result": "PASS",
+      "evidence": "NoAPIsecrets or sourcecontacts read into report, no workflowdispatched byreviewer; readonly retrieval of existing pairedlog only. Ignore temporary stagingdir preventspartialtemp artifacts from gitadd-A."
+    },
+    {
+      "id": "D10",
+      "result": "N/A",
+      "evidence": "NoCowork runtime changes."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "Python25 and TS58 execute on changedmodules; workflownewstep simpleboundedcommand and branch main restriction retained; CIaddedPythonrun. FinalfullCI remains separate from scopedindependentresults."
+    },
+    {
+      "id": "P6",
+      "result": "FAIL",
+      "evidence": "Identicalsource positive1000+zero placeholder sameorder/date: firstimport succeeds, identicalreplaythrowsacceptedpositivebecamezero. Zeroguard examines previousorder/date only, evenwhenoldpositive fullkey is stillpresent."
+    },
+    {
+      "id": "P7",
+      "result": "FAIL",
+      "evidence": "iter2-counterexamples.json new-higher-trip-replaces-primary: primary1000->2000 and paid7500->0; oldprimary movedtoextra1000. project sorts(date,order,-shipcents) on everyreplay without persistentprimarykey."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 0,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 10,
+    "risk_awareness": 6
+  },
+  "weighted_total": 8.0,
+  "verdict": "return",
+  "verdict_override_reason": "FAILB7: accepted primary shipment can be replaced by a newly added same-day higher-cost trip; retained total doesnot preserve date/firsttrip accounting.",
+  "primary_gap": "Accepted firstdelivery changes when a highercost same-day trip is added: primaryship1000->2000, originalfirst becomesextra1000.",
+  "gaps": [
+    "BLOCKER: adding a new higher-priced trip for the sameorder/day can change the alreadyacceptedprimary and move its originalcost/payment to the extraseries. This violates the firsttrip preservation/datebasis contract even though allgrandtotals stillmatch.",
+    "BLOCKER: initialvalidsource with a positive and explicitzero row succeeds, but replaying exactly thatsource fails. Positive->zero rejection must distinguish lostpositivekey from an unrelated/unchangedzero row or reject the ambiguity consistently from thefirstimport.",
+    "Previouslyreported stickywarning and solepositive->zero cases are fixed. Productiondelivery import and crossfilecrashtransaction remain out ofscope; no externalinvoice reconciliation."
+  ],
+  "rework_tz": "Persist the identity of an accepted primarytrip perorder and reuse it when reprojecting; do not pick a newprimary by sorting cost/date on eachrun. Newactualtrip must enter extras and leave originalprimaryship/payment/firstdate unchanged, even if highercost/same-day or recoveredearlierdate. Distinguish a positive->zero transition from unchangedcoexistingzero when oldpositivekey is still present; enforce one consistent initial/replay policy. Add idempotence and primary-stability regressions; rerun29Python/currentTS/fullCI and request finaliteration on newhash.",
+  "confidence": 0.96,
+  "sources_of_truth": [
+    "Approvedmetric spec and sourceprobe atab7094cf",
+    "knowledge/decisions.md93 plus sharedlegacyarticle rule",
+    "Own immutable-source focusedprobes and realhealth result",
+    "Read-only GitHub pairedAPI run39603979177 actualmetadata/log independently retrieved",
+    "Own25Python and58TStargeted test outputs",
+    "Independent iter2counterexamples on frozen2bab; actual defaultMSK live log39605088637 read directly fromGitHub"
+  ],
+  "p9_triggers_fired": [
+    "Carrierexpense/sourcecompleteness: known conflicts cannot become healthy solely because a read is fresh. No external financial reconciliation claimed."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "BLOCKER: adding a new higher-priced trip for the sameorder/day can change the alreadyacceptedprimary and move its originalcost/payment to the extraseries. This violates the firsttrip preservation/datebasis contract even though allgrandtotals stillmatch.",
+      "evidence": "iter2-counterexamples.py/json: acceptedrow1000/paid7500, incomingincludesold1000+new2000; afterprimary2000/paid0, newextra1000/paid7500.",
+      "checkpoint": "accuracy_3",
+      "weight": -2
+    },
+    {
+      "gap": "BLOCKER: initialvalidsource with a positive and explicitzero row succeeds, but replaying exactly thatsource fails. Positive->zero rejection must distinguish lostpositivekey from an unrelated/unchangedzero row or reject the ambiguity consistently from thefirstimport.",
+      "evidence": "Samefixture firstprepare positive1000+zero=>success, secondprepare sameCSV/state=>ValueError; source didnotchange.",
+      "checkpoint": "risk_21",
+      "weight": -1
+    }
+  ],
+  "telemetry": {
+    "model": "Codex independent audit; not Claude/Opus"
+  }
+}

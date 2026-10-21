@@ -1,0 +1,20 @@
+[
+  {
+    "case": "earlier-trip-and-archive-lifecycle",
+    "primary_unchanged": true,
+    "five_outputs_identical_after_replay_and_archive": true,
+    "sum": 3000.0
+  },
+  {
+    "case": "sticky-two-events-and-full-recovery",
+    "missing_full": 2,
+    "missing_partial": 2,
+    "resolved": 0,
+    "five_outputs_unchanged": true
+  },
+  {
+    "case": "missing-primary-pointer",
+    "blocked": true,
+    "error": "accepted primary shipment is missing"
+  }
+]

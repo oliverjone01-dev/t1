@@ -6,5 +6,6 @@ dist/
 .env
 .env.local
 data/*.db
+data/.delivery-sheet-stage-*/
 public/data.json
 # data/history.ndjson - текстовый снапшот истории, КОММИТИТСЯ (персистентность синка)

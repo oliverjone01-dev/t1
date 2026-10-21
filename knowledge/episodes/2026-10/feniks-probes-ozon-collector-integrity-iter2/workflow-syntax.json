@@ -1,0 +1,17 @@
+[
+  {
+    "file": ".github/workflows/ozon-snapshots.yml",
+    "checked_bash_blocks": 27,
+    "pass": true
+  },
+  {
+    "file": ".github/workflows/deploy-pages.yml",
+    "checked_bash_blocks": 25,
+    "pass": true
+  },
+  {
+    "file": ".github/workflows/ozon-collector-verify.yml",
+    "checked_bash_blocks": 0,
+    "pass": true
+  }
+]

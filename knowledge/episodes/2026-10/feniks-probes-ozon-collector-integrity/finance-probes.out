@@ -1,0 +1,13 @@
+acq-sku-daily: by-day 2026-02-06..2026-10-20
+  by-day записей 1 | строк (sku,день) 1 | дост.покуп NON_ITEM 0 (с ключом 0)
+  партнёры: ITEM(по SKU) 0 | NON_ITEM 0 (с ключом заказа 0)
+  по месяцам (эквайринг | хранение | дост.покуп | партнёры всего | промо по SKU):
+    2026-10: -10 | 0 | 0 | 0 | 0
+  -> data/acq_sku_daily.ndjson, data/buyer_delivery_daily.ndjson, data/partner_daily.ndjson, data/partner_orders.ndjson
+{"id":"FIN1-silent-empty-day-acq","error":"","rows":"{\"d\":\"2026-10-19\",\"sku\":\"123\",\"acq\":-10,\"sto\":0,\"bd\":0,\"prt\":0,\"promo\":0,\"com\":0,\"del\":0,\"oth\":0}\n","status":{"acq-sku-daily":{"through":"2026-10-20","loaded_at":"2026-10-21T11:47:03.582Z"}}}
+pnl-accrual-daily: 2026-02-06..2026-10-20
+  by-day записей 1 | канал строк 2 | кабинет строк 1
+  канал по месяцам (Начислено | К выплате):
+    2026-10: 300 | 290
+  -> data/pnl_channel_accrual_daily.ndjson, data/pnl_account_accrual_daily.ndjson
+{"id":"FIN2-silent-empty-day-pnl","error":"","rows":"{\"d\":\"2026-10-19\",\"adv\":-10,\"fines\":0,\"realfbs\":0,\"badge\":0,\"delivery\":0,\"other\":0}\n","status":{"acq-sku-daily":{"through":"2026-10-20","loaded_at":"2026-10-21T11:47:03.582Z"},"pnl-accrual-daily":{"through":"2026-10-20","loaded_at":"2026-10-21T11:47:03.602Z"}}}

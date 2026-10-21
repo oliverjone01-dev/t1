@@ -1,0 +1,17 @@
+{
+  "closed": {
+    "orders": 312,
+    "revenue": 24185394,
+    "unique": 312
+  },
+  "partial": {
+    "orders": 186,
+    "revenue": 12685902,
+    "unique": 186
+  },
+  "current": {
+    "orders": 25,
+    "revenue": 1525483,
+    "unique": 25
+  }
+}

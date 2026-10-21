@@ -1,0 +1,4 @@
+ads-daily: +1 строк за 1 дн (2026-10-14..2026-10-20) -> data/ads_daily.ndjson
+{"id":"ADS1-partial-campaign-day","error":"","remaining":[{"d":"2026-10-20","id":"1","off":"A","sp":100,"o":1,"om":500,"vw":10,"cl":2,"ca":1}],"health":[{"source":"Расход кампаний","through":"2026-10-20","expected":"2026-10-20","status":"ok","note":"Дата последней строки; не подтверждает отсутствие внутренних пропусков"}]}
+data/views.ndjson: успешно проверено 1 дней, по 2026-10-20
+{"id":"KEY1-missing-SKU","accepted":true,"result":"{\"date\":\"2026-10-20\",\"views\":11}\n","ledger":true}

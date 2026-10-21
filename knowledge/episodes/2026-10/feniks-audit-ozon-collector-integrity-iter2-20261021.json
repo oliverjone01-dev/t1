@@ -1,0 +1,216 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-collector-integrity-b603b6a2-20261021",
+  "timestamp": "2026-10-21T15:14:52.261708+03:00",
+  "deliverable_ref": "PR493 HEADb603b6a22a7f430dc29c9173282c0bed74e33707, hashb3fa6596a9b0fe5c",
+  "artifact_class": "mixed",
+  "iteration": 2,
+  "anchor": "8.1 reestr-go: our8.30 is higher by0.20 because destructive cases were independently replayed and a real liveformat probe now passes, with failures visible on export. Below8.5 timur-activation because cross-file crash transaction, bounded historical coverage and undated monetary corrections remain explicit limitations.",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "Independent hash b3fa6596a9b0fe5c; HEAD b603b6a2; all21 changed paths reviewed, no data paths; immutable import closure snapshot used for own fixtures."
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Real live final log run39596970975 read independently; fiveSeller and fourDATE passed; old failure fixtures and author logs crosschecked; no monetary reconciliation claim."
+    },
+    {
+      "id": "B2",
+      "result": "PARTIAL",
+      "evidence": "Three unchanged-data periods independently counted: September312/24185394; October1-15 186/12685902; October20 25/1525483. No production backfill or external monetary document in branch audit."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "KEY1 literalundefined blocked; duplicate/NaN tests pass; explicit zero kept. Old nonzero full keys preserved in campaign/day/SKU and finance slices before writes."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Shared healthHtml in both builders; own failure manifest visible despite fresh dates, correction metadata warning visible, CPC SKU/attribution gaps independently signalled."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "No new financial hardcode; historical date and bounded collection windows labelled. Diff contains no emdash additions; health counts derived."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Live final on exact b603 commit uses four real dashboard campaigns with positive20.10 spend and includes20.10 rows; earlier failures documented rather than reclassified as empty."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "CSV1/2,TOTAL1,ADS1,FIN1/2,KEY1 now block before destructive replacement/checkpoint. False-stop viewszero fixed. Failure and undated correction warnings reach HTML; no claim that coverage percentage reconciles amounts."
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "Own28/28 targeted tests and destructive/zero/budget/correction fixtures passed. Exacthead CI39596970988 log independently read:1219/1219,71files,OZON21+YM18smoke allpass."
+    },
+    {
+      "id": "P2",
+      "result": "PASS",
+      "evidence": "No-callback correction throws; valid exactDATElabel+emptySKU yields separate nullable metadata; badnumber/laterbadrow/misleadingname throw with0callbacks."
+    },
+    {
+      "id": "P3",
+      "result": "PASS",
+      "evidence": "Earlier independent repeatcursor and lawful2page accrual probes passed; unchanged pagination code. Live Seller byday110 succeeded, not proof of every possible pagination boundary."
+    },
+    {
+      "id": "P4",
+      "result": "PASS",
+      "evidence": "Own forced budget expiry selects urgentfresh before oldexpensive, requests no CPO, and leaves stateempty after timeout; helpers/realacq/realviews accept explicit zero."
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "No self-claimed audit score in product/spec; selfcheck25 exists."
+    },
+    {
+      "id": "D2",
+      "result": "N/A",
+      "evidence": "No agent delegation logic changed."
+    },
+    {
+      "id": "D3",
+      "result": "N/A",
+      "evidence": "No agent frontmatter changed."
+    },
+    {
+      "id": "D4",
+      "result": "PASS",
+      "evidence": "Final audit JSON and trace schema validation run before delivery; weighted8.30 and25checkpoint sums crosschecked."
+    },
+    {
+      "id": "D5",
+      "result": "N/A",
+      "evidence": "No role/tier changes."
+    },
+    {
+      "id": "D6",
+      "result": "N/A",
+      "evidence": "No skill trigger changes."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Explicit collector failures remain nonzero; partial source updates committed before red summary, with persisted failure manifest. CPO excluded by paymentType only."
+    },
+    {
+      "id": "D8",
+      "result": "PARTIAL",
+      "evidence": "Sequential async windows<=60days and9/12min soft budgets; urgency ordering verified; collecting all remaining campaigns can require more runs."
+    },
+    {
+      "id": "D9",
+      "result": "PASS",
+      "evidence": "No product/data/memory/ref writes by auditor. Readonly API job uses contentsread; snapshots jobs main-only; no untrusted artifacts executed by changed deploy path."
+    },
+    {
+      "id": "D10",
+      "result": "N/A",
+      "evidence": "No Cowork/agent runtime changes."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "52 multiline shell blocks bash-n passed in first iteration; new record_attempt function syntax checked separately; workflow changes inspected, live GitHub job successfully executed final verify workflow."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 0,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 10,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.3,
+  "verdict": "go",
+  "primary_gap": "Multi-file finance/data+metadata+checkpoint writes are individually atomic renames, not one filesystem transaction; a process/disk failure between files still requires recovery.",
+  "gaps": [
+    "Multi-file finance/data+metadata+checkpoint writes are individually atomic renames, not one filesystem transaction; a process/disk failure between files still requires recovery.",
+    "55/62-day windows and7-day replay plus budget do not prove completion of older missing history or all campaigns; verify actual main backfill and campaign/day coverage after merge.",
+    "Undated corrections are preserved and warned about but cannot be assigned to SKU/day; there is no independent monetary document or financial reconciliation in this audit.",
+    "Quantitative claims in author selfcheck are marked by shared DATA paragraphs rather than every figure individually; all final test counts have now been verified."
+  ],
+  "rework_tz": "",
+  "confidence": 0.93,
+  "p9_triggers_fired": [
+    "Marketplace money: no unsupported financial accuracy or completeness claims; unallocated corrections are separate and visible."
+  ],
+  "sources_of_truth": [
+    "All21paths in feniks-probes-ozon-collector-integrity-iter2/covered-paths.txt",
+    "Immutable b603 source import closure for independent fixtures in /private/tmp/ozon-integrity-audit/source-b603b6a2",
+    "Live run39596970975: final log read and copied as evidence",
+    "Author selfcheck25 and earlier return report; previous1208/1215full suites and23smoke logs; own28targeted tests",
+    "Metric contract plus exacthead CI39596970988:1219tests and39smoke pages, independently read"
+  ],
+  "telemetry": {
+    "model": "Codex independent audit; not Claude/Opus"
+  },
+  "evidence_ledger": [
+    {
+      "gap": "Multi-file finance/data+metadata+checkpoint writes are individually atomic renames, not one filesystem transaction; a process/disk failure between files still requires recovery.",
+      "evidence": "acq/pnl sequential atomicText calls then recordSuccess; adsku writeRows then saveCorrections then checkpoint. Explicitly disclosed in selfcheck.",
+      "checkpoint": "risk_23",
+      "weight": -1
+    },
+    {
+      "gap": "55/62-day windows and7-day replay plus budget do not prove completion of older missing history or all campaigns; verify actual main backfill and campaign/day coverage after merge.",
+      "evidence": "ad-attribution recent=max(FLOOR,to-54), replay7; adsku WINDOW62, budget9/12 and checkpoints; own budget-probe leaves pending campaigns without data mutation.",
+      "checkpoint": "risk_24",
+      "weight": -1
+    },
+    {
+      "gap": "Undated corrections are preserved and warned about but cannot be assigned to SKU/day; there is no independent monetary document or financial reconciliation in this audit.",
+      "evidence": "live CSV CORRECTION three campaigns with undated:true; own values preserve null; sourceHealth warning and separate adjustments file; no external document supplied.",
+      "checkpoint": "accuracy_3",
+      "weight": -1
+    },
+    {
+      "gap": "Quantitative claims in author selfcheck are marked by shared DATA paragraphs rather than every figure individually; all final test counts have now been verified.",
+      "evidence": "author-selfcheck-final.md: DATA tag at block introduction; following28/28 and CI claims share that paragraph. Actual final exacthead CI1219/1219,71files,OZON21+YM18smoke independently read.",
+      "checkpoint": "accuracy_1",
+      "weight": -1
+    }
+  ]
+}

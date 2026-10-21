@@ -158,6 +158,7 @@ async function realization(months: string[]) {
   const STATE = yp("realization_state.json");
   const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
+  const originalPairs = new Set(donePairs);
   // ПЕРЕОТКРЫТИЯ ПАР БОЛЬШЕ НЕТ. Две итерации подряд оно оказывалось небезопасным, и оба раза по
   // одной причине: признак «магазин ничего не дал» выводился косвенно, а разбор складывает поверх
   // накопленного (a.sold += ...), поэтому любая ошибка вывода превращается во второй слой.
@@ -203,6 +204,26 @@ async function realization(months: string[]) {
   // пять из семи), API_DISABLED (три кампании 1023124), исчерпанный бюджет, лимит генерации,
   // отсутствие продаж. Предупреждение «месяц не трогаю» при этом было прямой ложью.
   const shadow: Record<string, any[]> = {};
+  const restored = new Set<string>();
+  const restoreShadow = (ym: string) => {
+    for (const r of shadow[ym] || []) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+    // Суммы и прогресс - один снимок. Иначе следующий обычный прогон повторно добавит
+    // магазины восстановленного месяца (инцидент 21.10: май-июль).
+    for (const pair of [...donePairs]) if (pair.startsWith(`${ym}/`)) donePairs.delete(pair);
+    for (const pair of originalPairs) if (pair.startsWith(`${ym}/`)) donePairs.add(pair);
+    for (let i = ordRows.length - 1; i >= 0; i--) if (ordRows[i].ym === ym) ordRows.splice(i, 1);
+    restored.add(ym);
+  };
+  if (!rebuild) {
+    for (const ym of months) {
+      const rows = existing.filter((r) => r.ym === ym);
+      const covered = new Set(rows.flatMap((r) => r.from || []));
+      const unfinished = targets.filter(({ campaign: c }) => !donePairs.has(`${ym}/${c.id}`));
+      const overlap = unfinished.some(({ campaign: c }) => covered.has(c.id));
+      const ambiguous = rows.some((r) => !r.from?.length) && unfinished.length > 0;
+      if (overlap || ambiguous) throw new Error(`REALIZATION_STATE_CONFLICT ${ym}: накопленные строки не согласованы с pairs; нужен явный проверенный пересбор месяца, добавление поверх запрещено`);
+    }
+  }
   for (const r of existing) {
     if (rebuild && months.includes(r.ym)) { (shadow[r.ym] ||= []).push(r); continue; }
     const b = byMonth[r.ym] || (byMonth[r.ym] = {});
@@ -269,7 +290,7 @@ async function realization(months: string[]) {
       // Ничего не собрали. При обычном прогоне месяц и так на месте; при пересборе возвращаем
       // теневой слой, иначе «не трогаю» означало бы «стёр».
       if (rebuild && shadow[ym]?.length) {
-        for (const r of shadow[ym]!) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+        restoreShadow(ym);
         console.warn(`::warning::realization ${ym}: пересбор ничего не дал - вернул ${shadow[ym]!.length} ранее собранных строк, месяц не потерян`);
       } else console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`);
       continue;
@@ -281,9 +302,15 @@ async function realization(months: string[]) {
   // до месяцев очереди управление уже не доходит. Проверка «пусто -> верни» надёжнее перечисления
   // веток: веток шесть, и седьмую я бы снова не увидел.
   for (const [ym, rows] of Object.entries(shadow)) {
-    if (Object.keys(byMonth[ym] || {}).length) continue;
-    for (const r of rows) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
-    console.warn(`::warning::realization ${ym}: пересбор не дал строк - месяц восстановлен из ранее собранного (${rows.length} строк)`);
+    if (restored.has(ym)) continue;
+    // Пересбор заменяет месяц только целиком. Один успешно скачанный магазин не
+    // даёт права удалить остальные при исчерпании бюджета, NO_DATA или сбое API.
+    const complete = targets.filter(({ campaign: c }) => soldBy[`${ym}/${c.id}`])
+      .every(({ campaign: c }) => withRows[ym]?.has(c.id));
+    if (complete && Object.keys(byMonth[ym] || {}).length) continue;
+    byMonth[ym] = {};
+    restoreShadow(ym);
+    console.warn(`::warning::realization ${ym}: пересбор неполный - месяц и прогресс восстановлены из прежнего снимка (${rows.length} строк)`);
   }
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));

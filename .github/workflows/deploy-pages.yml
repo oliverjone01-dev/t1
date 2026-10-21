@@ -85,6 +85,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Guard Market realization after 2026-10-21 incident
+        run: python3 analytics-mvp/src/scripts/ym/repair-realization-20261021.py --check-only
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

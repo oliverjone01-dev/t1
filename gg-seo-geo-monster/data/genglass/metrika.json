@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-10-20",
+ "measured": "2026-10-21",
  "visits_30d": [
-  {
-   "date": "2026-09-20",
-   "visits": 360,
-   "search_visits": 83
-  },
   {
    "date": "2026-09-21",
    "visits": 466,
@@ -151,16 +146,21 @@
    "date": "2026-10-19",
    "visits": 671,
    "search_visits": 124
+  },
+  {
+   "date": "2026-10-20",
+   "visits": 741,
+   "search_visits": 107
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 35
+   "visits": 32
   },
   {
    "phrase": "генгласс",
-   "visits": 24
+   "visits": 26
   },
   {
    "phrase": "genglass",
@@ -168,22 +168,18 @@
   },
   {
    "phrase": "генгласс зеркала",
-   "visits": 10
+   "visits": 11
   },
   {
-   "phrase": "genglass.ru",
+   "phrase": "дженгласс",
    "visits": 7
   },
   {
-   "phrase": "genglass официальный",
+   "phrase": "genglass.ru",
    "visits": 6
   },
   {
    "phrase": "джен гласс",
-   "visits": 6
-  },
-  {
-   "phrase": "дженгласс",
    "visits": 6
   },
   {
@@ -195,11 +191,19 @@
    "visits": 4
   },
   {
+   "phrase": "стол на заказ",
+   "visits": 4
+  },
+  {
    "phrase": "GENGLASS",
    "visits": 3
   },
   {
    "phrase": "gen glass",
+   "visits": 3
+  },
+  {
+   "phrase": "genglass официальный",
    "visits": 3
   },
   {
@@ -219,15 +223,19 @@
    "visits": 3
   },
   {
+   "phrase": "зеркало на заказ",
+   "visits": 3
+  },
+  {
+   "phrase": "лучшие зеркала 2026",
+   "visits": 3
+  },
+  {
    "phrase": "перегородки межкомнатные",
    "visits": 3
   },
   {
    "phrase": "раздвижные стеклянные перегородки",
-   "visits": 3
-  },
-  {
-   "phrase": "стол на заказ",
    "visits": 3
   },
   {
@@ -271,10 +279,6 @@
    "visits": 2
   },
   {
-   "phrase": "зеркало на заказ",
-   "visits": 2
-  },
-  {
    "phrase": "зеркало на заказ по индивидуальным размерам",
    "visits": 2
   },
@@ -287,6 +291,10 @@
    "visits": 2
   },
   {
+   "phrase": "интернет магазин зеркало в раме",
+   "visits": 2
+  },
+  {
    "phrase": "купить опоры для туалетного стола золото изогнутое",
    "visits": 2
   },
@@ -295,7 +303,7 @@
    "visits": 2
   },
   {
-   "phrase": "лучшие зеркала 2026",
+   "phrase": "межкомнатные перегородки москва",
    "visits": 2
   },
   {
@@ -315,19 +323,11 @@
    "visits": 2
   },
   {
-   "phrase": "поворотные перегородки",
-   "visits": 2
-  },
-  {
    "phrase": "раздвижной",
    "visits": 2
   },
   {
    "phrase": "стеклянная магнитно-маркерная доска genglass base белая, 90x120 см",
-   "visits": 2
-  },
-  {
-   "phrase": "стеклянная перегородка в комнату",
    "visits": 2
   },
   {
@@ -343,22 +343,22 @@
    "visits": 2
   },
   {
-   "phrase": "стол обеденный genglass",
-   "visits": 2
-  },
-  {
-   "phrase": "стол обеденный белый 170х90 полуовал",
-   "visits": 2
-  },
-  {
    "phrase": "стол под заказ",
+   "visits": 2
+  },
+  {
+   "phrase": "столы генгласс",
+   "visits": 2
+  },
+  {
+   "phrase": "столы на заказ по индивидуальным размерам москва",
    "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 462
+   "visits": 467
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
@@ -370,51 +370,51 @@
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 91
+   "visits": 93
   },
   {
    "url": "/product-category/tables/",
-   "visits": 70
+   "visits": 69
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
    "visits": 63
   },
   {
-   "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 60
+   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
+   "visits": 61
   },
   {
-   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-   "visits": 56
+   "url": "/stellazhi-i-polki-na-zakaz/",
+   "visits": 58
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 52
+   "visits": 57
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 46
+   "visits": 45
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 43
+   "visits": 42
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 43
+   "visits": 42
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 39
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 34
+   "visits": 36
   },
   {
    "url": "/product-category/mirrors/rotatable/",
-   "visits": 34
+   "visits": 32
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 31
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
@@ -434,7 +434,7 @@
   },
   {
    "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm/",
-   "visits": 22
+   "visits": 23
   },
   {
    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
@@ -446,11 +446,19 @@
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 20
+   "visits": 19
+  },
+  {
+   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
+   "visits": 19
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 19
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 18
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
@@ -461,23 +469,15 @@
    "visits": 18
   },
   {
-   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
+   "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka/",
    "visits": 18
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 17
-  },
-  {
-   "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka/",
-   "visits": 17
-  },
-  {
-   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
-   "visits": 17
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
+   "visits": 16
   }
  ],
  "goals": [],
- "bounce_rate": 13.6,
+ "bounce_rate": 13.5,
  "depth": 2.6
 }

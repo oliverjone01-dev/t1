@@ -1,0 +1,652 @@
+vitest + smoke	Set up job	﻿2026-10-21T13:21:02.2120636Z Current runner version: '2.338.0'
+vitest + smoke	Set up job	2026-10-21T13:21:02.2144567Z ##[group]Runner Image Provisioner
+vitest + smoke	Set up job	2026-10-21T13:21:02.2145362Z Hosted Compute Agent
+vitest + smoke	Set up job	2026-10-21T13:21:02.2145967Z Version: 20261015.610
+vitest + smoke	Set up job	2026-10-21T13:21:02.2146546Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+vitest + smoke	Set up job	2026-10-21T13:21:02.2147341Z Build Date: 2026-10-14T17:06:54Z
+vitest + smoke	Set up job	2026-10-21T13:21:02.2148173Z Worker ID: {0e7ee656-4673-446e-a47e-8fabceb800d6}
+vitest + smoke	Set up job	2026-10-21T13:21:02.2148815Z Region: westus3
+vitest + smoke	Set up job	2026-10-21T13:21:02.2149333Z Cloud: Azure
+vitest + smoke	Set up job	2026-10-21T13:21:02.2149828Z ##[endgroup]
+vitest + smoke	Set up job	2026-10-21T13:21:02.2151306Z ##[group]Operating System
+vitest + smoke	Set up job	2026-10-21T13:21:02.2151912Z Ubuntu
+vitest + smoke	Set up job	2026-10-21T13:21:02.2152399Z 24.04.5
+vitest + smoke	Set up job	2026-10-21T13:21:02.2152898Z LTS
+vitest + smoke	Set up job	2026-10-21T13:21:02.2153571Z ##[endgroup]
+vitest + smoke	Set up job	2026-10-21T13:21:02.2154087Z ##[group]Runner Image
+vitest + smoke	Set up job	2026-10-21T13:21:02.2154661Z Image: ubuntu-24.04
+vitest + smoke	Set up job	2026-10-21T13:21:02.2155167Z Version: 20261018.339.1
+vitest + smoke	Set up job	2026-10-21T13:21:02.2156127Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261018.339/images/ubuntu/Ubuntu2404-Readme.md
+vitest + smoke	Set up job	2026-10-21T13:21:02.2157687Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261018.339
+vitest + smoke	Set up job	2026-10-21T13:21:02.2158824Z ##[endgroup]
+vitest + smoke	Set up job	2026-10-21T13:21:02.2159826Z ##[group]GITHUB_TOKEN Permissions
+vitest + smoke	Set up job	2026-10-21T13:21:02.2161896Z Contents: read
+vitest + smoke	Set up job	2026-10-21T13:21:02.2162450Z Metadata: read
+vitest + smoke	Set up job	2026-10-21T13:21:02.2163013Z ##[endgroup]
+vitest + smoke	Set up job	2026-10-21T13:21:02.2165356Z Secret source: Actions
+vitest + smoke	Set up job	2026-10-21T13:21:02.2166271Z Cache mode: write
+vitest + smoke	Set up job	2026-10-21T13:21:02.2167178Z Prepare workflow directory
+vitest + smoke	Set up job	2026-10-21T13:21:02.2540890Z Prepare all required actions
+vitest + smoke	Set up job	2026-10-21T13:21:02.2587493Z Getting action download info
+vitest + smoke	Set up job	2026-10-21T13:21:02.5485209Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+vitest + smoke	Set up job	2026-10-21T13:21:02.6254799Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+vitest + smoke	Set up job	2026-10-21T13:21:02.7830079Z Complete job name: vitest + smoke
+vitest + smoke	Run actions/checkout@v4	﻿2026-10-21T13:21:02.8731500Z ##[group]Run actions/checkout@v4
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8732317Z with:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8732756Z   repository: oliverjone01-dev/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8736974Z   token: ***
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8737421Z   ssh-strict: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8737819Z   ssh-user: git
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8738220Z   persist-credentials: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8738657Z   clean: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8739069Z   sparse-checkout-cone-mode: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8739561Z   fetch-depth: 1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8739967Z   fetch-tags: false
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8740382Z   show-progress: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8740802Z   lfs: false
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8741191Z   submodules: false
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8741712Z   set-safe-directory: true
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8742294Z   allow-unsafe-pr-checkout: false
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.8743695Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9742206Z Syncing repository: oliverjone01-dev/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9744802Z ##[group]Getting Git version info
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9745472Z Working directory is '/home/runner/work/t1/t1'
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9746434Z [command]/usr/bin/git version
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9824849Z git version 2.55.0
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9848248Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9864587Z Temporarily overriding HOME='/home/runner/work/_temp/e229ec79-68fe-4c26-94ab-e254f7e5e962' before making global git config changes
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9866338Z Adding repository directory to the temporary git global config as a safe directory
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9871096Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/t1/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9930749Z Deleting the contents of '/home/runner/work/t1/t1'
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9936459Z ##[group]Initializing the repository
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:02.9941752Z [command]/usr/bin/git init /home/runner/work/t1/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0043907Z hint: Using 'master' as the name for the initial branch. This default branch name
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0045501Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0046868Z hint: to use in all of your new repositories, which will suppress this warning,
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0048742Z hint: call:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0049933Z hint:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0050973Z hint: 	git config --global init.defaultBranch <name>
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0052209Z hint:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0053498Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0055622Z hint: 'development'. The just-created branch can be renamed via this command:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0057222Z hint:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0058085Z hint: 	git branch -m <name>
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0058994Z hint:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0060385Z hint: Disable this message with "git config set advice.defaultBranchName false"
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0062270Z Initialized empty Git repository in /home/runner/work/t1/t1/.git/
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0065448Z [command]/usr/bin/git remote add origin https://github.com/oliverjone01-dev/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0103418Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0104176Z ##[group]Disabling automatic garbage collection
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0108428Z [command]/usr/bin/git config --local gc.auto 0
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0135920Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0136705Z ##[group]Setting up auth
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0144300Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0174407Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0495196Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0525729Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0721964Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0756694Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0935796Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0972053Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0972844Z ##[group]Fetching the repository
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:03.0981690Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +61e33229eb98e40079e8e897ec1aa6bbff0406e9:refs/remotes/pull/496/merge
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1479347Z From https://github.com/oliverjone01-dev/t1
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1482020Z  * [new ref]         61e33229eb98e40079e8e897ec1aa6bbff0406e9 -> pull/496/merge
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1489807Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1492629Z ##[group]Determining the checkout info
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1495683Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1497599Z [command]/usr/bin/git sparse-checkout disable
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1538481Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1572520Z ##[group]Checking out the ref
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:13.1574774Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/496/merge
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.1719820Z Updating files:  94% (2817/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.1779606Z Updating files:  95% (2827/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.1931736Z Updating files:  96% (2856/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.1964426Z Updating files:  97% (2886/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2004233Z Updating files:  98% (2916/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2072243Z Updating files:  99% (2946/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2072994Z Updating files: 100% (2975/2975)
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2073702Z Updating files: 100% (2975/2975), done.
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2112136Z Note: switching to 'refs/remotes/pull/496/merge'.
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2112922Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2113734Z You are in 'detached HEAD' state. You can look around, make experimental
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2114896Z changes and commit them, and you can discard any commits you make in this
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2116473Z state without impacting any branches by switching back to a branch.
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2117042Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2117576Z If you want to create a new branch to retain commits you create, you may
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2118680Z do so (now or later) by using -c with the switch command. Example:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2119281Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2119631Z   git switch -c <new-branch-name>
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2120118Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2120413Z Or undo this operation with:
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2120892Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2121177Z   git switch -
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2121504Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2122058Z Turn off this advice by setting config variable advice.detachedHead to false
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2122853Z 
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2123912Z HEAD is now at 61e3322 Merge 78714fd45dbb65547192657d4652a508110b61f4 into 046c34007d71bae9742f62c2d93f7f3720661ad9
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2176464Z ##[endgroup]
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2216126Z [command]/usr/bin/git log -1 --format=%H
+vitest + smoke	Run actions/checkout@v4	2026-10-21T13:21:14.2245539Z 61e33229eb98e40079e8e897ec1aa6bbff0406e9
+vitest + smoke	Run actions/setup-node@v4	﻿2026-10-21T13:21:14.2494674Z ##[group]Run actions/setup-node@v4
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2495043Z with:
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2495285Z   node-version: 22
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2495528Z   cache: npm
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2495836Z   cache-dependency-path: analytics-mvp/package-lock.json
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2496320Z   always-auth: false
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2496591Z   check-latest: false
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2498870Z   token: ***
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.2499120Z ##[endgroup]
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.3862351Z (node:2270) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.3863987Z (Use `node --trace-deprecation ...` to show where the warning was created)
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.3865312Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.3866330Z ##[group]Environment details
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.7605834Z node: v22.23.3
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.7606337Z npm: 10.9.9
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.7606633Z yarn: 1.22.22
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.7607557Z ##[endgroup]
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.7625362Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:14.8611251Z /home/runner/.npm
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:15.0798374Z Cache hit for: node-cache-Linux-x64-npm-353752886fcad9aa1fac08848e0325d4f6f6d49ac7cedd311ebadad5d27fc60d
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:15.0902824Z (node:2270) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:16.1089654Z Received 26484661 of 26484661 (100.0%), 30.8 MBs/sec
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:16.1116922Z Cache Size: ~25 MB (26484661 B)
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:16.1118132Z [command]/usr/bin/tar -xf /home/runner/work/_temp/255d711f-1874-4a59-a028-a0dab60738e8/cache.tzst -P -C /home/runner/work/t1/t1 --use-compress-program unzstd
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:16.1660440Z Cache restored successfully
+vitest + smoke	Run actions/setup-node@v4	2026-10-21T13:21:16.1672719Z Cache restored from key: node-cache-Linux-x64-npm-353752886fcad9aa1fac08848e0325d4f6f6d49ac7cedd311ebadad5d27fc60d
+vitest + smoke	npm ci	﻿2026-10-21T13:21:16.1857302Z ##[group]Run npm ci
+vitest + smoke	npm ci	2026-10-21T13:21:16.1857641Z ^[[36;1mnpm ci^[[0m
+vitest + smoke	npm ci	2026-10-21T13:21:16.2025409Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	npm ci	2026-10-21T13:21:16.2025810Z ##[endgroup]
+vitest + smoke	npm ci	2026-10-21T13:21:17.3810549Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+vitest + smoke	npm ci	2026-10-21T13:21:17.4271846Z npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+vitest + smoke	npm ci	2026-10-21T13:21:18.5926228Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.5927291Z added 147 packages, and audited 148 packages in 2s
+vitest + smoke	npm ci	2026-10-21T13:21:18.5927757Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.5928047Z 33 packages are looking for funding
+vitest + smoke	npm ci	2026-10-21T13:21:18.5928493Z   run `npm fund` for details
+vitest + smoke	npm ci	2026-10-21T13:21:18.6167623Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.6168783Z 10 vulnerabilities (3 moderate, 5 high, 2 critical)
+vitest + smoke	npm ci	2026-10-21T13:21:18.6169597Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.6169847Z To address issues that do not require attention, run:
+vitest + smoke	npm ci	2026-10-21T13:21:18.6170222Z   npm audit fix
+vitest + smoke	npm ci	2026-10-21T13:21:18.6170367Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.6170580Z To address all issues (including breaking changes), run:
+vitest + smoke	npm ci	2026-10-21T13:21:18.6170914Z   npm audit fix --force
+vitest + smoke	npm ci	2026-10-21T13:21:18.6171072Z 
+vitest + smoke	npm ci	2026-10-21T13:21:18.6171199Z Run `npm audit` for details.
+vitest + smoke	vitest (числа и сверки)	﻿2026-10-21T13:21:18.6463748Z ##[group]Run npm test
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.6464047Z ^[[36;1mnpm test^[[0m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.6497769Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.6498142Z ##[endgroup]
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.7446811Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.7447555Z > gengroup-analytics-mvp@0.1.0 test
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.7448142Z > vitest run
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:18.7448361Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:19.0084321Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:19.0088001Z ^[[1m^[[7m^[[36m RUN ^[[39m^[[27m^[[22m ^[[36mv2.1.9 ^[[39m^[[90m/home/runner/work/t1/t1/analytics-mvp^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:19.0088978Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:19.9511388Z  ^[[32m✓^[[39m src/scripts/ym/derive-lib.test.ts ^[[2m(^[[22m^[[2m63 tests^[[22m^[[2m)^[[22m^[[90m 136^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:21.7525564Z  ^[[32m✓^[[39m src/scripts/ym/svod.test.ts ^[[2m(^[[22m^[[2m75 tests^[[22m^[[2m)^[[22m^[[33m 1873^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:21.7535052Z    ^[[33m^[[2m✓^[[22m^[[39m списание баллов сверено с отчётом по номеру заказа^[[2m > ^[[22mпо каждому ключу кабинет+день+артикул свод равен отчёту ^[[33m304^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:21.7545261Z    ^[[33m^[[2m✓^[[22m^[[39m списание баллов сверено с отчётом по номеру заказа^[[2m > ^[[22mничего не потерялось: отчёт = свод + «в реестр ещё не пришло», по каждой паре кабинет/месяц ^[[33m653^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1575687Z ^[[90mstdout^[[2m | src/scripts/ym/reports-lib.test.ts^[[2m > ^[[22m^[[2mлимит Маркета - это ожидание, а не отказ^[[2m > ^[[22m^[[2mпосле ожидания попытка повторяется и возвращает результат
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1599428Z ^[[22m^[[39m  тест: лимит Маркета, жду 0 с (до дедлайна 10 мин)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1623787Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1665535Z ^[[90mstdout^[[2m | src/scripts/ym/reports-lib.test.ts^[[2m > ^[[22m^[[2mлимит Маркета - это ожидание, а не отказ^[[2m > ^[[22m^[[2mпосле ожидания попытка повторяется и возвращает результат
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1694669Z ^[[22m^[[39m  тест: лимит Маркета, жду 0 с (до дедлайна 10 мин)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1725673Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1776062Z ^[[90mstderr^[[2m | src/scripts/ym/reports-lib.test.ts^[[2m > ^[[22m^[[2mлимит Маркета - это ожидание, а не отказ^[[2m > ^[[22m^[[2mне ждёт, если до дедлайна прогона уже не хватает времени
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1779077Z ^[[22m^[[39m::warning::тест: лимит Маркета, до дедлайна прогона 30 с - остальное доберёт следующий прогон
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1779978Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1781841Z ^[[90mstderr^[[2m | src/scripts/ym/reports-lib.test.ts^[[2m > ^[[22m^[[2mкарта колонок: документация не уходит в разбор^[[2m > ^[[22m^[[2mfindCol не роняет разбор ни на битой регулярке, ни на строке вместо списка
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1784370Z ^[[22m^[[39m::warning::findCol: шаблон «(» не регулярка (Invalid regular expression: /(/i: Unterminated group) - пропускаю
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1786028Z  ^[[32m✓^[[39m src/scripts/ym/reports-lib.test.ts ^[[2m(^[[22m^[[2m47 tests^[[22m^[[2m)^[[22m^[[90m 72^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1855983Z ##[warning]findCol: шаблон «(» не регулярка (Invalid regular expression: /(/i: Unterminated group) - пропускаю
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1869246Z ##[warning]findCol: шаблоны колонки заданы не списком (string) - колонка пропущена
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.1870707Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.7049652Z ^[[90mstdout^[[2m | src/scripts/ym/report-page-ym.test.ts
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.7051254Z ^[[22m^[[39mreport-ym: кампаний баллами из отчёта по баллам 1 строк; реестр полный по 2026-09-27 (последний день {"1":"2026-09-29","2":"2026-09-28"}, со сборами {"1":"2026-09-27","2":"2026-09-28"}), показы 1 SKU с 2026-08-31, заказы по 1 SKU с 2026-07-01
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.7051986Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8382067Z  ^[[32m✓^[[39m src/scripts/ym/report-page-ym.test.ts ^[[2m(^[[22m^[[2m44 tests^[[22m^[[2m)^[[22m^[[90m 128^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8438604Z  ^[[32m✓^[[39m src/scripts/plan-tab.test.ts ^[[2m(^[[22m^[[2m101 tests^[[22m^[[2m)^[[22m^[[33m 2068^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8443007Z    ^[[33m^[[2m✓^[[22m^[[39m клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены^[[2m > ^[[22mошибок нет, 5 спидометров, у каждого подпись ^[[33m345^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8482909Z    ^[[33m^[[2m✓^[[22m^[[39m клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены^[[2m > ^[[22mцвет зоны под стрелкой = цвет статуса к плану на дату, у всех спидометров (Иван 15.10, ФЕНИКС G1) ^[[33m471^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8485627Z    ^[[33m^[[2m✓^[[22m^[[39m клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены^[[2m > ^[[22mстрелка - в нарисованной дуге цвета статуса, сценарии заказов и рекламы ^[[33m323^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:22.8488324Z    ^[[33m^[[2m✓^[[22m^[[39m клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены^[[2m > ^[[22mпервый день периода: узкая жёлтая зона не пропадает (Codex P2 #482) ^[[33m361^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:23.2859735Z  ^[[32m✓^[[39m src/scripts/ym/reconcile-lib.test.ts ^[[2m(^[[22m^[[2m25 tests^[[22m^[[2m)^[[22m^[[90m 52^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:23.6514606Z ^[[90mstdout^[[2m | src/scripts/ym/validate-facts.test.ts
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:23.6573725Z ^[[22m^[[39mfacts-gate undefined: источник не собран и раньше не собирался - сторожить нечего
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:23.6574523Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:23.9188705Z  ^[[32m✓^[[39m src/scripts/gap-daily.test.ts ^[[2m(^[[22m^[[2m40 tests^[[22m^[[2m)^[[22m^[[33m 566^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8026367Z  ^[[32m✓^[[39m src/scripts/ym/tovary-ui.test.ts ^[[2m(^[[22m^[[2m21 tests^[[22m^[[2m)^[[22m^[[33m 17170^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8028267Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность считается из свода^[[2m > ^[[22mитог страницы за весь период сходится со сводом ^[[33m1559^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8032584Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность считается из свода^[[2m > ^[[22mни одна строка не показывает прежние 70-85%: это был признак расчёта по цене ^[[33m1573^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8034455Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность считается из свода^[[2m > ^[[22mпробел по ведомости доставки помечен в самой ячейке ^[[33m1392^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8036099Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность считается из свода^[[2m > ^[[22mметка не висит там, где везёт Маркет: она про НАШУ перевозку ^[[33m1342^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8037727Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность считается из свода^[[2m > ^[[22mметка стоит не на всех строках подряд ^[[33m1195^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:41.8039458Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: график сравнения считает рентабельность из свода^[[2m > ^[[22mграфик рисуется без ошибок JS и держит три вкладки ^[[33m563^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:43.1939393Z  ^[[32m✓^[[39m src/scripts/boost-readiness.test.ts ^[[2m(^[[22m^[[2m49 tests^[[22m^[[2m)^[[22m^[[33m 1032^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:43.1943804Z    ^[[33m^[[2m✓^[[22m^[[39m эталон июля из data/^[[2m > ^[[22mпометки сдвигов отодвигают плато, но не отменяют его ^[[33m470^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:44.0842323Z  ^[[32m✓^[[39m src/scripts/ozon/collector-integrity.test.ts ^[[2m(^[[22m^[[2m28 tests^[[22m^[[2m)^[[22m^[[90m 162^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:44.4335265Z  ^[[32m✓^[[39m src/scripts/price-test.test.ts ^[[2m(^[[22m^[[2m32 tests^[[22m^[[2m)^[[22m^[[90m 30^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.8970123Z  ^[[32m✓^[[39m src/scripts/ym/validate-facts.test.ts ^[[2m(^[[22m^[[2m31 tests^[[22m^[[2m)^[[22m^[[33m 23224^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.8997573Z    ^[[33m^[[2m✓^[[22m^[[39m гейт накопительного слоя ловит порчу данных^[[2m > ^[[22mпотеря половины строк месяца - блок ^[[33m849^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9025308Z    ^[[33m^[[2m✓^[[22m^[[39m гейт накопительного слоя ловит порчу данных^[[2m > ^[[22mровное задвоение x2 - блок (раньше проходило: порог был «строго больше 100%») ^[[33m681^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9049084Z    ^[[33m^[[2m✓^[[22m^[[39m гейт накопительного слоя ловит порчу данных^[[2m > ^[[22mпотеря одного кабинета целиком - блок (по месяцу это 9.6%, под порогом) ^[[33m707^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9051181Z    ^[[33m^[[2m✓^[[22m^[[39m гейт нельзя выключить настройкой^[[2m > ^[[22mнечисловой порог роняет прогон, а не печатает «аномалий нет» ^[[33m678^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9052980Z    ^[[33m^[[2m✓^[[22m^[[39m гейт нельзя выключить настройкой^[[2m > ^[[22mпорог 1 (снять защиту) роняет прогон ^[[33m701^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9055056Z    ^[[33m^[[2m✓^[[22m^[[39m гейт нельзя выключить настройкой^[[2m > ^[[22mпорог роста 20 больше не проходит валидацию - это был выключатель детектора задвоения ^[[33m945^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9056720Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mнеизменённый файл - молчит ^[[33m963^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9060741Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mсмена ДАТЫ окна у агрегатов - не потеря: сравнивается ведро «агрегат окна», а не месяц ^[[33m1024^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9065380Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mрост текущего (самого свежего) месяца - законный добор, не задвоение ^[[33m974^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9067552Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mстроки-агрегаты рядом с помесячными не делают текущий месяц «закрытым» ^[[33m1213^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9069578Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mтекущий месяц берётся из БАЗЫ: дозалив прошлого месяца в первый день нового - не задвоение ^[[33m628^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9072973Z    ^[[33m^[[2m✓^[[22m^[[39m гейт не кричит зря - иначе его снимут^[[2m > ^[[22mмесяц в чужом формате не снимает потолок роста молча - отказ (ФЕНИКС G8) ^[[33m1291^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9075077Z    ^[[33m^[[2m✓^[[22m^[[39m дыры, найденные четвёртым аудитом, закрыты^[[2m > ^[[22mпотеря 90% строк-агрегатов - блок (раньше давала «аномалий нет»: гейт сравнивал пустоту) ^[[33m730^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9077852Z    ^[[33m^[[2m✓^[[22m^[[39m дыры, найденные четвёртым аудитом, закрыты^[[2m > ^[[22mзадвоение месяца в файле БЕЗ ключа кабинета - блок по сигнатуре «сумма выросла, строк столько же» ^[[33m1561^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9080319Z    ^[[33m^[[2m✓^[[22m^[[39m дыры, найденные четвёртым аудитом, закрыты^[[2m > ^[[22mпорог роста 2 больше не разрешён - при нём ровное удвоение проходило под порогом ^[[33m664^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9082667Z    ^[[33m^[[2m✓^[[22m^[[39m знаковый реестр: сравнивать надо оборот, а не сальдо^[[2m > ^[[22mдобор дня со списаниями роняет сальдо на 60%, но ни одной строки не теряет ^[[33m1426^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9084789Z    ^[[33m^[[2m✓^[[22m^[[39m знаковый реестр: сравнивать надо оборот, а не сальдо^[[2m > ^[[22m--abs НЕ пропускает настоящую потерю строк ^[[33m748^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9086410Z    ^[[33m^[[2m✓^[[22m^[[39m знаковый реестр: сравнивать надо оборот, а не сальдо^[[2m > ^[[22m--abs НЕ пропускает задвоение закрытого месяца ^[[33m719^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9088244Z    ^[[33m^[[2m✓^[[22m^[[39m знаковый реестр: сравнивать надо оборот, а не сальдо^[[2m > ^[[22m--abs ловит потерю, которую сальдо маскирует: выбросили начисления и списания поровну ^[[33m714^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9090268Z    ^[[33m^[[2m✓^[[22m^[[39m источник не собран: отличать «не было никогда» от «исчезло»^[[2m > ^[[22mфайла нет и раньше не было - сторожить нечего, прогон идёт дальше ^[[33m729^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9092174Z    ^[[33m^[[2m✓^[[22m^[[39m источник не собран: отличать «не было никогда» от «исчезло»^[[2m > ^[[22mфайла нет, а в прошлом снимке он был - это потеря, блок ^[[33m836^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9094228Z    ^[[33m^[[2m✓^[[22m^[[39m источник не собран: отличать «не было никогда» от «исчезло»^[[2m > ^[[22mфайл есть, но пустой - по-прежнему блок (это порча, а не отсутствие источника) ^[[33m719^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9096219Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл вглубь: рост месяцев ниже дефолтного пола - не задвоение^[[2m > ^[[22mживьём: январь вырос втрое - блок на обычном прогоне, проход при опущенном поле ^[[33m2208^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:46.9098231Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл вглубь: рост месяцев ниже дефолтного пола - не задвоение^[[2m > ^[[22mпослабление НЕ распространяется на потерю и на месяцы выше пола ^[[33m1508^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:47.4296573Z  ^[[32m✓^[[39m src/scripts/funnel-tests.test.ts ^[[2m(^[[22m^[[2m36 tests^[[22m^[[2m)^[[22m^[[90m 212^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:47.7919578Z  ^[[32m✓^[[39m src/scripts/promo.test.ts ^[[2m(^[[22m^[[2m25 tests^[[22m^[[2m)^[[22m^[[90m 15^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:54.3329151Z  ^[[32m✓^[[39m src/scripts/ym/voronka-ui.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 5868^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:54.6501696Z  ^[[32m✓^[[39m src/scripts/ym/delivery.test.ts ^[[2m(^[[22m^[[2m20 tests^[[22m^[[2m)^[[22m^[[90m 23^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:54.9869192Z  ^[[32m✓^[[39m src/scripts/ozon/coinv-calibration.test.ts ^[[2m(^[[22m^[[2m21 tests^[[22m^[[2m)^[[22m^[[90m 31^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:55.5113080Z  ^[[32m✓^[[39m src/scripts/delivery-match.test.ts ^[[2m(^[[22m^[[2m20 tests^[[22m^[[2m)^[[22m^[[90m 228^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:55.8361694Z  ^[[32m✓^[[39m src/scripts/ozon/coinv-merge-nosite.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[90m 36^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:56.3751065Z  ^[[32m✓^[[39m src/scripts/card-kin.test.ts ^[[2m(^[[22m^[[2m19 tests^[[22m^[[2m)^[[22m^[[90m 238^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:56.3934383Z ⚠ заказы с «Нашей доставкой» без города в ведомости: 0112094088-0068-1 10151 ₽, 0117357213-0313-1 5819 ₽, 0287237234-0001-1 5821 ₽, 15665738-0360-1 3339 ₽, 17599744-0794-1 3189 ₽, 19719158-0197-1 2483 ₽, 24398951-0400-1 1000 ₽, 29951707-2886-1 2885 ₽, 30084205-0375-1 6578 ₽, 30615785-1776-1 4932 ₽, 38367131-0365-1 3141 ₽, 39805883-0597-1 5365 ₽, 40079063-0135-1 3680 ₽, 45997342-0686-1 3024 ₽, 50457723-0055-1 5115 ₽, 57359669-0673-1 9700 ₽, 64823283-0111-1 5917 ₽, 94281164-0018-1 6843 ₽
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:56.7115110Z  ^[[32m✓^[[39m src/scripts/cpo-orders-rev.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[90m 45^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:57.0235563Z  ^[[32m✓^[[39m src/scripts/ad-econ.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[90m 10^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:57.4048231Z  ^[[32m✓^[[39m src/scripts/pick-controls.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[90m 16^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:57.7065209Z  ^[[32m✓^[[39m src/scripts/ozon/ports.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[90m 10^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:58.0005503Z  ^[[32m✓^[[39m src/scripts/ozon/prices-daily.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[90m 12^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:21:58.2430912Z  ^[[32m✓^[[39m src/connector/ozon-seller.postings.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[90m 13^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:00.0800474Z  ^[[32m✓^[[39m src/scripts/ym/ledger-fresh.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[33m 1499^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:00.0802488Z    ^[[33m^[[2m✓^[[22m^[[39m ym:ledger-fresh - код выхода^[[2m > ^[[22mсвежий реестр - 0 ^[[33m707^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:00.0804861Z    ^[[33m^[[2m✓^[[22m^[[39m ym:ledger-fresh - код выхода^[[2m > ^[[22mзастрявший кабинет - 1 и ::error:: с номером кабинета ^[[33m783^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:00.5085839Z  ^[[32m✓^[[39m src/scripts/ozon/orders-daily.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[90m 35^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:00.8275534Z  ^[[32m✓^[[39m src/scripts/report-page.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[90m 20^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:03.7399127Z  ^[[32m✓^[[39m src/scripts/ym/reports-softstop.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 2707^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:03.7400920Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл реестра переживает обрыв связи и таймаут^[[2m > ^[[22mобрыв на 7-м отчёте: 6 скачанных пар сохранены, схема записана, файл не потерял старые месяцы ^[[33m791^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:03.7402609Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл реестра переживает обрыв связи и таймаут^[[2m > ^[[22mбэкфилл начинается со свежего окна обоих кабинетов, а не с февраля первого ^[[33m641^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:03.7404483Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл реестра переживает обрыв связи и таймаут^[[2m > ^[[22mтаймаут генерации на 7-м отчёте - тоже мягкая остановка ^[[33m679^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:03.7406451Z    ^[[33m^[[2m✓^[[22m^[[39m бэкфилл реестра переживает обрыв связи и таймаут^[[2m > ^[[22mбитый сертификат - НЕ сбой связи: продьюсер падает громко, состояние не тронуто ^[[33m595^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:04.0920743Z  ^[[32m✓^[[39m src/scripts/cpc-card-spread.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[90m 66^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:05.3215071Z  ^[[32m✓^[[39m src/scripts/ym/warroom-kpi.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 20085^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:05.6375445Z  ^[[32m✓^[[39m src/scripts/estimator.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[90m 17^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6947603Z  ^[[32m✓^[[39m src/scripts/ym/realization-resume.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 4799^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6954236Z    ^[[33m^[[2m✓^[[22m^[[39m прогресс реализации восстанавливается вместе с месяцем^[[2m > ^[[22mоткаченный новый магазин не помечает старый снимок полностью покрытым ^[[33m771^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6956237Z    ^[[33m^[[2m✓^[[22m^[[39m прогресс реализации восстанавливается вместе с месяцем^[[2m > ^[[22mчастично скачанный месяц не заменяет полный старый месяц ^[[33m837^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6958163Z    ^[[33m^[[2m✓^[[22m^[[39m прогресс реализации восстанавливается вместе с месяцем^[[2m > ^[[22mисчерпанный бюджет: второй месяц восстановлен вместе с исходными pairs и не задваивается следующим прогоном ^[[33m1587^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6960249Z    ^[[33m^[[2m✓^[[22m^[[39m прогресс реализации восстанавливается вместе с месяцем^[[2m > ^[[22mнесогласованные/неизвестные from=[ '2002' ]: отказ до добавления и без изменения фактов ^[[33m779^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:10.6962559Z    ^[[33m^[[2m✓^[[22m^[[39m прогресс реализации восстанавливается вместе с месяцем^[[2m > ^[[22mнесогласованные/неизвестные from=[]: отказ до добавления и без изменения фактов ^[[33m824^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:11.7612522Z ⚠ заказы с «Нашей доставкой» без города в ведомости: 0112094088-0068-1 10151 ₽, 0117357213-0313-1 5819 ₽, 0287237234-0001-1 5821 ₽, 15665738-0360-1 3339 ₽, 17599744-0794-1 3189 ₽, 19719158-0197-1 2483 ₽, 24398951-0400-1 1000 ₽, 29951707-2886-1 2885 ₽, 30084205-0375-1 6578 ₽, 30615785-1776-1 4932 ₽, 38367131-0365-1 3141 ₽, 39805883-0597-1 5365 ₽, 40079063-0135-1 3680 ₽, 45997342-0686-1 3024 ₽, 50457723-0055-1 5115 ₽, 57359669-0673-1 9700 ₽, 64823283-0111-1 5917 ₽, 94281164-0018-1 6843 ₽
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:11.8225318Z  ^[[32m✓^[[39m src/scripts/ym/catalog-stocks.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 7482^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:11.8345570Z    ^[[33m^[[2m✓^[[22m^[[39m остаток OZON не трогаем^[[2m > ^[[22mстраницы OZON пишутся и null в остаток не протекает ^[[33m7474^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:12.1525318Z  ^[[32m✓^[[39m src/scripts/ozon/model-groups.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[90m 27^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:12.4795301Z  ^[[32m✓^[[39m src/scripts/ozon/parse-attribution.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[90m 10^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:12.7869867Z  ^[[32m✓^[[39m src/scripts/ym/test-window.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[90m 25^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:13.1166198Z  ^[[32m✓^[[39m src/scripts/ozon/card-groups-api.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[90m 29^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:13.4059643Z  ^[[32m✓^[[39m src/util/table.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 11^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:13.7425698Z  ^[[32m✓^[[39m src/scripts/coinv-merge.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[90m 25^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:14.0272232Z  ^[[32m✓^[[39m src/scripts/metric-gap.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[90m 7^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:14.4295350Z  ^[[32m✓^[[39m src/scripts/eb-level.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[90m 114^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:14.8725103Z  ^[[32m✓^[[39m src/sync.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[90m 44^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:15.2050723Z  ^[[32m✓^[[39m src/scripts/mde.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[90m 7^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:15.4895097Z  ^[[32m✓^[[39m src/scripts/competitors/sheet.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[90m 11^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:15.7804836Z  ^[[32m✓^[[39m src/dq.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[90m 22^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:16.0658486Z  ^[[32m✓^[[39m src/scripts/competitors/parse.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[90m 8^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:16.3775262Z  ^[[32m✓^[[39m src/scripts/ozon/cards-extract.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[90m 32^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:16.7265498Z  ^[[32m✓^[[39m src/cogs.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 23^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:17.0933829Z  ^[[32m✓^[[39m src/scripts/ozon/pnl-realization.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 27^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:17.3840222Z  ^[[32m✓^[[39m src/marts.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 10^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:17.6955076Z  ^[[32m✓^[[39m src/scripts/ctl-src.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[90m 6^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:17.9751239Z  ^[[32m✓^[[39m src/period.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[90m 7^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:18.2134319Z  ^[[32m✓^[[39m src/report.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[90m 5^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:18.4957088Z  ^[[32m✓^[[39m src/util/retry.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[90m 10^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:18.7215923Z  ^[[32m✓^[[39m src/scripts/bid-compare.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 6^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:18.9532131Z  ^[[32m✓^[[39m src/scripts/ozon/card-groups.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 8^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:20.3407950Z  ^[[32m✓^[[39m src/scripts/no-pii.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 1170^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:20.3409858Z    ^[[33m^[[2m✓^[[22m^[[39m персональные данные не публикуются^[[2m > ^[[22mв data/, data-ym/ и public/ нет телефонов ^[[33m1165^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:20.6627671Z  ^[[32m✓^[[39m src/scripts/ozon/accrual-buckets.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[90m 9^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:20.9955497Z  ^[[32m✓^[[39m src/scripts/ozon/delivery-health.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[90m 50^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:21.3056899Z  ^[[32m✓^[[39m src/scripts/ym/orders-window.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[90m 4^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:21.6095532Z  ^[[32m✓^[[39m src/connector/ozon-seller.retry.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[90m 9^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:21.9535468Z  ^[[32m✓^[[39m src/connector/ozon-performance.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[90m 12^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:22.2616007Z  ^[[32m✓^[[39m src/scripts/ozon/pnl-daily.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[90m 7^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:22.5105740Z  ^[[32m✓^[[39m src/scripts/ozon/ad-reports.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[90m 6^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:22.8285329Z  ^[[32m✓^[[39m src/scripts/cpo-split.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[90m 5^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:23.1135040Z  ^[[32m✓^[[39m src/store.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[90m 15^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:23.3635069Z  ^[[32m✓^[[39m src/util/num.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[90m 6^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:23.6555658Z  ^[[32m✓^[[39m src/scripts/ozon/ads-daily.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[90m 4^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:23.9591883Z  ^[[32m✓^[[39m src/scripts/nd-lines.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[90m 7^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7780112Z ^[[90mstdout^[[2m | src/scripts/ym/tovary-periods.test.ts^[[2m > ^[[22m^[[2m«Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22m^[[2mцелый закрытый месяц (июль)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7781161Z ^[[22m^[[39mцелый закрытый месяц (июль): страница -14.01% (3966683 / -555541) · свод -14.00% (3966702 / -555529)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7781673Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7783005Z ^[[90mstdout^[[2m | src/scripts/ym/tovary-periods.test.ts^[[2m > ^[[22m^[[2m«Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22m^[[2mчасть месяца (1-15 июля)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7784695Z ^[[22m^[[39mчасть месяца (1-15 июля): страница -17.44% (2524014 / -440129) · свод -17.44% (2524027 / -440123)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7785190Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7785941Z ^[[90mstdout^[[2m | src/scripts/ym/tovary-periods.test.ts^[[2m > ^[[22m^[[2m«Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22m^[[2mтекущий незакрытый (сентябрь)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7786892Z ^[[22m^[[39mтекущий незакрытый (сентябрь): страница -2.68% (4119644 / -110470) · свод -2.68% (4119669 / -110463)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7787198Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7787632Z  ^[[32m✓^[[39m src/scripts/ym/tovary-periods.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 13122^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7788465Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22mцелый закрытый месяц (июль) ^[[33m1534^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7789301Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22mчасть месяца (1-15 июля) ^[[33m1705^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:22:24.7790098Z    ^[[33m^[[2m✓^[[22m^[[39m «Товары»: рентабельность сходится со сводом на трёх типах периода^[[2m > ^[[22mтекущий незакрытый (сентябрь) ^[[33m1319^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0600411Z  ^[[32m✓^[[39m src/scripts/ym/svod-ui.test.ts ^[[2m(^[[22m^[[2m122 tests^[[22m^[[2m)^[[22m^[[33m 152756^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0601860Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mпериод берётся из верхнего фильтра: смена периода меняет числа ^[[33m441^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0603305Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mкатегория равна сумме своих артикулов - по каждому месяцу ^[[33m6765^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0604734Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mвозвращённый товар не показывается прибылью ^[[33m10342^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0606582Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mпродажи считаются за вычетом возвратов, а не по прайсу целиком ^[[33m627^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0607979Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mполовинки месяца складываются в месяц: 1-15 плюс 16-31 = весь июль ^[[33m1346^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0609012Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mобщие расходы кабинета следуют периоду, а не месяцу целиком ^[[33m456^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0609924Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mплан на месяц берёт факт из свода: те же числа, что в ИТОГО таблицы ^[[33m3214^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0611344Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mрасходы Маркета - один бар, равный сумме колонок сборов и расходов кабинета ^[[33m682^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0612613Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mводопад: бары складываются в цепочку и последний равен чистой прибыли таблицы ^[[33m2030^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0613785Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mблок «Общие расходы» под Маркет: колонки свои, итог равен строке свода ^[[33m2583^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0614641Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mчисел разового замера нет в видимом тексте страницы ^[[33m394^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0615376Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mстраница нигде не отрицает отчёт по баллам ^[[33m427^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0616109Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mснятая таблица skuan-t на Маркет не вернулась ^[[33m451^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0616901Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mколонки стоят в порядке файла Ивана, переключателя раскладок нет ^[[33m375^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0617740Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mзаказы в пути входят в расчёт, колонки «В пути» показывают их долю ^[[33m671^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0618580Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mколонка «Баллы Маркета» - срез по заказам месяца, а не по списанию кабинета ^[[33m430^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0619443Z    ^[[33m^[[2m✓^[[22m^[[39m свод Маркета: числа на странице^[[2m > ^[[22mзаказы вне выгрузки показаны плашкой, а где их нет - плашки нет ^[[33m2118^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0620192Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mколонка стоит между поступлением и С\С ^[[33m419^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0620946Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mстроки-моста «без С\С» нет, а в колонке С\С стоит прочерк ^[[33m2043^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0621743Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mстрока ИТОГО читается подряд: поступление − доставка − СС = валовая ^[[33m2090^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0623405Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mваловая считается за вычетом нашей доставки, база АДМ и налогов не меняется ^[[33m612^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0624849Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mмесяц без ведомости говорит «нет ведомости», а не показывает ноль ^[[33m970^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0721334Z ^[[90mstderr^[[2m | src/scripts/ym/svod-ui.test.ts
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0722343Z ^[[22m^[[39mError: Not implemented: navigation (except hash changes)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0723866Z     at module.exports (/home/runner/work/t1/t1/analytics-mvp/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0725517Z     at navigateFetch (/home/runner/work/t1/t1/analytics-mvp/node_modules/jsdom/lib/jsdom/living/window/navigation.js:77:3)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0727278Z     at exports.navigate (/home/runner/work/t1/t1/analytics-mvp/node_modules/jsdom/lib/jsdom/living/window/navigation.js:55:3)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0729149Z     at Timeout._onTimeout (/home/runner/work/t1/t1/analytics-mvp/node_modules/jsdom/lib/jsdom/living/nodes/HTMLHyperlinkElementUtils-impl.js:81:7)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0730485Z     at listOnTimeout (node:internal/timers:585:17)
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0731414Z     at processTimers (node:internal/timers:521:7) ^[[90mundefined^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0731947Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0732940Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mотправки по отменённым сидят в артикулах, а не отдельной строкой ^[[33m550^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0734479Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Наша доставка»^[[2m > ^[[22mведомость в снимке живая: без неё колонка бессмысленна ^[[33m1860^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0736001Z    ^[[33m^[[2m✓^[[22m^[[39m свод: итог сверху, полоса ставок убрана^[[2m > ^[[22mИТОГО - первая строка таблицы, категории идут после ^[[33m706^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0737706Z    ^[[33m^[[2m✓^[[22m^[[39m свод: итог сверху, полоса ставок убрана^[[2m > ^[[22mподпись колонки следует за ставкой, а не прибита числом ^[[33m1334^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0739239Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mблок есть, стоит перед сводом по артикулам и не пуст ^[[33m577^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0740671Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mсгруппировано по категориям, колонок артикула и даты нет ^[[33m849^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0741987Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mкатегория равна сумме своих заказов ^[[33m741^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0743486Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mитоги обоих сводов совпадают по всем колонкам, на четырёх окнах ^[[33m2407^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0745101Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mстрока заказа сходится сама с собой: поступление − доставка − СС = валовая ^[[33m2196^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0746897Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mИТОГО не зависит от того, раскрыта категория или нет ^[[33m1410^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0748465Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mокно без доставленных заказов: расход кабинета становится убытком, а не нулём ^[[33m440^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0749891Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mна окне с продажами поправка не меняет итог ^[[33m1212^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0751531Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mналог считается от «Оплатил клиент», АДМ - от «Поступления», в обоих сводах ^[[33m2173^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0753130Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22m«Оплатил клиент» стоит после «Продаж» и складывается снизу вверх ^[[33m1798^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0754732Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22m«Оплатил клиент» не входит в поступление, но стоит в обоих сводах ^[[33m2980^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0756239Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mрасход по отменённым стоит на своих заказах, а не отдельной строкой ^[[33m706^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0757449Z    ^[[33m^[[2m✓^[[22m^[[39m свод по заказам^[[2m > ^[[22mоба свода дают одну и ту же нашу доставку ^[[33m1787^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0758831Z    ^[[33m^[[2m✓^[[22m^[[39m свод: позиция по баллам Маркета^[[2m > ^[[22mиюль: начислено, потрачено и сальдо взяты из свода, а не посчитаны заново ^[[33m749^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0760409Z    ^[[33m^[[2m✓^[[22m^[[39m свод: позиция по баллам Маркета^[[2m > ^[[22mсальдо не входит в «Поступление»: баллы нельзя вывести, ими платят только за услуги ^[[33m792^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0761889Z    ^[[33m^[[2m✓^[[22m^[[39m свод: позиция по баллам Маркета^[[2m > ^[[22mмесяц с накоплением показан плюсом, месяц с тратой запаса - минусом ^[[33m1080^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0763512Z    ^[[33m^[[2m✓^[[22m^[[39m свод: пустое окно гасит ВСЁ, а не только таблицу^[[2m > ^[[22mна окне без доставленных заказов не остаётся чисел прошлого периода ^[[33m705^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0765041Z    ^[[33m^[[2m✓^[[22m^[[39m свод: заказы вне выгрузки стоят строкой под ИТОГО^[[2m > ^[[22mфевраль-июнь: сумма и доля совпадают со сводом ^[[33m1704^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0766594Z    ^[[33m^[[2m✓^[[22m^[[39m свод: заказы вне выгрузки стоят строкой под ИТОГО^[[2m > ^[[22mв ИТОГО пробел НЕ входит: тождество видимых колонок не ломается ^[[33m2059^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0768463Z    ^[[33m^[[2m✓^[[22m^[[39m свод: заказы вне выгрузки стоят строкой под ИТОГО^[[2m > ^[[22mна периоде без пробела строки нет: плашка не должна висеть всегда ^[[33m765^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0770411Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mблок есть, отделён от блока по дате заказа и стоит после него ^[[33m683^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0772168Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mтождество блока: начислено − сборы = к выплате ^[[33m4598^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0774332Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mИТОГО складывается из категорий ^[[33m3221^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0776054Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mбазис другой, чем у блока по дате заказа - числа не обязаны совпадать и не совпадают ^[[33m838^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0778271Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mАДМ - ставка от «К выплате», налог - от «Начислено», без отсечки; чистая читается подряд ^[[33m4237^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0780075Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mбаллов в блоке нет: «Начислено» = «Оплатил клиент» + «Доставка покупателя» ^[[33m841^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0782035Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mполовины июля складываются в месяц по всем колонкам, включая АДМ, налог и чистую ^[[33m1480^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0784294Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mсверка с УПД показана, и пробел назван ^[[33m3426^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0785459Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mиюль: артикул сходится с отчётом о платежах Маркета по штукам и деньгам ^[[33m2777^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0786527Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: аналитика по артикулам за выбранный период (начисления)^[[2m > ^[[22mсебестоимость категории и ИТОГО видна, даже если у части артикулов её нет ^[[33m938^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0787474Z    ^[[33m^[[2m✓^[[22m^[[39m свод: отправки по отменённым разнесены по артикулам^[[2m > ^[[22mиюнь: сумма помеченных артикулов равна сумме в подписи ^[[33m620^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0788432Z    ^[[33m^[[2m✓^[[22m^[[39m свод: отправки по отменённым разнесены по артикулам^[[2m > ^[[22mу каждого помеченного артикула подпись объясняет, откуда расход ^[[33m1125^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0789292Z    ^[[33m^[[2m✓^[[22m^[[39m свод: отправки по отменённым разнесены по артикулам^[[2m > ^[[22mсчёт заказов идёт по их датам, а не по месяцу целиком ^[[33m1005^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0790195Z    ^[[33m^[[2m✓^[[22m^[[39m свод: отправки по отменённым разнесены по артикулам^[[2m > ^[[22mсами заказы по-прежнему видно - в своде по заказам ^[[33m1106^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0790973Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Кто везёт»^[[2m > ^[[22mколонка есть в обоих сводах и не сдвинула строки ^[[33m952^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0791697Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Кто везёт»^[[2m > ^[[22mу каждого заказа подпись совпадает с его же числами ^[[33m921^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0792446Z    ^[[33m^[[2m✓^[[22m^[[39m свод: колонка «Кто везёт»^[[2m > ^[[22m«своя, нет вед.» стоит ровно там, где нашего расхода не знают ^[[33m934^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0793720Z    ^[[33m^[[2m✓^[[22m^[[39m доставка: два режима не пересекаются и не теряются^[[2m > ^[[22mИТОГО блока доставки по городам видит расход по таким заказам ^[[33m3991^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0794582Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22mпод ИТОГО стоят две строки режимов, и они дают ИТОГО ^[[33m4510^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0795595Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22mу «везёт Маркет» нет нашего дохода, у «везём мы» нет сбора площадки ^[[33m4047^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0796484Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22mпервая миля у Маркет-доставки не теряется и подписана ^[[33m4091^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0797319Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22mгород с одним режимом подписан прямо в строке, а не молчит ^[[33m4162^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0798260Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22mклик по смешанному городу раскрывает те же две строки, и они дают его итог ^[[33m5575^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0799134Z    ^[[33m^[[2m✓^[[22m^[[39m доставка по городам: разбивка по тому, кто везёт^[[2m > ^[[22m«нет счёта перевозчика» не печатается у Маркет-доставки ^[[33m4099^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0800007Z    ^[[33m^[[2m✓^[[22m^[[39m баллы Маркета: отдельной карточкой в конце страницы^[[2m > ^[[22mкарточка есть и стоит ПОСЛЕ «Общих расходов» ^[[33m1145^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0800821Z    ^[[33m^[[2m✓^[[22m^[[39m баллы Маркета: отдельной карточкой в конце страницы^[[2m > ^[[22mплашка баллов больше не живёт внутри свода ^[[33m916^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0801559Z    ^[[33m^[[2m✓^[[22m^[[39m баллы Маркета: отдельной карточкой в конце страницы^[[2m > ^[[22mзаголовок не задвоен ^[[33m937^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0802367Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: расчётные числа фиолетовым^[[2m > ^[[22mмесяц без заказов в пути - без фиолетового и без легенды ^[[33m867^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0803527Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: расчётные числа фиолетовым^[[2m > ^[[22mмесяц с заказами в пути: оценочные сборы и прибыль фиолетовые, продажи и штуки - нет ^[[33m418^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0804593Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: два столбца «Начислено» в блоке по артикулам^[[2m > ^[[22mколонки: «Начислил Маркет» перед «Начислено», «К выплате (Маркет)» после «К выплате», «Наша доставка» после С\С ^[[33m758^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0805778Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: два столбца «Начислено» в блоке по артикулам^[[2m > ^[[22mИТОГО: «Начислено» - второй столбец, «Начислил Маркет» - первый; К выплате и прибыль - от второго ^[[33m891^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.0806890Z    ^[[33m^[[2m✓^[[22m^[[39m Маркет: два столбца «Начислено» в блоке по артикулам^[[2m > ^[[22m«Наша доставка» ИТОГО: звёздочка и подсказка, если заказы, которые везли мы, без суммы в ведомости (G5 ФЕНИКСА iter3) ^[[33m831^[[2mms^[[22m^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2275509Z 
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2284976Z ^[[2m Test Files ^[[22m ^[[1m^[[32m73 passed^[[39m^[[22m^[[90m (73)^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2287748Z ^[[2m      Tests ^[[22m ^[[1m^[[32m1232 passed^[[39m^[[22m^[[90m (1232)^[[39m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2288517Z ^[[2m   Start at ^[[22m 13:21:19
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2294772Z ^[[2m   Duration ^[[22m 154.22s^[[2m (transform 3.18s, setup 0ms, collect 8.20s, tests 257.64s, environment 17ms, prepare 6.22s)^[[22m
+vitest + smoke	vitest (числа и сверки)	2026-10-21T13:23:53.2295771Z 
+vitest + smoke	Market realization incident recovery tests	﻿2026-10-21T13:23:53.2608426Z ##[group]Run python3 -B src/scripts/ym/repair-realization-20261021.test.py
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.2608969Z ^[[36;1mpython3 -B src/scripts/ym/repair-realization-20261021.test.py^[[0m
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.2639896Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.2640246Z ##[endgroup]
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.5453339Z .....
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.5454029Z ----------------------------------------------------------------------
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.5454454Z Ran 5 tests in 0.226s
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.5454600Z 
+vitest + smoke	Market realization incident recovery tests	2026-10-21T13:23:53.5454683Z OK
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	﻿2026-10-21T13:23:53.5561429Z ##[group]Run set -euo pipefail
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:53.5561770Z ^[[36;1mset -euo pipefail^[[0m
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:53.5562056Z ^[[36;1mpython3 -m pip install --quiet openpyxl^[[0m
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:53.5562402Z ^[[36;1mpython3 -B tools/tests/cpo_raw_check.py^[[0m
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:53.5593422Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:53.5593801Z ##[endgroup]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1040196Z OK   сентябрь один файл получено 818149.0 ожидалось 818149.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1041317Z OK   повтор сентября получено 818149.0 ожидалось 818149.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1042240Z OK   повтор: из раннего файла взято строк получено 0 ожидалось 0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1042997Z CPO файл cpo_2026-09_a.xlsx: период 2026-09-01..2026-09-30, строк 0, заменено поздним файлом 4
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1044041Z CPO файл cpo_2026-09_b.xlsx: период 2026-09-01..2026-09-30, строк 4
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1044955Z CPO строк из сырья: 3 (818,149 ₽), оставлено прошлых: 0 (0 ₽), всего 3 -> /tmp/cpo_raw_xeqsr5fg/data/cpo_orders.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1045755Z OK   cpo_orders при повторе получено 818149.0 ожидалось 818149.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1046625Z OK   cpo_orders: заказ 0002 одной строкой (день 10.09) получено [('2026-09-10', 318149.0)] ожидалось [('2026-09-10', 318149.0)]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1047543Z окна выгрузок: [('2026-09-01', '2026-09-30'), ('2026-09-01', '2026-09-30')] | оставлено строк вне окон: 0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1048768Z файлов: 2 [('cpo_2026-09_a.xlsx', '2026-09-01..2026-09-30', 'строк 0', 'заменено поздним файлом 4'), ('cpo_2026-09_b.xlsx', '2026-09-01..2026-09-30', 'строк 4', 'заменено поздним файлом 0')]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1049578Z CPO по месяцам: {'2026-09': 818149}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1049937Z строк: 4 | уник SKU: 3
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1050379Z записано: /tmp/cpo_raw_xeqsr5fg/data/cpo_sku_daily.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1050956Z OK   cpo_sku_daily при повторе получено 818149.0 ожидалось 818149.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1051841Z OK   пересечение 15.09-14.10 получено 723149.0 ожидалось 723149.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1052918Z OK   G4 «(1)» после оригинала получено ['2026-09_cpo_orders.xlsx', '2026-09_cpo_orders (1).xlsx'] ожидалось ['2026-09_cpo_orders.xlsx', '2026-09_cpo_orders (1).xlsx']
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1054142Z OK   G4 сумма исправленной выгрузки получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1054824Z OK   N4 копия «2026-09_cpo_orders(1).xlsx» побеждает получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1055549Z OK   N4 копия «2026-09_cpo_orders-1.xlsx» побеждает получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1056258Z OK   N4 копия «2026-09_cpo_orders 2.xlsx» побеждает получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1056969Z OK   N4 копия «2026-09_cpo_orders copy.xlsx» побеждает получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1057712Z OK   N4 копия «2026-09_cpo_orders - копия.xlsx» побеждает получено 170.0 ожидалось 170.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1059142Z OK   N4 два разных файла за один период - отказ - отказ: 2026-09_cpo_orders.xlsx и sentyabr.xlsx: один период 2026-09-01..2026-09-30, разное содержимое, имена не копии одного файла - оставь один файл (имя YYYY-MM_cpo_orders.xlsx)
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1060230Z CPO файл 2026-09_cpo_orders.xlsx: период 2026-09-01..2026-09-30, строк 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1061075Z CPO строк из сырья: 1 (100 ₽), оставлено прошлых: 0 (0 ₽), всего 1 -> /tmp/cpo_raw_xeqsr5fg/tmpov02bcs6/cpo_orders.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1061830Z окна выгрузок: [('2026-09-01', '2026-09-30')] | оставлено строк вне окон: 0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1062606Z файлов: 1 [('2026-09_cpo_orders.xlsx', '2026-09-01..2026-09-30', 'строк 1', 'заменено поздним файлом 0')]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1063360Z CPO по месяцам: {'2026-09': 100}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1063778Z строк: 1 | уник SKU: 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1064259Z записано: /tmp/cpo_raw_xeqsr5fg/tmpov02bcs6/cpo_sku_daily.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1065080Z OK   G5 F2: заказ пропал из повтора - уходит (cpo_orders, sku_daily) получено (100.0, 100.0) ожидалось (100.0, 100.0)
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1065870Z CPO файл 2026-09_cpo_orders.xlsx: период 2026-09-01..2026-09-30, строк 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1066928Z CPO строк из сырья: 1 (20 ₽), оставлено прошлых: 1 (80 ₽), всего 2 -> /tmp/cpo_raw_xeqsr5fg/tmp17vv4acu/cpo_orders.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1067661Z окна выгрузок: [('2026-09-01', '2026-09-30')] | оставлено строк вне окон: 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1068431Z файлов: 1 [('2026-09_cpo_orders.xlsx', '2026-09-01..2026-09-30', 'строк 1', 'заменено поздним файлом 0')]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1069014Z CPO по месяцам: {'2026-09': 20}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1069351Z строк: 2 | уник SKU: 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1069829Z записано: /tmp/cpo_raw_xeqsr5fg/tmp17vv4acu/cpo_sku_daily.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1070518Z OK   G5 F3: заказ на стыке месяцев - обе части получено (100.0, 100.0) ожидалось (100.0, 100.0)
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1071180Z CPO файл 2026-09_cpo_orders.xlsx: период 2026-09-01..2026-09-30, строк 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1072008Z CPO строк из сырья: 1 (20 ₽), оставлено прошлых: 1 (5 ₽), всего 2 -> /tmp/cpo_raw_xeqsr5fg/tmpwt8s_cf1/cpo_orders.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1072839Z окна выгрузок: [('2026-09-01', '2026-09-30')] | оставлено строк вне окон: 0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1073726Z файлов: 1 [('2026-09_cpo_orders.xlsx', '2026-09-01..2026-09-30', 'строк 1', 'заменено поздним файлом 0')]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1074305Z CPO по месяцам: {'2026-09': 20}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1074639Z строк: 1 | уник SKU: 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1075100Z записано: /tmp/cpo_raw_xeqsr5fg/tmpwt8s_cf1/cpo_sku_daily.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1075759Z OK   G5: старая строка без дня заменяется по номеру заказа получено 25.0 ожидалось 25.0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1076412Z CPO файл 2026-09_cpo_orders.xlsx: период 2026-09-01..2026-09-30, строк 2
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1077236Z CPO строк из сырья: 2 (130 ₽), оставлено прошлых: 0 (0 ₽), всего 2 -> /tmp/cpo_raw_xeqsr5fg/tmphxiya56l/cpo_orders.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1077970Z окна выгрузок: [('2026-09-01', '2026-09-30')] | оставлено строк вне окон: 0
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1078753Z файлов: 1 [('2026-09_cpo_orders.xlsx', '2026-09-01..2026-09-30', 'строк 2', 'заменено поздним файлом 0')]
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1079340Z CPO по месяцам: {'2026-09': 100}
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1079679Z строк: 1 | уник SKU: 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1080170Z записано: /tmp/cpo_raw_xeqsr5fg/tmphxiya56l/cpo_sku_daily.ndjson
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1080929Z OK   nosku: заказы 130, товары 100, без SKU 30 получено (130.0, 100.0, 30.0) ожидалось (130.0, 100.0, 30.0)
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1081847Z OK   файл без «Период:» - отказ: x.xlsx: нет строки «Период: дд.мм.гггг - дд.мм.гггг» над шапкой - окно выгрузки неизвестно
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1082705Z OK   строка вне периода - отказ: x.xlsx, строка 8: дата 2026-10-01 вне периода файла 2026-09-01..2026-09-30
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1083455Z OK   заказ без даты - отказ: x.xlsx, строка 8: заказ 0006-0006 без даты
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1084174Z CPO ОТКАЗ: x.xlsx: нет строки «Период: дд.мм.гггг - дд.мм.гггг» над шапкой - окно выгрузки неизвестно
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1084888Z OK   build_order_joins: код выхода при отказе получено 1 ожидалось 1
+vitest + smoke	OZON: сборщики выгрузок «за заказ» (фикстуры xlsx)	2026-10-21T13:23:55.1085301Z ПРОВАЛОВ: 0 
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	﻿2026-10-21T13:23:55.1225653Z ##[group]Run python3 -B -m unittest discover -s tools/tests -p 'delivery_sheet_test.py' -v
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.1226271Z ^[[36;1mpython3 -B -m unittest discover -s tools/tests -p 'delivery_sheet_test.py' -v^[[0m
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.1256270Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.1256625Z ##[endgroup]
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2456000Z test_a_previously_priced_row_becoming_blank_is_visible (delivery_sheet_test.DeliverySheetTests.test_a_previously_priced_row_becoming_blank_is_visible) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2457313Z test_actual_alias_current_number_only (delivery_sheet_test.DeliverySheetTests.test_actual_alias_current_number_only) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2461893Z test_actual_money_mapping_and_replayed_copy (delivery_sheet_test.DeliverySheetTests.test_actual_money_mapping_and_replayed_copy) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2473530Z test_additional_trip_never_replaces_accepted_primary (delivery_sheet_test.DeliverySheetTests.test_additional_trip_never_replaces_accepted_primary) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2479023Z test_archive_move_is_not_a_deletion (delivery_sheet_test.DeliverySheetTests.test_archive_move_is_not_a_deletion) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2483264Z test_archive_schedule_including_moscow_boundary_and_gap (delivery_sheet_test.DeliverySheetTests.test_archive_schedule_including_moscow_boundary_and_gap) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2488654Z test_changed_price_is_not_an_extra_trip (delivery_sheet_test.DeliverySheetTests.test_changed_price_is_not_an_extra_trip) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2493663Z test_duplicate_payment_conflict_fails (delivery_sheet_test.DeliverySheetTests.test_duplicate_payment_conflict_fails) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2495377Z test_empty_both_tabs_cannot_certify_a_success (delivery_sheet_test.DeliverySheetTests.test_empty_both_tabs_cannot_certify_a_success) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2499412Z test_empty_cost_and_customer_payment_remain_unknown (delivery_sheet_test.DeliverySheetTests.test_empty_cost_and_customer_payment_remain_unknown) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2516138Z test_failed_fetch_or_parse_does_not_change_files (delivery_sheet_test.DeliverySheetTests.test_failed_fetch_or_parse_does_not_change_files) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2519732Z test_future_closed_day_and_zero_are_distinct (delivery_sheet_test.DeliverySheetTests.test_future_closed_day_and_zero_are_distinct) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2521900Z test_headers_and_empty_response_fail (delivery_sheet_test.DeliverySheetTests.test_headers_and_empty_response_fail) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2528298Z test_history_is_byte_preserved_and_repeat_is_idempotent (delivery_sheet_test.DeliverySheetTests.test_history_is_byte_preserved_and_repeat_is_idempotent) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2531256Z test_initial_nonempty_window_is_not_overwritten (delivery_sheet_test.DeliverySheetTests.test_initial_nonempty_window_is_not_overwritten) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2541294Z test_known_shipment_leaving_window_or_cancelled_is_never_silently_fresh (delivery_sheet_test.DeliverySheetTests.test_known_shipment_leaving_window_or_cancelled_is_never_silently_fresh) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2546891Z test_lost_full_source_row_retains_expense_and_warns (delivery_sheet_test.DeliverySheetTests.test_lost_full_source_row_retains_expense_and_warns) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2552187Z test_malformed_source_fails_without_exposing_values (delivery_sheet_test.DeliverySheetTests.test_malformed_source_fails_without_exposing_values) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2564054Z test_missing_event_warning_survives_next_active_only_read (delivery_sheet_test.DeliverySheetTests.test_missing_event_warning_survives_next_active_only_read) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2572157Z test_moved_shipment_date_does_not_create_a_second_expense (delivery_sheet_test.DeliverySheetTests.test_moved_shipment_date_does_not_create_a_second_expense) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2576027Z test_new_trip_does_not_modify_old_order (delivery_sheet_test.DeliverySheetTests.test_new_trip_does_not_modify_old_order) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2582646Z test_positive_bill_and_existing_zero_placeholder_replay_identically (delivery_sheet_test.DeliverySheetTests.test_positive_bill_and_existing_zero_placeholder_replay_identically) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2588309Z test_previously_accepted_positive_bill_cannot_become_a_silent_zero (delivery_sheet_test.DeliverySheetTests.test_previously_accepted_positive_bill_cannot_become_a_silent_zero) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2589462Z test_product_component_parent_rule_is_shared (delivery_sheet_test.DeliverySheetTests.test_product_component_parent_rule_is_shared) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2592934Z test_product_duplicates_merge_and_cent_splits_are_conserved (delivery_sheet_test.DeliverySheetTests.test_product_duplicates_merge_and_cent_splits_are_conserved) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2594363Z test_public_city_removes_contact_and_street (delivery_sheet_test.DeliverySheetTests.test_public_city_removes_contact_and_street) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2597954Z test_return_is_expense_cancellation_is_excluded (delivery_sheet_test.DeliverySheetTests.test_return_is_expense_cancellation_is_excluded) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2604578Z test_staged_write_failure_leaves_originals (delivery_sheet_test.DeliverySheetTests.test_staged_write_failure_leaves_originals) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2613021Z test_transport_403_no_retry_429_bounded_retry (delivery_sheet_test.DeliverySheetTests.test_transport_403_no_retry_429_bounded_retry) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2617990Z test_two_new_trips_keep_primary_and_extra_separate (delivery_sheet_test.DeliverySheetTests.test_two_new_trips_keep_primary_and_extra_separate) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2623765Z test_unfilled_receipt_is_retried_from_archive (delivery_sheet_test.DeliverySheetTests.test_unfilled_receipt_is_retried_from_archive) ... ok
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2624279Z 
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2624505Z ----------------------------------------------------------------------
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2624865Z Ran 31 tests in 0.023s
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2625012Z 
+vitest + smoke	OZON: Google-ведомость доставки (без сети)	2026-10-21T13:23:55.2625099Z OK
+vitest + smoke	OZON: сборка и смоук	﻿2026-10-21T13:23:55.2817715Z ##[group]Run set -euo pipefail
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2818023Z ^[[36;1mset -euo pipefail^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2818275Z ^[[36;1mmkdir -p "$OUT_DIR"^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2818532Z ^[[36;1mnpx tsx src/scripts/build-site.ts^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2818834Z ^[[36;1mnpx tsx src/scripts/build-katya.ts^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2819135Z ^[[36;1mnpx tsx src/scripts/build-reakciya.ts^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2819440Z ^[[36;1mnpx tsx src/scripts/smoke.ts^[[0m
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2848966Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2849300Z env:
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2849543Z   OUT_DIR: /home/runner/work/_temp/ozon-site
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:55.2849818Z ##[endgroup]
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:56.1117762Z Готово: все старые страницы -> редиректы на KATYA (вход = katya-command.html)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:56.1120583Z Фактов 99477 · SKU 1111 · 2026-02-04..2026-10-20 · OOS 7 · закрытые Акты до Апрель 2026 (УСТАРЕЛИ)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:57.5737663Z ##[warning]снимок «P&L канал» устарел: последний день 2026-09-07 (43 дн от вчера). Проверь ночной синк ozon-snapshots.yml.
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:57.5741538Z ##[warning]снимок «P&L по SKU» устарел: последний день 2026-09-07 (43 дн от вчера). Проверь ночной синк ozon-snapshots.yml.
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:57.5745030Z ##[warning]снимок «кэш per-SKU отчётов» устарел: последний день 2026-06-25 (117 дн от вчера). Проверь ночной синк ozon-snapshots.yml.
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:23:57.5747193Z Страж свежести: устаревших снимков 3 (см. warnings выше).
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3018415Z katya: логистика OZON с 2026-09-01 - по дате начисления 264679 ₽, по дате заказа (дата начисления не пришла) 0 ₽
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3049708Z katya: финансы по SKU - транзакции до 2026-09-01, дальше отчёт о реализации за день (2026-08-25..2026-10-20) + сборы by-day
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3085194Z katya: эквайринг заказов с несколькими артикулами снят с «прочего кабинета» - 27077 ₽
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3223600Z katya: добор «Начислено» по SKU до отчёта о реализации - 902121 ₽, комиссия -372229 ₽ (18 SKU)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3311809Z katya: база налога - отчёт о реализации за 2026-02, 2026-03, 2026-04, 2026-05, 2026-06, 2026-07, 2026-08, 2026-09; доля «Реализовано» в «Начислено»: канал 0.4759, своя у 260 SKU
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.3971043Z katya: реклама по карточкам - на соседей 693903 ₽ (936 строк день x заказ), заказов-соседей 67
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.4633105Z ⚠ заказы с «Нашей доставкой» без города в ведомости: 0112094088-0068-1 10151 ₽, 0117357213-0313-1 5819 ₽, 0287237234-0001-1 5821 ₽, 15665738-0360-1 3339 ₽, 17599744-0794-1 3189 ₽, 19719158-0197-1 2483 ₽, 24398951-0400-1 1000 ₽, 29951707-2886-1 2885 ₽, 30084205-0375-1 6578 ₽, 30615785-1776-1 4932 ₽, 38367131-0365-1 3141 ₽, 39805883-0597-1 5365 ₽, 40079063-0135-1 3680 ₽, 45997342-0686-1 3024 ₽, 50457723-0055-1 5115 ₽, 57359669-0673-1 9700 ₽, 64823283-0111-1 5917 ₽, 94281164-0018-1 6843 ₽
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.4684528Z katya: повторные рейсы 1, 3860 ₽ на дату рейса, не нашли заказ 0
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.5948956Z katya: наша доставка по дате начисления 4743153 ₽, ждут начисления 0 ₽ (0 отпр.), отменённые без начисления: по доставке 171999, по отгрузке 53437, по заказу 0
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.8252504Z report: показы 1130 SKU, реклама 259 дн, «за заказ» по выгрузке 2026-06-05..2026-09-30 (117 дн, без заказа в orders_daily 0), типов начислений 23
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.8983441Z kartochki: кампания выгрузки 28753239: расход API 4323199 против списаний выгрузки 4323199
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:00.8985022Z kartochki: «Оплата за заказ» по заказам 117 дн, окно 2026-06-05..2026-09-30, без заказа в orders_daily 0
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:01.0899651Z katya: командный центр + 5 страниц + конкуренты(ДЕМО) · 563 моделей, 1112 SKU, категорий 10, окно 2025-07..2026-10, OZON 217.55 млн / 3992 шт (заказано)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:01.5861050Z katya-reakciya.html: 282 KB, действий 472
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:01.5897108Z katya-reakciya-lite.html: 242 KB, действий 353
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:02.9684047Z OK   katya-command.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:03.1314950Z OK   katya-competitors.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:03.8973743Z OK   katya-marketing.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:06.3640684Z OK   katya-money.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:06.8772272Z OK   katya-reakciya-lite.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:07.2899700Z OK   katya-reakciya.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:10.0423421Z OK   katya-reklama-kartochki.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:10.7623858Z OK   katya-report.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:12.5840642Z OK   katya-tovary.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:12.7468482Z OK   katya-voronka.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:13.3924491Z OK   katya.html (контролы отработали без ошибок)
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:13.3949048Z 
+vitest + smoke	OZON: сборка и смоук	2026-10-21T13:24:13.3949447Z ВСЕ 21 страниц прошли smoke-прогон контролов
+vitest + smoke	Яндекс Маркет: сборка и смоук	﻿2026-10-21T13:24:13.4788720Z ##[group]Run set -euo pipefail
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4789297Z ^[[36;1mset -euo pipefail^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4789939Z ^[[36;1mif [ ! -s data-ym/history.ndjson ] || [ ! -s data-ym/skus_live_30d.json ]; then^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4790807Z ^[[36;1m  echo "::error::data-ym пуст - снимков Маркета нет, гейт Маркета не отработал"^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4791393Z ^[[36;1m  exit 1^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4791688Z ^[[36;1mfi^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4792047Z ^[[36;1mmkdir -p "$OUT_DIR"^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4792446Z ^[[36;1mnpx tsx src/scripts/build-site.ts^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4792949Z ^[[36;1mnpx tsx src/scripts/build-katya.ts^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4793599Z ^[[36;1mnpx tsx src/scripts/smoke.ts^[[0m
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4840959Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4841534Z env:
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4841883Z   DATA_DIR: data-ym
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4842241Z   PLATFORM: ym
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4842642Z   OUT_DIR: /home/runner/work/_temp/market-site
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:13.4843124Z ##[endgroup]
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:14.0117422Z Готово: все старые страницы -> редиректы на KATYA (вход = katya-command.html)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:14.0119455Z Фактов 1654 · SKU 419 · 2026-01-01..2026-10-20 · OOS 0 · закрытые Акты до нет данных (Акты площадки не подключены) (УСТАРЕЛИ)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:14.7020869Z Страж свежести: снимки актуальны (по вчера).
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:15.2275570Z katya: база налога - отчёт о реализации за -; доля «Реализовано» в «Начислено»: канал 0, своя у 0 SKU
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:15.2331194Z katya: наша доставка по дате начисления 0 ₽, ждут начисления 0 ₽ (0 отпр.), отменённые без начисления: по доставке 0, по отгрузке 0, по заказу 0
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:16.0246706Z report-ym: кампаний баллами из отчёта по баллам 785 строк; реестр полный по 2026-10-19 (последний день {"1023124":"2026-10-20","74986385":"2026-10-20"}, со сборами {"1023124":"2026-10-19","74986385":"2026-10-19"}), показы 657 SKU с 2026-08-31, заказы по 370 SKU с 2026-01-01
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:16.3025547Z katya: командный центр + 5 страниц + конкуренты(ДЕМО) · 401 моделей, 420 SKU, категорий 9, окно 2025-07..2026-10, Маркет 62.475 млн / 1296 шт (доставлено, базис свода)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:17.4969778Z OK   katya-command.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:17.6685310Z OK   katya-competitors.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:18.1915040Z OK   katya-marketing.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:19.1932674Z OK   katya-money.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:19.9590957Z OK   katya-report.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:21.6155053Z OK   katya-tovary.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:21.7809163Z OK   katya-voronka.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:22.2437670Z OK   katya.html (контролы отработали без ошибок)
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:22.2474987Z 
+vitest + smoke	Яндекс Маркет: сборка и смоук	2026-10-21T13:24:22.2475439Z ВСЕ 18 страниц прошли smoke-прогон контролов
+vitest + smoke	Post Run actions/setup-node@v4	﻿2026-10-21T13:24:22.3035899Z Post job cleanup.
+vitest + smoke	Post Run actions/setup-node@v4	2026-10-21T13:24:22.4190056Z (node:6219) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+vitest + smoke	Post Run actions/setup-node@v4	2026-10-21T13:24:22.4191400Z (Use `node --trace-deprecation ...` to show where the warning was created)
+vitest + smoke	Post Run actions/setup-node@v4	2026-10-21T13:24:22.4193514Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-353752886fcad9aa1fac08848e0325d4f6f6d49ac7cedd311ebadad5d27fc60d, not saving cache.
+vitest + smoke	Post Run actions/checkout@v4	﻿2026-10-21T13:24:22.4345314Z Post job cleanup.
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5172230Z [command]/usr/bin/git version
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5211174Z git version 2.55.0
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5277162Z Temporarily overriding HOME='/home/runner/work/_temp/92b90117-4cf7-4ed2-a26a-425e44dd19a8' before making global git config changes
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5278838Z Adding repository directory to the temporary git global config as a safe directory
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5284343Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/t1/t1
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5317701Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5349651Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5574264Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5598296Z http.https://github.com/.extraheader
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5608826Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5638188Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5853747Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+vitest + smoke	Post Run actions/checkout@v4	2026-10-21T13:24:22.5885090Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+vitest + smoke	Complete job	﻿2026-10-21T13:24:22.6333862Z Cleaning up orphan processes
+vitest + smoke	Complete job	2026-10-21T13:24:22.6640905Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,40 @@
+[
+  {
+    "case": "identical-zero-placeholder-replay",
+    "first": "success",
+    "second": "success"
+  },
+  {
+    "case": "new-higher-trip-replaces-primary",
+    "before_primary": {
+      "d_ship": "2026-10-07",
+      "deliv": 7500.0,
+      "order": "72685709-0383-1",
+      "ship": 1000.0
+    },
+    "after_primary": {
+      "d_ship": "2026-10-07",
+      "deliv": 7500.0,
+      "order": "72685709-0383-1",
+      "ship": 1000.0
+    },
+    "new_extra": {
+      "d_trip": "2026-10-07",
+      "deliv": 0.0,
+      "order": "72685709-0383-1",
+      "ship": 2000.0
+    },
+    "total": 3000.0
+  },
+  {
+    "case": "sticky-warning-fixed",
+    "full": 1,
+    "partial": 1,
+    "archive": true
+  },
+  {
+    "case": "positive-zero-fixed",
+    "blocked": true,
+    "error": "accepted positive bill became zero or ambiguous zero trip; review required"
+  }
+]

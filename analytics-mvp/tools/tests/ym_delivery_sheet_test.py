@@ -135,6 +135,38 @@ class DeliverySheetTests(unittest.TestCase):
                 sheet.prepare(root, source(ozon), source(row()), NOW)
             self.assertEqual((root / "data-ym/delivery.csv").read_text(), output["delivery.csv"])
 
+    def test_blank_source_preserves_known_cost_with_visible_note_but_real_zero_updates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); self.root(root)
+            sheet.write_bundle(root, sheet.prepare(root, source(row(ship="2000")), source(row(ship="2000")), NOW))
+            output = sheet.prepare(root, source(row(ship="")), source(row(ship="2000")), NOW)
+            saved = next(r for r in sheet.read_ledger(output["delivery.csv"]) if r["order"] == ORDER)
+            self.assertEqual(saved["ship"], "2000")
+            self.assertIn("сохранён последний известный расход", saved["note"])
+            zero = sheet.prepare(root, source(row(ship="0")), source(row(ship="2000")), NOW)
+            saved = next(r for r in sheet.read_ledger(zero["delivery.csv"]) if r["order"] == ORDER)
+            self.assertEqual(saved["ship"], "0")
+            self.assertEqual(saved["note"], "")
+
+    def test_missing_half_of_saved_snapshot_never_falls_back_to_fixture(self):
+        for deleted in ["delivery.csv", "delivery_source.json"]:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp); self.root(root)
+                sheet.write_bundle(root, sheet.prepare(root, source(row()), source(row()), NOW))
+                (root / "data-ym" / deleted).unlink()
+                with self.assertRaisesRegex(ValueError, "incomplete delivery snapshot/manifest"):
+                    sheet.prepare(root, source(row()), source(row()), NOW)
+
+    def test_free_text_in_identifier_columns_never_published(self):
+        for index in [2, 3]:
+            private = row(); private[index] = "PRIVATE-CANARY +70000000000"
+            with self.assertRaisesRegex(ValueError, "invalid date/order/status/amount"):
+                sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
+        private = row(); private[0] = "Яндекс PRIVATE-CANARY"
+        records, _ = sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
+        self.assertEqual(records[0]["tags"], "Яндекс")
+        self.assertNotIn("PRIVATE-CANARY", sheet.render(records))
+
 
 if __name__ == "__main__":
     unittest.main()

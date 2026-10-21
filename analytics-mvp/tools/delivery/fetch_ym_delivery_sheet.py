@@ -45,6 +45,16 @@ def order_of(value, known, delivered):
     raise ValueError("ambiguous order number")
 
 
+def identifiers(doc, offer):
+    doc = clean(doc)
+    if doc and not re.fullmatch(r"[МСMC]\d{2}-\d{1,8}", doc):
+        raise ValueError("invalid ledger identifier")
+    tokens = [token for token in re.split(r"[,;\s]+", str(offer or "").strip()) if token]
+    if any(not re.fullmatch(r"GG[A-Z]{1,3}-[A-Z0-9]+(?:[.-][A-Z0-9]+)*", token) for token in tokens):
+        raise ValueError("invalid offer identifier")
+    return doc, " ".join(tokens)
+
+
 def document(row):
     return row["order"], row["vedomost"] or "~" + row["shipped"]
 
@@ -82,9 +92,10 @@ def parse_tab(text, name, through, known, delivered, issues=None):
             status = clean(row[7])
             if status not in STATUSES:
                 raise ValueError("unexpected status/layout")
+            doc, offer = identifiers(row[2], row[3])
             # Explicit columns: M is customer payment, O is our carrier cost.
-            record = dict(zip(FIELDS, [order_of(row[1], known, delivered), clean(row[2]), clean(row[3]),
-                                      clean(row[4]), status, amount(row[14]), amount(row[12]), clean(row[0]), ""]))
+            record = dict(zip(FIELDS, [order_of(row[1], known, delivered), doc, offer,
+                                      clean(row[4]), status, amount(row[14]), amount(row[12]), "Яндекс", ""]))
             result.append(record)
             counts["accepted_rows"] += 1
             counts["missing_cost_rows"] += not bool(record["ship"])
@@ -116,6 +127,12 @@ def merge(previous, archive, active):
             prices = {r["ship"] for r in records if r["ship"] != ""}
             if len(prices) > 1:
                 raise ValueError("conflicting costs for one order/document")
+            prior_prices = [r["ship"] for r in grouped.get(key, []) if r["ship"] != ""]
+            if not prices and prior_prices:
+                retained_cost = max(prior_prices, key=float)
+                records = [dict(r, ship=retained_cost,
+                                note="стоимость в текущем листе не заполнена; сохранён последний известный расход, нужна проверка")
+                           for r in records]
             if not records[0]["vedomost"]:
                 old_keys = [k for k, group in grouped.items()
                             if k != key and k[0] == key[0] and not group[0]["vedomost"] and k not in new]
@@ -150,8 +167,10 @@ def render(rows):
 def prepare(root, active, archive, now):
     data = root / "data-ym"
     path = data / "delivery.csv"
-    previous_text = path.read_text() if path.exists() else (root / "fixtures/delivery_ym.csv").read_text()
     state_path = data / "delivery_source.json"
+    if path.exists() != state_path.exists():
+        raise ValueError("incomplete delivery snapshot/manifest pair; refuse legacy rollback")
+    previous_text = path.read_text() if path.exists() else (root / "fixtures/delivery_ym.csv").read_text()
     state = {}
     if path.exists():
         state = json.loads(state_path.read_text())

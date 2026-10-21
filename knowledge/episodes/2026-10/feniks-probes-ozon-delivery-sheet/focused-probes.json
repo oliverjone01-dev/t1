@@ -1,0 +1,39 @@
+[
+  {
+    "case": "retained-warning-clears-without-recovery",
+    "first_retained": 1,
+    "next_retained": 0,
+    "archive_needed_next": false,
+    "expense": [
+      5691.0,
+      5691.0
+    ],
+    "next_incomplete_flags": {
+      "missing_cost": 0,
+      "undated_rows": 0,
+      "retained_unseen_events": 0,
+      "city_unknown": 0,
+      "missing_customer_paid": 0
+    }
+  },
+  {
+    "case": "priced-row-becomes-explicit-zero",
+    "retained": 0,
+    "ship": 5691.0,
+    "zero_rows": 1,
+    "incomplete_flags": {
+      "missing_cost": 0,
+      "undated_rows": 0,
+      "retained_unseen_events": 0,
+      "city_unknown": 0,
+      "missing_customer_paid": 0
+    }
+  },
+  {
+    "case": "shipment-date-change-ambiguous",
+    "before_ship": 5691.0,
+    "after_ship": 11382.0,
+    "events": 2,
+    "retained": 1
+  }
+]

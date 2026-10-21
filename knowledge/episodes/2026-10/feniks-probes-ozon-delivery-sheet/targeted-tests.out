@@ -1,0 +1,67 @@
+
+ RUN  v2.1.9 /Users/gengroup/Documents/Codex/t1/analytics-mvp
+
+ ✓ src/connector/ozon-performance.test.ts > Performance report transport: Moscow calendar boundaries > 2026-10-14..2026-10-20 is exactly 7 complete Moscow days
+ ✓ src/connector/ozon-performance.test.ts > Performance report transport: Moscow calendar boundaries > 2026-12-31..2027-01-01 is exactly 2 complete Moscow days
+ ✓ src/connector/ozon-performance.test.ts > Performance report transport: Moscow calendar boundaries > 2026-10-20..2026-10-20 is exactly 1 complete Moscow days
+ ✓ src/connector/ozon-performance.test.ts > batchCampaigns - батч по 25 (DOC_02 §3.2) > режет ровно по 25
+ ✓ src/connector/ozon-performance.test.ts > batchCampaigns - батч по 25 (DOC_02 §3.2) > CAMPAIGN_BATCH = 25
+ ✓ src/connector/ozon-performance.test.ts > batchCampaigns - батч по 25 (DOC_02 §3.2) > пустой вход - пустой выход
+ ✓ src/scripts/ozon/delivery-health.test.ts > delivery freshness and coverage > successful read is fresh even on a day without shipments
+ ✓ src/scripts/ozon/delivery-health.test.ts > delivery freshness and coverage > fresh read with missing bill is incomplete, not zero expense
+ ✓ src/scripts/ozon/delivery-health.test.ts > delivery freshness and coverage > a partial file replacement cannot be certified by old status
+ ✓ src/scripts/ozon/delivery-health.test.ts > delivery freshness and coverage > an old success marker does not certify today's load
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > точный номер встаёт на свой заказ до копейки (замечание Ивана 28.09)
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > номер без хвоста с одним отправлением - на него целиком
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > номер без хвоста с двумя отправлениями - делится по штукам этого заказа
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > «бывш.» - на действующий номер, отменённый не получает ничего
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > два отправления в строке - оба
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > ненайденный номер не раскладывается, а попадает в список; нулевые строки не шумят
+ ✓ src/scripts/delivery-match.test.ts > ведомость доставки ищется по номеру заказа, а не раскладывается > деньги не теряются и не множатся: найдено + не найдено = ведомость
+ ✓ src/scripts/delivery-match.test.ts > живые данные: сумма ведомости сохраняется при сопоставлении > найдено + не найдено = вся ведомость, до копейки
+ ✓ src/scripts/delivery-match.test.ts > «Наша доставка» по дате начисления заказа (Иван 28.09) > начисленный заказ - на дату начисления, не заказа и не отгрузки
+ ✓ src/scripts/delivery-match.test.ts > «Наша доставка» по дате начисления заказа (Иван 28.09) > в пути и не начислен - не в ряду, ждёт начисления (Иван 01.10, «а»)
+ ✓ src/scripts/delivery-match.test.ts > «Наша доставка» по дате начисления заказа (Иван 28.09) > отменённый с расходом перевозчика - в ряду на отгрузке (OZON его не начислит)
+ ✓ src/scripts/delivery-match.test.ts > «Наша доставка» по дате начисления заказа (Иван 28.09) > ничего не теряется и не двоится: ряд + ждущие = всё, что нашлось по номерам
+ ✓ src/scripts/delivery-match.test.ts > «Наша доставка» по дате начисления заказа (Иван 28.09) > живые данные: ряд по начислению + ждущие = всё найденное по номерам, до копейки
+ ✓ src/scripts/delivery-match.test.ts > ведомость: суммы текстом не превращаются в 0 (ФЕНИКС 29.09, п.1) > разбор денежных ячеек: пробелы любого вида, переносы, «1871х2», сдвиг столбцов
+ ✓ src/scripts/delivery-match.test.ts > ведомость: суммы текстом не превращаются в 0 (ФЕНИКС 29.09, п.1) > файл данных = сама ведомость (xlsx), если сырьё есть локально
+ ✓ src/scripts/delivery-match.test.ts > matchLedger: город заказа (Иван 30.09) > город берётся из строки ведомости этого заказа, а не из артикула
+ ✓ src/scripts/delivery-match.test.ts > matchLedger: город заказа (Иван 30.09) > повторный выезд в другой город - два города; без города поля нет
+ ✓ src/scripts/delivery-match.test.ts > extraTripSeries: повторные рейсы (Иван 02.10, 1а/2а) > в начислениях - на дату рейса, не на дату начисления заказа
+ ✓ src/scripts/delivery-match.test.ts > extraTripSeries: повторные рейсы (Иван 02.10, 1а/2а) > в блоке по заказам - к заказу, первый рейс ведомости не меняется
+ ✓ src/scripts/delivery-match.test.ts > extraTripSeries: повторные рейсы (Иван 02.10, 1а/2а) > номер не нашёлся - в список, не теряется; без даты рейса - ошибка
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > настоящий sku-views сохраняет явную нулевую коррекцию API
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > 23:30 МСК остаётся в своём дне, семь дней = семь дат
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > ищет старую дыру даже если есть более свежая строка; помнит успешный пустой день
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > ошибка второго дня сохраняет все байты; повтор восстанавливает дыру без дублей
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > битые ключи, NaN, пустая замена и выход за окно блокируют запись
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > acq: сбой дня не удаляет сохранённые строки и не пишет checkpoint
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > acq: незаметный пустой второй день не удаляет прежний ненулевой ключ
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > pnl: сбой дня не удаляет сохранённые строки и не пишет checkpoint
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > pnl: незаметный пустой второй день не удаляет прежний ненулевой ключ
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > все три сборщика останавливаются при сбое справочника до публикации
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > короткий FROM запрещён до обращения к API
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > реальная строка Корректировка учитывается отдельно, неизвестный SKU не становится служебным
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > невалидное число корректировки блокирует запись, успешная metadata видна в health
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > название товара Итого не отключает проверку чисел; настоящие totals не становятся SKU
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > blank-sku не проходит как успешный частичный отчёт
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > bad-cart не проходит как успешный частичный отчёт
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > частичный dailyStats не удаляет вторую кампанию из непустого дня
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > явный ноль допустим, отсутствие старого ненулевого ключа требует проверки
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > request: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > state: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > download: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > format: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > timeout: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > успех повторяем, CPO исключён из очереди, история вне окна сохранена
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > успех B не скрывает сбой A: A повторяется следующим прогоном
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > дедлайн не позволяет скачать незавершённый отчёт
+ ✓ src/scripts/ozon/collector-integrity.test.ts > проверка источников видит отдельную дыру кампании и не выдаёт старый CPO за ноль
+ ✓ src/scripts/ozon/collector-integrity.test.ts > последняя неудачная попытка видна даже при свежей максимальной дате
+
+ Test Files  4 passed (4)
+      Tests  58 passed (58)
+   Start at  16:09:33
+   Duration  336ms (transform 278ms, setup 0ms, collect 368ms, tests 153ms, environment 0ms, prepare 128ms)
+

@@ -1,0 +1,30 @@
+test_a_previously_priced_row_becoming_blank_is_visible (delivery_sheet_test.DeliverySheetTests) ... ok
+test_actual_alias_current_number_only (delivery_sheet_test.DeliverySheetTests) ... ok
+test_actual_money_mapping_and_replayed_copy (delivery_sheet_test.DeliverySheetTests) ... ok
+test_archive_move_is_not_a_deletion (delivery_sheet_test.DeliverySheetTests) ... ok
+test_archive_schedule_including_moscow_boundary_and_gap (delivery_sheet_test.DeliverySheetTests) ... ok
+test_changed_price_is_not_an_extra_trip (delivery_sheet_test.DeliverySheetTests) ... ok
+test_duplicate_payment_conflict_fails (delivery_sheet_test.DeliverySheetTests) ... ok
+test_empty_both_tabs_cannot_certify_a_success (delivery_sheet_test.DeliverySheetTests) ... ok
+test_empty_cost_and_customer_payment_remain_unknown (delivery_sheet_test.DeliverySheetTests) ... ok
+test_failed_fetch_or_parse_does_not_change_files (delivery_sheet_test.DeliverySheetTests) ... ok
+test_future_closed_day_and_zero_are_distinct (delivery_sheet_test.DeliverySheetTests) ... ok
+test_headers_and_empty_response_fail (delivery_sheet_test.DeliverySheetTests) ... ok
+test_history_is_byte_preserved_and_repeat_is_idempotent (delivery_sheet_test.DeliverySheetTests) ... ok
+test_initial_nonempty_window_is_not_overwritten (delivery_sheet_test.DeliverySheetTests) ... ok
+test_lost_full_source_row_retains_expense_and_warns (delivery_sheet_test.DeliverySheetTests) ... ok
+test_malformed_source_fails_without_exposing_values (delivery_sheet_test.DeliverySheetTests) ... ok
+test_new_trip_does_not_modify_old_order (delivery_sheet_test.DeliverySheetTests) ... ok
+test_product_component_parent_rule_is_shared (delivery_sheet_test.DeliverySheetTests) ... ok
+test_product_duplicates_merge_and_cent_splits_are_conserved (delivery_sheet_test.DeliverySheetTests) ... ok
+test_public_city_removes_contact_and_street (delivery_sheet_test.DeliverySheetTests) ... ok
+test_return_is_expense_cancellation_is_excluded (delivery_sheet_test.DeliverySheetTests) ... ok
+test_staged_write_failure_leaves_originals (delivery_sheet_test.DeliverySheetTests) ... ok
+test_transport_403_no_retry_429_bounded_retry (delivery_sheet_test.DeliverySheetTests) ... ok
+test_two_new_trips_keep_primary_and_extra_separate (delivery_sheet_test.DeliverySheetTests) ... ok
+test_unfilled_receipt_is_retried_from_archive (delivery_sheet_test.DeliverySheetTests) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.007s
+
+OK

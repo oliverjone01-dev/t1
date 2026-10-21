@@ -1,0 +1,14 @@
+OK   P1 FBO ключ items вместо postings: ожидание throw | throw: OZON /v3/posting/fbo/list: ответ без списка отправлений или has_next, ключи: items,has_next / result: 
+OK   P2 FBS hasNext вместо has_next, полная страница: ожидание throw | throw: OZON /v4/posting/fbs/list: ответ без списка отправлений или has_next, ключи: postings,hasNext,cursor / result: 
+OK   P3 has_next=true, курсор не сдвинулся: ожидание throw | throw: OZON /v3/posting/fbo/list: has_next без нового курсора после страницы 1
+OK   V1 ответ в обёртке result: ожидание ok | ok n=5 fbo=2 fbs=3 dates=2026-10-19
+OK   V2 пустое окно FBO: postings [], has_next false: ожидание ok | ok n=1 fbo=0 fbs=1 dates=2026-10-19
+OK   V3 две страницы FBS по курсору: ожидание ok | ok n=107 fbo=0 fbs=107 dates=2026-10-19
+OK   V4 has_next=true и пустая страница: ожидание ok | ok n=3 fbo=0 fbs=3 dates=2026-10-19
+OK   R1 последняя страница без has_next (proto3 опускает false): ожидание throw | throw: OZON /v3/posting/fbo/list: ответ без списка отправлений или has_next, ключи: postings,cursor / result: 
+MISS P4 FBS без in_process_at: дата из shipment_date (остаток iter1): ожидание throw | ok n=1 fbo=0 fbs=1 dates=2026-10-22
+
+P5 moneyOf (остаток iter1, ожидание для нечитаемого: null или ошибка):
+   {units,nanos} -> 0
+   {amount:'1 234,50'} -> 0
+   null -> 0

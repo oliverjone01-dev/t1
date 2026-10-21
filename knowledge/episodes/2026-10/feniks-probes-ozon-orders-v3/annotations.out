@@ -1,0 +1,74 @@
+=== run 39439059890
+job 118683781934
+1 Set up job | success | 2026-10-20T14:25:31Z -> 2026-10-20T14:25:32Z
+2 Run actions/checkout@v4 | success | 2026-10-20T14:25:32Z -> 2026-10-20T14:25:40Z
+3 Run actions/setup-node@v4 | success | 2026-10-20T14:25:40Z -> 2026-10-20T14:25:41Z
+4 Run npm ci || npm install | success | 2026-10-20T14:25:41Z -> 2026-10-20T14:25:44Z
+5 Сбор по заказам | failure | 2026-10-20T14:25:44Z -> 2026-10-20T14:25:46Z
+6 Миграция финансов по SKU на accrual (параллельный файл) | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+7 Эквайринг/хранение по SKU из accrual/by-day | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+8 Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций) | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+9 Отчёт о реализации по SKU (штуки и база налога F+G-J-K) | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+10 Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня) | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+11 Калибровка соинвеста по эталону начислений | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+12 Коммит данных в ветку | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+13 Запуск ozon-snapshots после сбора по съёму | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+14 Отчёты о реализации получены целиком | success | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+27 Post Run actions/setup-node@v4 | skipped | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+28 Post Run actions/checkout@v4 | success | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+29 Complete job | success | 2026-10-20T14:25:46Z -> 2026-10-20T14:25:46Z
+--- annotations
+warning: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+failure: Process completed with exit code 1.
+failure: orders-daily FAIL: HttpError: OZON Seller /v2/posting/fbo/list -> HTTP 400: {"code":9,"message":"obsolete method cannot be used"}
+notice: "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+=== run 39439844466
+job 118686486581
+1 Set up job | success | 2026-10-20T14:30:34Z -> 2026-10-20T14:30:35Z
+2 Run actions/checkout@v4 | success | 2026-10-20T14:30:35Z -> 2026-10-20T14:30:47Z
+3 Run actions/setup-node@v4 | success | 2026-10-20T14:30:47Z -> 2026-10-20T14:30:47Z
+4 Run npm ci || npm install | success | 2026-10-20T14:30:47Z -> 2026-10-20T14:30:50Z
+5 Сбор по заказам | success | 2026-10-20T14:30:50Z -> 2026-10-20T14:32:03Z
+6 Миграция финансов по SKU на accrual (параллельный файл) | success | 2026-10-20T14:32:03Z -> 2026-10-20T14:32:50Z
+7 Эквайринг/хранение по SKU из accrual/by-day | success | 2026-10-20T14:32:50Z -> 2026-10-20T14:33:46Z
+8 Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций) | success | 2026-10-20T14:33:46Z -> 2026-10-20T14:37:47Z
+9 Отчёт о реализации по SKU (штуки и база налога F+G-J-K) | success | 2026-10-20T14:37:47Z -> 2026-10-20T14:37:49Z
+10 Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня) | success | 2026-10-20T14:37:49Z -> 2026-10-20T14:37:59Z
+11 Калибровка соинвеста по эталону начислений | success | 2026-10-20T14:37:59Z -> 2026-10-20T14:38:00Z
+12 Коммит данных в ветку | success | 2026-10-20T14:38:00Z -> 2026-10-20T14:38:03Z
+13 Запуск ozon-snapshots после сбора по съёму | skipped | 2026-10-20T14:38:03Z -> 2026-10-20T14:38:03Z
+14 Отчёты о реализации получены целиком | success | 2026-10-20T14:38:03Z -> 2026-10-20T14:38:03Z
+27 Post Run actions/setup-node@v4 | success | 2026-10-20T14:38:03Z -> 2026-10-20T14:38:03Z
+28 Post Run actions/checkout@v4 | success | 2026-10-20T14:38:03Z -> 2026-10-20T14:38:03Z
+29 Complete job | success | 2026-10-20T14:38:03Z -> 2026-10-20T14:38:03Z
+--- annotations
+warning: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+notice: orders-daily: постингов с начислениями 3905
+notice: orders-daily: постингов 3905 за 2026-02-06..2026-10-19
+notice: "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+=== run 39441351008
+job 118691724511
+1 Set up job | success | 2026-10-20T14:40:22Z -> 2026-10-20T14:40:23Z
+2 Run actions/checkout@v4 | success | 2026-10-20T14:40:23Z -> 2026-10-20T14:40:31Z
+3 Run actions/setup-node@v4 | success | 2026-10-20T14:40:31Z -> 2026-10-20T14:40:32Z
+4 Run npm ci || npm install | success | 2026-10-20T14:40:32Z -> 2026-10-20T14:40:37Z
+5 Сбор по заказам | success | 2026-10-20T14:40:37Z -> 2026-10-20T14:41:09Z
+6 Миграция финансов по SKU на accrual (параллельный файл) | success | 2026-10-20T14:41:09Z -> 2026-10-20T14:41:40Z
+7 Эквайринг/хранение по SKU из accrual/by-day | success | 2026-10-20T14:41:40Z -> 2026-10-20T14:42:32Z
+8 Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций) | success | 2026-10-20T14:42:32Z -> 2026-10-20T14:44:40Z
+9 Отчёт о реализации по SKU (штуки и база налога F+G-J-K) | success | 2026-10-20T14:44:40Z -> 2026-10-20T14:44:41Z
+10 Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня) | success | 2026-10-20T14:44:41Z -> 2026-10-20T14:44:50Z
+11 Калибровка соинвеста по эталону начислений | success | 2026-10-20T14:44:50Z -> 2026-10-20T14:44:51Z
+12 Коммит данных в ветку | success | 2026-10-20T14:44:51Z -> 2026-10-20T14:44:53Z
+13 Запуск ozon-snapshots после сбора по съёму | skipped | 2026-10-20T14:44:53Z -> 2026-10-20T14:44:53Z
+14 Отчёты о реализации получены целиком | success | 2026-10-20T14:44:53Z -> 2026-10-20T14:44:53Z
+27 Post Run actions/setup-node@v4 | success | 2026-10-20T14:44:53Z -> 2026-10-20T14:44:53Z
+28 Post Run actions/checkout@v4 | success | 2026-10-20T14:44:53Z -> 2026-10-20T14:44:54Z
+29 Complete job | success | 2026-10-20T14:44:54Z -> 2026-10-20T14:44:54Z
+--- annotations
+warning: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+notice: orders-daily: постингов с начислениями 3905
+notice: orders-daily: форма постинга FBS: {posting_number:string,order_id:number,order_number:string,pickup_code_verified_at:null,status:string,substatus:string,delivery_method:{id:number,name:string,warehouse_id:number,warehouse:string,tpl_provider_id:number,tpl_provider:string},delivery_schema:string,tracking_number:string,tpl_integration_type:string,in_process_at:string,shipment_date:string,shipment_date_without_delay:string,optional:{products_with_possible_mandatory_mark:[]},cancellation:{cancel_reason_id:number,cancel_reason:string,cancellation_type:string,cancelled_after_ship:boolean,affect_cancellation_rating:boolean,cancellation_initiator:string},customer:null,products:[{is_blr_traceable:boolean,is_marketplace_buyout:boolean,offer_id:string,name:string,sku:number,quantity:number,imei:[],weight:number,product_color:string,price:{amount:string,currency:string}}],addressee:null,barcodes:null,analytics_data:null,destination_place_id:number,destination_place_name:string,financial_data:{products:[{payout:number,product_id:number,old_price:number,price:number,total_discount_value:number,total_discount_percent:number,quantity:number,customer_price:{amount:string,currency:string},actions:[string],commission:{amount:number,percent:number,currency:string}}],cluster_from:string,cluster_to:string},is_express:boolean,legal_info:null,quantum_id:number,require_blr_traceable_attrs:boolean,requirements:{products_requiring_gtd:[],products_requiring_country:[],products_requiring_mandatory_mark:[…
+notice: orders-daily: форма постинга FBO: {posting_number:string,order_id:number,order_number:string,status:string,substatus:string,cancellation:null,products:[{is_marketplace_buyout:boolean,offer_id:string,name:string,sku:number,quantity:number,price:{amount:string,currency:string},digital_codes:[]}],analytics_data:null,financial_data:{products:[{payout:number,product_id:number,old_price:number,price:number,total_discount_value:number,total_discount_percent:number,actions:[string],commission:{amount:number,percent:number,currency:string}}],cluster_from:string,cluster_to:string},legal_info:null,external_order:{is_external:boolean,platform_name:string},cancel_reason_id:number,created_at:string,in_process_at:string,additional_data:[],is_extra_packed:boolean,is_sealed:boolean,storage_type:string}
+notice: orders-daily: постингов 3905 за 2026-02-06..2026-10-19
+notice: "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"

@@ -13,6 +13,15 @@ const SELLER_HOST = "https://api-seller.ozon.ru";
 // Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
 const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
 const ACCRUAL_GAP_MS = 300;
+// Деньги из списков отправлений: v2 отдавал price числом или строкой, v3/v4 отдают объект
+// {amount: "99.90", currency: "RUB"} (форма снята аннотацией прогона 39441351008). Одна функция
+// на все три вида; нечитаемая форма даёт 0, и её ловят инварианты сборщика по выручке.
+export function moneyOf(v: unknown): number {
+  if (v && typeof v === "object") { const o = v as any; return Number(o.amount ?? o.value ?? o.price ?? 0) || 0; }
+  return Number(v ?? 0) || 0;
+}
+const POSTING_PAGE = 100;        // /v3/posting/fbo/list и /v4/posting/fbs/list: страница до 100
+const POSTING_PAGE_CAP = 2000;   // 200 000 отправлений - прежний потолок offset-пагинации
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Порядок метрик важен: ответ - массив в этом же порядке (DOC_02 §2.1).
@@ -397,7 +406,7 @@ export class OzonSeller {
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
   // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
-  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any; raw: any }>> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const out: Array<any> = [];
     // src - откуда пришёл заказ: FBO (склад OZON) или FBS (склад продавца). rFBS (доставка силами
@@ -411,23 +420,43 @@ export class OzonSeller {
       src,
       products: (p.products ?? []).map((it: any) => ({
         sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),
-        qty: Number(it.quantity ?? 0), price: Number(it.price ?? 0),
+        qty: Number(it.quantity ?? 0), price: moneyOf(it.price),
       })),
       financial_data: p.financial_data ?? null,
+      raw: p, // сырой постинг: сборщик печатает его форму (имена полей и типы) в аннотацию прогона
     });
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: { financial_data: true } });
-      const arr: any[] = d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBO"));
-      if (arr.length < 1000) break;
-    }
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: { financial_data: true } });
-      const arr: any[] = d.result?.postings ?? d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBS"));
-      if (arr.length < 1000) break;
-    }
+    for (const p of await this.listPostings("FBO", from, to, true)) out.push(mapP(p, "FBO"));
+    for (const p of await this.listPostings("FBS", from, to, true)) out.push(mapP(p, "FBS"));
     return out;
+  }
+
+  // Список отправлений за период [since, to] по дате заказа, одна схема за вызов.
+  // OZON 19.10.2026 отключил /v2/posting/fbo/list (HTTP 400 {"code":9,"message":"obsolete method
+  // cannot be used"}, прогон orders-backfill 39402400842); замена - /v3/posting/fbo/list и
+  // /v4/posting/fbs/list: курсор вместо offset, страница до 100, sort_dir вместо dir, ответ
+  // {postings, has_next, cursor}. Цена товара и customer_price в v3/v4 - объект {amount, currency},
+  // читает moneyOf. Fail-closed: ответ без списка отправлений или без has_next (переименованное
+  // поле - прежний контракт молча отдал бы 0 строк или одну страницу) и курсор без сдвига при
+  // has_next - ошибка с формой ответа, а не тихий недобор (ФЕНИКС #492 P1, P2).
+  private async listPostings(scheme: "FBO" | "FBS", since: string, to: string, financial: boolean): Promise<any[]> {
+    const path = scheme === "FBO" ? "/v3/posting/fbo/list" : "/v4/posting/fbs/list";
+    const out: any[] = [];
+    let cursor = "";
+    for (let page = 0; page < POSTING_PAGE_CAP; page++) {
+      const d = await this.post<any>(path, { cursor, filter: { since, to }, limit: POSTING_PAGE, sort_dir: "asc", translit: false, with: { financial_data: financial } });
+      const arr: unknown = d?.postings ?? d?.result?.postings ?? d?.result;
+      const hasNextRaw = d?.has_next ?? d?.result?.has_next;
+      if (!Array.isArray(arr) || typeof hasNextRaw !== "boolean") {
+        throw new Error(`OZON ${path}: ответ без списка отправлений или has_next, ключи: ${Object.keys(d ?? {}).join(",")} / result: ${Object.keys(d?.result ?? {}).join(",")}`);
+      }
+      for (const p of arr) if (p?.posting_number) out.push(p);
+      const hasNext = hasNextRaw;
+      const next = String(d.cursor ?? d.result?.cursor ?? "");
+      if (!hasNext || !arr.length) return out;
+      if (!next || next === cursor) throw new Error(`OZON ${path}: has_next без нового курсора после страницы ${page + 1}`);
+      cursor = next;
+    }
+    throw new Error(`OZON ${path}: больше ${POSTING_PAGE_CAP} страниц по ${POSTING_PAGE} - окно ${since}..${to} слишком велико`);
   }
 
   // Возвраты за период (/v1/returns/list). Нужны, чтобы вычесть выручку возвращённых заказов из блока
@@ -464,18 +493,7 @@ export class OzonSeller {
   async postingNumbers(dateFrom: string, dateTo: string): Promise<string[]> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const nums = new Set<string>();
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: {} });
-      const arr: any[] = d.result ?? [];
-      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
-      if (arr.length < 1000) break;
-    }
-    for (let offset = 0; offset < 200000; offset += 1000) {
-      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: {} });
-      const arr: any[] = d.result?.postings ?? d.result ?? [];
-      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
-      if (arr.length < 1000) break;
-    }
+    for (const scheme of ["FBO", "FBS"] as const) for (const p of await this.listPostings(scheme, from, to, false)) nums.add(String(p.posting_number));
     return [...nums];
   }
 }

@@ -1,0 +1,61 @@
+1
+1
+
+ RUN  v2.1.9 /tmp/feniks-mut-LRcr/analytics-mvp
+
+ ✓ src/scripts/ozon/prices-daily.test.ts (12 tests) 12ms
+ ❯ src/connector/ozon-seller.postings.test.ts (8 tests | 1 failed) 21ms
+   × OzonSeller.postings: контракт v3/v4 fail-closed (ФЕНИКС #492 P1, P2, M1) > цена объектом {amount, currency} читается через postings() (мутант M1: Number даёт 0) 8ms
+     → expected NaN to be 99.9 // Object.is equality
+ ❯ src/scripts/ozon/orders-daily.test.ts (15 tests | 1 failed) 37ms
+   × orders-daily paidOf: customer_price объектом v3/v4 (регрессия E021 третий случай, мутант M2) > объект {amount} × quantity, число и строка - тоже 9ms
+     → expected null to be 199.8 // Object.is equality
+ ✓ src/connector/ozon-seller.retry.test.ts (2 tests) 7ms
+ ✓ src/connector/ozon-performance.test.ts (3 tests) 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/connector/ozon-seller.postings.test.ts > OzonSeller.postings: контракт v3/v4 fail-closed (ФЕНИКС #492 P1, P2, M1) > цена объектом {amount, currency} читается через postings() (мутант M1: Number даёт 0)
+AssertionError: expected NaN to be 99.9 // Object.is equality
+
+- Expected
++ Received
+
+- 99.9
++ NaN
+
+ ❯ src/connector/ozon-seller.postings.test.ts:80:40
+     78|       .mockResolvedValueOnce(resp(200, { postings: [], has_next: false…
+     79|     const out = await new OzonSeller({ clientId: "x", apiKey: "y" } as…
+     80|     expect(out[0]!.products[0]!.price).toBe(99.9);
+       |                                        ^
+     81|   });
+     82|   it("P1: список под другим ключом (items) - ошибка с ключами ответа, …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/scripts/ozon/orders-daily.test.ts > orders-daily paidOf: customer_price объектом v3/v4 (регрессия E021 третий случай, мутант M2) > объект {amount} × quantity, число и строка - тоже
+AssertionError: expected null to be 199.8 // Object.is equality
+
+- Expected: 
+199.8
+
++ Received: 
+null
+
+ ❯ src/scripts/ozon/orders-daily.test.ts:84:93
+     82| describe("orders-daily paidOf: customer_price объектом v3/v4 (регресси…
+     83|   it("объект {amount} × quantity, число и строка - тоже", () => {
+     84|     expect(paidOf([{ customer_price: { amount: "99.90", currency: "RUB…
+       |                                                                                             ^
+     85|     expect(paidOf([{ customer_price: 50, quantity: 1 }, { customer_pri…
+     86|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  2 failed | 38 passed (40)
+   Start at  15:30:58
+   Duration  940ms (transform 420ms, setup 0ms, collect 695ms, tests 80ms, environment 1ms, prepare 380ms)
+
+MUTANT KILLED (тесты упали) - фикс защищён

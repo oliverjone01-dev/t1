@@ -1,0 +1,3 @@
+tsc --noEmit (scratch copies, git archive): main 9d28d96 errors=41, head 5af7089 errors=41
+errors in ozon-seller*/orders-daily* at head: 0
+error set main == head (positions ignored): new errors 0

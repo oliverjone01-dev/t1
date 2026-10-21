@@ -1,0 +1,26 @@
+P1 FBO: ключ списка items вместо postings
+   ожидание: throw (неизвестная форма ответа)
+   факт:     ok: {"n":3,"fbo":0,"fbs":3,"dates":["2026-10-19"],"prices":[100]}
+   вызовов fetch: 2
+P2 FBS: has_next -> hasNext, полная страница 100 + курсор
+   ожидание: throw или >100 (не молчаливое усечение)
+   факт:     ok: {"n":100,"fbo":0,"fbs":100,"dates":["2026-10-19"],"prices":[100]}
+   вызовов fetch: 2
+P3 has_next=true, тот же курсор
+   ожидание: throw (без нового курсора)
+   факт:     throw: OZON /v3/posting/fbo/list: has_next без нового курсора после страницы 1
+   вызовов fetch: 1
+P4 FBS без in_process_at/created_at, есть shipment_date
+   ожидание: throw или date=null (не подмена базы даты)
+   факт:     ok: {"n":1,"fbo":0,"fbs":1,"dates":["2026-10-22"],"prices":[100]}
+   вызовов fetch: 2
+
+P5 moneyOf (ожидание для нечитаемого: null или ошибка, не 0):
+   {amount:'99.9',currency} -> 99.9
+   '15.5' -> 15.5
+   20 -> 20
+   {units:10,nanos:5e8} (google.type.Money) -> 0
+   {amount:'1 234,50'} (запятая) -> 0
+   {price:{amount:'5'}} (вложено) -> 0
+   null (поле пропало) -> 0
+   undefined -> 0

@@ -43,7 +43,11 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   for (const p of ["p7", "p30", "p90"]) for (const k of ["top_spend", "burners"]) for (const c of periods[p]?.[k] ?? []) ids.add(String(c.id));
   const meta = { ...periods.p90?.camp_meta, ...periods.p30?.camp_meta, ...periods.p7?.camp_meta };
   const attr = new Set(readRows(join(dir, "ads_attr_daily.ndjson")).map(r => `${r.d}|${r.id}`));
-  const gaps = readRows(join(dir, "ads_daily.ndjson")).filter(r => r.d >= shiftDay(to,-6) && r.d <= to && r.sp > 0 && ids.has(String(r.id)) && meta[String(r.id)]?.instr === "Оплата за клик" && !attr.has(`${r.d}|${r.id}`));
+  const daily = readRows(join(dir, "ads_daily.ndjson")).filter(r => r.d >= shiftDay(to,-6) && r.d <= to && r.sp > 0 && meta[String(r.id)]?.instr === "Оплата за клик");
+  const sku = new Set(readRows(join(dir,"ads_sku_daily.ndjson")).map(r=>`${r.d}|${r.cid}`));
+  const skuGaps = daily.filter(r=>!sku.has(`${r.d}|${r.id}`));
+  if (skuGaps.length) out.push({source:"Полнота расхода CPC по SKU",through:null,expected:to,status:"error",note:`Нет SKU для ${skuGaps.length} пар кампания/день с расходом: ${skuGaps.slice(0,8).map(r=>`${r.id} (${r.d})`).join(", ")}. Загрузка не завершена`});
+  const gaps = daily.filter(r => ids.has(String(r.id)) && !attr.has(`${r.d}|${r.id}`));
   if (gaps.length) out.push({ source: "Полнота атрибуции кампаний", through: null, expected: to, status: "error", note: `Нет строк для ${gaps.length} пар кампания/день: ${gaps.map(r => `${r.id} (${r.d})`).join(", ")}. Возможен fallback на расход SKU; атрибуция продаж не подтверждена` });
   out.push({ source: "Архив transaction/list", through: "2026-09-07", expected: "2026-09-07", status: "ok", note: "Историческая граница. Метод отключён, текущие деньги берутся из accrual/реализации" });
   return out;

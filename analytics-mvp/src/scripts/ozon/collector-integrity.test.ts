@@ -24,6 +24,7 @@ import { main as skuPnl } from "./pnl-sku-accrual-daily.js";
 import { main as adsSku } from "./ad-sku-daily.js";
 import { main as attr } from "./ad-attribution-daily.js";
 import { main as adsDaily } from "./ads-daily.js";
+import { main as views } from "./sku-views.js";
 import { sourceHealth, healthHtml } from "./source-health.js";
 
 const put = (name: string, value: unknown, nd = true) => writeFileSync(`data/${name}`, nd ? (value as any[]).map(r => JSON.stringify(r)).join("\n") + "\n" : JSON.stringify(value));
@@ -53,6 +54,13 @@ beforeEach(() => {
 afterEach(() => { process.argv = argv; vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); rmSync(fixture.dir,{recursive:true,force:true}); });
 
 describe("целостность дневных загрузок", () => {
+  it("настоящий sku-views сохраняет явную нулевую коррекцию API", async () => {
+    put("sku_views.ndjson",[{date:"2026-10-20",sku:"123",views:10}]);
+    const load=vi.spyOn(OzonSeller.prototype,"skuViewsDay").mockImplementation(async day=>[{date:day,sku:"123",views:0,cart:0,units:0,ret:0,canc:0}] as any);
+    await views(); expect(load).toHaveBeenCalled();
+    expect(raw("sku_views.ndjson")).toContain('"views":0');
+    expect(JSON.parse(raw("sku_views.ndjson.completed.json"))).toContain("2026-10-20");
+  });
   it("23:30 МСК остаётся в своём дне, семь дней = семь дат", () => {
     expect(closedDay(new Date("2026-10-21T20:30:00Z"))).toBe("2026-10-20");
     expect(closedDay(new Date("2026-10-21T22:30:00Z"))).toBe("2026-10-21");
@@ -180,6 +188,7 @@ it("проверка источников видит отдельную дыру
   put("cpo_sku_status.ndjson",[{date:"2026-09-17",art:"A",bid_percent:23}]);
   const rows = sourceHealth(join(fixture.dir,"data"));
   expect(rows.find(r=>r.source==="Полнота атрибуции кампаний")?.status).toBe("error");
+  expect(rows.find(r=>r.source==="Полнота расхода CPC по SKU")?.status).toBe("error");
   expect(rows.find(r=>r.source==="CPO: ставки и позиции")?.through).toBe("2026-09-17");
   const html = healthHtml(join(fixture.dir,"data")); expect(html).toContain("Более поздние даты не подтверждены"); expect(html).not.toContain("0 позиций");
 });

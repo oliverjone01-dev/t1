@@ -9,7 +9,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { OzonPerformance } from "../../connector/ozon-performance.js";
 import { attributionReport, supportsSkuReport } from "./attribution-report.js";
 import { windows } from "./ad-attribution-daily.js";
-import { readRows, atomicText, writeRows, replaceSlice, requireCredentials, closedDay, validateRows } from "./collector-integrity.js";
+import { readRows, atomicText, writeRows, replaceSlice, requireCredentials, closedDay, validateRows, shiftDay } from "./collector-integrity.js";
 
 const OUT = "data/ads_sku_daily.ndjson";
 const STATE = "data/ads_sku_state.json";
@@ -41,9 +41,14 @@ export async function main() {
 
   const state: Record<string, string> = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : {};
   const existing = readRows<Row>(OUT);
+  const presentDays = new Set(existing.map(r=>`${r.d}|${r.cid}`)), gapSpend: Record<string,number> = {};
+  for (const r of stats) if (r.date >= shiftDay(to,-6) && r.spent > 0 && !presentDays.has(`${r.date}|${r.id}`)) gapSpend[r.id] = (gapSpend[r.id] ?? 0) + r.spent;
   const failures: string[] = [];
   // Порядок: сначала НЕ собранные (по убыванию расхода), затем собранные - самые протухшие первыми.
   const order = ranked.slice().sort((a, b) => {
+    // Свежие дыры обслуживаем раньше давно закрытых кампаний из 62-дневного окна.
+    const urgent = Number((gapSpend[b] ?? 0) > 0) - Number((gapSpend[a] ?? 0) > 0);
+    if (urgent) return urgent;
     const sa = state[a], sb = state[b];
     if (!sa && sb) return -1; if (sa && !sb) return 1;
     if (!sa && !sb) return spendByCamp[b]! - spendByCamp[a]!;

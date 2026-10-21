@@ -9,7 +9,7 @@ export async function main() {
   await collectDaily({
     path: "data/sku_views.ndjson", floor: "2026-02-06",
     date: (r: any) => r.date, key: (r: any) => `${r.date}|${r.sku}`,
-    load: async day => (await seller.skuViewsDay(day)).filter(r => r.views > 0 || r.cart > 0 || r.units > 0 || r.ret > 0 || r.canc > 0),
+    load: async day => seller.skuViewsDay(day),
   });
 }
 

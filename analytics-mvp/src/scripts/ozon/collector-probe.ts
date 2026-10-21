@@ -36,7 +36,9 @@ async function main() {
     const csv = await download(uuid), lines = csv.split(/\r?\n/).filter(l=>l.trim());
     const h = lines.findIndex(l=>/(^|;)\s*sku\s*;/i.test(l) && /продажи в продвижении/i.test(l));
     // Только форма, даты и наличие SKU; без имён товаров и денежных значений.
-    console.log("CSV SHAPE",JSON.stringify({lines:lines.length,header:h<0?null:lines[h],sample:lines.slice(h+1,h+5).map(l=>{const c=l.split(";");return {date:c[0],sku_present:!!c[1]?.trim(),columns:c.length};})}));
+    const shape = (l: string) => {const c=l.split(";");return {date:c[0],sku_present:!!c[1]?.trim(),sku_numeric:/^\d+$/.test(c[1]?.trim() ?? ""),columns:c.length};};
+    const unusual = lines.slice(h+1).filter(l=>{const c=l.split(";");return !/^\d{2}\.\d{2}\.\d{4}$/.test(c[0]?.trim() ?? "") || !/^\d+$/.test(c[1]?.trim() ?? "");});
+    console.log("CSV SHAPE",JSON.stringify({lines:lines.length,header:h<0?null:lines[h],sample:lines.slice(h+1,h+5).map(shape),unusual:unusual.slice(0,8).map(shape)}));
     return csv;
   };
   for (const c of candidates) await probe(`DATE CSV ${c.id} ${day}`, async () => {

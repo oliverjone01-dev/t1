@@ -7,6 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
 import { parseDeliveryCsv, withoutCancelled, resolveOrders, deliveryIssues, delivByOrder, type DelivRow, type DelivIssue } from "./delivery-lib.js";
+import { deliverySource } from "./delivery-source.js";
 import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, nettingCancelled, nettingNoStatus, isNettingFee, isPointsPaid, ledgerToBy, daysAfter, LEDGER_LAG_LIMIT_DAYS, type OrderRow } from "./derive-lib.js";
 
 function main() {
@@ -63,12 +64,13 @@ function main() {
   let delivIssues: DelivIssue[] = [];
   // Нет файла - предупреждение ниже. Файл есть, но в нём не число - сборка падает с номером
   // строки: молча обнулённая сумма и есть та ошибка, которую ловим.
-  if (existsSync("fixtures/delivery_ym.csv")) {
+  const delivery = deliverySource(yp("").replace(/\/$/, ""));
+  if (delivery) {
     const ordAll = readNdjson<OrderRow>(yp("orders.ndjson"));
     const knownOrders = new Set(ordAll.map((r) => String(r.order)));
     const deliveredOrders = new Set(ordAll.filter((r) => r.status === "DELIVERED").map((r) => String(r.order)));
-    delivRows = resolveOrders(withoutCancelled(parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8"))), knownOrders, deliveredOrders);
-    delivIssues = deliveryIssues(delivRows, deliveredOrders);
+    delivRows = resolveOrders(withoutCancelled(parseDeliveryCsv(delivery.text)), knownOrders, deliveredOrders);
+    delivIssues = [...deliveryIssues(delivRows, deliveredOrders), ...delivery.issues];
   }
   // Блок «за выбранный период» - по проводкам реестра и дате транзакции, как отчёт о платежах
   // Маркета (Катя 28.09.2026). Пары без колонки источника - из заказов, с пометкой.

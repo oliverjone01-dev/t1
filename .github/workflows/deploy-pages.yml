@@ -55,7 +55,7 @@ on:
   # Market snapshots добавлен по просьбе Кати 29.09.2026: снимок Маркета коммитит пересобранные
   # /market/ страницы, но без этого триггера они ждали следующего чужого деплоя (до суток).
   workflow_run:
-    workflows: ["OZON snapshots (прямой, без n8n)", "Direct snapshots (прямой, без n8n)", "GEO-monster harvest", "Market snapshots (Яндекс Маркет, прямой)"]
+    workflows: ["OZON snapshots (прямой, без n8n)", "Direct snapshots (прямой, без n8n)", "GEO-monster harvest", "Market snapshots (Яндекс Маркет, прямой)", "Market delivery (Google Sheets)"]
     types: [completed]
   # СТРАХОВКА: гарантированная ежедневная пересборка сайта. Триггер workflow_run (после ночного
   # синка) в GitHub капризный - иногда пропускается, и свежие данные не попадают на сайт. Своё

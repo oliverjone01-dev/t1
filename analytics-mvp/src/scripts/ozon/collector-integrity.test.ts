@@ -120,6 +120,31 @@ describe("финансовый полный пересбор", () => {
 });
 
 describe("async отчёты кампаний", () => {
+  it("реальная строка Корректировка учитывается отдельно, неизвестный SKU не становится служебным", async () => {
+    const perf=new OzonPerformance({clientId:"x",clientSecret:"y"}), callback=vi.fn();
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv()+"Корректировка;;;-25;;\nВсего;;;75;1;500\n");
+    await expect(attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000)).rejects.toThrow("отдельного учёта");
+    const rows=await attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000,callback);
+    expect(rows).toHaveLength(1); expect(callback).toHaveBeenCalledWith({from:"2026-10-20",to:"2026-10-20",values:{"расход":-25,"продано товаров":null,"продажи в продвижении":null}});
+    callback.mockClear();
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv()+"Корректировка;;;-25;;\n20.10.2026;;Корректировка;10;1;20\n");
+    await expect(attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000,callback)).rejects.toThrow("SKU/даты");
+    expect(callback).not.toHaveBeenCalled();
+  });
+  it("невалидное число корректировки блокирует запись, успешная metadata видна в health", async () => {
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv()+"Корректировка;;;BROKEN;;\n");
+    const perf=new OzonPerformance({clientId:"x",clientSecret:"y"});
+    await expect(attributionReport(perf,"1","2026-10-20","2026-10-20",Date.now()+60000,()=>{})).rejects.toThrow("число корректировки");
+    // Разные окна отчётов: не смешиваем недатированную сумму с дневным SKU рядом.
+    vi.mocked(OzonPerformance.prototype.downloadStatistics).mockImplementation(async uuid=>csv(uuid.split("|")[1])+"Корректировка;;;-25;;\n");
+    await adsSku();
+    expect(raw("ads_sku_daily.ndjson")).not.toContain("-25");
+    expect(raw("ads_report_adjustments.json")).toContain('"расход":-25');
+    expect(sourceHealth(join(fixture.dir,"data")).find(r=>r.source==="Недатированные корректировки CSV")?.status).toBe("warning");
+    const metadata=raw("ads_report_adjustments.json");
+    vi.mocked(OzonPerformance.prototype.requestStatistics).mockRejectedValue(new Error("503"));
+    await expect(adsSku()).rejects.toThrow(); expect(raw("ads_report_adjustments.json")).toBe(metadata);
+  });
   it("название товара Итого не отключает проверку чисел; настоящие totals не становятся SKU", async () => {
     vi.mocked(OzonPerformance.prototype.downloadStatistics).mockResolvedValue(csv().split("\n")[0]+";Добавления в корзину\n20.10.2026;123;Итого;BROKEN;1;500;BROKEN\n");
     const perf=new OzonPerformance({clientId:"x",clientSecret:"y"});

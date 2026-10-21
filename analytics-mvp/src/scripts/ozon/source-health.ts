@@ -11,6 +11,12 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   const status = json(join(dir, "collector_status.json"));
   const attempt = json(join(dir, "collector_failures.json"));
   if (attempt.failures?.length) out.push({source:"Последняя загрузка",through:attempt.attempted_at ?? null,expected:to,status:"error",note:attempt.failures.join("; ")});
+  const adjustments = json(join(dir,"ads_report_adjustments.json"));
+  const adjusted: string[] = [];
+  for (const [collector, campaigns] of Object.entries(adjustments)) for (const [cid, item] of Object.entries(campaigns as any)) {
+    if ((item as any).reports?.length) adjusted.push(`${cid} (${collector})`);
+  }
+  if (adjusted.length) out.push({source:"Недатированные корректировки CSV",through:null,expected:to,status:"warning",note:`В ${adjusted.length} отчётах есть корректировка без SKU и даты операции. Сохранена отдельно, не распределена по товарам/дням: ${adjusted.join(", ")}`});
   const defs: Array<[string, string, string[], string?]> = [
     ["Заказы", "orders_daily.ndjson", ["d"]], ["Продажи", "history.ndjson", ["date"]],
     ["Дневные итоги", "daily_totals.ndjson", ["date"]], ["Воронка SKU", "sku_views.ndjson", ["date"]],

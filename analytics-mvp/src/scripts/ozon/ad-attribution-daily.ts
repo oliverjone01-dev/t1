@@ -3,7 +3,7 @@
 // data/ads_attr_daily.ndjson: checkpoint каждой кампании + повтор последних 7 дней.
 // CPO исключён; ошибки запроса, статуса, CSV не двигают checkpoint и дают exit 1.
 import { readFileSync, existsSync } from "node:fs";
-import { attributionReport, supportsSkuReport } from "./attribution-report.js";
+import { attributionReport, supportsSkuReport, saveCorrections, type ReportCorrection } from "./attribution-report.js";
 import { readRows, writeRows, atomicText, replaceSlice, shiftDay, closedDay, requireCredentials } from "./collector-integrity.js";
 import { OzonPerformance } from "../../connector/ozon-performance.js";
 
@@ -66,8 +66,9 @@ export async function main() {
     const from = checkpoint ? [recent, [shiftDay(checkpoint, 1), shiftDay(to, -6)].sort()[0]!].sort().at(-1)! : recent;
     try {
       const recs: AttrDailyRec[] = [];
+      const corrections: ReportCorrection[] = [];
       for (const [wf, wt] of windows(from, to)) {
-        for (const r of await attributionReport(perf, id, wf, wt, deadline)) {
+        for (const r of await attributionReport(perf, id, wf, wt, deadline, r => corrections.push(r))) {
           if (r.date < wf || r.date > wt || !r.sku) throw new Error("Строка отчёта вне окна/без SKU");
           recs.push({ d: r.date, id, sku: r.sku, nm: r.name, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldModel, omM: r.omModel });
         }
@@ -77,6 +78,7 @@ export async function main() {
       const merged = replaceSlice(existing, recs, r => r.id === id && r.d >= from && r.d <= to, r => `${r.d}|${r.id}|${r.sku}`);
       merged.sort((a,b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id) || a.sku.localeCompare(b.sku));
       writeRows(OUT, merged, r => `${r.d}|${r.id}|${r.sku}`);
+      saveCorrections("attribution", { [id]: corrections });
       existing = merged;
       state[id] = { through: to, loaded_at: new Date().toISOString() };
       atomicText(statePath, JSON.stringify(state) + "\n");

@@ -42,7 +42,7 @@ async function main() {
     return csv;
   };
   for (const c of candidates) await probe(`DATE CSV ${c.id} ${day}`, async () => {
-    const rows = await attributionReport(perf,c.id,shiftDay(day,-54),day,deadline);
+    const rows = await attributionReport(perf,c.id,shiftDay(day,-54),day,deadline,r=>console.log("CSV CORRECTION",JSON.stringify({cid:c.id,from:r.from,to:r.to,fields:Object.keys(r.values),undated:true})));
     if (!rows.some(r=>r.date===day)) throw new Error(`В отчёте нет ${day} при положительном расходе; строк ${rows.length}, последняя дата ${rows.map(r=>r.date).sort().at(-1) ?? "нет"}`);
     return rows.length;
   });

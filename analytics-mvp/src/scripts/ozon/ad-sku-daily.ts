@@ -7,7 +7,7 @@
 // пачкой. Строка = {d, cid, sku, sp, om}. Окно - последние WINDOW дней. Ошибка даёт exit 1, старые строки сохраняются.
 import { readFileSync, existsSync } from "node:fs";
 import { OzonPerformance } from "../../connector/ozon-performance.js";
-import { attributionReport, supportsSkuReport } from "./attribution-report.js";
+import { attributionReport, supportsSkuReport, saveCorrections, type ReportCorrection } from "./attribution-report.js";
 import { windows } from "./ad-attribution-daily.js";
 import { readRows, atomicText, writeRows, replaceSlice, requireCredentials, closedDay, validateRows, shiftDay } from "./collector-integrity.js";
 
@@ -58,12 +58,14 @@ export async function main() {
   const budgetMin = Number(process.env.ADS_SKU_BUDGET_MIN || "9");
   const START = Date.now(), BUDGET_MS = budgetMin * 60 * 1000;
   const fresh: Row[] = []; const processed = new Set<string>(); let budgetHit = false;
+  const correctionUpdates: Record<string,ReportCorrection[]> = {};
   for (const cid of order) {
     if (Date.now() - START > BUDGET_MS) { budgetHit = true; break; }
     try {
       const rows = [];
+      const corrections: ReportCorrection[] = [];
       for (const [wf, wt] of windows(from, to)) {
-        const part = await attributionReport(perf, cid, wf, wt, START + BUDGET_MS);
+        const part = await attributionReport(perf, cid, wf, wt, START + BUDGET_MS, r => corrections.push(r));
         if (part.some(r => r.date < wf || r.date > wt || !r.sku)) throw new Error("Ответ вне окна/без SKU");
         rows.push(...part);
       }
@@ -73,11 +75,13 @@ export async function main() {
       if (stats.some(r => r.id === cid && r.spent > 0 && !present.has(r.date))) throw new Error("Неполный отчёт: нет SKU в день с расходом кампании");
       replaceSlice(existing, recs, r => r.cid === cid && r.d >= from && r.d <= to, r => `${r.d}|${r.cid}|${r.sku}`);
       fresh.push(...recs); processed.add(cid); state[cid] = today();
+      correctionUpdates[cid] = corrections;
     } catch (e) { failures.push(cid); console.error(`ad-sku-daily: ${cid}: ${(e as Error).message}; прошлые строки сохранены`); }
   }
   const kept = existing.filter(r => !(processed.has(r.cid) && r.d >= from && r.d <= to));
   const merged = kept.concat(fresh).sort((a, b) => a.d.localeCompare(b.d) || a.cid.localeCompare(b.cid) || a.sku.localeCompare(b.sku));
   writeRows(OUT, merged, r => `${r.d}|${r.cid}|${r.sku}`);
+  saveCorrections("sku", correctionUpdates);
   atomicText(STATE, JSON.stringify(state) + "\n");
 
   // Покрытие: доля расхода по ВСЕМ уже собранным кампаниям (не только этого прогона).
@@ -88,7 +92,7 @@ export async function main() {
   const covPct = totalSpend ? Math.round(covered / totalSpend * 100) : 0;
   const spTotal = inWindow.reduce((s, r) => s + r.sp, 0);
   console.log(`ad-sku-daily: CPO без SKU API: расход ${Math.round(unsupportedSpend)} ₽, исключён из покрытия CPC`);
-  console.log(`ad-sku-daily: окно ${from}..${to}; за прогон +${processed.size} кампаний; собрано ${collectedCids.size}/${ranked.length} кампаний, покрыто расхода ${covPct}%; расход по SKU ${Math.round(spTotal).toLocaleString("ru-RU")} ₽, строк ${merged.length}${budgetHit ? " (бюджет исчерпан, продолжим в следующий прогон)" : " (все кампании собраны)"}`);
+  console.log(`ad-sku-daily: окно ${from}..${to}; за прогон +${processed.size} кампаний; собрано ${collectedCids.size}/${ranked.length} кампаний; доля расхода кампаний с дневными SKU-строками ${covPct}% (не сверка сумм, недатированные корректировки отдельно); расход по SKU ${Math.round(spTotal).toLocaleString("ru-RU")} ₽, строк ${merged.length}${budgetHit ? " (бюджет исчерпан, продолжим в следующий прогон)" : " (все кампании собраны)"}`);
   if (failures.length) throw new Error(`Не обновлены кампании: ${failures.join(", ")}`);
 }
 

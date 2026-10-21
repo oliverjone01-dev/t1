@@ -1,0 +1,26 @@
+
+ RUN  v2.1.9 /Users/gengroup/Documents/Codex/t1/analytics-mvp
+
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > 23:30 МСК остаётся в своём дне, семь дней = семь дат
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > ищет старую дыру даже если есть более свежая строка; помнит успешный пустой день
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > ошибка второго дня сохраняет все байты; повтор восстанавливает дыру без дублей
+ ✓ src/scripts/ozon/collector-integrity.test.ts > целостность дневных загрузок > битые ключи, NaN, пустая замена и выход за окно блокируют запись
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > acq: сбой дня не удаляет сохранённые строки и не пишет checkpoint
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > pnl: сбой дня не удаляет сохранённые строки и не пишет checkpoint
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > все три сборщика останавливаются при сбое справочника до публикации
+ ✓ src/scripts/ozon/collector-integrity.test.ts > финансовый полный пересбор > короткий FROM запрещён до обращения к API
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > request: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > state: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > download: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > format: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > timeout: сохраняет старые строки и checkpoint кампании
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > успех повторяем, CPO исключён из очереди, история вне окна сохранена
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > успех B не скрывает сбой A: A повторяется следующим прогоном
+ ✓ src/scripts/ozon/collector-integrity.test.ts > async отчёты кампаний > дедлайн не позволяет скачать незавершённый отчёт
+ ✓ src/scripts/ozon/collector-integrity.test.ts > проверка источников видит отдельную дыру кампании и не выдаёт старый CPO за ноль
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  14:46:01
+   Duration  269ms (transform 87ms, setup 0ms, collect 104ms, tests 33ms, environment 0ms, prepare 30ms)
+

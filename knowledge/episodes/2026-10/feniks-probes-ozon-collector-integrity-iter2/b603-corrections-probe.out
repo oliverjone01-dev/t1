@@ -1,0 +1,6 @@
+{"name":"no-callback","blocked":true,"error":"Недатированная корректировка требует отдельного учёта","callbacks":0}
+{"name":"valid","blocked":false,"rows":[{"date":"2026-10-20","sku":"123","name":"item","sp":100,"sold":1,"om":500,"soldModel":0,"omModel":0,"toCart":2,"drr":0}],"corrections":[{"from":"2026-10-01","to":"2026-10-20","values":{"расход":-10,"продано товаров":null,"продажи в продвижении":0,"добавления в корзину":null}}]}
+{"name":"manifest","visible":true,"stored":{"fixture":{"1":{"loaded_at":"2026-10-21T12:07:13.712Z","reports":[{"from":"2026-10-01","to":"2026-10-20","values":{"расход":-10,"продано товаров":null,"продажи в продвижении":0,"добавления в корзину":null}}]}}}}
+{"name":"bad-number","blocked":true,"error":"Некорректное число корректировки","callbacks":0}
+{"name":"later-bad-row","blocked":true,"error":"Некорректная строка SKU/даты в отчёте","callbacks":0}
+{"name":"misleading-name","blocked":true,"error":"Некорректное число в отчёте","callbacks":0}

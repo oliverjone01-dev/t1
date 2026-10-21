@@ -3,9 +3,10 @@
 // data/ads_daily.ndjson, строка = {d, id, off, sp, o, om}. Догрузка от последнего дня в файле
 // до вчера (самовосстановление). Дашборд (Фаза 1b) агрегирует любой период из этого ряда -
 // так же, как уже делает для продаж из history.ndjson.
-import { readFileSync, appendFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { OzonPerformance, type DailyStatRow } from "../../connector/ozon-performance.js";
 import { dateWindows } from "./ads.js";
+import { readRows, writeRows, replaceSlice, requireCredentials, shiftDay, closedDay } from "./collector-integrity.js";
 
 const OUT = "data/ads_daily.ndjson";
 const FLOOR = "2026-02-01"; // пол данных OZON (DOC_02 §4): раньше - нули
@@ -45,12 +46,12 @@ function needsBackfill(): boolean {
   try { return !("vw" in JSON.parse(lines[lines.length - 1]!)); } catch { return true; }
 }
 
-async function main() {
+export async function main() {
   const clientId = process.env.OZON_PERF_CLIENT_ID || "", clientSecret = process.env.OZON_PERF_SECRET || "";
-  if (!clientId || !clientSecret) { console.warn("ads-daily: OZON_PERF_* нет - пропуск (реклама по дням не обновлена)"); return; }
+  requireCredentials(clientId, clientSecret);
   const perf = new OzonPerformance({ clientId, clientSecret });
   const ids = (await perf.campaigns()).map((c) => c.id);
-  const to = yesterday();
+  const to = closedDay();
 
   if (needsBackfill()) {
     // Разовый ПОЛНЫЙ пересбор FLOOR..вчера с показами/кликами/корзиной (иначе исторические дни без них).
@@ -60,23 +61,27 @@ async function main() {
       recs.push(...dailyRecords(rows, FLOOR, to));
     }
     recs.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    writeFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n");
+    replaceSlice(readRows<DailyAdRec>(OUT), recs, () => true, r => `${r.d}|${r.id}`);
+    writeRows(OUT, recs, r => `${r.d}|${r.id}`);
     console.log(`ads-daily: ПОЛНЫЙ пересбор ${FLOOR}..${to}: ${recs.length} строк (+показы/клики/корзина) -> ${OUT}`);
     return;
   }
 
   const last = lastDate();
-  const from = last ? nextDay(last) : FLOOR;
+  // Повтор хвоста восстанавливает частичный ответ и поздние поправки Performance.
+  const from = last ? [FLOOR, [nextDay(last), shiftDay(to, -6)].sort()[0]!].sort().at(-1)! : FLOOR;
   if (from > to) { console.log(`ads-daily: ряд уже по ${last} (вчера ${to}) - догружать нечего`); return; }
   const recs: DailyAdRec[] = [];
   for (const [wf, wt] of dateWindows(from, to)) {
     const rows = await perf.dailyStats(ids, wf, wt);
     recs.push(...dailyRecords(rows, from, to));
   }
-  if (!recs.length) { console.log(`ads-daily: OZON не отдал строк за ${from}..${to}`); return; }
-  appendFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  if (!recs.length) throw new Error(`OZON не отдал строк за ${from}..${to}`);
+  const merged = replaceSlice(readRows<DailyAdRec>(OUT), recs, r => r.d >= from && r.d <= to, r => `${r.d}|${r.id}`);
+  merged.sort((a,b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
+  writeRows(OUT, merged, r => `${r.d}|${r.id}`);
   const days = new Set(recs.map((r) => r.d)).size;
   console.log(`ads-daily: +${recs.length} строк за ${days} дн (${from}..${to}) -> ${OUT}`);
 }
 
-if (process.argv[1] && /ads-daily\.ts$/.test(process.argv[1])) main();
+if (process.argv[1] && /ads-daily\.ts$/.test(process.argv[1])) main().catch(e => { console.error(e.message); process.exitCode = 1; });

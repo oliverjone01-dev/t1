@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CSV1",
+    "blocked": true,
+    "error": "Некорректная строка SKU/даты в отчёте"
+  },
+  {
+    "id": "CSV2",
+    "blocked": true,
+    "error": "Некорректное число в отчёте"
+  },
+  {
+    "id": "TOTAL1",
+    "blocked": true,
+    "error": "Некорректное число в отчёте"
+  },
+  {
+    "id": "KEY1",
+    "blocked": true,
+    "error": "Пустой/повторный ключ: 2026-10-20|undefined"
+  },
+  {
+    "id": "ZERO1",
+    "rows": [
+      {
+        "d": "2026-10-20",
+        "id": "1",
+        "sum": 0
+      }
+    ]
+  },
+  {
+    "id": "ADS1",
+    "blocked": true,
+    "error": "Неполный ответ: отсутствуют 1 сохранённых ненулевых ключей (2026-10-20|2)",
+    "unchanged": true
+  },
+  {
+    "id": "FIN1",
+    "blocked": true,
+    "error": "Неполный ответ: отсутствуют 1 сохранённых ненулевых ключей (2026-10-20|123)",
+    "unchanged": true,
+    "checkpoint": false
+  },
+  {
+    "id": "FIN2",
+    "blocked": true,
+    "error": "Неполный ответ: отсутствуют 1 сохранённых ненулевых ключей (2026-10-20)",
+    "unchanged": true,
+    "checkpoint": false
+  },
+  {
+    "id": "ZERO2-acq",
+    "success": true,
+    "rows": "{\"d\":\"2026-10-19\",\"sku\":\"123\",\"acq\":0,\"sto\":0,\"bd\":0,\"prt\":0,\"promo\":0,\"com\":0,\"del\":0,\"oth\":0}\n{\"d\":\"2026-10-20\",\"sku\":\"123\",\"acq\":0,\"sto\":0,\"bd\":0,\"prt\":0,\"promo\":0,\"com\":0,\"del\":0,\"oth\":0}\n",
+    "checkpoint": {
+      "acq-sku-daily": {
+        "through": "2026-10-20",
+        "loaded_at": "2026-10-21T12:07:13.475Z"
+      }
+    }
+  },
+  {
+    "id": "HEALTH2",
+    "visible": true,
+    "row": {
+      "source": "Последняя загрузка",
+      "through": "2026-10-21T12:07:13.477Z",
+      "expected": "2026-10-20",
+      "status": "error",
+      "note": "fixture-report-failed"
+    }
+  }
+]

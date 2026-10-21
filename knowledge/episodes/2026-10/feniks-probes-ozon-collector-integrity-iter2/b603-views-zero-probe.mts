@@ -1,0 +1,5 @@
+import{mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
+const root='/private/tmp/ozon-integrity-audit/source-b603b6a2/analytics-mvp/src';const {OzonSeller}=await import(root+'/connector/ozon-seller.ts');const {main}=await import(root+'/scripts/ozon/sku-views.ts');const {closedDay}=await import(root+'/scripts/ozon/collector-integrity.ts');
+process.chdir(mkdtempSync(join(tmpdir(),'feniks-views-zero-')));mkdirSync('data');process.argv=['node','fixture.mts'];process.env.OZON_SELLER_CLIENT_ID='fixture';process.env.OZON_SELLER_API_KEY='fixture';globalThis.fetch=async()=>{throw new Error('network forbidden')};const day=closedDay();writeFileSync('data/sku_views.ndjson',JSON.stringify({date:day,sku:'123',views:10,cart:1,units:1,ret:0,canc:0})+'\n');
+(OzonSeller.prototype as any).skuViewsDay=async(d:string)=>d===day?[{date:d,sku:'123',views:0,cart:0,units:0,ret:0,canc:0}]:[];
+let error='';try{await main()}catch(e:any){error=e.message}console.log(JSON.stringify({error,rows:readFileSync('data/sku_views.ndjson','utf8'),ledger:existsSync('data/sku_views.ndjson.completed.json')}));

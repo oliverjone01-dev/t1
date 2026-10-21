@@ -8,19 +8,19 @@
 // не приходят (кабинетный уровень, accrual/by-day) - тут 0; добор by-day - отдельным шагом.
 //
 // Запуск: OZON_SELLER_* в env; npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts [FROM] [TO]
-import { writeFileSync } from "node:fs";
 import { OzonSeller } from "../../connector/ozon-seller.js";
+import { requireCredentials, requireFullHistory, validateRows, replaceSlice, readRows, atomicText as writeFileSync, closedDay, recordSuccess } from "./collector-integrity.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT = "data/pnl_sku_accrual_daily.ndjson";
-const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
-async function main() {
+export async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
-  if (!clientId || !apiKey) { console.warn("pnl-sku-accrual: OZON_SELLER_* нет - пропуск"); return; }
+  requireCredentials(clientId, apiKey);
   const seller = new OzonSeller({ clientId, apiKey });
   const from = process.argv[2] || "2026-02-06";
-  const to = process.argv[3] || ymd(new Date(Date.now() - 86400000));
+  const to = process.argv[3] || closedDay();
+  requireFullHistory(from, to, [OUT]);
   console.log(`pnl-sku-accrual: ${from}..${to}`);
 
   const posts = await seller.postings(from, to);
@@ -41,7 +41,9 @@ async function main() {
     }
   }
   let bmap: Record<number, Bucket> = {};
-  try { bmap = bucketMap(await seller.accrualTypes()); } catch { /* */ }
+  const types = await seller.accrualTypes();
+  if (!types.length) throw new Error("Пустой справочник типов начислений");
+  bmap = bucketMap(types);
   const acc = await seller.accrualPostings(posts.map((p) => p.posting_number));
   console.log(`  постингов с начислениями: ${acc.length}`);
   for (const p of acc) {
@@ -66,14 +68,17 @@ async function main() {
     r.amount = Math.round(r.accruals + r.commission + r.delivery + r.acquiring + r.storage + r.otherSvc);
     for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "otherSvc"]) r[k] = Math.round(r[k]);
     return r;
-  }).filter((r: any) => r.accruals || r.commission || r.amount);
+  });
+  validateRows(out, (r: any) => `${r.d}|${r.sku}`);
+  replaceSlice(readRows(OUT), out, () => true, (r: any) => `${r.d}|${r.sku}`);
   writeFileSync(OUT, out.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  recordSuccess("pnl-sku-accrual-daily", to);
   // само-сверка по месяцам
   const bm: Record<string, any> = {};
   for (const r of out) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acc: 0, com: 0, amt: 0 }); b.acc += r.accruals; b.com += r.commission; b.amt += r.amount; }
   console.log("  по месяцам (Начислено | Комиссия | К выплате):");
-  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acc.toLocaleString("ru")} | ${bm[m].com.toLocaleString("ru")} | ${bm[m].amt.toLocaleString("ru")}`);
+  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m]!.acc.toLocaleString("ru")} | ${bm[m].com.toLocaleString("ru")} | ${bm[m].amt.toLocaleString("ru")}`);
   console.log(`  строк: ${out.length} -> ${OUT}`);
 }
 
-main().catch((e) => { console.error("pnl-sku-accrual FAIL:", e); process.exit(1); });
+if (process.argv[1] && /pnl-sku-accrual-daily\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("pnl-sku-accrual FAIL:", e); process.exit(1); });

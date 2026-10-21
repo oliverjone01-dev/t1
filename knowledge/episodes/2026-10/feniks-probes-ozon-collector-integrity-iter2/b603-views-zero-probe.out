@@ -1,0 +1,2 @@
+data/sku_views.ndjson: успешно проверено 257 дней, по 2026-10-20
+{"error":"","rows":"{\"date\":\"2026-10-20\",\"sku\":\"123\",\"views\":0,\"cart\":0,\"units\":0,\"ret\":0,\"canc\":0}\n","ledger":true}

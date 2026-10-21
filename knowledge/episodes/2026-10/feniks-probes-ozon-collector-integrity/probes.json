@@ -1,0 +1,61 @@
+[
+  {
+    "id": "CSV1-missing-SKU-partial",
+    "error": "",
+    "changed": true,
+    "rows": 2,
+    "state": {
+      "1": "2026-10-21"
+    }
+  },
+  {
+    "id": "CSV2-invalid-cart",
+    "rows": [
+      {
+        "date": "2026-10-20",
+        "sku": "123",
+        "name": "valid",
+        "sp": 100,
+        "sold": 1,
+        "om": 500,
+        "soldModel": 0,
+        "omModel": 0,
+        "toCart": 0,
+        "drr": 0
+      }
+    ]
+  },
+  {
+    "id": "PAGE1-repeat",
+    "blocked": true,
+    "error": "accrualByDay: пагинация не продвигается"
+  },
+  {
+    "id": "PAGE2-valid-two",
+    "rows": 2
+  },
+  {
+    "id": "PAGE3-no-cursor",
+    "rows": 1,
+    "note": "cannot distinguish full final page from missing contract field without API evidence"
+  },
+  {
+    "id": "DAILY1-failure",
+    "error": "503",
+    "unchanged": true,
+    "ledger": false
+  },
+  {
+    "id": "HEALTH1-visible-gap",
+    "rows": [
+      {
+        "source": "Полнота атрибуции кампаний",
+        "through": null,
+        "expected": "2026-10-20",
+        "status": "error",
+        "note": "Нет строк для 1 пар кампания/день: 1 (2026-10-20). Возможен fallback на расход SKU; атрибуция продаж не подтверждена"
+      }
+    ],
+    "htmlWarning": true
+  }
+]

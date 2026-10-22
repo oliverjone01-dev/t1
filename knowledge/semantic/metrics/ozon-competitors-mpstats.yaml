@@ -1,0 +1,61 @@
+id: ozon-competitors-mpstats
+version: 1
+status: approved_scope
+owner: Иван Раюшкин
+approved_at: '2026-10-22'
+approval: 'Прямые поручения: сопоставить заполненное в Excel, добавить цену API и витрины за ту же дату, перенести прототип в основной дашборд и оформить в его стиле.'
+population:
+  grain: SKU × календарная дата MPSTATS; итог каталога по SKU × период
+  mapping: ручные значения I/A листа Сопоставление, без автоматических назначений
+  initial_pairs: 29
+  own_sku: 26
+  competitor_sku: 29
+  model_count: 14
+period:
+  start: '2026-09-23'
+  end_inclusive: '2026-10-20'
+  days: 28
+  partial_today: false
+  timezone: 'Даты сервиса MPSTATS; часовой пояс наблюдения и регион не подтверждены. Не пересчитывать даты сервиса в иной TZ.'
+date_basis:
+  history: дата наблюдения внешнего сервиса, не дата заказа Seller API
+  totals: sales/revenue каталожного отчёта MPSTATS за указанный период
+  own_price_comparison: только '2026-10-20'
+semantics:
+  orders: внешняя оценка MPSTATS; gross/net, отмены и возвраты самостоятельно не переопределяются
+  revenue: внешняя оценка MPSTATS, рубли
+  price: final_price дневного отчёта; для каталога точка price_graph[27] с прежней календарной осью и неизвестной маской наблюдений
+  site_price: site сохранённого среза кабинета 20.10, без Ozon Карты
+  api_seller_price: price из prices_daily.ndjson за 20.10, цена продавца до скидок Ozon, не цена покупателя
+  price_difference: MPSTATS price минус site за одну дату; время и регион не сверены
+  reviews_delta_7: счётчик 20.10 минус 13.10, только если оба дневных наблюдения есть
+  cr: отсутствуют в полученных внешних ответах; не выводить из других счётчиков
+relationships:
+  price_difference_population: один наш SKU, одна дата; база покупательской цены без Ozon Карты
+  ratios: новые отношения и проценты не вводятся
+  aggregation: итоги наших SKU не размножаются по количеству привязанных конкурентов; отзывы не складываются между вариантами
+missing:
+  no_data: все метрики такого дня null, график с разрывом
+  catalog_coverage: observed=null; пунктир и подсказка, не 28/28
+  unknown_price: null, разница null; не заменять другой датой или скалярной ценой
+visualization:
+  series: один наш SKU и только явно сопоставленные ему конкурентные SKU
+  shared_axes: один показатель и единица измерения на график
+  site_price: отдельная точка только 20.10, не постоянная линия по 28 дням
+  catalog_style: пунктир
+reference:
+  workbook_sha256: ce0dd156260eab00f09902cd66e5d59b6117bd06f79a3c928d021038f6da2ab4
+  pairs: ['I9:3734276157/3038842473', 'I17:3564831766/2272994591', 'I24:3579703276/2059288578', 'I26:3579703276/2753501843']
+  control_sku: '3564831766'
+  mpstats_price: 47399
+  site_price: 49899
+  api_seller_price: 109900
+  price_difference: -2500
+  reviews: 624
+  orders_28: 7
+  independent_truth: 'Независимое подтверждение фактических продаж отсутствует. Проверяются перенос источников и соответствия Excel, а не точность внешней оценки MPSTATS.'
+publication:
+  destination: существующая вкладка katya-competitors.html OZON
+  ym: прежняя страница без данных MPSTATS OZON
+  fields: только явная публичная проекция; без сырых строк кабинета, токенов, абсолютных путей
+  merge: отдельное слово Ивана мерж после go ФЕНИКСА на хеш

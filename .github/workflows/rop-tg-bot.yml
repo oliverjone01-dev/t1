@@ -250,8 +250,8 @@ jobs:
           const selected=MGR?rows.filter(r=>r.m===canonicalManager(MGR)):rows;
           if(MGR&&!selected.length)throw Error('Manager is outside active roster');
           const title=(process.env.GG_DIGEST_TEST==='1'?'🧪 ТЕСТ\n':'')+'<b>'+head+' · '+DATE.split('-').reverse().join('.')+'</b>\nДанные на '+time+' МСК';
-          const blocks=selected.map(r=>'<b><a href="https://dash.genglas.ru/rop-'+slug(r.m)+'/">'+E(r.m)+'</a></b>\n'+metrics(r));
-          const text=title+'\n\n'+(!MGR?'<b><a href="https://dash.genglas.ru/rop/">ОТДЕЛ</a></b>\n'+metrics(dep)+'\n\n':'')+blocks.join('\n\n')+'\n\n<i>Предоплаты — сделки, перешедшие в производство; суммы предоплат — из поля CRM. Портфель — открытые сделки с КП до предоплаты. Дни — календарные с последней предоплаты, сегодня = 0.</i>';
+          const blocks=selected.map(r=>'<b><a href="https://oliverjone01-dev.github.io/t1/rop-'+slug(r.m)+'/">'+E(r.m)+'</a></b>\n'+metrics(r));
+          const text=title+'\n\n'+(!MGR?'<b><a href="https://oliverjone01-dev.github.io/t1/rop/">ОТДЕЛ</a></b>\n'+metrics(dep)+'\n\n':'')+blocks.join('\n\n')+'\n\n<i>Предоплаты — сделки, перешедшие в производство; суммы предоплат — из поля CRM. Портфель — открытые сделки с КП до предоплаты. Дни — календарные с последней предоплаты, сегодня = 0.</i>';
           if(text.length>4096)throw Error('Digest exceeds Telegram limit: '+text.length);
           const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text,parse_mode:'HTML',disable_web_page_preview:true})});
           const result=await res.json();

@@ -7,6 +7,8 @@
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
+import { loadMatchedSnapshot } from "./competitors/matched-data.js";
+import { matchedCompetitorPage } from "./competitors/matched-page.js";
 import { healthHtml } from "./ozon/source-health.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { cpoOrdersByDay, cpoExportCampaign } from "./cpo-orders-rev.js";
@@ -5640,13 +5642,18 @@ function render(cur,cmp){
   writeFileSync(op("katya-command.html"), kshell("Командный центр", "command", body, pageJs));
 }
 
-// --- страница 7: Конкуренты (ДЕМО-заглушка) ---
+// --- страница 7: Конкуренты ---
+// OZON: проверенный исторический снимок MPSTATS и явные связи Ивана из Excel.
+// Маркет сохраняет свой прежний блок; источник OZON ему не подставляется.
+if (IS_OZON) {
+  const snapshot = loadMatchedSnapshot(dp("competitors/mpstats-matched-2026-10-22.json"));
+  writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
+} else {
 // ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.
 // Решение Ивана: проставить облачными/демо-данными только тут, чтобы увидеть вёрстку,
 // потом переделать на реальный снимок пилота (data/competitors/*.json).
 // Демо детерминировано выводится из SKU (без Math.random - воспроизводимость), имена/пары
 // товаров - настоящие из input.json, чтобы вид был правдоподобным. Все числа помечены ДЕМО.
-{
   let compInput: any[] = [];
   try { compInput = JSON.parse(readFileSync("src/scripts/competitors/input.json", "utf-8")).items || []; } catch { compInput = []; }
   // Реальный снимок пилота (data/competitors/competitors_*.json). Как только появится хоть одна
@@ -5796,4 +5803,4 @@ function render(cur,cmp){
   writeFileSync(op("katya-competitors.html"), kshell("Конкуренты", "competitors", body, pageJs));
 }
 
-console.log(`katya: командный центр + 5 страниц + конкуренты(ДЕМО) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, ${IS_OZON ? "OZON" : "Маркет"} ${ozRev} млн / ${ozOrd} шт (${DELIVERED_BASIS ? "доставлено, базис свода" : "заказано"})`);
+console.log(`katya: командный центр + 5 страниц + конкуренты(${IS_OZON ? "MPSTATS" : "ДЕМО"}) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, ${IS_OZON ? "OZON" : "Маркет"} ${ozRev} млн / ${ozOrd} шт (${DELIVERED_BASIS ? "доставлено, базис свода" : "заказано"})`);

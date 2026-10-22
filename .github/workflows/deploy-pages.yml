@@ -548,6 +548,19 @@ jobs:
           # пишет _site/rop-<slug>/index.html + v.txt. Новый менеджер в Bitrix -> дашборд
           # появляется сам, без правки этого файла. MIN_DEALS отсекает исторических призраков.
           OUT_DIR="$GITHUB_WORKSPACE/_site" MIN_DEALS=5 node src/scripts/b24/build-managers-all.mjs
+          # The active roster is explicit: departed managers must not be published.
+          test -f "$GITHUB_WORKSPACE/_site/rop-kubanova/index.html"
+          test ! -d "$GITHUB_WORKSPACE/_site/rop-zaznoba"
+          test ! -d "$GITHUB_WORKSPACE/_site/rop-platonova"
+
+      - name: Verify active sales-manager dashboards
+        run: |
+          set -euo pipefail
+          for slug in lysanova lakomova shura-bura lobova fomicheva filatova kubanova; do
+            test -s "_site/rop-$slug/index.html"
+          done
+          test ! -d _site/rop-zaznoba
+          test ! -d _site/rop-platonova
 
       # === РОП GLASS MEMORY (изолированно, из ветки rop-gm-dashboard-v1, в /rop-gm/) ===
       # Форк РОП-дашборда под воронку C21 «ПРОДАЖИ Glass Memory». Данные - собственный снимок

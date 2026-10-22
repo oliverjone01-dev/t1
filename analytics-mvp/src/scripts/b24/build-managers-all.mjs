@@ -1,3 +1,4 @@
+import { ACTIVE_MANAGERS, canonicalManager, normalizeManagerSnapshot } from './active-managers.mjs';
 // Собирает дашборды менеджеров ОП из единого rop/data/rop.json - тем же билдером
 // build-manager.ts, но циклом по АВТО-ростеру (без ручного списка). Ростер берём из данных:
 // продавцы со сделками (та же логика, что opUsers внутри build-manager), поэтому новый менеджер
@@ -20,9 +21,9 @@ const SRC = "rop/data/rop.json";
 const OUT_DIR = (process.env.OUT_DIR || "public").replace(/\/+$/, "");
 const PRINT_ONLY = process.env.PRINT_ONLY === "1";
 const MIN_DEALS = Number(process.env.MIN_DEALS || "5");
-const ONLY = (process.env.ONLY || "").split(",").map((s) => s.trim()).filter(Boolean);
+const ONLY = (process.env.ONLY || ACTIVE_MANAGERS.join(",")).split(",").map((s) => canonicalManager(s.trim())).filter(Boolean);
 
-const rop = JSON.parse(readFileSync(SRC, "utf-8"));
+const rop = normalizeManagerSnapshot(JSON.parse(readFileSync(SRC, "utf-8")));
 
 // --- ростер ОП: идентично build-manager.ts (исключения GM/системные -> продавцы со сделками) ---
 const EXCLUDE_MGR = new Set([
@@ -68,7 +69,7 @@ for (const m of list) console.log(`  ${m.slug.padEnd(22)} <- ${m.name}  (${m.dea
 
 if (PRINT_ONLY) process.exit(0);
 
-const targets = ONLY.length ? list.filter((m) => ONLY.includes(m.name)) : list;
+const targets = list.filter(m => ACTIVE_MANAGERS.includes(m.name) && (!ONLY.length || ONLY.includes(m.name)));
 console.log(`\nСобираю ${targets.length} дашбордов в ${OUT_DIR}/rop-<slug>/index.html ...`);
 let ok = 0, fail = 0;
 for (const m of targets) {

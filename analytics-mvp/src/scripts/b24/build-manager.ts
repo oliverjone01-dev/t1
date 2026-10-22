@@ -1,3 +1,4 @@
+import { canonicalManager, normalizeManagerSnapshot } from './active-managers.mjs';
 // Запекает живые данные Bitrix (rop/data/rop.json) в дашборд РОПа.
 // Шаблон: rop/manager-command.template.html (чистый MVP). Выход: public/manager-lakomova.html.
 // Воспроизводит контракт DATA, который ждёт MVP: deals, leads, from, to, dq, funnel,
@@ -20,11 +21,11 @@ const PLAN = "rop/plan/plan.json"; // помесячный план (из Google
 const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY";
 // Персональный дашборд одного менеджера. Имя и выходной файл параметризуются
 // (deploy-pages пересобирает каждого менеджера из единого rop.json в цикле).
-const MGR = process.env.MANAGER_NAME || "Татьяна Лакомова";
+const MGR = canonicalManager(process.env.MANAGER_NAME || "Татьяна Лакомова");
 const OUT = process.env.MANAGER_OUT || "public/manager-lakomova.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
-const rop = maskDeep(JSON.parse(readFileSync(SRC, "utf-8")), MASK_SKIP);
+const rop = normalizeManagerSnapshot(maskDeep(JSON.parse(readFileSync(SRC, "utf-8")), MASK_SKIP));
 const tpl = readFileSync(TPL, "utf-8");
 // План - необязателен: если файла нет, дашборд откатывается к ручному полю «План выручки/мес».
 let plan: any = null;

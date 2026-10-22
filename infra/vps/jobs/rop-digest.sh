@@ -1,12 +1,11 @@
 # Дайджест отдела продаж в Telegram - порт .github/workflows/rop-tg-bot.yml (план 06:15, итог 14:45 UTC).
 # Код дайджеста НЕ копируем: берём скрипт из рабочего воркфлоу ветки main в зеркале (одно место правды),
-# меняем только пути к данным и ссылки github.io -> домен сервера.
+# меняем только пути к данным; ссылки на дашборды сохраняем на GitHub Pages.
 # Режим по имени задачи: rop-digest-plan | rop-digest-itogi.
 # GitHub cron отключён 05.10.2026. Рабочий чат задаётся GG_DIGEST_CHAT_ID.
 # Ручные тесты GG_DIGEST_TEST=1 направляются только в группу алертов.
 mode=${GG_JOB#rop-digest-}
 case "$mode" in plan) slot="06:15" ;; itogi) slot="14:45" ;; *) gg_die "неизвестный режим дайджеста: $GG_JOB" ;; esac
-dom=${GG_DOMAIN:-dash.genglas.ru}
 # Выбираем бот и чат одной парой: бот РОП не обязан состоять в группе алертов.
 if [ "${GG_DIGEST_TEST:-0}" = 1 ]; then
   token=${GG_ALERT_BOT_TOKEN:-}; chat=${GG_ALERT_CHAT_ID:-}
@@ -44,8 +43,7 @@ if [ -s "$dialog" ]; then cp "$dialog" "$t/dialog.json";
 else gg_warn "снимок диалогов VPS отсутствует"; echo '{}' >"$t/dialog.json"; fi
 git --git-dir="$GG_GIT" show refs/heads/main:.github/workflows/rop-tg-bot.yml \
   | awk '/cat > \/tmp\/digest.mjs <<.MJS./{f=1;next} /^[[:space:]]*MJS$/{f=0} f' | sed 's/^          //' \
-  | sed -e "s#/tmp/rop.json#$t/rop.json#g" -e "s#/tmp/dialog.json#$t/dialog.json#g" \
-        -e "s#https://oliverjone01-dev.github.io/t1/#https://$dom/#g" >"$t/digest.mjs"
+  | sed -e "s#/tmp/rop.json#$t/rop.json#g" -e "s#/tmp/dialog.json#$t/dialog.json#g" >"$t/digest.mjs"
 python3 "$GG_OPS/tools/manager-roster.py" --conf "$GG_OPS/conf/managers.conf" --rewrite-script "$t/digest.mjs" --normalize-snapshot "$t/rop.json"
 grep -q "sendMessage" "$t/digest.mjs" || gg_die "не нашёл скрипт дайджеста в rop-tg-bot.yml (ветка main) - формат воркфлоу изменился"
 

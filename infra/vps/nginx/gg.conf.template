@@ -1,7 +1,10 @@
 # nginx для дашбордов GENGROUP. bootstrap.sh подставляет __DOMAIN__ и __GG_ROOT__ и кладёт в
 # /etc/nginx/sites-available/gg.conf. Сертификат ставит certbot (после того как DNS указывает на сервер).
 #
-# Доступ к дашбордам публичный по HTTPS по решению владельца.
+# Доступ: basic auth по HTTPS, у каждого человека свой логин (/etc/nginx/gg.htpasswd):
+#   sudo htpasswd -B /etc/nginx/gg.htpasswd ivan        # добавить / сменить пароль
+#   sudo htpasswd -D /etc/nginx/gg.htpasswd <логин>     # отозвать доступ
+# Данные больше не лежат в открытом виде: без логина сервер не отдаёт ни байта.
 #
 # Переходный режим (strangler): чего ещё нет на сервере, отдаётся с GitHub Pages через прокси,
 # поэтому один адрес работает с первого дня, а дашборды переезжают по одному.
@@ -47,7 +50,8 @@ server {
     sub_filter_types application/javascript;   # text/html nginx обрабатывает всегда
     sub_filter 'https://oliverjone01-dev.github.io/t1/' '/';
 
-    auth_basic off;
+    auth_basic "GENGROUP";
+    auth_basic_user_file /etc/nginx/gg.htpasswd;
 
     # Private PostgreSQL snapshots; auth inherited from server.
     location ^~ /_system/ {

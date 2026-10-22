@@ -46,6 +46,7 @@ git --git-dir="$GG_GIT" show refs/heads/main:.github/workflows/rop-tg-bot.yml \
   | awk '/cat > \/tmp\/digest.mjs <<.MJS./{f=1;next} /^[[:space:]]*MJS$/{f=0} f' | sed 's/^          //' \
   | sed -e "s#/tmp/rop.json#$t/rop.json#g" -e "s#/tmp/dialog.json#$t/dialog.json#g" \
         -e "s#https://oliverjone01-dev.github.io/t1/#https://$dom/#g" >"$t/digest.mjs"
+python3 "$GG_OPS/tools/manager-roster.py" --conf "$GG_OPS/conf/managers.conf" --rewrite-script "$t/digest.mjs" --normalize-snapshot "$t/rop.json"
 grep -q "sendMessage" "$t/digest.mjs" || gg_die "не нашёл скрипт дайджеста в rop-tg-bot.yml (ветка main) - формат воркфлоу изменился"
 
 MODE=$mode CHAT_ID=$chat BOT_TOKEN=$token \

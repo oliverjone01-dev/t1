@@ -1,7 +1,7 @@
 """Requested grouping of manager presentation; raw CRM records are not mutated."""
 import json,re
 def apply_manager_grouping(document,names):
- helper='const GG_PUBLISHED_MGRS=new Set('+json.dumps(names,ensure_ascii=False)+');function managerGroup(name){return GG_PUBLISHED_MGRS.has(name)?name:"Другие";}function ggGroupChannels(value){if(!value)return null;const out={};for(const [name,fields] of Object.entries(value)){const key=managerGroup(name),row=out[key]||(out[key]={});for(const [field,num] of Object.entries(fields))if(typeof num==="number")row[field]=(row[field]||0)+num;}return out;}\n'
+ helper='const GG_PUBLISHED_MGRS=new Set('+json.dumps(names,ensure_ascii=False)+');function managerGroup(name){const key=String(name||"").trim().toLocaleLowerCase("ru").replaceAll("ё","е");return [...GG_PUBLISHED_MGRS].find(n=>n.trim().toLocaleLowerCase("ru").replaceAll("ё","е")===key)||"Другие";}function ggGroupChannels(value){if(!value)return null;const out={};for(const [name,fields] of Object.entries(value)){const key=managerGroup(name),row=out[key]||(out[key]={});for(const [field,num] of Object.entries(fields))if(typeof num==="number")row[field]=(row[field]||0)+num;}return out;}\n'
  # Definitions before the native snapshot/initial render, without changing the snapshot.
  scripts=list(re.finditer(r'<script\b[^>]*>.*?</script>',document,re.S))
  main=next(m for m in scripts if 'let S=' in m[0]);code=main[0]
@@ -51,7 +51,8 @@ def apply_manager_grouping(document,names):
    part=part.replace("const k=d.mgr||'—';(qtBy[k]", "const k=managerGroup(d.mgr||'—');(qtBy[k]")
   chunks.append(code[last:match.start()]+part);last=end
  code=''.join(chunks)+code[last:]
- code=code.replace('(!S.fMgr||x.mgr===S.fMgr)','(!S.fMgr||(S.fMgr==="Другие"?managerGroup(x.mgr)==="Другие":x.mgr===S.fMgr))')
+ code=code.replace('(!S.fMgr||x.mgr===S.fMgr)','(!S.fMgr||managerGroup(x.mgr)===S.fMgr)')
+ code=code.replace('FIRED.has(n)?','(FIRED.has(n)&&!GG_PUBLISHED_MGRS.has(managerGroup(n)))?')
  opening=code.index('>')+1;code=code[:opening]+helper+code[opening:]
  return document[:main.start()]+code+document[main.end():]
 

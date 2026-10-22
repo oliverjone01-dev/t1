@@ -151,6 +151,7 @@ def ingest():
   behavior=assets/'dialog-enhancement.js'
   if behavior.exists():page=page.replace('</body>','<script data-gg-dialog-enhancement>'+behavior.read_text()+'</script></body>',1)
   page=page.replace("r.article.scrollIntoView({block:'start'","r.article.scrollIntoView({block:'center'")
+  page=re.sub(r"const GRP_SALES=\[[^\]]*\]\.map\(gnorm\);","const GRP_SALES=(window.GG_ROP_MANAGER_ROSTER||[]).map(gnorm);",page)
   page=page.replace("esc(h.durTxt)","esc(h?.durTxt||'длительность не определена')").replace("h.dir===","h?.dir===")
   old="b.classList.add(zoneBad?'gg-zone-bad':zoneGood?'gg-zone-good':'gg-zone-neutral');"
   new="""/* gg-zone-target */

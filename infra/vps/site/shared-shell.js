@@ -98,6 +98,8 @@ window.ggCommunicationCompleteness=function(d){const m=d.mix||{},c=(m.msg||0)+(m
  window.ggCreateCommunicationsRoster=create;
  const injected=Object.prototype.hasOwnProperty.call(window,'GG_ROP_MANAGER_ROSTER');
  const approved=injected?window.GG_ROP_MANAGER_ROSTER:[...document.querySelectorAll('.gg-sections a[href^="/rop-"]')].map(a=>a.dataset.managerName||a.textContent.trim());
+ // Match ё/е aliases to the existing manager identity, without changing persisted CRM records.
+ if(typeof SC!=='undefined'&&SC){const permitted=new Set(approved.map(labelOf).map(normalize));for(const d of SC.deals||[]){const norm=normalize(d.mgr);if(!permitted.has(norm))continue;const matches=(SC.managers||[]).filter(m=>normalize(m.mgr)===norm);if(matches.length===1)d.mgr=matches[0].mgr;}}
  window.ggCommunicationsRoster=create({approved,managers:typeof SC!=='undefined'&&SC?(SC.managers||[]):[],state:()=>typeof S!=='undefined'?S:null});
 })();
 

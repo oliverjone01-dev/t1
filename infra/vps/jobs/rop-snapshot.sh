@@ -37,14 +37,10 @@ rm -rf "$out.new"; mkdir -p "$out.new"
 mgr="$GG_ROOT/src/manager-lakomova/current/analytics-mvp"
 if [ ! -d "$mgr" ]; then
   gg_warn "нет релиза manager-lakomova - дашборды менеджеров пропущены"
-elif ! only=$(grep -o 'const PLAN_MGRS=\[[^]]*\]' rop/rop-command.template.html | grep -o '"[^"]*"' | tr -d '"' | paste -sd,) \
-  || [ -z "$only" ]; then
-  gg_warn "не нашёл список продавцов (PLAN_MGRS) в шаблоне РОПа - дашборды менеджеров пропущены"
-elif ! only=$(tr ',' '\n' <<<"$only" | grep -vxF -f <(gg_conf_lines "$GG_OPS/conf/managers.conf" \
-      | awk -F'|' '{k=$1; gsub(/[[:space:]]/, "", k); n=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", n)} k=="exclude" && n!="" {print n}') \
-      | paste -sd,) || [ -z "$only" ]; then
-  gg_warn "после исключений (conf/managers.conf) список продавцов пуст - дашборды менеджеров пропущены"
+elif ! only=$(python3 "$GG_OPS/tools/manager-roster.py" --template rop/rop-command.template.html --conf "$GG_OPS/conf/managers.conf" --csv) || [ -z "$only" ]; then
+  gg_warn "не удалось определить текущий состав менеджеров"
 elif cp rop/data/rop.json "$mgr/rop/data/rop.json" \
+  && python3 "$GG_OPS/tools/manager-roster.py" --template rop/rop-command.template.html --conf "$GG_OPS/conf/managers.conf" --normalize-snapshot "$mgr/rop/data/rop.json" \
   && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=1 ONLY="$only" node src/scripts/b24/build-managers-all.mjs) | tee "$out.new/.build.log"; then
   gg_log "Продавцы из дашборда РОП: $only"
   built=$(find "$out.new" -mindepth 1 -maxdepth 1 -type d | wc -l); want=$(tr ',' '\n' <<<"$only" | wc -l)

@@ -32,6 +32,8 @@ for row in (site / '.gg/managers.txt').read_text(encoding='utf-8').splitlines():
 from importlib.util import spec_from_file_location,module_from_spec
 _spec=spec_from_file_location('manager_grouping',style.parent/'manager-grouping.py');_group=module_from_spec(_spec);_spec.loader.exec_module(_group)
 _published=[html.unescape(re.search(r'>([^<]+)</a>',row)[1]) for row in roster]
+_rspec=spec_from_file_location('manager_roster',style.parent.parent/'tools/manager-roster.py');_roster=module_from_spec(_rspec);_rspec.loader.exec_module(_roster)
+original=_roster.rewrite_script(original,style.parent.parent/'conf/managers.conf')
 original=_group.apply_manager_grouping(original,_published)
 scripts=re.findall(r'<script\b[^>]*>.*?</script>',original,re.S)
 shell = template.read_text(encoding='utf-8').replace('<!-- MANAGERS -->', '\n'.join(roster))

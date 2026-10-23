@@ -2,6 +2,7 @@ import { OzonPerformance } from "../../connector/ozon-performance.js";
 import { parseAttributionDaily } from "./parse-attribution.js";
 import { readFileSync, existsSync } from "node:fs";
 import { atomicText } from "./collector-integrity.js";
+import { reportCsv } from "./report-queue.js";
 
 export type ReportCorrection = { from: string; to: string; values: Record<string, number | null> };
 export function saveCorrections(collector: string, updates: Record<string, ReportCorrection[]>): void {
@@ -13,13 +14,7 @@ export function saveCorrections(collector: string, updates: Record<string, Repor
 }
 
 export async function attributionReport(perf: OzonPerformance, cid: string, from: string, to: string, deadline: number, onCorrection?: (row: ReportCorrection) => void) {
-  const uuid = await perf.requestStatistics([cid], from, to, "DATE");
-  if (!uuid) throw new Error("Отчёт без UUID");
-  for (let i = 0; i < 60 && Date.now() < deadline; i++) {
-    const state = String((await perf.statisticsState(uuid)).state ?? "");
-    if (/\b(error|fail|failed|failure)\b/i.test(state)) throw new Error(`Отчёт ${cid}: ${state}`);
-    if (/\b(ok|done|success|ready)\b/i.test(state)) {
-      const csv = await perf.downloadStatistics(uuid);
+      const csv = await reportCsv(perf, cid, from, to, deadline);
       const header = csv.split(/\r?\n/).find(l => /(^|;)\s*sku\s*;/i.test(l) && /продажи в продвижении/i.test(l));
       if (!header || !/(^|;)\s*(день|дата)\s*;/i.test(header) || !/расход/i.test(header)) throw new Error("Неизвестный формат DATE-отчёта");
       const lines = csv.split(/\r?\n/), start = lines.indexOf(header), columns = header.split(";").map(s => s.trim().toLowerCase());
@@ -51,10 +46,6 @@ export async function attributionReport(perf: OzonPerformance, cid: string, from
       // это накопление metadata в памяти, запись выполняется после основного ряда.
       for (const row of corrections) onCorrection!(row);
       return rows;
-    }
-    await new Promise(resolve => setTimeout(resolve, 5000));
-  }
-  throw new Error(`Отчёт ${cid} не завершён до дедлайна`);
 }
 
 export function supportsSkuReport(campaign: { paymentType?: string }): boolean {

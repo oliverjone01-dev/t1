@@ -2334,6 +2334,9 @@ interface PriceCalc {
 }
 
 function priceCalc(t: PriceTestDef): PriceCalc {
+  if (t.статус === TEST_STATUS.done && (!t.итог?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(t.закрыт || ""))) {
+    throw new Error(`tests.json, ${t.id}: закрытому тесту нужны дата закрытия и зафиксированный итог`);
+  }
   const test = t.тест, testSet = new Set(test), cut = t.снижение;
   const tcards = new Set(test.map((a) => CARDS.card.get(a)).filter((x): x is string => !!x));
   const allArts = new Set<string>(); for (const m of P_GAP.values()) for (const a of m.keys()) allArts.add(a);
@@ -2459,6 +2462,7 @@ function priceCharts(c: PriceCalc): string {
 /** Напоминание над карточками: карточки свёрнуты, а забыть снизить цену нельзя. */
 function priceReminder(c: PriceCalc): string {
   const t = c.t, list = t.тест.map(esc).join(", ");
+  if (t.статус === TEST_STATUS.done) return "";
   const keep = `До ${DM(c.vc.end)}: ставку за заказ «все товары» держать на 5%, на этих товарах не включать рекламу за клик и не менять цену ещё раз.`;
   if (TODAY < t.старт) {
     const dd = daysBetween(TODAY, t.старт);
@@ -2559,6 +2563,7 @@ function priceAllTable(c: PriceCalc): string {
 }
 function priceCard(c: PriceCalc, ti: number): string {
   const t = c.t, cut = Math.round(t.снижение * 100);
+  const closed = t.статус === TEST_STATUS.done;
   const dm = daysBetween(TODAY, c.vc.end);
   // Чистых меньше порога группы - вердикта по правилу нет, как бы ни лёг ряд (E065, Иван 12.10 3б).
   const { cleanN, needN, fewClean } = c;
@@ -2566,7 +2571,8 @@ function priceCard(c: PriceCalc, ti: number): string {
     `<tr><td>${label}</td><td class="r nw">-</td><td class="muted">не считается: чистых товаров ${cleanN} из ${t.тест.length}, нужно ${needN}</td></tr>`;
   const vName = fewClean ? "вердикта нет" : (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? "предварительно: " : "") + c.vc.v;
   const chipCls = fewClean ? "chip-off" : c.vc.prelim ? "chip-run" : c.vc.v === "держит" ? "chip-done" : c.vc.v === "не держит" ? "chip-off" : "chip-run";
-  const chip = `<span class="chip ${chipCls}">${esc(vName)}${dm > 0 ? ` · ${c.vc.extended ? "продлён, итог" : "замер"} через ${dm} дн` : ""}</span>`;
+  const chip = closed ? `<span class="chip chip-done">завершён</span>`
+    : `<span class="chip ${chipCls}">${esc(vName)}${dm > 0 ? ` · ${c.vc.extended ? "продлён, итог" : "замер"} через ${dm} дн` : ""}</span>`;
   // До старта окно базы показов ещё в будущем: показываем последние 7 дней синка.
   const vEnd = TODAY < t.старт && P_LAST_VIEWS ? (nextDay(P_LAST_VIEWS) < t.старт ? nextDay(P_LAST_VIEWS) : t.старт) : t.старт;
   const vNow = viewShare(P_VIEWS, new Set(t.тест), addDays(vEnd, -7), vEnd);
@@ -2582,13 +2588,14 @@ function priceCard(c: PriceCalc, ti: number): string {
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
     c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)}${x.now != null && x.nowD ? `, сейчас ${x.now.toFixed(1).replace(".", ",")}% на ${DM(x.nowD)}` : ""})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это был сбой витрины на один день - сообщить Ивану, аналитик снимет стоп записью о сбое за этот день` : "",
   ].filter(Boolean);
-  const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
+  const verdict = `<div class="verdict"><div class="verdict-h">${closed ? "Справочно, текущие наблюдения" : c.vc.prelim ? "Промежуточно" : "Итог по показателям"} на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${fewClean
       ? esc(`Чистых товаров ${cleanN} из ${t.тест.length}, правилу нужно не меньше ${needN}: остальные не засчитываются (реклама за клик, вторая акция, цена не снижена или исключены), список в таблице товаров. База и сдвиг группы не считаются.`)
       : esc(P_VERDICT_TXT[c.vc.v] || "")}`
     + (t.оговорка ? ` ${esc(t.оговорка)}` : "")
     + (!fewClean && c.vc.prelim && c.vc.window.length >= RUN_DAYS ? ` Это не итог: медиана последних ${c.vc.window.length} наблюдаемых дней, итог на ${DM(c.vc.end)}.` : "")
-    + (c.vc.extended ? ` На замере ${DM(t.замер)} вышло «держит частично», окно продлено до ${DM(c.vc.end)}.` : "") + `</div>`
+    + (!closed && c.vc.extended ? ` На замере ${DM(t.замер)} вышло «держит частично», окно продлено до ${DM(c.vc.end)}.` : "")
+    + (closed ? ` Итог выше зафиксирован при закрытии; справочные таблицы и графики обновляются по новым снимкам.` : "") + `</div>`
     + `<div class="tbl-wrap"><table class="gtbl single"><tbody>`
     + (fewClean ? ncRow("База: разница теста и контроля, медиана") : `<tr><td>База: разница теста и контроля, медиана</td><td class="r nw"><b>${sgn(c.base, 2)} п.</b></td><td class="muted">${c.baseDays.length} из ${P_BASE_DAYS} дней${c.baseDays.length ? `, ${DM(c.baseDays[0]!)}-${DM(c.baseDays[c.baseDays.length - 1]!)}` : ""}${c.baseDays.length < P_BASE_DAYS ? ", набирается" : ""}</td></tr>`)
     + (fewClean ? ncRow("Шум базы (ст. откл. разницы)") : `<tr><td>Шум базы (ст. откл. разницы)</td><td class="r nw">${pct(c.noise, 2)} п.</td><td class="muted">порог «держит» ${HOLD_MIN} п. это ${c.noise ? pct(Math.abs(HOLD_MIN) / c.noise, 0) : "-"} шума</td></tr>`)
@@ -2639,9 +2646,9 @@ function priceCard(c: PriceCalc, ti: number): string {
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
     + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается утром и вечером. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
       + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
-  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>`
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>${closed ? finalBlock(t.итог) : ""}`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
-    + (t.продление_до ? `<span>Продление: <b>до ${esc(t.продление_до)}</b></span>` : "")
+    + (closed ? `<span>Закрыт: <b>${esc(t.закрыт!)}</b></span>` : t.продление_до ? `<span>Продление: <b>до ${esc(t.продление_до)}</b></span>` : "")
     + `<span>Снижение: <b>${cut}%</b></span><span>Товаров: <b>${t.тест.length}</b></span><span>Контроль: <b>${c.ctrl.size}</b></span></div>`
     + priceReminder(c)
     + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")

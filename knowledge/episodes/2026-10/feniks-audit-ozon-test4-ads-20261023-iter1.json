@@ -1,0 +1,116 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-test4-ads-20261023",
+  "timestamp": "2026-10-23T07:30:17.976433+00:00",
+  "deliverable_ref": "commit:673f4348b733935dbd8d48d12d5638cc7cb901f5; audited_hash=07611a6897411fbe",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "6.7dialogs-registry return - higher by0.9: coreprotocol,freshwrites,checkpoint andclosure work; return because replayable metadata loss suppresses an existing source warning. Below8.1after-rework until preservation is fixed.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 6,
+    "brand_fit": 9,
+    "risk_awareness": 7
+  },
+  "weighted_total": 7.6,
+  "verdict": "return",
+  "verdict_override_reason": "B7 FAIL: после принятия только свежего окна удаляются историческая metadata и существующее предупреждение об источнике.",
+  "gaps": [
+    "Успешное свежее окно стирает metadata корректировки непересобранного исторического окна. При последующем сбое истории 503 предупреждение sourceHealth исчезает."
+  ],
+  "primary_gap": "Успешное свежее окно стирает metadata корректировки непересобранного исторического окна. При последующем сбое истории 503 предупреждение sourceHealth исчезает.",
+  "rework_tz": "Сохранять metadata непересобранных исторических окон. Заменять её только при доказанном покрытии принятого отчётного окна; недатированные суммы не распределять по частям. Добавить регрессии: fresh success → historical 503, полное покрытие объединением окон, пустые корректировки, повтор без дублей. Затем повторить аудит на новом хеше.",
+  "confidence": 0.96,
+  "p9_triggers_fired": [
+    "dashboard numbers",
+    "advertising spend collector",
+    "source trace preservation"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Независимый пересчёт sku_views, sku_offer и реестра теста: 1689/606462; 1806/500083; 2634/643370. Изменение доли трёх чистых товаров +30% и +47%; причинный эффект не заявлен."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Проверены три исторических семидневных окна. Реальный main запрашивает свежие 16-22.10 до исторических 22.08-15.10. Календарные дни МСК и CSV-гейты сохранены."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Ключ date/cid/sku проверяется до записи; 173 целевых теста проходят. Чистая группа содержит 3 из 10 товаров при необходимом минимуме 5."
+    },
+    {
+      "id": "B4",
+      "result": "FAIL",
+      "evidence": "Изолированный запуск реального ad-sku-daily.main: audit-test4-main.mjs. Результат: priorCorrectionRows 1 → afterCorrectionRows 0; hadWarning true → hasWarning false. Исторический диапазон не принят. Причина: ad-sku-daily.ts:65,87-88 и полная замена reports в attribution-report.ts:12."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Фиксированный итог хранится в реестре теста. Денежные формулы и порог покрытия 95% не менялись; текущие таблицы отделены от зафиксированного итога."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Три теста закрытия независимо пересобрали страницу; просмотрен desktop preview-499.png. Фактическая загрузка внешнего API после патча ещё не подтверждена."
+    },
+    {
+      "id": "B7",
+      "result": "FAIL",
+      "evidence": "При успешном свежем отчёте стирается историческая metadata и исчезает предупреждение sourceHealth. Корректировки не включаются в денежную формулу, но след источника теряется."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Успешное свежее окно стирает metadata корректировки непересобранного исторического окна. При последующем сбое истории 503 предупреждение sourceHealth исчезает.",
+      "evidence": "Изолированный запуск реального ad-sku-daily.main: audit-test4-main.mjs. Результат: priorCorrectionRows 1 → afterCorrectionRows 0; hadWarning true → hasWarning false. Исторический диапазон не принят. Причина: ad-sku-daily.ts:65,87-88 и полная замена reports в attribution-report.ts:12.",
+      "checkpoint": "risk_22_p9_hard_rules",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "analytics-mvp/data/sku_views.ndjson",
+    "analytics-mvp/data/sku_offer.json",
+    "analytics-mvp/tools/tests/tests.json",
+    "outputs/test4-close-2026-10-23/collector.log",
+    "outputs/audit-test4-ads-20261023/audit-test4-main-result.json"
+  ],
+  "audience": "Иван Раюшкин; internal dashboard"
+}

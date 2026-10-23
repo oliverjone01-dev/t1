@@ -1,0 +1,117 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-test4-ads-20261023",
+  "timestamp": "2026-10-23T07:35:29.141636+00:00",
+  "deliverable_ref": "commit:d8406e97d538aa4cfde2ac29926544baa6397c4c; audited_hash=433d93b07af54846",
+  "iteration": 2,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry after rework - higher by 0.30: replayable source-loss regression is fixed and real main/independent calendar-boundary probes pass. Below 8.9 annotate because live external API recovery is not yet confirmed.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 6,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "Фактическая догрузка рекламы внешним API после патча ещё не подтверждена. После мержа нужен отдельный main-прогон; локальный аудит доказывает поведение протокола и сохранность данных при заданных сбоях."
+  ],
+  "rework_tz": "",
+  "confidence": 0.95,
+  "p9_triggers_fired": [
+    "dashboard numbers",
+    "advertising spend collector",
+    "source trace preservation"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Независимый пересчёт sku_views, sku_offer и реестра теста: 1689/606462; 1806/500083; 2634/643370. Изменение доли трёх чистых товаров +30% и +47%; причинный эффект не заявлен."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Проверены три исторических семидневных окна. Реальный main запрашивает свежие 16-22.10 до исторических 22.08-15.10. Календарные дни МСК и CSV-гейты сохранены."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Ключ date/cid/sku проверяется до записи; 173 целевых теста проходят. Чистая группа содержит 3 из 10 товаров при необходимом минимуме 5."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Исходный реальный main-repro повторён: historical 503 сохраняет прежнюю корректировку -25 и sourceHealth warning; свежие строки сохранены, полный checkpoint прежний. Полный успешный fresh+history union снимает старую исчезнувшую корректировку и продвигает checkpoint."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Фиксированный итог хранится в реестре теста. Денежные формулы и порог покрытия 95% не менялись; текущие таблицы отделены от зафиксированного итога."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Три теста закрытия независимо пересобрали страницу; просмотрен desktop preview-499.png. Фактическая загрузка внешнего API после патча ещё не подтверждена. Неизменённые проверки закрытия перенесены из итерации 1 без повторного прогона."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Metadata заменяется только для полностью покрытого объединением принятых окон диапазона. При частичном перекрытии старая недатированная сумма сохраняется целиком; она не распределяется по дням. 225 независимых календарных проверок и 5 новых unit-тестов проходят."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Фактическая догрузка рекламы внешним API после патча ещё не подтверждена. После мержа нужен отдельный main-прогон; локальный аудит доказывает поведение протокола и сохранность данных при заданных сбоях.",
+      "evidence": "Изолированные вызовы настоящего main используют fake API с запретом сети. В self-check итерации 2 live-восстановление прямо оставлено для main после мержа.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "analytics-mvp/data/sku_views.ndjson",
+    "analytics-mvp/data/sku_offer.json",
+    "analytics-mvp/tools/tests/tests.json",
+    "outputs/test4-close-2026-10-23/collector.log",
+    "outputs/audit-test4-ads-20261023/audit-test4-main-result.json",
+    "outputs/audit-test4-ads-20261023/iter2/audit-test4-main-result.json",
+    "outputs/audit-test4-ads-20261023/iter2/audit-test4-boundaries-result.json",
+    "outputs/audit-test4-ads-20261023/iter2/audit-test4-main-full-success-result.json"
+  ],
+  "audience": "Иван Раюшкин; internal dashboard"
+}

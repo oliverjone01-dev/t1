@@ -1,25 +1,37 @@
 import { OzonPerformance } from "../../connector/ozon-performance.js";
 import { parseAttributionDaily } from "./parse-attribution.js";
 import { readFileSync, existsSync } from "node:fs";
-import { atomicText } from "./collector-integrity.js";
+import { atomicText, shiftDay } from "./collector-integrity.js";
+import { reportCsv } from "./report-queue.js";
 
 export type ReportCorrection = { from: string; to: string; values: Record<string, number | null> };
-export function saveCorrections(collector: string, updates: Record<string, ReportCorrection[]>): void {
+export function replaceCorrections(previous: ReportCorrection[], updates: ReportCorrection[], ranges: Array<[string, string]>): ReportCorrection[] {
+  const ordered = ranges.slice().sort((a,b) => a[0].localeCompare(b[0]));
+  const covered = (r: ReportCorrection) => {
+    let cursor = r.from;
+    for (const [a,b] of ordered) {
+      if (b < cursor) continue;
+      if (a > cursor) return false;
+      if (b >= r.to) return true;
+      cursor = shiftDay(b, 1);
+    }
+    return false;
+  };
+  if (updates.some(r => !covered(r))) throw new Error("Корректировка вне принятых диапазонов");
+  // Недатированную сумму нельзя разделить по дням: частичное перекрытие не удаляет её.
+  return [...previous.filter(r => !covered(r)), ...updates];
+}
+export function saveCorrections(collector: string, updates: Record<string, ReportCorrection[]>, ranges?: Record<string, Array<[string, string]>>): void {
   const path = "data/ads_report_adjustments.json";
   const state = existsSync(path) ? JSON.parse(readFileSync(path,"utf8")) : {};
   state[collector] ??= {};
-  for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(), reports };
+  for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(),
+    reports: ranges?.[cid] ? replaceCorrections(state[collector][cid]?.reports ?? [], reports, ranges[cid]!) : reports };
   atomicText(path, JSON.stringify(state) + "\n");
 }
 
 export async function attributionReport(perf: OzonPerformance, cid: string, from: string, to: string, deadline: number, onCorrection?: (row: ReportCorrection) => void) {
-  const uuid = await perf.requestStatistics([cid], from, to, "DATE");
-  if (!uuid) throw new Error("Отчёт без UUID");
-  for (let i = 0; i < 60 && Date.now() < deadline; i++) {
-    const state = String((await perf.statisticsState(uuid)).state ?? "");
-    if (/\b(error|fail|failed|failure)\b/i.test(state)) throw new Error(`Отчёт ${cid}: ${state}`);
-    if (/\b(ok|done|success|ready)\b/i.test(state)) {
-      const csv = await perf.downloadStatistics(uuid);
+      const csv = await reportCsv(perf, cid, from, to, deadline);
       const header = csv.split(/\r?\n/).find(l => /(^|;)\s*sku\s*;/i.test(l) && /продажи в продвижении/i.test(l));
       if (!header || !/(^|;)\s*(день|дата)\s*;/i.test(header) || !/расход/i.test(header)) throw new Error("Неизвестный формат DATE-отчёта");
       const lines = csv.split(/\r?\n/), start = lines.indexOf(header), columns = header.split(";").map(s => s.trim().toLowerCase());
@@ -51,10 +63,6 @@ export async function attributionReport(perf: OzonPerformance, cid: string, from
       // это накопление metadata в памяти, запись выполняется после основного ряда.
       for (const row of corrections) onCorrection!(row);
       return rows;
-    }
-    await new Promise(resolve => setTimeout(resolve, 5000));
-  }
-  throw new Error(`Отчёт ${cid} не завершён до дедлайна`);
 }
 
 export function supportsSkuReport(campaign: { paymentType?: string }): boolean {

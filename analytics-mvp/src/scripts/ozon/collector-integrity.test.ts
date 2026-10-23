@@ -53,6 +53,33 @@ beforeEach(() => {
 });
 afterEach(() => { process.argv = argv; vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); rmSync(fixture.dir,{recursive:true,force:true}); });
 
+describe("свежая реклама раньше истории", () => {
+  it("свежий день сохраняется при сбое истории, full-window checkpoint не сдвигается", async () => {
+    put("ads_sku_daily.ndjson", [{d:"2026-09-01",cid:"1",sku:"123",sp:100,om:500,ca:0}]);
+    put("ads_sku_state.json", {"1":"2026-10-19"}, false);
+    const oldCorrection = {from:"2026-09-01",to:"2026-09-02",values:{"расход":-25}};
+    put("ads_report_adjustments.json", {sku:{"1":{reports:[oldCorrection]}}}, false);
+    vi.spyOn(OzonPerformance.prototype,"dailyStats").mockResolvedValue([
+      {id:"1",date:"2026-09-02",spent:100}, {id:"1",date:"2026-10-20",spent:100},
+    ] as any);
+    await expect(adsSku()).rejects.toThrow("Не обновлены кампании");
+    const rows = raw("ads_sku_daily.ndjson").trim().split("\n").map(s=>JSON.parse(s));
+    expect(rows.map(r=>r.d)).toEqual(["2026-09-01","2026-10-20"]);
+    expect(JSON.parse(raw("ads_sku_state.json"))).toEqual({"1":"2026-10-19"});
+    expect(JSON.parse(raw("ads_report_adjustments.json")).sku["1"].reports).toEqual([oldCorrection]);
+    expect(vi.mocked(OzonPerformance.prototype.requestStatistics).mock.calls[0]!.slice(1,3)).toEqual(["2026-10-14","2026-10-20"]);
+  });
+  it("частичный положительный расход не заменяет прежний полный день", async () => {
+    put("ads_sku_daily.ndjson", [{d:"2026-10-20",cid:"1",sku:"123",sp:100,om:500,ca:0}]);
+    put("ads_sku_state.json", {"1":"2026-10-20"}, false);
+    vi.spyOn(OzonPerformance.prototype,"downloadStatistics").mockResolvedValue(csv().replace(";100;1;500", ";1;1;500"));
+    const before = raw("ads_sku_daily.ndjson");
+    await expect(adsSku()).rejects.toThrow("Не обновлены кампании");
+    expect(raw("ads_sku_daily.ndjson")).toBe(before);
+    expect(JSON.parse(raw("ads_sku_state.json"))).toEqual({"1":"2026-10-20"});
+  });
+});
+
 describe("целостность дневных загрузок", () => {
   it("настоящий sku-views сохраняет явную нулевую коррекцию API", async () => {
     put("sku_views.ndjson",[{date:"2026-10-20",sku:"123",views:10}]);

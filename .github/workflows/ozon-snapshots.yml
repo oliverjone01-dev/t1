@@ -242,6 +242,20 @@ jobs:
           # соинвест - их главная метрика, а посуточного ряда по артикулам до сих пор не было.
           npm run prices:daily || { echo "prices-daily не собрался (OZON Seller недоступен)" >> /tmp/ozon-sync-failures.txt; echo "::warning::prices-daily не собрался (OZON Seller недоступен)"; }
 
+      - name: Реклама по дням (для произвольного периода)
+        run: |
+          set -euo pipefail
+          # dailyStats по дням -> догрузка в data/ads_daily.ndjson (от последнего дня до вчера).
+          # Без PERF-кредов сам пропускается; не валит синк.
+          npx tsx src/scripts/ozon/ads-daily.ts || { echo "реклама по дням не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по дням не обновлена"; }
+
+      - name: "Реклама по SKU (накопление, добираем несобранные кампании)"
+        env:
+          ADS_SKU_BUDGET_MIN: "60"
+        run: |
+          set -euo pipefail
+          npm run ads:sku:daily || { echo "реклама по SKU не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по SKU не обновлена"; }
+
       - name: per-SKU attribution по дням (основная/объединённая, любой период)
         run: |
           set -euo pipefail
@@ -253,13 +267,6 @@ jobs:
           npx tsx src/scripts/ozon/ad-attribution-daily.ts || { echo "attribution по дням не собрался (OZON Performance недоступен)" >> /tmp/ozon-sync-failures.txt; echo "::warning::attribution по дням не собрался (OZON Performance недоступен)"; }
           # Снимок ads_reports.json (RCACHE) остаётся запасным источником из прошлых прогонов;
           # ночью не пересобираем (двухфазный запрос упирался бы в лимит 1 активного отчёта).
-
-      - name: Реклама по дням (для произвольного периода)
-        run: |
-          set -euo pipefail
-          # dailyStats по дням -> догрузка в data/ads_daily.ndjson (от последнего дня до вчера).
-          # Без PERF-кредов сам пропускается; не валит синк.
-          npx tsx src/scripts/ozon/ads-daily.ts || { echo "реклама по дням не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по дням не обновлена"; }
 
       - name: Месячная реализация по SKU (перетяжка последних месяцев, УПД)
         run: |
@@ -289,16 +296,6 @@ jobs:
           # выгрузка кабинета (23.09), новые карточки в неё не попадали. Теперь каждую ночь из API.
           # При сбое или подозрительном ответе файл не трогаем: страница живёт на прежней карте.
           npm run cards:api || { echo "карта карточек не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::карта карточек не обновлена"; }
-
-      - name: "Реклама по SKU (накопление, добираем несобранные кампании)"
-        env:
-          ADS_SKU_BUDGET_MIN: "12"
-        run: |
-          set -euo pipefail
-          # data/ads_sku_daily.ndjson: расход рекламы по SKU (CPC+CPO), НАКОПИТЕЛЬНО. Каждую ночь
-          # добираем несобранные кампании (отчёты OZON медленные ~2 мин/кампания), уже собранные не
-          # теряются. Бюджет ~12 мин (~5 кампаний/ночь). Без Perf-кредов - пропуск.
-          npm run ads:sku:daily || { echo "реклама по SKU не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по SKU не обновлена"; }
 
       - name: Наша доставка из Google Таблицы
         run: |

@@ -2759,12 +2759,15 @@
 {"d":"2026-10-15","sku":"3492791902","accruals":90988,"commission":-47314,"delivery":-1126,"acquiring":0,"storage":0,"otherSvc":-1463,"amount":41085}
 {"d":"2026-10-15","sku":"3492803714","accruals":52878,"commission":-27497,"delivery":-335,"acquiring":0,"storage":0,"otherSvc":-687,"amount":24359}
 {"d":"2026-10-15","sku":"3492827722","accruals":23900,"commission":-12428,"delivery":-255,"acquiring":0,"storage":0,"otherSvc":-311,"amount":10906}
+{"d":"2026-10-15","sku":"4865594859","accruals":55900,"commission":-28509,"delivery":0,"acquiring":0,"storage":0,"otherSvc":-13227,"amount":14164}
 {"d":"2026-10-15","sku":"3497338067","accruals":45340,"commission":-22670,"delivery":-345,"acquiring":0,"storage":0,"otherSvc":-589,"amount":21735}
 {"d":"2026-10-16","sku":"3492813002","accruals":77170,"commission":-38199,"delivery":-3295,"acquiring":0,"storage":0,"otherSvc":-1003,"amount":34673}
 {"d":"2026-10-16","sku":"3564835749","accruals":30900,"commission":-15141,"delivery":-540,"acquiring":0,"storage":0,"otherSvc":-402,"amount":14817}
 {"d":"2026-10-16","sku":"3492791592","accruals":43900,"commission":-21511,"delivery":-2346,"acquiring":0,"storage":0,"otherSvc":-851,"amount":19193}
 {"d":"2026-10-16","sku":"3492815548","accruals":47900,"commission":-24908,"delivery":-377,"acquiring":0,"storage":0,"otherSvc":-623,"amount":21992}
+{"d":"2026-10-17","sku":"3492818910","accruals":49900,"commission":-24451,"delivery":-756,"acquiring":0,"storage":0,"otherSvc":-649,"amount":24044}
 {"d":"2026-10-17","sku":"3564835749","accruals":30900,"commission":-15141,"delivery":-531,"acquiring":0,"storage":0,"otherSvc":-402,"amount":14826}
+{"d":"2026-10-18","sku":"3563990026","accruals":47900,"commission":-24429,"delivery":-619,"acquiring":0,"storage":0,"otherSvc":-903,"amount":21949}
 {"d":"2026-10-18","sku":"3492802310","accruals":58311,"commission":-29155,"delivery":-1126,"acquiring":0,"storage":0,"otherSvc":-758,"amount":27271}
 {"d":"2026-10-18","sku":"3492791592","accruals":43900,"commission":-21950,"delivery":-1126,"acquiring":0,"storage":0,"otherSvc":-851,"amount":19973}
 {"d":"2026-10-19","sku":"3501468573","accruals":70900,"commission":-34741,"delivery":-537,"acquiring":0,"storage":0,"otherSvc":-922,"amount":34700}

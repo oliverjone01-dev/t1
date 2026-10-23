@@ -49,6 +49,25 @@ describe("adsFullDay - отчёт по товарам доливается не�
   });
   it("дни до окна не мешают: старая несобранная кампания не обнуляет результат", () =>
     expect(adsFullDay([{ d: "2026-07-01", id: "3", sp: 10 }, ...daily], { "1": "2026-10-14", "2": "2026-10-14" }, "9", "2026-10-08")).toBe("2026-10-13"));
+  it("принятое свежее окно не блокируется старым full-window checkpoint", () => {
+    const sku = new Map([["1|2026-10-12",100],["2|2026-10-12",50],["1|2026-10-13",100],["2|2026-10-13",50]]);
+    const state = {"1":"2026-10-14","2":"2026-10-13"};
+    const rec = {"2":{loaded_at:"2026-10-14T07:00:00Z",accepted_windows:[{from:"2026-10-13",to:"2026-10-13",loaded_at:"2026-10-14T07:00:00Z"}]}};
+    expect(adsFullDay(daily,state,"9","",sku,rec)).toBe("2026-10-13");
+    expect(state["2"]).toBe("2026-10-13");
+    expect(adsFullDay(daily,state,"9","",undefined,rec)).toBe("2026-10-12");
+    sku.set("2|2026-10-13",10);
+    expect(adsFullDay(daily,state,"9","",sku,rec)).toBe("2026-10-12");
+  });
+  it("receipt не заменяет проверку закрытого дня, диапазона и суммы", () => {
+    const sku = new Map([["1|2026-10-12",100],["2|2026-10-12",50],["1|2026-10-13",100],["2|2026-10-13",50]]);
+    const state = {"1":"2026-10-14","2":"2026-10-13"};
+    for (const r of [
+      {loaded_at:"2026-10-13T12:00:00Z",accepted_windows:[{from:"2026-10-13",to:"2026-10-13",loaded_at:"2026-10-13T12:00:00Z"}]},
+      {loaded_at:"2026-10-14T07:00:00Z",accepted_windows:[{from:"2026-10-12",to:"2026-10-12",loaded_at:"2026-10-14T07:00:00Z"}]},
+      {loaded_at:"2026-10-14T07:00:00Z",accepted_windows:[{from:"2026-00-01",to:"2026-99-01",loaded_at:"2026-10-14T07:00:00Z"}]},
+    ]) expect(adsFullDay(daily,state,"9","",sku,{"2":r as any})).toBe("2026-10-12");
+  });
 });
 
 describe("storeNeed / monthGoal - цель магазина по пути, а не по прямой (ФЕНИКС G2, G3)", () => {

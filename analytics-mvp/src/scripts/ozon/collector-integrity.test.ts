@@ -17,7 +17,8 @@ vi.mock("node:fs", async importOriginal => {
 import { closedDay, dates, pendingDays, collectDaily, validateRows, replaceSlice } from "./collector-integrity.js";
 import { OzonSeller } from "../../connector/ozon-seller.js";
 import { OzonPerformance } from "../../connector/ozon-performance.js";
-import { attributionReport } from "./attribution-report.js";
+import { adsFullDay } from "../plan-tab.js";
+import { attributionReport, saveCorrections } from "./attribution-report.js";
 import { main as acq } from "./acq-sku-daily.js";
 import { main as pnl } from "./pnl-accrual-daily.js";
 import { main as skuPnl } from "./pnl-sku-accrual-daily.js";
@@ -67,7 +68,35 @@ describe("свежая реклама раньше истории", () => {
     expect(rows.map(r=>r.d)).toEqual(["2026-09-01","2026-10-20"]);
     expect(JSON.parse(raw("ads_sku_state.json"))).toEqual({"1":"2026-10-19"});
     expect(JSON.parse(raw("ads_report_adjustments.json")).sku["1"].reports).toEqual([oldCorrection]);
+    expect(JSON.parse(raw("ads_report_adjustments.json")).sku["1"].accepted_windows).toEqual([{from:"2026-10-14",to:"2026-10-20",loaded_at:"2026-10-21T12:00:00.000Z"}]);
     expect(vi.mocked(OzonPerformance.prototype.requestStatistics).mock.calls[0]!.slice(1,3)).toEqual(["2026-10-14","2026-10-20"]);
+  });
+  it("следующее принятое окно не скрывает ранее допущенный день и не обновляет чужую дату приёмки", () => {
+    const daily = [{d:"2026-10-22",id:"1",sp:100}];
+    const sku = new Map([["1|2026-10-22",100]]), state = {"1":"2026-10-22"};
+    const read = () => JSON.parse(raw("ads_report_adjustments.json")).sku;
+    vi.setSystemTime(new Date("2026-10-22T12:00:00Z"));
+    saveCorrections("sku", {"1":[]}, {"1":[["2026-10-22","2026-10-22"]]});
+    expect(adsFullDay(daily,state,"9","",sku,read())).toBe("");
+    vi.setSystemTime(new Date("2026-10-23T07:00:00Z"));
+    saveCorrections("sku", {"1":[]}, {"1":[["2026-10-16","2026-10-22"]]});
+    expect(adsFullDay(daily,state,"9","",sku,read())).toBe("2026-10-22");
+    vi.setSystemTime(new Date("2026-10-30T07:00:00Z"));
+    saveCorrections("sku", {"1":[]}, {"1":[["2026-10-23","2026-10-29"]]});
+    expect(adsFullDay(daily,state,"9","",sku,read())).toBe("2026-10-22");
+    expect(read()["1"].accepted_windows).toEqual([
+      {from:"2026-10-22",to:"2026-10-22",loaded_at:"2026-10-22T12:00:00.000Z"},
+      {from:"2026-10-16",to:"2026-10-22",loaded_at:"2026-10-23T07:00:00.000Z"},
+      {from:"2026-10-23",to:"2026-10-29",loaded_at:"2026-10-30T07:00:00.000Z"},
+    ]);
+    // Обновление global loaded_at не превращает раннюю приёмку другого окна в закрытый день.
+    expect(adsFullDay(daily,state,"9","",sku,{"1":{...read()["1"],accepted_windows:[read()["1"].accepted_windows[0]]}})).toBe("");
+    saveCorrections("sku", {"1":[]}, {"1":[["2026-10-16","2026-10-22"]]});
+    expect(read()["1"].accepted_windows).toHaveLength(3);
+    expect(read()["1"].accepted_windows[1].loaded_at).toBe("2026-10-30T07:00:00.000Z");
+    expect(read()["1"].accepted_windows[0].loaded_at).toBe("2026-10-22T12:00:00.000Z");
+    sku.set("1|2026-10-22",94);
+    expect(adsFullDay(daily,state,"9","",sku,read())).toBe("");
   });
   it("частичный положительный расход не заменяет прежний полный день", async () => {
     put("ads_sku_daily.ndjson", [{d:"2026-10-20",cid:"1",sku:"123",sp:100,om:500,ca:0}]);

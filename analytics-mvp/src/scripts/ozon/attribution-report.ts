@@ -25,8 +25,18 @@ export function saveCorrections(collector: string, updates: Record<string, Repor
   const path = "data/ads_report_adjustments.json";
   const state = existsSync(path) ? JSON.parse(readFileSync(path,"utf8")) : {};
   state[collector] ??= {};
-  for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(),
-    reports: ranges?.[cid] ? replaceCorrections(state[collector][cid]?.reports ?? [], reports, ranges[cid]!) : reports };
+  const loaded_at = new Date().toISOString();
+  for (const [cid, reports] of Object.entries(updates)) {
+    const previous = state[collector][cid] ?? {};
+    // У каждого принятого окна своя дата: следующий сбор не стирает и не повышает старую приёмку.
+    const ledger = new Map<string, {from:string;to:string;loaded_at:string}>();
+    for (const w of Array.isArray(previous.accepted_windows) ? previous.accepted_windows : [])
+      if (w && !Array.isArray(w) && typeof w.from === "string" && typeof w.to === "string" && typeof w.loaded_at === "string")
+        ledger.set(`${w.from}|${w.to}`, w);
+    for (const [from,to] of ranges?.[cid] ?? []) ledger.set(`${from}|${to}`, {from,to,loaded_at});
+    state[collector][cid] = { loaded_at, accepted_windows:[...ledger.values()],
+      reports: ranges?.[cid] ? replaceCorrections(previous.reports ?? [], reports, ranges[cid]!) : reports };
+  }
   atomicText(path, JSON.stringify(state) + "\n");
 }
 

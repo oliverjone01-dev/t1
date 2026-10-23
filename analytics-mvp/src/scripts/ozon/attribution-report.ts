@@ -26,6 +26,7 @@ export function saveCorrections(collector: string, updates: Record<string, Repor
   const state = existsSync(path) ? JSON.parse(readFileSync(path,"utf8")) : {};
   state[collector] ??= {};
   for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(),
+    ...(ranges?.[cid] ? { accepted_windows: ranges[cid] } : {}),
     reports: ranges?.[cid] ? replaceCorrections(state[collector][cid]?.reports ?? [], reports, ranges[cid]!) : reports };
   atomicText(path, JSON.stringify(state) + "\n");
 }

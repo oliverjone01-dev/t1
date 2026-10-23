@@ -67,6 +67,7 @@ describe("свежая реклама раньше истории", () => {
     expect(rows.map(r=>r.d)).toEqual(["2026-09-01","2026-10-20"]);
     expect(JSON.parse(raw("ads_sku_state.json"))).toEqual({"1":"2026-10-19"});
     expect(JSON.parse(raw("ads_report_adjustments.json")).sku["1"].reports).toEqual([oldCorrection]);
+    expect(JSON.parse(raw("ads_report_adjustments.json")).sku["1"].accepted_windows).toEqual([["2026-10-14","2026-10-20"]]);
     expect(vi.mocked(OzonPerformance.prototype.requestStatistics).mock.calls[0]!.slice(1,3)).toEqual(["2026-10-14","2026-10-20"]);
   });
   it("частичный положительный расход не заменяет прежний полный день", async () => {

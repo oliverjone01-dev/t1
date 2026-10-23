@@ -188,15 +188,25 @@ export function weekSum(byDay: Map<string, number>, a: string, b: string, last: 
 }
 /** Последний день, за который отчёт по товарам собран у ВСЕХ кампаний с расходом в этот день (ФЕНИКС G1).
  *  ads_sku_daily доливается по кампаниям несколько ночей: state[cid] - дата сбора, данные по вчера от неё.
+ *  Принятый receipt конкретного окна подтверждает его дни независимо от незакрытой старой истории.
  *  День, где у части кампаний строк ещё нет, - не «расход упал», а «досчитывается». */
+export type AdWindowReceipt = { loaded_at?: string; accepted_windows?: Array<[string, string]> };
 export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }>, state: Record<string, string>, skip: string, from = "",
-  skuSp?: Map<string, number>): string {
+  skuSp?: Map<string, number>, receipts: Record<string, AdWindowReceipt> = {}): string {
+  const validDay = (s: unknown): s is string => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)
+    && Number.isFinite(Date.parse(s + "T00:00:00Z")) && new Date(s + "T00:00:00Z").toISOString().slice(0, 10) === s;
+  const accepted = (id: string, d: string) => {
+    const r = receipts[id];
+    return !!skuSp && !!r && Date.parse(r.loaded_at || "") >= Date.parse(d + "T23:59:59.999+03:00")
+      && Array.isArray(r.accepted_windows) && r.accepted_windows.some(w => Array.isArray(w) && w.length === 2
+        && validDay(w[0]) && validDay(w[1]) && w[0] <= d && d <= w[1]);
+  };
   // проверяем только окно блока (с первой недели сравнения): старые дни давно не собираемых кампаний не в счёт
   const days = [...new Set(adsDaily.map((a) => a.d))].filter((d) => d >= from).sort();
   let full = "";
   for (const d of days) {
     const ok = adsDaily.filter((a) => a.d === d && a.sp > 0 && String(a.id) !== skip)
-      .every((a) => state[String(a.id)] && addDays(state[String(a.id)]!, -1) >= d
+      .every((a) => ((state[String(a.id)] && addDays(state[String(a.id)]!, -1) >= d) || accepted(String(a.id), d))
         // сбой отчёта ставит дату сбора, но строк нет: день полный, только если по товарам собрано от 95% расхода кампании (ФЕНИКС N2)
         && (!skuSp || (skuSp.get(`${a.id}|${d}`) ?? 0) >= 0.95 * a.sp));
     if (!ok) break;
@@ -344,7 +354,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     add(stSp, a.d, Number(a.sp) || 0); add(stClk, a.d, Number(a.cl) || 0);   // магазин: расход и клики из одного источника (ФЕНИКС G5)
   }
   const adsState = existsSync(dp("ads_sku_state.json")) ? JSON.parse(readFileSync(dp("ads_sku_state.json"), "utf-8")) as Record<string, string> : {};
-  const ADS_FULL = adsFullDay(adsDaily.map((a) => ({ d: a.d, id: String(a.id), sp: Number(a.sp) || 0 })), adsState, CPO_ID, "2026-10-08", campDay);
+  const adsReceipts = existsSync(dp("ads_report_adjustments.json")) ? JSON.parse(readFileSync(dp("ads_report_adjustments.json"), "utf-8")).sku ?? {} : {};
+  const ADS_FULL = adsFullDay(adsDaily.map((a) => ({ d: a.d, id: String(a.id), sp: Number(a.sp) || 0 })), adsState, CPO_ID, "2026-10-08", campDay, adsReceipts);
   const TO_MIN = new Set(P.to_min.map((k) => String(k.cid)));
   const sp = mk(), spm = mk(), spmin = mk(), clk = mk(), acart = mk();
   for (const a of asd) {

@@ -63,6 +63,7 @@ export async function main() {
   const START = Date.now(), BUDGET_MS = budgetMin * 60 * 1000;
   const processed = new Set<string>(); let budgetHit = false;
   const correctionUpdates: Record<string,ReportCorrection[]> = {};
+  const accepted: Record<string, Array<[string, string]>> = {};
   const complete = (cid: string, a: string, b: string) => {
     const sum = new Map<string, number>();
     for (const r of existing) if (r.cid === cid && r.d >= a && r.d <= b) sum.set(r.d, (sum.get(r.d) ?? 0) + r.sp);
@@ -85,7 +86,8 @@ export async function main() {
     if (complete(cid, from, to)) state[cid] = today();
     atomicText(STATE, JSON.stringify(state) + "\n");
     correctionUpdates[cid] = [...(correctionUpdates[cid] ?? []), ...corrections];
-    saveCorrections("sku", { [cid]: correctionUpdates[cid]! });
+    (accepted[cid] ??= []).push([wf, wt]);
+    saveCorrections("sku", { [cid]: correctionUpdates[cid]! }, { [cid]: accepted[cid]! });
     processed.add(cid);
   };
   // Сперва все свежие кампании; каждый диапазон сохраняется до перехода к истории.

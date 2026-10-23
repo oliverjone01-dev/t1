@@ -78,7 +78,7 @@ export async function main() {
       const merged = replaceSlice(existing, recs, r => r.id === id && r.d >= from && r.d <= to, r => `${r.d}|${r.id}|${r.sku}`);
       merged.sort((a,b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id) || a.sku.localeCompare(b.sku));
       writeRows(OUT, merged, r => `${r.d}|${r.id}|${r.sku}`);
-      saveCorrections("attribution", { [id]: corrections });
+      saveCorrections("attribution", { [id]: corrections }, { [id]: [[from, to]] });
       existing = merged;
       state[id] = { through: to, loaded_at: new Date().toISOString() };
       atomicText(statePath, JSON.stringify(state) + "\n");

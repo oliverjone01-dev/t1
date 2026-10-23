@@ -1,15 +1,32 @@
 import { OzonPerformance } from "../../connector/ozon-performance.js";
 import { parseAttributionDaily } from "./parse-attribution.js";
 import { readFileSync, existsSync } from "node:fs";
-import { atomicText } from "./collector-integrity.js";
+import { atomicText, shiftDay } from "./collector-integrity.js";
 import { reportCsv } from "./report-queue.js";
 
 export type ReportCorrection = { from: string; to: string; values: Record<string, number | null> };
-export function saveCorrections(collector: string, updates: Record<string, ReportCorrection[]>): void {
+export function replaceCorrections(previous: ReportCorrection[], updates: ReportCorrection[], ranges: Array<[string, string]>): ReportCorrection[] {
+  const ordered = ranges.slice().sort((a,b) => a[0].localeCompare(b[0]));
+  const covered = (r: ReportCorrection) => {
+    let cursor = r.from;
+    for (const [a,b] of ordered) {
+      if (b < cursor) continue;
+      if (a > cursor) return false;
+      if (b >= r.to) return true;
+      cursor = shiftDay(b, 1);
+    }
+    return false;
+  };
+  if (updates.some(r => !covered(r))) throw new Error("Корректировка вне принятых диапазонов");
+  // Недатированную сумму нельзя разделить по дням: частичное перекрытие не удаляет её.
+  return [...previous.filter(r => !covered(r)), ...updates];
+}
+export function saveCorrections(collector: string, updates: Record<string, ReportCorrection[]>, ranges?: Record<string, Array<[string, string]>>): void {
   const path = "data/ads_report_adjustments.json";
   const state = existsSync(path) ? JSON.parse(readFileSync(path,"utf8")) : {};
   state[collector] ??= {};
-  for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(), reports };
+  for (const [cid, reports] of Object.entries(updates)) state[collector][cid] = { loaded_at:new Date().toISOString(),
+    reports: ranges?.[cid] ? replaceCorrections(state[collector][cid]?.reports ?? [], reports, ranges[cid]!) : reports };
   atomicText(path, JSON.stringify(state) + "\n");
 }
 

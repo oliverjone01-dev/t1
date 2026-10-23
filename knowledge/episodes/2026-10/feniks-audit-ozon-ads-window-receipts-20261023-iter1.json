@@ -1,0 +1,115 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-ads-window-receipts-20261023",
+  "timestamp": "2026-10-23T08:07:56.441690+00:00",
+  "deliverable_ref": "commit:6128a3e5ece0a1c98fdb4f445d8203cce7562dc6; audited_hash=cf34aacf67ec7a67",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "6.7 dialogs-registry return - выше на0.90: первичный источник и разовые гейты проверены, дефект локален. Ниже8.1after-rework: новое подтверждение не переживает сдвиг свежего окна.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 6,
+    "brand_fit": 9,
+    "risk_awareness": 7
+  },
+  "weighted_total": 7.6,
+  "verdict": "return",
+  "verdict_override_reason": "Воспроизводимый регресс сохранности receipt между последовательными успешными свежими окнами; ранее подтверждённый день снова отсекается.",
+  "gaps": [
+    "Новое успешное свежее окно перезаписывает accepted_windows и удаляет ранее принятое подтверждение. При сохранённых расходах и старом full checkpoint adsFullDay откатывается с 22.10 на 21.10 после сдвига семидневного окна."
+  ],
+  "primary_gap": "Новое успешное свежее окно перезаписывает accepted_windows и удаляет ранее принятое подтверждение. При сохранённых расходах и старом full checkpoint adsFullDay откатывается с 22.10 на 21.10 после сдвига семидневного окна.",
+  "rework_tz": "Хранить ранее принятые диапазоны с собственной датой приёмки. Новое непересекающееся/частично пересекающееся свежее окно не должно удалять прежние подтверждения сохранённых строк. Не назначать старым/будущим дням время загрузки другого окна. Добавить последовательный producer→consumer regression через сдвиг fresh7 при прежнем fullstate и сохранённых >=95% суммах. Повторить аудит на новом хеше.",
+  "confidence": 0.98,
+  "p9_triggers_fired": [
+    "advertising dashboard numbers",
+    "source receipt persistence"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Независимо просуммированы первичные collected NDJSON:43629377=116/116руб,43629636=135/135руб за22.10; старый fullstate22.10 объясняет исходный пропуск."
+    },
+    {
+      "id": "B2",
+      "result": "FAIL",
+      "evidence": "audit-receipts-lifecycle.mjs вызывает production saveCorrections → чтение metadata → adsFullDay: окно16-22.10 loaded23.10 даёт22.10; окно23-29.10 loaded30.10 заменяет receipt и даёт21.10. SKU100/100 и state22.10 не меняются. attribution-report.ts:29 заменяет accepted_windows целиком."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Патч не меняет ключи/строки/суммы; receipt связан с cid и диапазоном. Никакой агрегации SKU или дублирования кампаний не добавлено."
+    },
+    {
+      "id": "B4",
+      "result": "FAIL",
+      "evidence": "Данные и суммы сохраняются, но metadata теряет прежнее окно при следующей загрузке; consumer больше не принимает ранее принятый день."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Расходы и недели не захардкожены новым кодом; порог95% сохранён. Все5неисключённых путей прочитаны."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "9самостоятельных fail-closed проверок проходят:без суммы/receipt,до концаМСКдня,невалидные дата/loaded_at,внеокна,<95%,точно95%. Liveсбор после этого патча не выполнялся."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Receipt без skuSp не допускается; при94/100 день остаётся неизвестным,при95/100 допускается. Денежные формулы и старые ошибки истории не скрываются."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Новое успешное свежее окно перезаписывает accepted_windows и удаляет ранее принятое подтверждение. При сохранённых расходах и старом full checkpoint adsFullDay откатывается с 22.10 на 21.10 после сдвига семидневного окна.",
+      "evidence": "audit-receipts-lifecycle.mjs вызывает production saveCorrections → чтение metadata → adsFullDay: окно16-22.10 loaded23.10 даёт22.10; окно23-29.10 loaded30.10 заменяет receipt и даёт21.10. SKU100/100 и state22.10 не меняются. attribution-report.ts:29 заменяет accepted_windows целиком.",
+      "checkpoint": "risk_25_reversibility",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "outputs/test4-close-2026-10-23/collected/ads_daily.ndjson",
+    "outputs/test4-close-2026-10-23/collected/ads_sku_daily.ndjson",
+    "outputs/test4-close-2026-10-23/collected/ads_sku_state.json",
+    "knowledge/semantic/metrics/ozon-ads-window-receipts-20261023.yaml",
+    "/Users/gengroup/Documents/Codex/outputs/audit-ads-window-receipts-20261023/audit-receipts-lifecycle-result.json"
+  ],
+  "audience": "Иван Раюшкин; internal dashboard"
+}

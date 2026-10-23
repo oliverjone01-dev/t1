@@ -190,16 +190,16 @@ export function weekSum(byDay: Map<string, number>, a: string, b: string, last: 
  *  ads_sku_daily доливается по кампаниям несколько ночей: state[cid] - дата сбора, данные по вчера от неё.
  *  Принятый receipt конкретного окна подтверждает его дни независимо от незакрытой старой истории.
  *  День, где у части кампаний строк ещё нет, - не «расход упал», а «досчитывается». */
-export type AdWindowReceipt = { loaded_at?: string; accepted_windows?: Array<[string, string]> };
+export type AdWindowReceipt = { loaded_at?: string; accepted_windows?: Array<{from:string;to:string;loaded_at:string}> };
 export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }>, state: Record<string, string>, skip: string, from = "",
   skuSp?: Map<string, number>, receipts: Record<string, AdWindowReceipt> = {}): string {
   const validDay = (s: unknown): s is string => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)
     && Number.isFinite(Date.parse(s + "T00:00:00Z")) && new Date(s + "T00:00:00Z").toISOString().slice(0, 10) === s;
   const accepted = (id: string, d: string) => {
     const r = receipts[id];
-    return !!skuSp && !!r && Date.parse(r.loaded_at || "") >= Date.parse(d + "T23:59:59.999+03:00")
-      && Array.isArray(r.accepted_windows) && r.accepted_windows.some(w => Array.isArray(w) && w.length === 2
-        && validDay(w[0]) && validDay(w[1]) && w[0] <= d && d <= w[1]);
+    return !!skuSp && !!r && Array.isArray(r.accepted_windows) && r.accepted_windows.some(w => w && !Array.isArray(w)
+      && validDay(w.from) && validDay(w.to) && w.from <= d && d <= w.to
+      && Date.parse(w.loaded_at || "") >= Date.parse(d + "T23:59:59.999+03:00"));
   };
   // проверяем только окно блока (с первой недели сравнения): старые дни давно не собираемых кампаний не в счёт
   const days = [...new Set(adsDaily.map((a) => a.d))].filter((d) => d >= from).sort();

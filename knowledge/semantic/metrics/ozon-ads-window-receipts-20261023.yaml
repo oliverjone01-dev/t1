@@ -4,7 +4,8 @@ owner: Иван Раюшкин
 authorization: 'Продолжение поручения23.10: починить пустую рекламу22-28.10; без дополнительных плашек'
 scope: 'Подтверждение конкретного принятого DATE-окна вместо требования пересобрать всю62-дневную историю'
 source: 'Тот же Ozon Performance DATE CSV; receipt создаёт saveCorrections только после принятия диапазона сборщиком'
-receipt_fields: [loaded_at, accepted_windows]
+receipt_fields: [accepted_windows.from, accepted_windows.to, accepted_windows.loaded_at]
+receipt_ledger: 'Сохраняет ранее принятые окна; повтор заменяет только дату точного from/to. Общий loaded_at не подтверждает чужое окно.'
 date_basis: 'День расхода Performance, Europe/Moscow; loaded_at должен быть позже конца этого дня по МСК'
 filters: 'CPO без SKU API исключён, уникальный ключ день/cid/sku; отмены/возвраты не пересчитываются'
 period: 'Недели чт-ср; неизменные периоды плана. Receipt подтверждает только собственный[from,to].'

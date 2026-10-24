@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-09-24",
   "dateTo": "2026-10-23",
-  "generated_at": "2026-10-24T04:54:31.559Z",
+  "generated_at": "2026-10-24T09:17:13.634Z",
   "totals": {
     "rev": 29968679,
     "units": 435,
@@ -228,7 +228,7 @@
       "aov": 120679,
       "offer": "GGT-35-3-3-100-180",
       "stock": 28,
-      "pidx": 0.63,
+      "pidx": 0.64,
       "pcol": "SUPER",
       "price": 119460,
       "oos": 0
@@ -536,7 +536,7 @@
       "aov": 72762,
       "offer": "GGM-24-1",
       "stock": 129,
-      "pidx": 0.84,
+      "pidx": 0.83,
       "pcol": "SUPER",
       "price": 72900,
       "oos": 0
@@ -866,7 +866,7 @@
       "aov": 118899,
       "offer": "GGT-35-2-2-100-180",
       "stock": 29,
-      "pidx": 0.67,
+      "pidx": 0.68,
       "pcol": "SUPER",
       "price": 119360,
       "oos": 0
@@ -1790,7 +1790,7 @@
       "aov": 98900,
       "offer": "GGM-20-3",
       "stock": 241,
-      "pidx": 0.79,
+      "pidx": 0.78,
       "pcol": "SUPER",
       "price": 98900,
       "oos": 0
@@ -2318,8 +2318,8 @@
       "aov": 71900,
       "offer": "GGT-03-3-3-L-90",
       "stock": 29,
-      "pidx": 0.78,
-      "pcol": "SUPER",
+      "pidx": 0.98,
+      "pcol": "GREEN",
       "price": 65816,
       "oos": 0
     },
@@ -2384,7 +2384,7 @@
       "aov": 71350,
       "offer": "GGT-03-3-5-L-90",
       "stock": 29,
-      "pidx": 0.78,
+      "pidx": 0.79,
       "pcol": "SUPER",
       "price": 65816,
       "oos": 0
@@ -2647,7 +2647,7 @@
       "retp": 0,
       "aov": 56900,
       "offer": "GGTP-03-2-L",
-      "stock": 195,
+      "stock": 194,
       "pidx": 0.9,
       "pcol": "SUPER",
       "price": 56900,
@@ -3088,7 +3088,7 @@
       "aov": 29869,
       "offer": "GGM-15-3-2-M",
       "stock": 0,
-      "pidx": 0.83,
+      "pidx": 0.87,
       "pcol": "SUPER",
       "price": 29869,
       "oos": 1

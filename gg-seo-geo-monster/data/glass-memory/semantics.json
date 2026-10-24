@@ -1,5 +1,5 @@
 {
- "measured": "2026-10-20",
+ "measured": "2026-10-24",
  "phrases": [
   {
    "phrase": "полки из стекла",
@@ -119,14 +119,6 @@
    "freq": 1888,
    "url": "",
    "cluster": "лучшие",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "южное кладбище",
-   "pos": null,
-   "freq": 20731,
-   "url": "",
-   "cluster": "южное",
    "intent": "commercial"
   },
   {
@@ -639,6 +631,14 @@
    "freq": 27,
    "url": "",
    "cluster": "надпись",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "фото на памятник варианты",
+   "pos": null,
+   "freq": 612,
+   "url": "",
+   "cluster": "фото",
    "intent": "commercial"
   },
   {

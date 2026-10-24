@@ -1,13 +1,13 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-10-20",
+ "measured": "2026-10-24",
  "visibility": 2,
- "ai_answers": 22,
- "keywords_total": 580,
+ "ai_answers": 23,
+ "keywords_total": 579,
  "top1": 7,
  "top3": 13,
  "top10": 55,
- "top50": 580,
+ "top50": 579,
  "top_pages": [
   {
    "url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva",
@@ -43,7 +43,7 @@
   },
   {
    "url": "/",
-   "keywords_top50": 16
+   "keywords_top50": 15
   },
   {
    "url": "/products/loft-mebel/opora-dlya-stola-loft",
@@ -99,8 +99,8 @@
   {
    "domain": "pamiatniky.ru",
    "common_ad_keywords": 4,
-   "ads_count": 300,
-   "ad_keywords_count": 1543,
+   "ads_count": 297,
+   "ad_keywords_count": 1542,
    "visibility": 14
   },
   {
@@ -114,7 +114,7 @@
    "domain": "ural-glass.ru",
    "common_ad_keywords": 3,
    "ads_count": 42,
-   "ad_keywords_count": 80,
+   "ad_keywords_count": 79,
    "visibility": 1
   }
  ],
@@ -353,6 +353,11 @@
    "date": "2026-10-20",
    "visibility": 2,
    "top10": 55
+  },
+  {
+   "date": "2026-10-24",
+   "visibility": 2,
+   "top10": 55
   }
  ],
  "keywords": [
@@ -444,12 +449,6 @@
    "phrase": "лучшие памятники на могилу",
    "pos": null,
    "freq": 1888,
-   "url": ""
-  },
-  {
-   "phrase": "южное кладбище",
-   "pos": null,
-   "freq": 20731,
    "url": ""
   },
   {
@@ -837,6 +836,12 @@
    "url": ""
   },
   {
+   "phrase": "фото на памятник варианты",
+   "pos": null,
+   "freq": 612,
+   "url": ""
+  },
+  {
    "phrase": "облицовка могилы гранитной плиткой",
    "pos": null,
    "freq": 52,
@@ -960,107 +965,98 @@
  "competitors": [
   {
    "domain": "m.avito.ru",
-   "visibility": 2497083,
-   "common_keywords": 423,
-   "delta_visibility": 0.8
-  },
-  {
-   "domain": "livemaster.ru",
-   "visibility": 111706,
-   "common_keywords": 308,
-   "delta_visibility": -2.5
+   "visibility": 2497442,
+   "common_keywords": 422,
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
-   "visibility": 1435492,
-   "common_keywords": 287,
-   "delta_visibility": 0.4
+   "visibility": 1451401,
+   "common_keywords": 286,
+   "delta_visibility": 1.1
   },
   {
    "domain": "market.yandex.ru",
-   "visibility": 1089061,
+   "visibility": 1092988,
    "common_keywords": 284,
    "delta_visibility": 0.4
   },
   {
    "domain": "ozon.ru",
-   "visibility": 2436087,
-   "common_keywords": 278,
-   "delta_visibility": 11.2
-  },
-  {
-   "domain": "lemanapro.ru",
-   "visibility": 594945,
-   "common_keywords": 229,
-   "delta_visibility": -3.3
+   "visibility": 2468431,
+   "common_keywords": 277,
+   "delta_visibility": 1.3
   },
   {
    "domain": "dzen.ru",
-   "visibility": 3815679,
+   "visibility": 3816544,
    "common_keywords": 194,
-   "delta_visibility": 7.9
-  },
-  {
-   "domain": "vseinstrumenti.ru",
-   "visibility": 493636,
-   "common_keywords": 158,
-   "delta_visibility": -1.1
-  },
-  {
-   "domain": "postament.ru",
-   "visibility": 1849,
-   "common_keywords": 14,
-   "delta_visibility": 1
-  },
-  {
-   "domain": "yandex.ru",
-   "visibility": 10611280,
-   "common_keywords": 13,
-   "delta_visibility": 0.1
-  },
-  {
-   "domain": "nisp.ru",
-   "visibility": 379,
-   "common_keywords": 12,
-   "delta_visibility": -0.8
-  },
-  {
-   "domain": "pqd.ru",
-   "visibility": 1187,
-   "common_keywords": 8,
-   "delta_visibility": 0.3
-  },
-  {
-   "domain": "talkingstone.ru",
-   "visibility": 461,
-   "common_keywords": 8,
-   "delta_visibility": 0.7
+   "delta_visibility": 0
   },
   {
    "domain": "ru.pinterest.com",
-   "visibility": 870673,
+   "visibility": 870874,
+   "common_keywords": 163,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "uslugi.yandex.ru",
+   "visibility": 188541,
+   "common_keywords": 162,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "vseinstrumenti.ru",
+   "visibility": 493220,
+   "common_keywords": 158,
+   "delta_visibility": -0.1
+  },
+  {
+   "domain": "yandex.ru",
+   "visibility": 10607029,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "glassphoto.ru",
+   "visibility": 7,
+   "common_keywords": 10,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "livemaster.ru",
+   "visibility": 111064,
+   "common_keywords": 9,
+   "delta_visibility": -0.6
+  },
+  {
+   "domain": "grad-ex.ru",
+   "visibility": 57,
    "common_keywords": 7,
-   "delta_visibility": -2.1
+   "delta_visibility": 0
   },
   {
    "domain": "organizator24-granit.ru",
    "visibility": 0,
    "common_keywords": 7,
    "delta_visibility": 0
+  },
+  {
+   "domain": "centrgranita.ru",
+   "visibility": 45,
+   "common_keywords": 6,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "granitreal.ru",
+   "visibility": 76,
+   "common_keywords": 5,
+   "delta_visibility": 0
   }
  ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "ozon.ru",
-    "delta": 11.2
-   },
-   {
-    "domain": "dzen.ru",
-    "delta": 7.9
-   }
-  ]
+  "competitor_up": []
  }
 }

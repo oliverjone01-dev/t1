@@ -1,0 +1,23 @@
+{
+  "status": "planned",
+  "designSystem": "infra/vps/site/workspace.css",
+  "scope": "company + dashboard + user profile (browser storage until individual logins exist)",
+  "editor": {
+    "entry": "Настроить дашборд",
+    "zones": {"columns": [1, 2, 3], "responsive": "one column on narrow screens"},
+    "gallery": ["metrics", "chart", "table", "calendar", "combined widget"],
+    "actions": ["add zone", "add widget", "move widget", "resize widget", "hide widget", "restore widget", "restore default layout"],
+    "removeSemantics": "Remove layout placement only; retain source data, calculations and catalog entry"
+  },
+  "widgetSettings": {
+    "entry": "⋯ → Настроить",
+    "fields": ["metrics", "grouping", "display type", "size", "sorting", "detail level"],
+    "dateScope": ["inherit dashboard period", "explicit local override with visible indicator"],
+    "granularity": ["day", "week", "month"],
+    "allowedOptions": "Only metrics and groupings supported by the widget's source and calculations",
+    "reset": "Restore widget defaults without changing other widgets"
+  },
+  "persistentControls": ["date presets", "custom date range", "granularity", "right filter drawer"],
+  "dataRules": ["No information removed", "No implicit AI API requests", "Keep business calculations verified against original dashboards"],
+  "rollout": ["Inventory existing ROP widgets and dependencies", "Expose catalog with descriptions and supported settings", "Allow hide/restore and preset zones", "Add per-widget metrics/grouping settings", "Add rearrangement and profile synchronization"]
+}

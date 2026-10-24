@@ -1,0 +1,9 @@
+[Unit]
+Description=GENGROUP выкат из GitHub каждые 2 минуты
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=2min
+
+[Install]
+WantedBy=timers.target

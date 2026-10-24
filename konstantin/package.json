@@ -1,0 +1,8 @@
+{
+  "name": "konstantin-sales-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Живой бот отдела продаж GENGLASS в Telegram (Claude по @упоминанию, данные из дашбордов)",
+  "scripts": { "start": "node bot.mjs", "sync": "bash sync.sh" }
+}

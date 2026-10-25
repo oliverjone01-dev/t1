@@ -1108,7 +1108,7 @@
 {"d":"2026-09-21","sku":"GGT-03-1-4-E-12080","units":1,"pay":41244,"accruals":85400,"commission":-393,"delivery":0,"acquiring":-2391,"storage":0,"cofin":-45843,"promo":-70,"otherSvc":0,"amount":36702,"platform":"ym"}
 {"d":"2026-09-21","sku":"GGT-03-1-5-E-16080","units":1,"pay":43557,"accruals":90460,"commission":-413,"delivery":0,"acquiring":-2533,"storage":0,"cofin":-47486,"promo":-67,"otherSvc":0,"amount":39961,"platform":"ym"}
 {"d":"2026-09-21","sku":"GGT-03-2-1-L-120","units":1,"pay":35187,"accruals":76130,"commission":-365,"delivery":-1013,"acquiring":-2132,"storage":0,"cofin":-37504,"promo":0,"otherSvc":0,"amount":35116,"platform":"ym"}
-{"d":"2026-09-21","sku":"GGT-03-2-3-E-16080","units":1,"pay":43614,"accruals":88270,"commission":-3289,"delivery":0,"acquiring":-2472,"storage":0,"cofin":-41067,"promo":-42,"otherSvc":0,"amount":41400,"platform":"ym"}
+{"d":"2026-09-21","sku":"GGT-03-2-3-E-16080","units":-1,"pay":-34614,"accruals":0,"commission":-3289,"delivery":0,"acquiring":-2472,"storage":0,"cofin":-41067,"promo":-42,"otherSvc":0,"amount":-46870,"platform":"ym"}
 {"d":"2026-09-21","sku":"GGT-03-2-5-L-90","units":1,"pay":30344,"accruals":69616,"commission":-334,"delivery":-1008,"acquiring":-1949,"storage":0,"cofin":-41177,"promo":-74,"otherSvc":0,"amount":25074,"platform":"ym"}
 {"d":"2026-09-21","sku":"GGT-35-1-3-100-180","units":1,"pay":48092,"accruals":102400,"commission":-475,"delivery":0,"acquiring":-2867,"storage":0,"cofin":-55790,"promo":-89,"otherSvc":0,"amount":43179,"platform":"ym"}
 {"d":"2026-09-21","sku":"GGTP-20-2х2","units":1,"pay":16355,"accruals":35668,"commission":-173,"delivery":-1012,"acquiring":-999,"storage":0,"cofin":-19868,"promo":-101,"otherSvc":0,"amount":13515,"platform":"ym"}
@@ -1214,7 +1214,7 @@
 {"d":"2026-10-14","sku":"GGL-07-XL-2","units":0,"pay":596,"accruals":48715,"commission":-483,"delivery":-2025,"acquiring":-2761,"storage":0,"cofin":-57673,"promo":-74,"otherSvc":0,"amount":-14301,"platform":"ym"}
 {"d":"2026-10-14","sku":"GGL-09-2","units":1,"pay":26468,"accruals":63959,"commission":-313,"delivery":-1023,"acquiring":-1791,"storage":0,"cofin":-37685,"promo":-44,"otherSvc":0,"amount":23102,"platform":"ym"}
 {"d":"2026-10-14","sku":"GGR-10-1","units":1,"pay":15574,"accruals":28503,"commission":-125,"delivery":0,"acquiring":-798,"storage":0,"cofin":-12371,"promo":0,"otherSvc":0,"amount":15208,"platform":"ym"}
-{"d":"2026-10-14","sku":"GGR-11-1","units":1,"pay":11102,"accruals":26900,"commission":-13181,"delivery":-1019,"acquiring":0,"storage":0,"cofin":-2965,"promo":-10,"otherSvc":0,"amount":9724,"platform":"ym"}
+{"d":"2026-10-14","sku":"GGR-11-1","units":1,"pay":11102,"accruals":26900,"commission":-13181,"delivery":-1019,"acquiring":-753,"storage":0,"cofin":-2965,"promo":-10,"otherSvc":0,"amount":8970,"platform":"ym"}
 {"d":"2026-10-14","sku":"GGT-35-5-1-100-180","units":2,"pay":91233,"accruals":201526,"commission":-10577,"delivery":0,"acquiring":-5643,"storage":0,"cofin":-110843,"promo":-288,"otherSvc":0,"amount":74174,"platform":"ym"}
 {"d":"2026-10-14","sku":"GGT-47-3-5-90","units":1,"pay":17554,"accruals":50523,"commission":-243,"delivery":-4619,"acquiring":-1415,"storage":0,"cofin":-31511,"promo":-77,"otherSvc":0,"amount":12659,"platform":"ym"}
 {"d":"2026-10-15","sku":"GGL-07-XL-2","units":1,"pay":21122,"accruals":48715,"commission":-239,"delivery":-1013,"acquiring":-1364,"storage":0,"cofin":-28154,"promo":-33,"otherSvc":0,"amount":17913,"platform":"ym"}
@@ -1249,4 +1249,8 @@
 {"d":"2026-10-21","sku":"GGT-35-2-2-100-180","units":1,"pay":38612,"accruals":93986,"commission":-434,"delivery":0,"acquiring":-2632,"storage":0,"cofin":-54859,"promo":-120,"otherSvc":0,"amount":35941,"platform":"ym"}
 {"d":"2026-10-22","sku":"GGT-35-3-3-100-180","units":1,"pay":45600,"accruals":111601,"commission":-521,"delivery":0,"acquiring":-3125,"storage":0,"cofin":-72035,"promo":-206,"otherSvc":0,"amount":35713,"platform":"ym"}
 {"d":"2026-10-22","sku":"GGT-35-5-1-100-180","units":2,"pay":91145,"accruals":204026,"commission":-929,"delivery":-20,"acquiring":-5713,"storage":0,"cofin":-123046,"promo":-294,"otherSvc":0,"amount":74024,"platform":"ym"}
-{"d":"2026-10-23","sku":"GGR-11-2","units":1,"pay":10672,"accruals":27631,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-1930,"promo":0,"otherSvc":0,"amount":25701,"platform":"ym"}
+{"d":"2026-10-23","sku":"GGR-11-2","units":1,"pay":10672,"accruals":27631,"commission":-135,"delivery":-1019,"acquiring":-774,"storage":0,"cofin":-15333,"promo":0,"otherSvc":0,"amount":10369,"platform":"ym"}
+{"d":"2026-10-24","sku":"GGM-17-2-3","units":2,"pay":32710,"accruals":74386,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-45527,"promo":0,"otherSvc":0,"amount":28859,"platform":"ym"}
+{"d":"2026-10-24","sku":"GGT-35-2-2-100-180","units":1,"pay":41420,"accruals":97387,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-61420,"promo":0,"otherSvc":0,"amount":35967,"platform":"ym"}
+{"d":"2026-10-25","sku":"GGL-02-M-2","units":1,"pay":18628,"accruals":41900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":41900,"platform":"ym"}
+{"d":"2026-10-25","sku":"GGL-11","units":1,"pay":30488,"accruals":76460,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":76460,"platform":"ym"}

@@ -27,9 +27,9 @@
 {"ym":"2026-09","business":"74986385","kind":"boost","spend":641325.45,"rev":8009893,"revAll":8411304,"bonus":0,"orders":118,"platform":"ym"}
 {"ym":"2026-09","business":"74986385","kind":"shelf","spend":27606.07,"rev":425753,"revAll":0,"bonus":0,"orders":6,"platform":"ym"}
 {"ym":"2026-09","business":"74986385","kind":"shows","spend":61421.66,"rev":605516,"revAll":0,"bonus":6500,"orders":10,"platform":"ym"}
-{"ym":"2026-10","business":"1023124","kind":"boost","spend":99271.52,"rev":1435782,"revAll":1435782,"bonus":0,"orders":29,"platform":"ym"}
+{"ym":"2026-10","business":"1023124","kind":"boost","spend":106769.62,"rev":1510168,"revAll":1510168,"bonus":0,"orders":31,"platform":"ym"}
 {"ym":"2026-10","business":"1023124","kind":"shelf","spend":0,"rev":0,"revAll":0,"bonus":0,"orders":0,"platform":"ym"}
-{"ym":"2026-10","business":"1023124","kind":"shows","spend":11730.11,"rev":125364,"revAll":0,"bonus":0,"orders":2,"platform":"ym"}
-{"ym":"2026-10","business":"74986385","kind":"boost","spend":630798.91,"rev":5374494,"revAll":5583678,"bonus":0,"orders":78,"platform":"ym"}
-{"ym":"2026-10","business":"74986385","kind":"shelf","spend":11500,"rev":299799,"revAll":0,"bonus":0,"orders":3,"platform":"ym"}
-{"ym":"2026-10","business":"74986385","kind":"shows","spend":45214.53,"rev":139471,"revAll":0,"bonus":911.21,"orders":2,"platform":"ym"}
+{"ym":"2026-10","business":"1023124","kind":"shows","spend":12430.11,"rev":125364,"revAll":0,"bonus":0,"orders":2,"platform":"ym"}
+{"ym":"2026-10","business":"74986385","kind":"boost","spend":647533.72,"rev":5468881,"revAll":5678065,"bonus":0,"orders":79,"platform":"ym"}
+{"ym":"2026-10","business":"74986385","kind":"shelf","spend":12000,"rev":299799,"revAll":0,"bonus":0,"orders":3,"platform":"ym"}
+{"ym":"2026-10","business":"74986385","kind":"shows","spend":45217.91,"rev":139471,"revAll":0,"bonus":1407.83,"orders":2,"platform":"ym"}

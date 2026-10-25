@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-09-25",
   "dateTo": "2026-10-24",
-  "generated_at": "2026-10-25T04:54:07.489Z",
+  "generated_at": "2026-10-25T09:34:01.892Z",
   "totals": {
     "rev": 30656232,
     "units": 444,
@@ -843,7 +843,7 @@
       "retp": 0,
       "aov": 30900,
       "offer": "GGR-11-2",
-      "stock": 126,
+      "stock": 125,
       "pidx": 0.95,
       "pcol": "SUPER",
       "price": 30900,
@@ -2363,7 +2363,7 @@
       "offer": "GGT-03-3-3-L-90",
       "stock": 29,
       "pidx": 0.98,
-      "pcol": "GREEN",
+      "pcol": "RED",
       "price": 65816,
       "oos": 0
     },

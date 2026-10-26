@@ -2,7 +2,7 @@
   "domain": "kelman-stroi.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-19T08:10:18.159Z",
+  "measured": "2026-10-26T08:11:25.460Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=kelman-stroi.ru",
   "data": {
     "id": 280352249,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 4584,
-        "it50": 49570275,
-        "vis": 3815679,
-        "perc": 0.009247477444900195
+        "cnt": 4586,
+        "it50": 49568688,
+        "vis": 3816299,
+        "perc": 0.009251808318993636
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 4203,
-        "it50": 50185043,
-        "vis": 4187741,
-        "perc": 0.008375005277966982
+        "cnt": 4205,
+        "it50": 50186617,
+        "vis": 4177516,
+        "perc": 0.008378727739309467
       },
       {
         "did": 29917304,
         "name": "rutube.ru",
-        "cnt": 3781,
-        "it50": 30958788,
-        "vis": 2947969,
-        "perc": 0.012213010405962921
+        "cnt": 3782,
+        "it50": 30959151,
+        "vis": 2950652,
+        "perc": 0.012216097269592437
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 3751,
-        "it50": 3138723,
-        "vis": 594945,
-        "perc": 0.11950720085843829
+        "cnt": 3752,
+        "it50": 3139178,
+        "vis": 589879,
+        "perc": 0.11952173467066857
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3646,
-        "it50": 47342265,
-        "vis": 10611280,
-        "perc": 0.007701363675776813
+        "cnt": 3645,
+        "it50": 47340533,
+        "vis": 10606856,
+        "perc": 0.007699533082992538
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 3619,
-        "it50": 1388770,
-        "vis": 16933,
-        "perc": 0.26059030653023896
+        "cnt": 3621,
+        "it50": 1389143,
+        "vis": 16913,
+        "perc": 0.2606643088580513
       },
       {
         "did": 270071578,
         "name": "znaet.petrovich.ru",
-        "cnt": 3140,
-        "it50": 669723,
-        "vis": 42729,
-        "perc": 0.4688505546322883
+        "cnt": 3139,
+        "it50": 669802,
+        "vis": 42833,
+        "perc": 0.4686459580592473
       },
       {
         "did": 30030622,
         "name": "169.ru",
         "cnt": 3087,
-        "it50": 89797,
-        "vis": 4004,
-        "perc": 3.4377540452353643
+        "it50": 89818,
+        "vis": 4025,
+        "perc": 3.436950277227282
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
         "cnt": 2827,
-        "it50": 879385,
-        "vis": 13027,
-        "perc": 0.32147466695474675
+        "it50": 879426,
+        "vis": 13007,
+        "perc": 0.32145967938177855
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 2798,
-        "it50": 20514167,
-        "vis": 2497083,
-        "perc": 0.013639354695708579
+        "cnt": 2799,
+        "it50": 20517353,
+        "vis": 2497404,
+        "perc": 0.013642110656282026
       }
     ],
     "it1": 13,
     "it3": 67,
     "it5": 141,
     "it10": 404,
-    "it50": 6888,
+    "it50": 6891,
     "childsCount": 0,
     "keys": [
       {
@@ -158,7 +158,7 @@
         "wsk": 3
       }
     ],
-    "topkeys": 56920,
+    "topkeys": 56904,
     "pages": [
       {
         "it50": 352,
@@ -173,11 +173,11 @@
         "url": "/blog/chem-zakryt-i-kak-oformit-proem-vmesto-dveri"
       },
       {
-        "it50": 288,
+        "it50": 287,
         "url": "/blog/peregorodka-iz-reek-svoimi-rukami"
       },
       {
-        "it50": 273,
+        "it50": 274,
         "url": "/blog/montazh-stenovyh-panelej-svoimi-rukami"
       },
       {
@@ -197,82 +197,82 @@
         "url": "/blog/peregorodki-iz-gazobetonnyh-blokov-svoimi-rukami"
       },
       {
-        "it50": 164,
+        "it50": 165,
         "url": "/blog/dver-v-banyu-svoimi-rukami"
       }
     ],
     "pagesinindex": 201,
     "vis": 14,
-    "topvis": 224641,
+    "topvis": 224818,
     "adconcs": [
       {
         "did": 29917770,
         "name": "vseinstrumenti.ru",
         "cnt": 77,
-        "it50": 4411672,
-        "vis": 493636,
-        "adkeyscnt": 2075543,
-        "adscnt": 1236620
+        "it50": 4412189,
+        "vis": 493383,
+        "adkeyscnt": 2077984,
+        "adscnt": 1238371
       },
       {
         "did": 29917793,
         "name": "santehnika-online.ru",
         "cnt": 58,
-        "it50": 402229,
-        "vis": 26773,
-        "adkeyscnt": 209408,
-        "adscnt": 102486
+        "it50": 402303,
+        "vis": 26508,
+        "adkeyscnt": 210025,
+        "adscnt": 102731
       },
       {
         "did": 29919264,
         "name": "moscow.petrovich.ru",
         "cnt": 52,
-        "it50": 960480,
-        "vis": 130081,
-        "adkeyscnt": 617045,
-        "adscnt": 246219
-      },
-      {
-        "did": 125649525,
-        "name": "alfaporta.ru",
-        "cnt": 43,
-        "it50": 9863,
-        "vis": 1202,
-        "adkeyscnt": 2632,
-        "adscnt": 693
+        "it50": 960638,
+        "vis": 128723,
+        "adkeyscnt": 616951,
+        "adscnt": 246169
       },
       {
         "did": 30030613,
         "name": "dveribravo.ru",
         "cnt": 43,
-        "it50": 13616,
-        "vis": 497,
-        "adkeyscnt": 7226,
-        "adscnt": 2402
+        "it50": 13618,
+        "vis": 491,
+        "adkeyscnt": 7228,
+        "adscnt": 2406
+      },
+      {
+        "did": 125649525,
+        "name": "alfaporta.ru",
+        "cnt": 43,
+        "it50": 9860,
+        "vis": 1195,
+        "adkeyscnt": 2630,
+        "adscnt": 693
       },
       {
         "did": 30556300,
         "name": "volhovec.ru",
         "cnt": 39,
-        "it50": 8147,
-        "vis": 1074,
-        "adkeyscnt": 9677,
-        "adscnt": 2233
+        "it50": 8150,
+        "vis": 1062,
+        "adkeyscnt": 9692,
+        "adscnt": 2236
       },
       {
         "did": 132609763,
         "name": "holdis.ru",
         "cnt": 35,
-        "it50": 1417,
+        "it50": 1416,
         "vis": 4,
-        "adkeyscnt": 374,
+        "adkeyscnt": 373,
         "adscnt": 181
       },
       {
         "did": 47186681,
         "name": "mosdvery.ru",
         "cnt": 31,
-        "it50": 10554,
+        "it50": 10552,
         "vis": 284,
         "adkeyscnt": 565,
         "adscnt": 268
@@ -281,19 +281,19 @@
         "did": 374680290,
         "name": "lemanapro.ru",
         "cnt": 29,
-        "it50": 3138723,
-        "vis": 594945,
-        "adkeyscnt": 530919,
-        "adscnt": 151230
+        "it50": 3139178,
+        "vis": 589879,
+        "adkeyscnt": 534304,
+        "adscnt": 151713
       },
       {
-        "did": 121932809,
-        "name": "desalum.ru",
+        "did": 29933218,
+        "name": "santehnica.ru",
         "cnt": 26,
-        "it50": 2026,
-        "vis": 5,
-        "adkeyscnt": 231,
-        "adscnt": 165
+        "it50": 128315,
+        "vis": 6904,
+        "adkeyscnt": 65128,
+        "adscnt": 24895
       }
     ],
     "adkeys": [
@@ -408,13 +408,13 @@
         "wsk": 22
       }
     ],
-    "adkeyscnt": 457,
+    "adkeyscnt": 456,
     "ads": [
       {
         "facts": "",
         "header": "Раздвижные двери москва",
         "id": 4156947937,
-        "keyscnt": 14,
+        "keyscnt": 13,
         "links": "О нас, Портфолио, Доставка и оплата, Цены",
         "txt": "Раздвижные двери москва! Визуализация в подарок!"
       },
@@ -713,12 +713,12 @@
         "it3": 67,
         "it5": 141,
         "it10": 404,
-        "it50": 6888,
+        "it50": 6891,
         "pagesInIndex": 201,
         "adsCount": 275,
-        "adKeysCount": 457,
+        "adKeysCount": 456,
         "visAvg": 14,
-        "aiCnt": 335
+        "aiCnt": 289
       }
     },
     "linksHistory": {
@@ -849,14 +849,14 @@
         281
       ],
       "2026.10": [
-        679,
-        635,
+        675,
+        685,
         122,
-        6,
-        277
+        7,
+        274
       ]
     },
-    "aiAnswersCnt": 335,
+    "aiAnswersCnt": 289,
     "aiState": 0,
     "dr": 17,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/015db3e43086e2778d6ce48d12156cee9d7143e9682f0d73ff3a50b759a1f4db.png",

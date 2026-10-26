@@ -2,7 +2,7 @@
   "domain": "alfaporta.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-19T08:06:59.575Z",
+  "measured": "2026-10-26T08:08:08.272Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=alfaporta.ru",
   "data": {
     "id": 125649525,
@@ -12,89 +12,89 @@
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 5983,
-        "it50": 17470038,
-        "vis": 1089061,
-        "perc": 0.0342472065601689
+        "cnt": 5980,
+        "it50": 17471113,
+        "vis": 1093257,
+        "perc": 0.03422792812341149
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 5557,
-        "it50": 3138723,
-        "vis": 594945,
-        "perc": 0.17704652497209852
+        "cnt": 5555,
+        "it50": 3139178,
+        "vis": 589879,
+        "perc": 0.17695715247749572
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5269,
-        "it50": 20514167,
-        "vis": 2497083,
-        "perc": 0.025684689024906542
+        "cnt": 5268,
+        "it50": 20517353,
+        "vis": 2497404,
+        "perc": 0.025675826701426836
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 5028,
-        "it50": 18491886,
-        "vis": 2436087,
-        "perc": 0.027190303898693733
+        "cnt": 5033,
+        "it50": 18494416,
+        "vis": 2470510,
+        "perc": 0.02721361950547668
       },
       {
         "did": 30030622,
         "name": "169.ru",
-        "cnt": 4666,
-        "it50": 89797,
-        "vis": 4004,
-        "perc": 5.196164682561778
+        "cnt": 4668,
+        "it50": 89818,
+        "vis": 4025,
+        "perc": 5.197176512503062
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 4492,
-        "it50": 14728862,
-        "vis": 1435492,
-        "perc": 0.03049794342563601
+        "cnt": 4490,
+        "it50": 14730665,
+        "vis": 1452495,
+        "perc": 0.03048063342693626
       },
       {
         "did": 30134448,
         "name": "dvertsov.ru",
         "cnt": 4265,
-        "it50": 23951,
-        "vis": 615,
-        "perc": 17.807189678927813
+        "it50": 23944,
+        "vis": 604,
+        "perc": 17.812395589709322
       },
       {
         "did": 80337046,
         "name": "dveriunas.ru",
-        "cnt": 4169,
-        "it50": 21456,
-        "vis": 1405,
-        "perc": 19.430462341536167
+        "cnt": 4168,
+        "it50": 21451,
+        "vis": 1399,
+        "perc": 19.43032958836418
       },
       {
         "did": 30066226,
         "name": "dver1.ru",
-        "cnt": 4057,
-        "it50": 20239,
+        "cnt": 4053,
+        "it50": 20240,
         "vis": 275,
-        "perc": 20.045456791343447
+        "perc": 20.024703557312254
       },
       {
         "did": 30530749,
         "name": "intereruyut.ru",
-        "cnt": 3590,
-        "it50": 13611,
-        "vis": 490,
-        "perc": 26.37572551612666
+        "cnt": 3592,
+        "it50": 13612,
+        "vis": 478,
+        "perc": 26.388480752277403
       }
     ],
     "it1": 1110,
-    "it3": 2243,
-    "it5": 2929,
-    "it10": 4441,
-    "it50": 9863,
+    "it3": 2242,
+    "it5": 2928,
+    "it10": 4440,
+    "it50": 9860,
     "childsCount": 1,
     "keys": [
       {
@@ -153,19 +153,19 @@
       },
       {
         "pos": 1,
-        "word": "стеклянная перегородка в комнату",
-        "ws": 3664,
-        "wsk": 712
+        "word": "раздвижные двери межкомнатные купить",
+        "ws": 6303,
+        "wsk": 612
       }
     ],
-    "topkeys": 41734,
+    "topkeys": 41749,
     "pages": [
       {
-        "it50": 1232,
+        "it50": 1231,
         "url": "/c4-interior-partitions.html"
       },
       {
-        "it50": 1100,
+        "it50": 1101,
         "url": "/c16-interior-sliding-doors.html"
       },
       {
@@ -177,7 +177,7 @@
         "url": "/invisible-interior-doors.html"
       },
       {
-        "it50": 395,
+        "it50": 392,
         "url": "/s153-Interior-doors-with-box.html"
       },
       {
@@ -197,103 +197,103 @@
         "url": "/c20-arch-doorway.html"
       },
       {
-        "it50": 201,
+        "it50": 202,
         "url": "/c19-sliding-doors-to-case.html"
       }
     ],
-    "pagesinindex": 570,
-    "vis": 1202,
-    "topvis": 8860,
+    "pagesinindex": 569,
+    "vis": 1195,
+    "topvis": 8899,
     "adconcs": [
       {
         "did": 30556300,
         "name": "volhovec.ru",
         "cnt": 595,
-        "it50": 8147,
-        "vis": 1074,
-        "adkeyscnt": 9677,
-        "adscnt": 2233
+        "it50": 8150,
+        "vis": 1062,
+        "adkeyscnt": 9692,
+        "adscnt": 2236
       },
       {
         "did": 30030622,
         "name": "169.ru",
         "cnt": 511,
-        "it50": 89797,
-        "vis": 4004,
-        "adkeyscnt": 13563,
-        "adscnt": 3910
+        "it50": 89818,
+        "vis": 4025,
+        "adkeyscnt": 13620,
+        "adscnt": 3928
       },
       {
         "did": 29919264,
         "name": "moscow.petrovich.ru",
-        "cnt": 397,
-        "it50": 960480,
-        "vis": 130081,
-        "adkeyscnt": 617045,
-        "adscnt": 246219
+        "cnt": 395,
+        "it50": 960638,
+        "vis": 128723,
+        "adkeyscnt": 616951,
+        "adscnt": 246169
       },
       {
         "did": 279637164,
         "name": "dverilab.ru",
         "cnt": 376,
-        "it50": 11416,
-        "vis": 830,
-        "adkeyscnt": 4799,
-        "adscnt": 2052
+        "it50": 11413,
+        "vis": 836,
+        "adkeyscnt": 4796,
+        "adscnt": 2049
       },
       {
         "did": 30030613,
         "name": "dveribravo.ru",
         "cnt": 356,
-        "it50": 13616,
-        "vis": 497,
-        "adkeyscnt": 7226,
-        "adscnt": 2402
+        "it50": 13618,
+        "vis": 491,
+        "adkeyscnt": 7228,
+        "adscnt": 2406
       },
       {
         "did": 30329275,
         "name": "union.ru",
         "cnt": 334,
-        "it50": 6359,
-        "vis": 207,
-        "adkeyscnt": 8919,
-        "adscnt": 2603
+        "it50": 6363,
+        "vis": 212,
+        "adkeyscnt": 8962,
+        "adscnt": 2609
       },
       {
         "did": 80337046,
         "name": "dveriunas.ru",
         "cnt": 310,
-        "it50": 21456,
-        "vis": 1405,
+        "it50": 21451,
+        "vis": 1399,
         "adkeyscnt": 4988,
-        "adscnt": 2225
+        "adscnt": 2226
       },
       {
         "did": 88919308,
         "name": "100-dverei.ru",
         "cnt": 291,
-        "it50": 4811,
+        "it50": 4808,
         "vis": 96,
-        "adkeyscnt": 5204,
+        "adkeyscnt": 5215,
         "adscnt": 1006
-      },
-      {
-        "did": 30263453,
-        "name": "portaprima.ru",
-        "cnt": 276,
-        "it50": 17738,
-        "vis": 663,
-        "adkeyscnt": 3026,
-        "adscnt": 1329
       },
       {
         "did": 30135923,
         "name": "rf-dveri.ru",
         "cnt": 276,
-        "it50": 18017,
+        "it50": 18012,
         "vis": 851,
-        "adkeyscnt": 3477,
-        "adscnt": 1286
+        "adkeyscnt": 3475,
+        "adscnt": 1288
+      },
+      {
+        "did": 30263453,
+        "name": "portaprima.ru",
+        "cnt": 275,
+        "it50": 17747,
+        "vis": 660,
+        "adkeyscnt": 3023,
+        "adscnt": 1330
       }
     ],
     "adkeys": [
@@ -408,13 +408,13 @@
         "wsk": 116
       }
     ],
-    "adkeyscnt": 2632,
+    "adkeyscnt": 2630,
     "ads": [
       {
         "facts": "",
         "header": "Межкомнатные раздвижные двери купе — купить сдвижные двери от производителя с доставкой",
         "id": 3198843352,
-        "keyscnt": 252,
+        "keyscnt": 251,
         "links": "Цены ниже рынка, Скидки до 20%, Бесплатно замер, Двери в наличии",
         "txt": "Цены от 4500 руб. Купить межкомнатные раздвижные двери купе с доставкой и установкой по Москве, Санкт-Петербургу и области."
       },
@@ -494,13 +494,13 @@
     "adscnt": 693,
     "adtraf": 37,
     "adcost": {
-      "average": 768542,
-      "bdg100": 1863056,
-      "bdg5": 31794,
-      "bdg62": 817200,
-      "bdg85": 1095959,
-      "bdg9": 34701,
-      "max": 1863056
+      "average": 764414,
+      "bdg100": 1853850,
+      "bdg5": 31692,
+      "bdg62": 812368,
+      "bdg85": 1089565,
+      "bdg9": 34594,
+      "max": 1853850
     },
     "restop5": 30,
     "history": {
@@ -710,15 +710,15 @@
       },
       "2026.10": {
         "it1": 1110,
-        "it3": 2243,
-        "it5": 2929,
-        "it10": 4441,
-        "it50": 9863,
-        "pagesInIndex": 570,
+        "it3": 2242,
+        "it5": 2928,
+        "it10": 4440,
+        "it50": 9860,
+        "pagesInIndex": 569,
         "adsCount": 693,
-        "adKeysCount": 2632,
-        "visAvg": 1202,
-        "aiCnt": 29
+        "adKeysCount": 2630,
+        "visAvg": 1195,
+        "aiCnt": 26
       }
     },
     "linksHistory": {
@@ -849,15 +849,15 @@
         91
       ],
       "2026.10": [
-        126,
-        14593,
-        39,
+        132,
+        12926,
+        41,
         4,
-        90
+        95
       ]
     },
-    "aiAnswersCnt": 29,
-    "aiState": 10,
+    "aiAnswersCnt": 26,
+    "aiState": 0,
     "dr": 21,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/bf9204d99445dcfe556bc382161327dfebe181fd8aa8867a53a213aa1e6748f3.png",
     "name": "alfaporta.ru"

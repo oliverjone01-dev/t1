@@ -2,7 +2,7 @@
   "domain": "fantasia-stekla.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-19T08:11:07.531Z",
+  "measured": "2026-10-26T08:12:14.861Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=fantasia-stekla.ru",
   "data": {
     "id": 80428092,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 2582,
-        "it50": 20514167,
-        "vis": 2497083,
-        "perc": 0.012586423811407989
+        "cnt": 2581,
+        "it50": 20517353,
+        "vis": 2497404,
+        "perc": 0.012579595428318654
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 1897,
-        "it50": 17470038,
-        "vis": 1089061,
-        "perc": 0.010858591149028983
+        "cnt": 1895,
+        "it50": 17471113,
+        "vis": 1093257,
+        "perc": 0.010846475550813505
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 1699,
-        "it50": 3138723,
-        "vis": 594945,
-        "perc": 0.05413029439042566
+        "cnt": 1698,
+        "it50": 3139178,
+        "vis": 589879,
+        "perc": 0.054090593142536045
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
         "cnt": 1471,
-        "it50": 18491886,
-        "vis": 2436087,
-        "perc": 0.007954840301308368
+        "it50": 18494416,
+        "vis": 2470510,
+        "perc": 0.007953752094686309
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
         "cnt": 1430,
-        "it50": 14728862,
-        "vis": 1435492,
-        "perc": 0.009708828828730963
+        "it50": 14730665,
+        "vis": 1452495,
+        "perc": 0.009707640490093285
       },
       {
         "did": 30172018,
         "name": "steklo-kom.ru",
-        "cnt": 1082,
-        "it50": 6849,
-        "vis": 522,
-        "perc": 15.797926704628415
+        "cnt": 1083,
+        "it50": 6853,
+        "vis": 527,
+        "perc": 15.803297825769736
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 980,
-        "it50": 9621,
+        "cnt": 981,
+        "it50": 9624,
         "vis": 141,
-        "perc": 10.186051346013928
+        "perc": 10.193266832917706
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
         "cnt": 968,
-        "it50": 3059402,
-        "vis": 189061,
-        "perc": 0.03164017020319657
+        "it50": 3059254,
+        "vis": 188491,
+        "perc": 0.031641700885248494
       },
       {
         "did": 255793192,
         "name": "msk-zerkala.ru",
-        "cnt": 946,
-        "it50": 5171,
+        "cnt": 945,
+        "it50": 5175,
         "vis": 55,
-        "perc": 18.294333784567783
+        "perc": 18.26086956521739
       },
       {
         "did": 31005713,
         "name": "steklostilmsk.ru",
-        "cnt": 933,
-        "it50": 3052,
+        "cnt": 934,
+        "it50": 3055,
         "vis": 19,
-        "perc": 30.570117955439056
+        "perc": 30.572831423895252
       }
     ],
     "it1": 86,
     "it3": 249,
     "it5": 431,
     "it10": 981,
-    "it50": 3623,
+    "it50": 3622,
     "childsCount": 0,
     "keys": [
       {
@@ -158,10 +158,10 @@
         "wsk": 39
       }
     ],
-    "topkeys": 96389,
+    "topkeys": 96416,
     "pages": [
       {
-        "it50": 213,
+        "it50": 212,
         "url": "/glass_showers"
       },
       {
@@ -203,7 +203,7 @@
     ],
     "pagesinindex": 174,
     "vis": 70,
-    "topvis": 79620,
+    "topvis": 79534,
     "adconcs": [],
     "adkeys": [
       {
@@ -489,12 +489,12 @@
         "it3": 249,
         "it5": 431,
         "it10": 981,
-        "it50": 3623,
+        "it50": 3622,
         "pagesInIndex": 174,
         "adsCount": 3,
         "adKeysCount": 3,
         "visAvg": 70,
-        "aiCnt": 195
+        "aiCnt": 168
       }
     },
     "linksHistory": {
@@ -626,14 +626,14 @@
       ],
       "2026.10": [
         872,
-        1427,
-        101,
+        1442,
+        100,
         11,
         206
       ]
     },
-    "aiAnswersCnt": 195,
-    "aiState": 10,
+    "aiAnswersCnt": 168,
+    "aiState": 0,
     "dr": 19,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/8d90010d740484b756d24cc5dff2e1f6a431ce9e144c276e30b62ce964ad3aae.png",
     "name": "fantasia-stekla.ru"

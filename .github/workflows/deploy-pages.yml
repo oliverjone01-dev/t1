@@ -714,13 +714,15 @@ jobs:
           B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
         run: |
           set -euo pipefail
-          node --test analytics-mvp/gg-dg/check-metrics.cjs
-          node analytics-mvp/gg-dg/fetch.cjs /tmp/gg-dg-snapshot.json
-          node analytics-mvp/gg-dg/build.cjs /tmp/gg-dg-snapshot.json "_site/gg&dg"
+          GG_REFERENCE_ROOT=/tmp/rop/analytics-mvp node --test analytics-mvp/gg-dg/check-widgets.cjs
+          node analytics-mvp/gg-dg/collect-widgets.cjs /tmp/rop/analytics-mvp /tmp/gg-dg-collector.mjs
+          B24_CONC=2 node /tmp/gg-dg-collector.mjs
+          node analytics-mvp/gg-dg/build-widgets.cjs /tmp/gg-dg-widgets.json /tmp/rop/analytics-mvp "_site/gg&dg"
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
+
 

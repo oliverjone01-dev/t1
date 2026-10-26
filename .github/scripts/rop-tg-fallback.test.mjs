@@ -47,6 +47,30 @@ const department=await render({...base,deals:[deal(1,25000,100000),{...deal(2,0,
 assert.ok(department.split('\n\n')[1].includes('Предоплаты за месяц: <b>2 шт · 125\u00a0000 ₽ (у 1 взята сумма сделки)'));
 console.log('PASS: fallback, positive/negative values, missing amounts, Moscow boundaries and Telegram size; no network calls.');
 
+const managerBlock=(text,name)=>text.split('\n\n').find(block=>block.includes('>'+name+'</a>'));
+const kubanova=(id,userId,entered,name='Алена Кубанова')=>({...deal(id,25000,100000,entered),mgr:name,mgrId:userId});
+const oldPayment=kubanova(10,'6699','2026-09-11','Алёна Кубанова');
+const returned=await render({...base,deals:[oldPayment]});
+assert.ok(managerBlock(returned,'Алёна Кубанова').includes('Без предоплат: <b>5 дн</b>'),'Counter starts at the current employment period, not an old account payment');
+assert.ok(returned.split('\n\n')[1].includes('Без предоплат: <b>45 дн</b>'),'Employment start must not become a department payment');
+for(const [generated_at,expected] of [['2026-10-21T06:00:00Z',0],['2026-10-22T06:00:00Z',1],['2026-10-28T06:00:00Z',7]]){
+  const text=await render({...base,generated_at,deals:[]});
+  assert.ok(managerBlock(text,'Алёна Кубанова').includes('Без предоплат: <b>'+expected+' дн</b>'),'No payments: count calendar days since return');
+}
+const paidToday=await render({...base,deals:[oldPayment,kubanova(11,'8397','2026-10-26T08:00:00+03:00')]});
+assert.ok(managerBlock(paidToday,'Алёна Кубанова').includes('Без предоплат: <b>0 дн</b>'),'A new account payment today resets the counter');
+const paidYesterday=await render({...base,deals:[kubanova(12,8397,'2026-10-25T23:30:00+03:00','Алёна Кубанова')]});
+assert.ok(managerBlock(paidYesterday,'Алёна Кубанова').includes('Без предоплат: <b>1 дн</b>'),'Moscow calendar boundary and numeric user ID');
+const legacyAfterReturn=await render({...base,deals:[oldPayment,kubanova(13,'6699','2026-10-26')]});
+assert.ok(managerBlock(legacyAfterReturn,'Алёна Кубанова').includes('Без предоплат: <b>5 дн</b>'),'Old user account cannot reset current employment counter');
+const reassignedHistory=await render({...base,deals:[kubanova(14,'8397','2026-10-20'),kubanova(15,'8397','2026-10-27')]});
+assert.ok(managerBlock(reassignedHistory,'Алёна Кубанова').includes('Без предоплат: <b>5 дн</b>'),'Ignore historical payments before return and future-dated payments');
+const unknownOwner=await render({...base,deals:[kubanova(16,undefined,'2026-10-26')]});
+assert.ok(managerBlock(unknownOwner,'Алёна Кубанова').includes('Без предоплат: <b>5 дн</b>'),'A missing user ID is not evidence of a current account payment');
+const beforeReturn=await render({...base,generated_at:'2026-10-20T06:00:00Z',deals:[oldPayment]});
+assert.ok(managerBlock(beforeReturn,'Алёна Кубанова').includes('Без предоплат: <b>39 дн</b>'),'Return boundary does not rewrite historical snapshots before return');
+console.log('PASS: employment boundary, old/new user IDs, no payments, reset, Moscow dates and department isolation.');
+
 if(process.env.DIGEST_FIXTURE){
   const snapshot=JSON.parse(fs.readFileSync(process.env.DIGEST_FIXTURE,'utf8').replace(/^\uFEFF/,''));
   const text=await render(snapshot);

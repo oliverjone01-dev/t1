@@ -189,4 +189,15 @@ var ps=D.price_st,PS=[['снижена','Снижена',C.ok,'✓'],['част�
 $('pt-pricepills').innerHTML=PS.map(function(p){var n=ps[p[0]]||0,wd=n/D.price_n*100;
   return '<div class="pill-row"><div class="pl-n">'+p[3]+' '+p[1]+'</div><div class="pl-bar">'+(n?'<div class="pl-fill" style="width:'+Math.max(wd,4)+'%;background:'+p[2]+'"><span>'+n+'</span></div>':'<span class="pl-empty">0</span>')+'</div><div class="pl-p">'+fmt(wd)+'%</div></div>'}).join('')
   +'<div class="legend">'+D.price_when.map(function(w){return w[1]+' с '+w[0]}).join(' · ')+'</div>';
+// Детали модели: одна раскрытая плашка на группу, повторное нажатие сворачивает.
+[].forEach.call(document.querySelectorAll('#pt-plan .ob-pill'),function(button){
+  button.addEventListener('click',function(){
+    var section=button.closest('.order-breakdown'),open=button.getAttribute('aria-expanded')!=='true';
+    [].forEach.call(section.querySelectorAll('.ob-pill'),function(b){
+      var active=b===button&&open;
+      b.setAttribute('aria-expanded',String(active));
+      document.getElementById(b.getAttribute('aria-controls')).hidden=!active;
+    });
+  });
+});
 })();

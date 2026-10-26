@@ -509,3 +509,96 @@ describe("клиент блока в jsdom: скрипт отрабатывае�
     for (const id of ["pt-gauges", "pt-pills", "pt-pricepills"]) expect(r.doc.getElementById(id)?.innerHTML.length ?? 0).toBeGreaterThan(20);
   });
 });
+
+describe("заказы внутри группы по моделям", () => {
+  it("суммирует SKU одной модели, не считает отмены, раскрывает артикулы", () => {
+    const dp = fixture();
+    writeFileSync(dp("sku_taxonomy.json"), JSON.stringify({ "1": { model: "Стол 160", offer: "другой offer" }, "2": { model: "Стол 160" } }));
+    const b = planBlock("2026-10-26", dp)!; const d = pd(b.js);
+    expect(d.order_breakdown[0]).toEqual({ total: 3, end: "2026-10-16", models: [{ model: "Стол 160", units: 3, share: 100, skus: [
+      { sku: "1", offer: "A-1", units: 2 }, { sku: "2", offer: "A-2", units: 1 },
+    ] }] });
+    expect(d.store_breakdown.total).toBe(7);
+    const dom = new JSDOM(`<html><body>${b.html}<script>${b.js}</script></body></html>`, { runScripts: "dangerously", pretendToBeVisual: true });
+    const doc = dom.window.document;
+    (doc.querySelector('.crow[data-i="0"]') as HTMLElement).click();
+    expect(doc.querySelector('#pt-cdet0')?.hasAttribute('hidden')).toBe(false);
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-stack>span')?.style.width).toBe('100%');
+    expect(doc.querySelector('#pt-cdet0 .order-breakdown')?.textContent).not.toContain('%');
+    const pill = doc.querySelector<HTMLButtonElement>('#pt-cdet0 .ob-pill')!;
+    expect(pill.textContent).toBe('Стол 1603 шт.');
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(true);
+    pill.click();
+    expect(pill.getAttribute('aria-expanded')).toBe('true');
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(false);
+    expect(doc.querySelector('#pt-cdet0 .ob-skus')?.textContent).toContain('A-1');
+    expect(doc.querySelector('#pt-mc0 svg')).not.toBeNull();
+    pill.click();
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(true);
+    dom.window.close();
+  });
+  it("разные модели: доли от общего числа, неизвестная модель не теряется", () => {
+    const dp = fixture(); writeFileSync(dp("sku_taxonomy.json"), JSON.stringify({ "2": { model: "Размер 200" } }));
+    const b = pd(planBlock("2026-10-26", dp)!.js).order_breakdown[0];
+    expect(b.models.map((m: any) => [m.model, m.units])).toEqual([["Модель не указана · A-1", 2], ["Размер 200", 1]]);
+    expect(b.models.reduce((s: number, m: any) => s + m.share, 0)).toBeCloseTo(100);
+    expect(b.models.reduce((s: number, m: any) => s + m.units, 0)).toBe(b.total);
+  });
+  it("выводимый и посторонний SKU только в магазине", () => {
+    const d = pd(planBlock("2026-10-26", fixture({ withdrawn: ["A-2"] }))!.js);
+    expect(d.order_breakdown[0].total).toBe(2);
+    expect(d.order_breakdown[0].models.flatMap((m: any) => m.skus.map((s: any) => s.sku))).toEqual(["1"]);
+    expect(d.store_breakdown.total).toBe(7);
+  });
+  it("границы по Москве: перенос до старта включается, после 28.10 и неполный день исключены", () => {
+    const orders = [
+      { d: "2026-10-14", t: "2026-10-14T22:00:00Z", sku: "1", units: 2, status: "delivered" },
+      { d: "2026-10-28", t: "2026-10-28T20:59:00Z", sku: "2", units: 3, status: "delivered" },
+      { d: "2026-10-28", t: "2026-10-28T21:00:00Z", sku: "1", units: 9, status: "delivered" },
+    ];
+    const dp = fixture({ orders });
+    expect(pd(planBlock("2026-10-29", dp)!.js).order_breakdown[0].total).toBe(5);
+    writeFileSync(dp("orders_daily.ndjson"), [...orders, { d: "2026-10-29", sku: "1", units: 10, status: "delivered" }].map(r => JSON.stringify(r)).join('\n'));
+    expect(pd(planBlock("2026-10-30", dp)!.js).order_breakdown[0].total).toBe(5);
+  });
+  it("пустой источник отличается от нуля заказов", () => {
+    const missing = planBlock("2026-10-26", fixture({ orders: [] }))!;
+    expect(pd(missing.js).order_breakdown[0].total).toBeNull(); expect(missing.html).toContain('Нет данных за период');
+    const zero = planBlock("2026-10-26", fixture({ orders: [{ d: "2026-10-16", sku: "9", units: 1, status: "delivered" }] }))!;
+    expect(pd(zero.js).order_breakdown[0].total).toBe(0); expect(zero.html).toContain('Заказов за период нет');
+  });
+  it("экранирует HTML и script в модели", () => {
+    const dp = fixture(); const model = '<img src=x onerror="alert(1)"></script>';
+    writeFileSync(dp("sku_taxonomy.json"), JSON.stringify({ "1": { model } }));
+    const b = planBlock("2026-10-26", dp)!;
+    expect(b.html).not.toContain(model); expect(b.js).not.toContain('</script>');
+    const doc = new JSDOM(b.html).window.document;
+    expect(doc.querySelector('#pt-cdet0 .ob-name')?.textContent).toBe(model);
+    expect(doc.querySelector('#pt-cdet0 img')).toBeNull();
+  });
+});
+
+describe("компактные плашки моделей", () => {
+  it("полное имя и штуки без процентов; одна открытая модель; малая доля", () => {
+    const dp = fixture({ orders: [
+      { d: "2026-10-16", sku: "1", units: 99, status: "delivered" },
+      { d: "2026-10-16", sku: "2", units: 1, status: "delivered" },
+    ] });
+    const longName = "KUVINO NF LED L, с сенсорным выключателем";
+    writeFileSync(dp("sku_taxonomy.json"), JSON.stringify({ "1": { model: "TRUBIS Wood Oval 160" }, "2": { model: longName } }));
+    const b = planBlock("2026-10-26", dp)!;
+    const dom = new JSDOM(`<html><body>${b.html}<script>${b.js}</script></body></html>`, { runScripts: "dangerously", pretendToBeVisual: true });
+    const doc = dom.window.document, group = doc.querySelector('#pt-cdet0 .order-breakdown')!;
+    const pills = group.querySelectorAll<HTMLButtonElement>('.ob-pill'), panels = group.querySelectorAll<HTMLElement>('.ob-skus');
+    expect(pills[1]!.querySelector('.ob-name')!.textContent).toBe(longName);
+    expect(pills[1]!.querySelector('b')!.textContent).toBe('1 шт.');
+    expect(group.textContent).not.toContain('%');
+    expect(group.querySelectorAll<HTMLElement>('.ob-stack>span')[1]!.style.width).toBe('1%');
+    pills[0]!.click(); expect(panels[0]!.hidden).toBe(false);
+    pills[1]!.click(); expect(panels[0]!.hidden).toBe(true); expect(panels[1]!.hidden).toBe(false);
+    expect(pills[0]!.getAttribute('aria-expanded')).toBe('false');
+    pills[1]!.click(); expect(panels[1]!.hidden).toBe(true);
+    const ids = Array.from(doc.querySelectorAll('[id]'), el => el.id); expect(new Set(ids).size).toBe(ids.length);
+    dom.window.close();
+  });
+});

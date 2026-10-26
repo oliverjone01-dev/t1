@@ -1,0 +1,123 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "plan-order-model-breakdown-20261026",
+  "timestamp": "2026-10-26T07:52:36.172723+00:00",
+  "deliverable_ref": "commit:87910340f3c402c306e2f549178f0b1a3a5ba878; audited_hash=aaf64293bc5abc84",
+  "iteration": 2,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry after rework - выше на0.30: суммы и все UI-взаимодействия проверены независимо; прежний DATA сохранён. Ниже8.9annotate: отдельного mobile engine не было, общий CI содержит прежние сбои.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 6,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "Общий CI остаётся красным: 1272 PASS / 3 FAIL. Два CPC и один YM-сбой воспроизводятся на неизменённых исходниках и данных baseline; эта UI-ветка их не исправляет.",
+    "Отдельный мобильный layout engine не проверен. Просмотрены два актуальных desktop screenshot, responsive CSS и coarse-pointer min-height44px."
+  ],
+  "rework_tz": "",
+  "confidence": 0.96,
+  "p9_triggers_fired": [
+    "dashboard numeric breakdown",
+    "model share of existing netUnits"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Независимые356raw→SKU/model/card/store проверок первой итерации сохраняют силу:агрегатор неизменён. Полный текущий DATA строго равен независимо сохранённому DATA итерации1;TRUBIS50,KONUX22,store192."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Неизменённые фильтры отмен/withdrawn/МСК/28.10/partialday/null-vs0 проверены первой итерацией; весь branchdiff прочитан заново.110focusedtests PASS."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Числа агрегатора и DATA не менялись. Сегменты имеют точную ширину share без минимального расширения, включая1шт из100=1%. Штуки каждой модели сразу на плашке."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "885 собственных JS/DOM проверок PASS: все82модельные плашки карточек+магазина,полные имена/количества/точные сегменты,панели SKU,ARIA/уникальныеid,одна панель в группе,разные группы независимы."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Никаких захардкоженных количеств. Старый клиент графиков совпадает с baseline после удаления только нового блока listeners. Полный DATA,включая order_breakdown/store_breakdown,равен прошлому аудированному снимку."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Просмотрены новые compact/long-name screenshot. НаTRUBIS50 иOSOLIS16 полные подписи не обрезаны;проценты не отображаются;1шт доступна без наведения. Hashкоммита иworktree aaf64293bc5abc84 подтверждён."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Видимый текст новых блоков не содержит процентов;они используются только для геометрии полосы. Hostile full-name с </script>/<img>/onerror отображается текстом,нового DOMimg/исполняемогоscript нет. Данные SKU scoped по карточке."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Общий CI остаётся красным: 1272 PASS / 3 FAIL. Два CPC и один YM-сбой воспроизводятся на неизменённых исходниках и данных baseline; эта UI-ветка их не исправляет.",
+      "evidence": "unrelated-ci-check.txt:2CPC/1YM. Независимый audit-order-models-ci.py:10файлов транзитивных импортов побайтово равны cbe3e8a7, plan-tab в графе отсутствует, data/data-ym/fixtures не менялись; исходный YM Прочие услуги=20075.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Отдельный мобильный layout engine не проверен. Просмотрены два актуальных desktop screenshot, responsive CSS и coarse-pointer min-height44px.",
+      "evidence": "order-models-compact.png,order-models-long-names.png; screenshot просмотрены. Независимые885DOM/UIпроверок не являются mobile layout engine.",
+      "checkpoint": "brand_20_tone_audience",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "analytics-mvp/data/orders_daily.ndjson",
+    "analytics-mvp/data/sku_taxonomy.json",
+    "analytics-mvp/data/plan_card_groups_1510.json",
+    "analytics-mvp/data/plan_2026-10-15_v4.json",
+    "/Users/gengroup/Documents/Codex/outputs/audit-order-model-breakdown-20261026/audit-order-models-source-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/audit-order-model-breakdown-20261026/audit-order-models-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/audit-order-model-breakdown-20261026/iter2/audit-order-models-ui2-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/audit-order-model-breakdown-20261026/iter2/audit-order-models-ci-result.json"
+  ],
+  "audience": "Иван Раюшкин; internal dashboard"
+}

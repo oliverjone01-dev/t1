@@ -176,7 +176,7 @@
  const managerObserver=new MutationObserver(()=>{if(managerRefresh)return;managerRefresh=requestAnimationFrame(()=>{managerRefresh=0;managerWidgets();});});
  managerObserver.observe(document.getElementById('root'),{childList:true,subtree:true});
  const originalMultiline=multiline;multiline=function(series,...args){const roles={'Изделий запущено (карточек)':'--cat-2','Штук запущено':'--gg-comp-8','Предоплат получено':'--cat-4','В производство (сделки)':'--cat-1'},style=getComputedStyle(document.getElementById('gg-dashboard'));return originalMultiline(series.map(item=>roles[item.name]?{...item,color:style.getPropertyValue(roles[item.name]).trim()||item.color}:item),...args);};
- const previous=render;render=function(){S.dhCum='per';S.cvView='funnel';if(!['deals','won','rev','conv'].includes(S.loadMetric))S.loadMetric='deals';if(S.revMetric==='prod')S.revMetric='deals';const saved=S.calRowOpen;if(S.calWipMode==='age')S.calRowOpen={...(saved||{}),wip:true};try{previous();}finally{S.calRowOpen=saved;}sync();};render();
+ const previous=render;render=function(){S.dhCum='per';S.cvView='funnel';if(!['deals','won','rev','conv'].includes(S.loadMetric))S.loadMetric='deals';if(S.revMetric==='prod')S.revMetric='deals';const saved=S.calRowOpen;if(S.calWipMode==='age')S.calRowOpen={...(saved||{}),wip:true};try{previous();}finally{S.calRowOpen=saved;}sync();};
 })();
 
 (function(){
@@ -193,7 +193,7 @@
   return ('<div class="gg-loss-layout" data-loss-total="'+loss.length+'">'+left+ring+'</div>').replace(/<details class="gg-refusal-detail">[\s\S]*?<\/details>/g,'');
  };
  document.addEventListener('click',e=>{const b=e.target.closest('[data-loss-stage]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();chosen=b.dataset.lossStage;const host=b.closest('.gg-loss-layout'),temp=document.createElement('div');temp.innerHTML=lossStageHTML();host.replaceWith(temp.firstElementChild);},true);
- const before=render;render=function(){before();const card=[...document.querySelectorAll('#root .card')].find(c=>c.querySelector('.card-title')?.textContent.startsWith('Причины отказов со стадии предложения'));if(!card)return;originalHTML=card.outerHTML;const temp=document.createElement('div');temp.innerHTML=lossStageHTML();card.replaceWith(temp.firstElementChild);};render();
+ const before=render;render=function(){before();const card=[...document.querySelectorAll('#root .card')].find(c=>c.querySelector('.card-title')?.textContent.startsWith('Причины отказов со стадии предложения'));if(!card)return;originalHTML=card.outerHTML;const temp=document.createElement('div');temp.innerHTML=lossStageHTML();card.replaceWith(temp.firstElementChild);};
 })();
 
 (function(){
@@ -212,13 +212,13 @@
   const relevant=new Set([...prodSet(),...flt(AD,true).filter(d=>!d.won&&!d.lost&&(d.stageCode==='C49:EXECUTING'||QUOTE_SET.has(d.stageCode)))].filter(d=>managerGroup(d.mgr)==='Другие').map(d=>d.mgr||'Не указан'));
   const details=document.createElement('details');details.className='gg-other-members';const summary=document.createElement('summary');summary.textContent='Состав группы · '+relevant.size;details.append(summary);const list=document.createElement('div');[...relevant].sort((a,b)=>a.localeCompare(b,'ru')).forEach(name=>{const item=document.createElement('div');item.textContent=name;list.append(item);});details.append(list);details.addEventListener('click',e=>e.stopPropagation());row.firstElementChild.append(details);
  });}
- const before=render;render=function(){before();refineDetails();};let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refineDetails();});}).observe(document.getElementById('root'),{childList:true,subtree:true});refineDetails();
+ const before=render;render=function(){before();refineDetails();};let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refineDetails();});}).observe(document.getElementById('root'),{childList:true,subtree:true});
 })();
 
 // Reuse identical cohort selections; callers receive their own array for sorting.
 (function(){const caches={deals:new Map(),leads:new Map()},sourceDeals=FD,sourceLeads=FL;function selection(cache,source){const key=JSON.stringify([S.start,S.end,S.fMgr,S.fSrc,S.fCli,S.fDir]);if(!cache.has(key)){if(cache.size>=32)cache.delete(cache.keys().next().value);cache.set(key,source());}return cache.get(key).slice();}FD=function(){return selection(caches.deals,sourceDeals);};FL=function(){return selection(caches.leads,sourceLeads);};})();
 
-(function(){function clarify(){document.querySelectorAll('#root .kpi-k,#root .gg-ds-gauge-label').forEach(n=>{if(/CR1/.test(n.textContent))n.textContent='CR1 · квалификация лидов';else if(n.textContent.trim()==='Продажи')n.textContent='Продажи за период';});const card=[...document.querySelectorAll('#root .card')].find(c=>c.querySelector('.card-title')?.textContent.startsWith('Сквозная конверсия'));if(card){let note=card.querySelector('.gg-cohort-explanation');if(!note){note=document.createElement('p');note.className='card-sub gg-cohort-explanation';card.append(note);}note.textContent=S.dateBasis==='outcome'?'По дате продажи: продажи за период, включая ранее созданные сделки. Отношения объёмов не являются конверсией одной когорты.':'По дате создания: сделки, созданные в выбранном периоде, и их продажи. CR2 = продажи когорты / сделки когорты. Связь заявок со сделками не отслеживается.';}}const before=render;render=function(){before();clarify();};clarify();})();
+(function(){function clarify(){document.querySelectorAll('#root .kpi-k,#root .gg-ds-gauge-label').forEach(n=>{if(/CR1/.test(n.textContent))n.textContent='CR1 · квалификация лидов';else if(n.textContent.trim()==='Продажи')n.textContent='Продажи за период';});const card=[...document.querySelectorAll('#root .card')].find(c=>c.querySelector('.card-title')?.textContent.startsWith('Сквозная конверсия'));if(card){let note=card.querySelector('.gg-cohort-explanation');if(!note){note=document.createElement('p');note.className='card-sub gg-cohort-explanation';card.append(note);}note.textContent=S.dateBasis==='outcome'?'По дате продажи: продажи за период, включая ранее созданные сделки. Отношения объёмов не являются конверсией одной когорты.':'По дате создания: сделки, созданные в выбранном периоде, и их продажи. CR2 = продажи когорты / сделки когорты. Связь заявок со сделками не отслеживается.';}}const before=render;render=function(){before();clarify();};})();
 
 // Approved centered funnel: passage totals and current-stage durations use explicit scopes.
 (function(){
@@ -249,13 +249,15 @@
   group.querySelectorAll('[data-live-stage],[data-live-member]').forEach(el=>{const choose=e=>{if(e.type==='click')e.stopPropagation();const j=el.dataset.liveMember!=null?+el.dataset.liveMember:null,i=j!=null?offerIndex:+el.dataset.liveStage;select(i,j);};el.addEventListener('pointerenter',choose);el.addEventListener('focus',choose);el.addEventListener('click',choose);});select(offerIndex>=0?offerIndex:0,null);
  }
  function planSource(){const card=document.getElementById('mgrMetricSeg')?.closest('.card'),m=(DATA.plan?.months||[]).filter(m=>m.month<=S.end.slice(0,7)&&m.cr2>0).sort((a,b)=>a.month.localeCompare(b.month)).at(-1);if(!card||!m)return;let note=card.querySelector('.gg-manager-plan-source');if(!note){note=document.createElement('p');note.className='gg-pair-note gg-manager-plan-source';card.append(note);}note.textContent='Цель конверсии '+pct(m.cr2)+' · план '+m.month+(m.month!==S.end.slice(0,7)?' — последний заполненный норматив; в выбранном месяце цель не задана.':'.');}
- const before=render;render=function(){before();rebuild();planSource();};rebuild();planSource();
+ const before=render;render=function(){before();rebuild();planSource();};
 })();
 // Refusal detail lists were explicitly removed; keep both summary charts.
 (function(){
  function removeRefusalDetails(){document.querySelectorAll('#root details').forEach(d=>{if(d.querySelector(':scope > summary')?.textContent.trim()==='Отказные сделки · детализация')d.remove();});}
  const previous=render;render=function(){previous();removeRefusalDetails();};
  document.addEventListener('click',e=>{if(e.target.closest('[data-loss-stage]'))queueMicrotask(removeRefusalDetails);},true);
- removeRefusalDetails();
 })();
 
+
+// Apply the complete adapter chain once after all wrappers are installed.
+render();

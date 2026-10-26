@@ -20,6 +20,9 @@ new_norm = 'const _pmH=((DATA.plan&&DATA.plan.months)||[]).filter(x=>x.month<=St
 if original.count(old_norm) != 1:
     raise SystemExit('Expected one health plan target lookup; source changed')
 original = original.replace(old_norm, new_norm)
+# Large manager photos below the fold must not compete with the initial data load.
+original = original.replace('<img src="${photos[n]}"', '<img loading="lazy" decoding="async" src="${photos[n]}"')
+
 scripts = re.findall(r'<script\b[^>]*>.*?</script>', original, re.S)
 if not scripts or 'let S=' not in ''.join(scripts) or 'id="root"' not in original:
     raise SystemExit('ROP source structure changed')

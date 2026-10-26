@@ -89,5 +89,6 @@
     "money": "Selected global amount mode; prepayment by default."
   },
   "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
-  "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects."
+  "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects.",
+  "planPresentation": "All plan controls, notices and calendar plan strips are removed. Sales health is removed. Factual metric definitions are unchanged."
 }

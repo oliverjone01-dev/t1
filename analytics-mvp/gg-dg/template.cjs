@@ -2,6 +2,12 @@
 function once(s,from,to){if(s.split(from).length!==2)throw Error('GG template contract changed: '+from.slice(0,80));return s.replace(from,to);}
 function section(s,name,edit){const a=s.indexOf('function '+name+'('),b=s.indexOf('\nfunction ',a+1);if(a<0||b<0)throw Error('Missing GG function '+name);return s.slice(0,a)+edit(s.slice(a,b))+s.slice(b);}
 function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
+  // The partner dashboard has no plan UI, including the fixed header dock.
+  const planDock=s.match(/<!-- Плавающий док плана:[\s\S]*?(?=<div class="foot">)/);
+  if(!planDock)throw Error('Missing plan dock contract');
+  s=once(s,planDock[0],'');
+  s=once(s,'Меняет выручку, средний чек, план и динамику - и по отделу, и в разрезе менеджеров','Меняет выручку, средний чек и денежные показатели ДГ');
+  s=once(s,'План в таблице - общий, поэтому % выполнения корректен при «Все направления»','Фильтрует показатели только по выбранному направлению ДГ');
   s=once(s,'<title>GENGLASS · Командный центр РОПа</title>','<title>GG&DG · Домгласс</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ctext x=%221%22 y=%2224%22 font-size=%2220%22 fill=%22%2322d3ee%22%3EDG%3C/text%3E%3C/svg%3E">');
   s=s.replaceAll('GENGLASS · Отдел продаж','GG&DG · Домгласс').replaceAll('Командный центр РОПа · воронка «GG Заказы РФ»','Лиды и сделки · источник «Заявка с ДГ»').replaceAll('© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)','© GENGROUP · GG&DG · только лиды и сделки Домгласс · Битрикс24');
   s=s.replace(/<a\b[^>]*href="[^"#]*dashboards\/"[^>]*>/,'<span class="logo" aria-label="GG&DG">').replace('alt="GG"></a>','alt="GG"></span>');
@@ -60,7 +66,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   });
   s=section(s,'offerCalendarBlock',x=>{
     x=x.replace('if(opts.cup){','if(opts.cup && DATA.plan){');
-    x=x.replace('const cupStrip=(()=>{','const cupStrip=(()=>{\n    if(!DATA.plan)return dgCalendarPlan(keys,scope,enterExec,inR,g,unit);');
+    x=x.replace('const cupStrip=(()=>{','const cupStrip=(()=>{\n    return ""; // DG has no plan strip.');
     x=x.replace(/^\s*\{id:"(?:kp|dec|long)",[^\n]+\n/gm,'');
     x=x.replace('const COHSRC=[["wip",null],["kp","C49:PREPAYMENT_INVOIC"],["dec","C49:3"],["long","C49:UC_8JTBV2"]];','const COHSRC=[["wip",null]];');
     x=x.replace('const enterStage=(d,code)=>{for(const h of (d.hist||[]))if(h[0]===code&&h[1])return h[1];return null;};','const enterStage=dgFirstStageDate;');
@@ -87,7 +93,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   if(assemblyStart<0||assemblyEnd<0)throw Error('Missing dashboard assembly');
   s=s.slice(0,assemblyStart)+`  h=B_migWarn+divider(1,'Компания','показатели ДГ и сравнение с прошлым периодом')+B_kpi+B_cvFunnel+dgDistributionBlock()
     +divider(2,'Отдел продаж','от входящих лидов до исходов сделок')+B_leadStrip+B_leadFunnelPair+dgLeadDetails()+B_truba
-    +divider(3,'Со сделанным предложением','пайплайн, календарь и исходы сделок')+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();
+    +divider(3,'Со сделанным предложением','пайплайн, календарь и исходы сделок')+offerAnalytics()+offerCalendarBlock()+offerReasonsBlock();
 `+s.slice(assemblyEnd);
   s=once(s,"document.getElementById('root').innerHTML=h;","document.getElementById('root').innerHTML=dgSafeMarkup(h);");
   s=s.replace(/wireDyn\(D,L\);wireCv\(L,D\);wireLoad\(\);wireMoneyDyn\([^\n]+?;wirePrepProd\(\);wireDQ\(\);/,'wireCv(L,D);');

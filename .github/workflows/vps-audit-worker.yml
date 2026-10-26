@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       job_id:
-        description: Durable private VPS audit job ID (or health-check)
+        description: One-shot daily preview; VPS delivery must be disabled
         required: true
         type: string
 permissions:
   contents: read
 jobs:
   analyse:
+    if: ${{ startsWith(inputs.job_id, 'daily-preview-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -19,17 +20,9 @@ jobs:
           persist-credentials: false
           sparse-checkout: infra/vps/audit/vps-audit-worker.py
           sparse-checkout-cone-mode: false
-      - name: Claim VPS job and return one OpenAI report
+      - name: Claim private preview and return one OpenAI result to VPS
         env:
           AUDIT_JOB_ID: ${{ inputs.job_id }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python3 infra/vps/audit/vps-audit-worker.py
-      - name: Preserve result for VPS transport recovery
-        if: ${{ always() && hashFiles('audit-result.json') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit-result-${{ inputs.job_id }}
-          path: audit-result.json
-          retention-days: 3
-          if-no-files-found: error
-
+      # No artifact upload: the review contains private communication evidence.

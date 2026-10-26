@@ -1,8 +1,8 @@
 id: rop-telegram-prepayment
-version: 1
+version: 2
 status: draft_implementation
 scope: Daily Telegram plan and results; no production activation in this change.
-authority: "User instruction 2026-10-26: если поле предоплата 0 то берем из суммы сделки"
+authority: "User instructions 2026-10-26: zero prepayment uses deal amount; correct Kubanova's idle counter for her recent return, using Bitrix evidence."
 source:
   snapshot: rop.json from the VPS ROP snapshot
   prepayment: "prepayAmt <- Bitrix UF_CRM_1731094901475 (Предоплата)"
@@ -15,10 +15,18 @@ period: "Unchanged: first recorded C49:EXECUTING transition; successful deals wi
 timezone: Europe/Moscow
 windows: "Day and month up to the snapshot date; current day is incomplete and the snapshot time is shown."
 returns_and_cancellations: "No new cash-ledger or netting logic; selection remains unchanged."
-counter: "Unchanged calendar days since latest qualifying deal-stage date; no synthetic payment event is created by the amount fallback."
+counter:
+  default: "Calendar days since latest qualifying deal-stage date."
+  current_employment: "For a verified employment boundary, use the latest qualifying stage date on the current Bitrix user ID in [employment start, snapshot day]; if absent, count from employment start. The return day is 0."
+  verified_boundary: "Kubanova: active user 8397, start 2026-10-21; previous user 6699 remains inactive. Source: user.get DATE_REGISTER plus archived snapshots on October 20/21."
+  historical_snapshots: "Before the verified return day, preserve the existing historical calculation."
+  department: "Use actual latest stage date, never an employee start date."
+  limits: "This is a verified boundary for the known new account, not automatic detection of every rehire. The API registration date is supported by first new-account deals in the October 21 snapshot; no audit-log transition from inactive to active was found. Bank receipt dates and historical ownership at payment time are not reconstructed."
 invariants:
   - "Nonzero prepayment values are not replaced by the deal budget."
-  - "Deal count, portfolio, ownership, period and days-without-prepayment are unchanged."
+  - "Deal count, portfolio, ownership grouping and money period are unchanged."
+  - "A legacy or unidentified user account cannot reset the current-employment counter."
+  - "Starting employment does not fabricate a department payment."
   - "Department amount equals the sum of manager amounts; fallback counts also sum."
   - "Both empty amounts remain visible as missing."
   - "Rendered Telegram payload remains within 4096 characters."
@@ -26,4 +34,5 @@ validation:
   automated: "node .github/scripts/rop-tg-fallback.test.mjs (all Telegram calls intercepted)"
   synthetic_reference: "Advance 25000 / deal 100000 -> 25000; advance 0 / deal 100000 -> 100000; both 0 -> 0 with missing notice."
   baseline: "The new test fails on the previous workflow at 'zero uses deal amount'."
+  counter_baseline: "The employment regression fails on the amount-only workflow: September 11 legacy payment / October 21 return / October 26 snapshot must show 5 days personally and 45 days for a department with only that legacy payment."
   private_replay: "The original VPS snapshot was replayed offline; no private snapshot is committed. This validates the calculation, not actual bank receipts."

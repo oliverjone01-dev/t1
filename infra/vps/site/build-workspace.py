@@ -20,9 +20,14 @@ new_norm = 'const _pmH=((DATA.plan&&DATA.plan.months)||[]).filter(x=>x.month<=St
 if original.count(old_norm) != 1:
     raise SystemExit('Expected one health plan target lookup; source changed')
 original = original.replace(old_norm, new_norm)
+# Optional Google font CSS must not block the first dashboard paint.
+original = re.sub(r'<link\b(?=[^>]*fonts\.googleapis\.com)(?=[^>]*rel=["\']stylesheet["\'])[^>]*>', lambda m: re.sub(r'rel=["\']stylesheet["\']', 'rel="stylesheet" media="print" onload="this.media=\'all\'"', m[0]), original)
+
 # Large manager photos below the fold must not compete with the initial data load.
 original = original.replace('<img src="${photos[n]}"', '<img loading="lazy" decoding="async" src="${photos[n]}"')
 
+# Install all presentation wrappers before the initial render.
+original = original.replace("setPeriod('30');buildShell();const _rf=applyRopFocus();render();freshStamp();", "// Snapshot records are immutable for the lifetime of this page. Cache only date derivations.\nconst ggPrepayDates=new WeakMap(),ggProductionDates=new WeakMap(),ggSoldDates=new WeakMap();\nconst ggSourcePrepayDate=prepayDate,ggSourceProdDate=prodDate,ggSourceSoldDate=soldDate;\nprepayDate=function(d){if(!ggPrepayDates.has(d))ggPrepayDates.set(d,ggSourcePrepayDate(d));return ggPrepayDates.get(d);};\nprodDate=function(d){if(!ggProductionDates.has(d))ggProductionDates.set(d,ggSourceProdDate(d));return ggProductionDates.get(d);};\nsoldDate=function(d){let modes=ggSoldDates.get(d);if(!modes){modes=new Map();ggSoldDates.set(d,modes);}if(!modes.has(S.revMode))modes.set(S.revMode,ggSourceSoldDate(d));return modes.get(S.revMode);};\n\nsetPeriod('30');buildShell();const _rf=applyRopFocus();freshStamp();")
 scripts = re.findall(r'<script\b[^>]*>.*?</script>', original, re.S)
 if not scripts or 'let S=' not in ''.join(scripts) or 'id="root"' not in original:
     raise SystemExit('ROP source structure changed')
@@ -44,6 +49,7 @@ body = original.split('<body>', 1)[1].rsplit('</body>', 1)[0]
 # The original DOM, identifiers, events, charts and complete scripts stay intact.
 design_style = (style.parent / 'rop-approved-design.css').read_text(encoding='utf-8')
 design_behavior = (behavior.parent / 'rop-approved-design.js').read_text(encoding='utf-8')
+design_behavior = design_behavior.replace("const previous=render;render=function(){previous();sync();teamPlan();};render();", "const previous=render;render=function(){previous();sync();teamPlan();};")
 design_behavior += '\n' + (behavior.parent / 'rop-palette.js').read_text(encoding='utf-8')
 design_behavior += '\n' + (behavior.parent / 'rop-refinements.js').read_text(encoding='utf-8')
 design_behavior += '\n' + (behavior.parent / 'shared-shell.js').read_text(encoding='utf-8')

@@ -1,7 +1,18 @@
 'use strict';
 const createDGNormalizer=require('./dialog-normalize.cjs');
 const dgRealCommunication=type=>/^(Письмо|Звонок|SMS|Мессенджер ОЛ|Сообщение)/.test(type||'');
-function dgSafeText(value){return String(value??'').replace(/(?:https?:\/\/|www\.)[^\s<>"\]\[]+/gi,'[ссылка скрыта]').replace(/\S*bitrix24\.\S*|\/rest\/\d+\/[a-z0-9]+\/?/gi,'[адрес CRM скрыт]').replace(/sk-(?:proj-)?[A-Za-z0-9_-]{16,}|\d{6,}:[A-Za-z0-9_-]{20,}/g,'[секрет скрыт]').replace(/B24_WEBHOOK_URL|OPENAI_API_KEY|api\.telegram\.org/gi,'[служебное поле скрыто]');}
+// Same contact masking rules as the pinned GG mask-contacts.mjs, after decoding.
+function dgMaskContacts(text){
+ return text.replace(/([\p{L}\p{N}_.+-]{1,64})@([\p{L}\p{N}_-]+(?:\.[\p{L}\p{N}_-]+)+)/gu,(_,local,domain)=>(local.length<=2?local[0]:local.slice(0,2))+'****@'+domain)
+ .replace(/(?<!\d)(\d{4})[ -]?(\d{4})[ -]?(\d{4})[ -]?(\d{4})(?!\d)/g,(_,a,b,c,last)=>'****'+last)
+ .replace(/(?<![\p{L}\p{N}_+])((?:\+|&#43;\s?)?\d[\d \-()\u00a0]{8,26}\d)(?!\d)/gu,match=>{
+  const plus=match.startsWith('+')||match.startsWith('&#43;'),digits=match.replace(/^&#43;/,'').replace(/\D/g,'');
+  const phone=digits.length===11&&'78'.includes(digits[0])&&'3489'.includes(digits[1])||digits.length===10&&digits[0]==='9'||plus&&digits.length>=11&&digits.length<=13;
+  if(!phone||!plus&&match.split(/\s*-+\s*/).every(p=>/^\d{1,3}(?:[ \u00a0]\d{3})+$/.test(p.trim())))return match;
+  return (plus?'+':'')+digits.slice(0,4)+'****'+digits.slice(-2);
+ });
+}
+function dgSafeText(value){let text=String(value??'');const named={amp:'&',quot:'"',apos:"'",lt:'<',gt:'>',nbsp:' ',laquo:'«',raquo:'»',ldquo:'“',rdquo:'”',lsquo:'‘',rsquo:'’',ndash:'–',mdash:'—',hellip:'…',copy:'©',reg:'®'};let stable=false;for(let i=0;i<64;i++){const decoded=text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,(whole,key)=>{if(key[0]!=='#')return named[key.toLowerCase()]??whole;const n=key[1].toLowerCase()==='x'?parseInt(key.slice(2),16):Number(key.slice(1));return n>0&&n<=0x10FFFF&&!(n>=0xD800&&n<=0xDFFF)?String.fromCodePoint(n):'�';});if(decoded===text){stable=true;break;}text=decoded;}if(!stable)throw Error('DG text entity nesting limit');text=text.replace(/(?:https?:\/\/|www\.)[^\s<>"\]\[]+/gi,'[ссылка скрыта]').replace(/\S*bitrix24\.\S*|\/rest\/\d+\/[a-z0-9]+\/?/gi,'[адрес CRM скрыт]').replace(/sk-(?:proj-)?[A-Za-z0-9_-]{16,}|\d{6,}:[A-Za-z0-9_-]{20,}/g,'[секрет скрыт]').replace(/B24_WEBHOOK_URL|OPENAI_API_KEY|api\.telegram\.org/gi,'[служебное поле скрыто]');return dgMaskContacts(text);}
 function dgCleanEvent(event,entities){
  const ts=Number(event.ts)||Date.parse(event.raw||event.dt||'');if(!Number.isFinite(ts))throw Error('Invalid communication time');
  if(!event.src||!entities.length)throw Error('Unbound communication');

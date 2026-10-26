@@ -9,7 +9,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   s=once(s,'Меняет выручку, средний чек, план и динамику - и по отделу, и в разрезе менеджеров','Меняет выручку, средний чек и денежные показатели ДГ');
   s=once(s,'План в таблице - общий, поэтому % выполнения корректен при «Все направления»','Фильтрует показатели только по выбранному направлению ДГ');
   s=once(s,'<title>GENGLASS · Командный центр РОПа</title>','<title>GG&DG · Домгласс</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ctext x=%221%22 y=%2224%22 font-size=%2220%22 fill=%22%2322d3ee%22%3EDG%3C/text%3E%3C/svg%3E">');
-  s=s.replaceAll('GENGLASS · Отдел продаж','GG&DG · Домгласс').replaceAll('Командный центр РОПа · воронка «GG Заказы РФ»','Лиды и сделки · источник «Заявка с ДГ»').replaceAll('© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)','© GENGROUP · GG&DG · только лиды и сделки Домгласс · Битрикс24');
+  s=s.replaceAll('GENGLASS · Отдел продаж','GG&DG · Домгласс').replaceAll('Командный центр РОПа · воронка «GG Заказы РФ»','Лиды и сделки · «Заявка с ДГ» · входящие от domglass.ru').replaceAll('© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)','© GENGROUP · GG&DG · только лиды и сделки Домгласс · Битрикс24');
   s=s.replace(/<a\b[^>]*href="[^"#]*dashboards\/"[^>]*>/,'<span class="logo" aria-label="GG&DG">').replace('alt="GG"></a>','alt="GG"></span>');
   s=s.replaceAll('https://glassmemory.bitrix24.ru/crm/deal/details/','');
   s=once(s,'const notForeign=x=>!GM_OWNED.has(x.mgr);','const notForeign=x=>true; // All rows are already source-scoped before publication.');

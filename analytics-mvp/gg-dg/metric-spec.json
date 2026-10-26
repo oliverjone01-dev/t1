@@ -1,5 +1,5 @@
 {
-  "id": "gg-dg-source-dashboard-v4-calendar-communications",
+  "id": "gg-dg-source-dashboard-v5-domglass-mail-heat-calendar",
   "authorization": "User requests every GG widget reproduced for DG, published at gg&dg on GitHub. Explicit reply: План ДГ пока не задан. Existing GG metric definitions are inherited, never GG targets. Follow-up: remove requested plan, dynamics, manager, production, data-discipline and offer-control widgets; swap speed/loss widgets before deal funnel; add deal/sales switch, zero rings and lead/deal reason tables.",
   "source": {
     "portal": "glassmemory.bitrix24.ru",
@@ -8,8 +8,8 @@
     "exampleLead": "54999"
   },
   "population": {
-    "leads": "Exact SOURCE_ID, all dates/directions/assignees",
-    "deals": "Exact SOURCE_ID OR LEAD_ID in eligible leads; unique ID",
+    "leads": "Exact SOURCE_ID UC_NQ3QUI AND at least one incoming email activity bound to the lead with actual From mailbox domain exactly domglass.ru. All dates. Outgoing replies do not qualify. Display-name addresses and text signatures are not sender proof.",
+    "deals": "Direct DG source or link to a qualifying lead; any deal linked to an explicitly rejected source-DG lead is excluded.",
     "enrichment": "Stage history, direct lead/deal activities and linked production items only. Shared contact/company communication cannot be attributed to DG and is excluded."
   },
   "reference": {
@@ -89,7 +89,8 @@
     },
     "eventPolicy": "First lifetime entry only; repeat entries do not inflate counts. History completeness/current-stage consistency required before publication. Different stage rows are not additive.",
     "money": "Lead: known RUB opportunity, missing/foreign currency flagged. Deal: selected amount field. Manager table budget labelled separately.",
-    "manager": "Current responsible manager, not historical owner."
+    "manager": "Current responsible manager, not historical owner.",
+    "presentation": "Same compact heat-calendar geometry, row colors, inverse-intensity scale, date grid, blank zero cells and inline manager rows as GG ROP. Clicking a nonzero cell/total opens record/event detail. Existing count/date/stock formulas retained."
   },
   "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
   "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects.",
@@ -106,6 +107,21 @@
     "period": "Full record history on expansion; calendar period only highlights relevant events.",
     "delivery": "Lazy static communications/L<id>.json or D<id>.json protected by dedicated DG Basic Auth; no arbitrary proxy. Payload generation must equal page generation.",
     "security": "Contact mask, escaped text, no links/webhooks/keys/AI actions; existing transcripts only, no model or Telegram API use.",
-    "coverage": "Source API visibility applies. Dialog freshness is explicit and can lag. Missing cache is a labelled gap, not zero communication. No claim of recovering deleted/unavailable CRM content."
+    "coverage": "Source API visibility applies. Dialog freshness is explicit and can lag. Missing cache is a labelled gap, not zero communication. No claim of recovering deleted/unavailable CRM content.",
+    "presentation": "No full-history heading or channel toolbar. Sort remains. HTML character references decoded as plain text before URL redaction and escaping; no HTML interpretation in browser."
+  },
+  "mailCohort": {
+    "authorization": "26.10.2026 user: вот от домглас оставляем только",
+    "evidence": "EMAIL_META.from of incoming TYPE_ID4/DIRECTION1 activities. Positive email bindings explicitly checked. No incoming evidence excludes the lead; missing API metadata/failure aborts publication rather than producing zero.",
+    "probe": {
+      "before": 50,
+      "retained": 10,
+      "excludedByDomain": {
+        "tochka.com": 30,
+        "hoff.ru": 8,
+        "21vekug.ru": 1,
+        "urbitec-fm.ru": 1
+      }
+    }
   }
 }

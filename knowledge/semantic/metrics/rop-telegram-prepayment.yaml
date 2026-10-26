@@ -1,0 +1,29 @@
+id: rop-telegram-prepayment
+version: 1
+status: draft_implementation
+scope: Daily Telegram plan and results; no production activation in this change.
+authority: "User instruction 2026-10-26: если поле предоплата 0 то берем из суммы сделки"
+source:
+  snapshot: rop.json from the VPS ROP snapshot
+  prepayment: "prepayAmt <- Bitrix UF_CRM_1731094901475 (Предоплата)"
+  fallback: "budget <- Bitrix OPPORTUNITY (Сумма)"
+formula: "number(prepayAmt) == 0 ? number(budget) : number(prepayAmt)"
+empty_values: "The existing collector normalizes empty/unparseable prepayment to 0; these use the same fallback. If both amounts are 0, retain the missing-amount notice. Negative nonzero values retain existing behavior."
+disclosure: "Count positive deal-amount substitutions in each daily/monthly total and label them 'взята сумма сделки'. This is the requested reporting convention, not confirmation of a bank receipt."
+population: "Unchanged: category 49; seven active managers from the digest; one row per deal."
+period: "Unchanged: first recorded C49:EXECUTING transition; successful deals without it retain the existing closed-date fallback."
+timezone: Europe/Moscow
+windows: "Day and month up to the snapshot date; current day is incomplete and the snapshot time is shown."
+returns_and_cancellations: "No new cash-ledger or netting logic; selection remains unchanged."
+counter: "Unchanged calendar days since latest qualifying deal-stage date; no synthetic payment event is created by the amount fallback."
+invariants:
+  - "Nonzero prepayment values are not replaced by the deal budget."
+  - "Deal count, portfolio, ownership, period and days-without-prepayment are unchanged."
+  - "Department amount equals the sum of manager amounts; fallback counts also sum."
+  - "Both empty amounts remain visible as missing."
+  - "Rendered Telegram payload remains within 4096 characters."
+validation:
+  automated: "node .github/scripts/rop-tg-fallback.test.mjs (all Telegram calls intercepted)"
+  synthetic_reference: "Advance 25000 / deal 100000 -> 25000; advance 0 / deal 100000 -> 100000; both 0 -> 0 with missing notice."
+  baseline: "The new test fails on the previous workflow at 'zero uses deal amount'."
+  private_replay: "The original VPS snapshot was replayed offline; no private snapshot is committed. This validates the calculation, not actual bank receipts."

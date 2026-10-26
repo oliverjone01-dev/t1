@@ -106,6 +106,11 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   s=s.replace('</style>',`.dg-dist-controls{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:center}.dg-cross-layout{display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:center;gap:20px}.dg-cross-vertical{width:100%;max-width:420px;margin:12px auto}.dg-cross-stage{display:flex;align-items:center;flex-direction:column;gap:8px;margin:10px 0}.dg-cross-stage>span{font-size:12px;color:var(--ink-2)}.dg-cross-bar{color:#07121a;min-width:70px;min-height:44px;border-radius:4px;display:grid;place-items:center}.dg-cross-bar b{font-size:21px;font-weight:700}.dg-cross-stage>small{color:var(--ink-3);font-size:11px}.dg-cross-total{border-left:1px solid var(--border);padding:16px 0 16px 18px;font-size:12px;color:var(--ink-3)}.dg-cross-total b{display:block;font-size:27px;margin-top:8px;color:var(--ink)}.dg-record-id{font-weight:600;color:var(--ink-2)}@media(max-width:600px){.dg-cross-layout{grid-template-columns:minmax(0,1fr) 100px;gap:10px}.dg-cross-total b{font-size:22px}.dg-dist-controls{width:100%;justify-content:flex-end}}\n</style>`);
   s=s.replace('</style>',fsCalendarStyles()+'\n</style>');
   s=once(s,"setPeriod('30');buildShell();",hook+"\nsetPeriod('30');buildShell();");
+  // The partner view exposes only the requested conversion funnel and segment summaries.
+  s=once(s,"  const _cvBody = S.cvView==='dyn'\n    ? `<div id=\"cvDyn\"></div>`\n    : `${_cvFunnel}${_churn}${_oi}`;","  const _cvBody = `${_cvFunnel}${_churn}${_oi}`;");
+  s=once(s,'<div class="seg" id="cvSeg"></div>','');
+  s=section(s,'offerAnalytics',x=>x.replace('${donuts}${segDyn}','${donuts}').replaceAll('data-ocseg=','data-dg-static-segment=').replace('cursor:pointer;padding:2px 4px','padding:2px 4px').replaceAll('клик по сегменту - конверсия в динамике','доли открытых сделок').replace(' · клик по сегменту - конверсия и сделки',''));
+  s=s.replaceAll('Компания','Лиды от Домгласс').replaceAll('Отдел продаж','Работа отдела продаж');
   return s;
 }
 module.exports={adaptTemplate};

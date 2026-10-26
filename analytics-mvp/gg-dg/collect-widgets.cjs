@@ -53,7 +53,7 @@ function adapt(source,mask){
   s=once(s,'if (UF_PREPAY) console.log(', 'if (!UF_PREPAY) throw Error("CRM prepayment field unavailable");\n  if (UF_PREPAY) console.log(');
   s=once(s,'budget: Number(d.OPPORTUNITY) || 0,','budget: d.OPPORTUNITY == null || d.OPPORTUNITY === "" ? null : Number(d.OPPORTUNITY),');
   s=once(s,'const moneyNum = (v: any): number => { const n = parseFloat(String(v ?? "").split("|")[0]); return isNaN(n) ? 0 : n; };',`const moneyNum = (v: any): number => { if(v==null||v==='')return 0;const parts=String(v).split('|');if(parts.length>2||(parts[1]&&parts[1]!=='RUB'))throw Error('Unsupported prepayment currency');const n=Number(parts[0]);if(!Number.isFinite(n)||n<0)throw Error('Invalid prepayment amount');return n; };`);
-  s=once(s,'reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",','reason: reasonMap[String(d[UF.reason])] || (String(d[UF.reasonComment] ?? "").trim() ? "Указана в CRM" : "не указана"),');
+  s=once(s,'reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",','reason: dgSafeText(String(d[UF.reasonComment] ?? "").trim() || reasonMap[String(d[UF.reason])] || "Не заполнена"),');
   s=once(s,'const j = await call("crm.item.productrow.list", { filter: { "=ownerId": r.id, "=ownerType": OWNER_T } });\n      const prs: any[] = (j.result && j.result.productRows) || [];',`const prs: any[] = await strictList('crm.item.productrow.list',{filter:{'=ownerId':r.id,'=ownerType':OWNER_T}},{idField:'id',itemsPath:'productRows'});
       if(prs.some(p=>String(p.ownerId)!==String(r.id)))throw Error('Foreign product row');`);
   s=once(s,'} catch { /* карточка без товарных строк */ }','} catch(e) { throw e; }');

@@ -1,17 +1,91 @@
 {
-  "id": "gg-dg-source-dashboard-v2-all-gg-widgets",
-  "authorization": "User requests every GG widget reproduced for DG, published at gg&dg on GitHub. Explicit reply: План ДГ пока не задан. Existing GG metric definitions are inherited, never GG targets.",
-  "source": {"portal":"glassmemory.bitrix24.ru","id":"UC_NQ3QUI","name":"Заявка с ДГ","exampleLead":"54999"},
-  "population": {"leads":"Exact SOURCE_ID, all dates/directions/assignees", "deals":"Exact SOURCE_ID OR LEAD_ID in eligible leads; unique ID", "enrichment":"Stage history, direct lead/deal activities and linked production items only. Shared contact/company communication cannot be attributed to DG and is excluded."},
-  "reference": {"repository":"oliverjone01-dev/t1","branch":"rop-dashboard-v1","template":"analytics-mvp/rop/rop-command.template.html","initialBlob":"b4e9437b2cbf73dcbf07fabcad4a1f0883e50630","runtimeVersion":"Manifest SHA-256 of actual template used by Pages"},
+  "id": "gg-dg-source-dashboard-v3-compact-drilldowns",
+  "authorization": "User requests every GG widget reproduced for DG, published at gg&dg on GitHub. Explicit reply: План ДГ пока не задан. Existing GG metric definitions are inherited, never GG targets. Follow-up: remove requested plan, dynamics, manager, production, data-discipline and offer-control widgets; swap speed/loss widgets before deal funnel; add deal/sales switch, zero rings and lead/deal reason tables.",
+  "source": {
+    "portal": "glassmemory.bitrix24.ru",
+    "id": "UC_NQ3QUI",
+    "name": "Заявка с ДГ",
+    "exampleLead": "54999"
+  },
+  "population": {
+    "leads": "Exact SOURCE_ID, all dates/directions/assignees",
+    "deals": "Exact SOURCE_ID OR LEAD_ID in eligible leads; unique ID",
+    "enrichment": "Stage history, direct lead/deal activities and linked production items only. Shared contact/company communication cannot be attributed to DG and is excluded."
+  },
+  "reference": {
+    "repository": "oliverjone01-dev/t1",
+    "branch": "rop-dashboard-v1",
+    "template": "analytics-mvp/rop/rop-command.template.html",
+    "initialBlob": "b4e9437b2cbf73dcbf07fabcad4a1f0883e50630",
+    "runtimeVersion": "Manifest SHA-256 of actual template used by Pages"
+  },
   "period": "Inclusive Moscow dates. Lead cohort by creation. GG default 30 days, weekly buckets. User can select dates, month, granularity, creation/outcome date basis and created/active funnel modes. Current day partial. Open-pipeline and discipline widgets operate on the current open inventory where the GG reference does so.",
   "conversion": "GG CR1 = converted leads / same lead creation cohort. CR2 and success rates use GG selected cohort/outcome basis and displayed denominators. Ratios are descriptive CRM metrics, not controlled acquisition attribution or fixed-maturation conversion.",
   "money": "GG prepayment/won mode and budget/prepayment amount switches are preserved. Default prepayment event uses first EXECUTING stage, then first later stage in history, then close-date fallback for a won record; amount uses selected CRM field. Open pipeline = current opportunity, not bank revenue. No refunds/tax/accounting inference. RUB/category 49 contract checked before publication.",
-  "plan": "Absent. Preserve six gauges, seven team rows, manager bars/heatmaps and calendar plan strip with facts, targets and attainment shown as dashes, and План ДГ не задан. No GG sheets, fallback 15%/4M/35:65 targets or invented employee quotas.",
+  "plan": "Absent. Requested plan gauges, department dynamics and team plan/fact are removed. Remaining calendar/health widgets show facts and no-plan notes; no GG targets are imported.",
   "production": "GG transfer event and SP1086 link/quantity fields, restricted to eligible deal IDs. Zero linked items is known empty, not unavailable. No sales/production assumed when missing.",
   "manager": "Current assigned managers from DG data, including inactive owners. System/non-sales accounts stay in totals/unallocated rows. Manager cards filter the same DG page; no link to all-source personal dashboards.",
-  "privacy": "No credentials, client titles, contacts, task subjects or free-text comments. Refusal enum retained; comment-only reason marked Указана в CRM. CRM IDs, staff names and aggregate operational metrics remain.",
+  "privacy": "No credentials, client titles, contacts, task subjects or free-text comments. Refusal enum retained; comment-only reason marked Указана в CRM. CRM IDs, staff names and aggregate operational metrics remain. Lead reasons only use the explicit observed label dictionary described in drilldown. API keys and raw CRM snapshots never enter the release.",
   "freshness": "Read on existing Pages deployment, with source timestamp and build timestamp. >24h input fails, as do count, identity, scope and pagination mismatches. Browser retains reference freshness indication and update polling.",
-  "initialProbe": {"at":"2026-10-26T09:02:39.620Z","leads":45,"deals":7,"openDeals":6,"openRUB":513111,"won":0,"prepaymentEvents":0,"deal101709RUB":218500,"deal102033RUB":294611},
-  "limitations": "Live CRM and GG snapshot share a source family. No external financial reconciliation. Unsupported future currency/category fails publication explicitly; parent source changes must satisfy adapter contracts. No DG sales plan exists."
+  "initialProbe": {
+    "at": "2026-10-26T09:02:39.620Z",
+    "leads": 45,
+    "deals": 7,
+    "openDeals": 6,
+    "openRUB": 513111,
+    "won": 0,
+    "prepaymentEvents": 0,
+    "deal101709RUB": 218500,
+    "deal102033RUB": 294611
+  },
+  "limitations": "Live CRM and GG snapshot share a source family. No external financial reconciliation. Unsupported future currency/category fails publication explicitly; parent source changes must satisfy adapter contracts. No DG sales plan exists.",
+  "distribution": {
+    "default": "Deals, count; FD creation cohort with current global filters, every status.",
+    "sales": "Original GG soldSet: selected prepayment/won mode and creation/outcome dates.",
+    "money": "Deals use opportunity; sales use selected opportunity/prepayment amount. Missing opportunity is counted separately. RUB only.",
+    "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments."
+  },
+  "drilldown": {
+    "leads": "Funnel stage or refusal status opens the same FL cohort; optional reason filter and text search. Shows ID, owner, dates, status, main reason, amount/currency, source/direction and linked DG deals from all dates.",
+    "deals": "A distribution category opens the same selected deals/sales subset. IDs link to CRM; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
+    "reasonFields": [
+      "UF_CRM_1730742511284",
+      "UF_CRM_1782316574481",
+      "UF_CRM_1785837642607"
+    ],
+    "privacy": "Only exact known operational labels are published from lead string fields. Other text becomes Другая причина (см. CRM); missing = Не заполнена. Deal free text stays in CRM.",
+    "reasonDenominator": "Refused leads in selected status/funnel subset, before optional reason/search filtering. Number and share are displayed explicitly."
+  },
+  "layout": {
+    "sections": [
+      "Компания",
+      "Отдел продаж",
+      "Со сделанным предложением"
+    ],
+    "removed": [
+      "Выполнение плана",
+      "Динамика отдела",
+      "Команда - план-факт",
+      "Динамика заявок",
+      "Качество разметки",
+      "Менеджеры",
+      "Передача в производство",
+      "Отдел продаж: передачи и потенциал",
+      "Дисциплина данных",
+      "Сделки для исправления по отделу",
+      "Со сделанным предложением - под контроль"
+    ],
+    "order": "Lead funnel/reasons, stage speed + deal refusal reasons, then deal funnel."
+  },
+  "revisionProbe": {
+    "at": "2026-10-26T10:51:45.886Z",
+    "leads": 48,
+    "deals": 7,
+    "refusedLeads": 41,
+    "convertedLeads": 5,
+    "inWorkLeads": 2,
+    "openDeals": 6,
+    "openRUB": 513111,
+    "sales": 0
+  }
 }

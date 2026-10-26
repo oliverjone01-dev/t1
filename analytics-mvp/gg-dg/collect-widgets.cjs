@@ -3,9 +3,23 @@
 // mappings remain the reference implementation; every list is paginated and checked.
 const fs=require('node:fs'), path=require('node:path'), {stripTypeScriptTypes}=require('node:module');
 const SOURCE_ID='UC_NQ3QUI', SOURCE_NAME='Заявка с ДГ';
+const DG_REASON_FIELDS=['UF_CRM_1730742511284','UF_CRM_1782316574481','UF_CRM_1785837642607'];
+function assertLeadReasonFields(fields){for(const field of DG_REASON_FIELDS)if(fields[field]?.type!=='string')throw Error('DG lead reason field unavailable or changed: '+field);}
+function leadReason(row){
+  const status=String(row.STATUS_ID||'');
+  if(status==='1')return 'СПАМ';if(status==='2')return 'Дубль';
+  if(!['JUNK','3'].includes(status))return null;
+  const value=String(status==='JUNK'?(row[DG_REASON_FIELDS[0]]||''):(row[DG_REASON_FIELDS[2]]||row[DG_REASON_FIELDS[1]]||'')).trim().toLowerCase().replace(/\s+/g,' ');
+  if(!value)return 'Не заполнена';
+  // Only observed operational labels leave CRM; arbitrary free text stays behind the CRM link.
+  const labels={'тест':'Тест','некачественный лид':'Некачественный лид','предложение о сотрудничестве':'Предложение о сотрудничестве','не возьмем в работу':'Не возьмем в работу','не сделаем':'Не сделаем'};
+  return Object.hasOwn(labels,value)?labels[value]:'Другая причина (см. CRM)';
+}
 function once(s,from,to){if(s.split(from).length!==2)throw Error('GG collector contract changed: '+from.slice(0,90));return s.replace(from,to);}
 function adapt(source,mask){
   let s=source.replace(/\r\n/g,'\n');
+  s=`const DG_REASON_FIELDS=${JSON.stringify(DG_REASON_FIELDS)};\n${leadReason.toString()}\n${assertLeadReasonFields.toString()}\n`+s;
+  s=once(s,'const leadFields: any = (await call("crm.lead.fields", {})).result || {};','const leadFields: any = (await call("crm.lead.fields", {})).result || {}; assertLeadReasonFields(leadFields);');
   s=once(s,'import { maskDeep } from "../../lib/mask-contacts.mjs";',mask.replace(/^export\s+/gm,''));
   s=once(s,'const OUT = "rop/data/rop.json";','const OUT = process.env.GG_DG_OUTPUT || "/tmp/gg-dg-widgets.json";');
   s=once(s,'const LIGHT = (process.env.ROP_LIGHT || "") === "1";','const LIGHT = false;');
@@ -16,7 +30,7 @@ function adapt(source,mask){
   s=s.slice(0,start)+SCOPED_LIST+s.slice(end);
   s=once(s,'const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });',`
   if(sourceName['${SOURCE_ID}']!=='${SOURCE_NAME}')throw Error('DG source dictionary changed');
-  SC.leads=await strictList('crm.lead.list',{select:['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','DATE_CREATE','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR],filter:{SOURCE_ID:'${SOURCE_ID}'}});
+  SC.leads=await strictList('crm.lead.list',{select:['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS],filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const direct=await strictList('crm.deal.list',{select:dealSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const linked=await scopedChunks('crm.deal.list',{select:dealSelect},'@LEAD_ID',SC.leads.map(x=>x.ID));
   const leadIDs=new Set(SC.leads.map(x=>String(x.ID)));
@@ -29,6 +43,7 @@ function adapt(source,mask){
   s=once(s,'category: Number(DEAL_CATEGORY),','category: Number(d.CATEGORY_ID), sourceId: d.SOURCE_ID || null, leadId: d.LEAD_ID ? String(d.LEAD_ID) : null, currency: d.CURRENCY_ID || null,');
   s=once(s,'const dealSelect = ["ID", "TITLE", "CATEGORY_ID",','const dealSelect = ["ID", "TITLE", "CURRENCY_ID", "CATEGORY_ID",');
   s=once(s,'title: l.TITLE || "",','title: l.TITLE || "", sourceId: l.SOURCE_ID,');
+  s=once(s,'budget: Number(l.OPPORTUNITY) || 0,','budget: l.OPPORTUNITY==null||l.OPPORTUNITY===""?null:Number(l.OPPORTUNITY), currency:l.CURRENCY_ID||null, updated:d10(l.DATE_MODIFY), reason:leadReason(l),');
   // Empty custom amounts remain unknown; GG rendering uses its existing display rules.
   s=once(s,'if (UF_PREPAY) console.log(', 'if (!UF_PREPAY) throw Error("CRM prepayment field unavailable");\n  if (UF_PREPAY) console.log(');
   s=once(s,'budget: Number(d.OPPORTUNITY) || 0,','budget: d.OPPORTUNITY == null || d.OPPORTUNITY === "" ? null : Number(d.OPPORTUNITY),');
@@ -85,4 +100,4 @@ async function listSharded(method,params,opts={}){
 
 `;
 if(require.main===module){const root=process.argv[2],out=process.argv[3];if(!root||!out)throw Error('Usage: collect-widgets.cjs <GG analytics root> <generated.mjs>');const source=fs.readFileSync(path.join(root,'src/scripts/b24/fetch-rop.ts'),'utf8');const mask=fs.readFileSync(path.join(root,'src/lib/mask-contacts.mjs'),'utf8');fs.writeFileSync(out,adapt(source,mask));}
-module.exports={adapt,SOURCE_ID,SOURCE_NAME,SCOPED_LIST};
+module.exports={adapt,SOURCE_ID,SOURCE_NAME,SCOPED_LIST,leadReason,DG_REASON_FIELDS,assertLeadReasonFields};

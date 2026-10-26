@@ -8,6 +8,7 @@ function validateRaw(r,now=Date.now()){
   const leads=new Set(r.scope.leadIds),deals=new Set(r.scope.dealIds);
   for(const[k,ids]of [['leads',leads],['deals',deals]]){if(r[k].length!==ids.size||r.counts[k]!==ids.size||new Set(r[k].map(x=>String(x.id))).size!==ids.size)throw Error('CRM identity/count mismatch '+k);for(const x of r[k]){if(!ids.has(String(x.id)))throw Error('Foreign '+k+' row');if(k==='leads'&&x.sourceId!==SOURCE_ID)throw Error('Foreign lead');if(k==='deals'&&x.sourceId!==SOURCE_ID&&!leads.has(x.leadId))throw Error('Foreign deal');if(!/^\d{4}-\d{2}-\d{2}$/.test(x.created||''))throw Error('Invalid date');}}
   for(const d of r.deals){if(Number(d.category)!==49)throw Error('GG widget stage contract only supports category 49');if(d.currency!=='RUB')throw Error('GG monetary widgets require RUB');if(d.budget!=null&&(!Number.isFinite(d.budget)||d.budget<0))throw Error('Invalid budget');if(!Number.isFinite(d.prepayAmt)||d.prepayAmt<0)throw Error('Invalid prepayment');if(d.hist.some(h=>!h[0]||!/^\d{4}-\d{2}-\d{2}$/.test(h[1])))throw Error('Invalid stage history');}
+  for(const l of r.leads)if(l.budget!=null&&(!Number.isFinite(l.budget)||l.budget<0))throw Error('Invalid lead budget');
   for(const p of r.prodItems||[])if(!deals.has(String(p.dealId)))throw Error('Foreign production item');
   const names=new Set([...r.deals,...r.leads].map(x=>x.mgr));for(const name of Object.keys(r.channelMix||{}))if(!names.has(name))throw Error('Foreign communication manager');
   return true;
@@ -19,10 +20,12 @@ function build(raw,template,builder,hook,now=Date.now()){
   r.deals.forEach(d=>{delete d.title;d.taskSubj=d.taskSubj?'Запланированное дело':null;});r.leads.forEach(l=>delete l.title);
   r.managerPhotos=Object.fromEntries(Object.entries(r.managerPhotos||{}).filter(([n])=>names.has(n)));
   r.firedManagers=(r.firedManagers||[]).filter(n=>names.has(n));
-  const tpl=adaptTemplate(template,hook);
+  const tpl=adaptTemplate(template,hook+'\n'+fs.readFileSync(path.join(__dirname,'sales-explorer.js'),'utf8'));
   let code=builder.replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');
   code=code.replace('const keepRec = (r: any) => !EXCLUDE_MGR.has(r.mgr) && r.dir !== "glass-memory";','const keepRec = (r: any) => true;');
   code=code.replace('const dd = deals.map((d: any) => d.created).filter(Boolean).sort();','const dd = [...deals,...leads].map((d: any) => d.created).filter(Boolean).sort();');
+  code=code.replace('id: d.id, mgr: d.mgr, stage: d.stage,','id: d.id, leadId: d.leadId || null, currency:d.currency, mgr: d.mgr, stage: d.stage,');
+  code=code.replace('id: l.id, mgr: l.mgr, status: l.status,','id: l.id, reason:l.reason??null, budget:l.budget??null, currency:l.currency??null, updated:l.updated??null, statusCode:l.statusCode, mgr: l.mgr, status: l.status,');
   code=code.replace(/planUrl: `[^`]+`,/,'planUrl: "",').replace(/planCsv: `[^`]+`,/,'planCsv: "",');
   code=code.replace('JSON.stringify(DATA)','JSON.stringify(DATA).replace(/</g,"\\\\u003c")');
   const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(raw.generated_at));let html;

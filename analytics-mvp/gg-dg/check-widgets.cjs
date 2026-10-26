@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const {SCOPED_LIST,adapt}=require('./collect-widgets.cjs'),{build,validateRaw}=require('./build-widgets.cjs');
+const {SCOPED_LIST,adapt,leadReason,DG_REASON_FIELDS,assertLeadReasonFields}=require('./collect-widgets.cjs'),{build,validateRaw}=require('./build-widgets.cjs');
 const root=process.env.GG_REFERENCE_ROOT||'/tmp/rop/analytics-mvp';
 const template=fs.readFileSync(path.join(root,'rop/rop-command.template.html'),'utf8'),builder=fs.readFileSync(path.join(root,'src/scripts/b24/build-rop.ts'),'utf8'),collector=fs.readFileSync(path.join(root,'src/scripts/b24/fetch-rop.ts'),'utf8'),mask=fs.readFileSync(path.join(root,'src/lib/mask-contacts.mjs'),'utf8'),hook=fs.readFileSync(path.join(__dirname,'no-plan.js'),'utf8');
 const helpers=call=>vm.runInNewContext(SCOPED_LIST+';({strictList,scopedChunks,listSharded,SC})',{call});
@@ -17,3 +17,44 @@ test('GG builder retains linked-only DG and GM assignees, excludes private text,
 test('empty DG dataset builds all section definitions with no fake source records',()=>{const f=fixture();f.leads=[];f.deals=[];f.counts={leads:0,deals:0};f.scope.leadIds=[];f.scope.dealIds=[];const r=build(f,template,builder,hook);assert.equal(r.data.leads.length,0);assert.equal(r.data.deals.length,0);for(const title of ['Компания','Отдел продаж','Менеджеры','Передано без карточки СП','Причины отказов со стадии предложения'])assert.ok(r.html.includes(title));assert.ok(r.html.includes('const ltot=L.length;'));assert.ok(!r.html.includes('const refused=refCats.reduce((s,x)=>s+x[1],0)||1;'));});
 test('CRM content cannot terminate the baked data script',()=>{const f=fixture();f.deals[0].client='</script><script>alert(1)</script>';const r=build(f,template,builder,hook);assert.ok(!r.html.includes('</script><script>alert'));assert.equal(r.data.deals[0].client,f.deals[0].client);});
 test('reference collector compiles with scope adapter and fails on source contract drift',()=>{const source=adapt(collector,mask);assert.ok(source.includes('foreign scoped row'));assert.ok(source.includes('Указана в CRM'));assert.throws(()=>adapt(collector.replace('const OUT = "rop/data/rop.json";','const OUT="other";'),mask),/contract changed/);});
+
+// Exercise generated page functions with synthetic records; no network or credentials.
+function dashboard(raw=fixture()){
+ const result=build(raw,template,builder,hook);let code=result.html.match(/<script>([\s\S]*)<\/script>/)[1];code=code.slice(0,code.lastIndexOf("setPeriod('30');buildShell();"));let captured='';
+ const el=()=>({style:{},dataset:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},querySelectorAll(){return[];},querySelector(){return null;},setAttribute(){},getAttribute(){return null;},textContent:'',value:'',innerHTML:''});
+ const rootEl=el();Object.defineProperty(rootEl,'innerHTML',{set(v){captured=v;throw Error('CAPTURE');}});const els={root:rootEl};
+ const document={getElementById:id=>els[id]||(els[id]=el()),querySelectorAll:()=>[],querySelector:()=>el(),addEventListener(){},documentElement:el(),body:el()};
+ const ctx={document,console,URLSearchParams,location:{search:'',protocol:'file:'},setTimeout(){},setInterval(){},clearTimeout(){},getComputedStyle:()=>({getPropertyValue:()=>''}),requestAnimationFrame(){},localStorage:{getItem(){return null;},setItem(){}}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(code,ctx);
+ const run=code=>vm.runInContext(code,ctx);run("S.start='2026-10-01';S.end='2026-10-31';");
+ return {data:result.data,run,render(){try{run('render()');}catch(e){if(e.message!=='CAPTURE')throw e;}return captured;}};
+}
+function sync(raw){raw.counts={leads:raw.leads.length,deals:raw.deals.length};raw.scope.leadIds=raw.leads.map(x=>x.id);raw.scope.dealIds=raw.deals.map(x=>x.id);return raw;}
+test('lead reasons retain known operational labels and never publish arbitrary comments',()=>{
+ const [junk,comment,reason]=DG_REASON_FIELDS;
+ assert.equal(leadReason({STATUS_ID:'JUNK',[junk]:'  ТЕСТ  '}),'Тест');
+ assert.equal(leadReason({STATUS_ID:'3',[reason]:'не сделаем',[comment]:'private customer text'}),'Не сделаем');
+ assert.equal(leadReason({STATUS_ID:'JUNK',[junk]:'call John at +79991234567'}),'Другая причина (см. CRM)');
+ for(const value of ['__proto__','constructor','toString'])assert.equal(leadReason({STATUS_ID:'JUNK',[junk]:value}),'Другая причина (см. CRM)');
+ assert.equal(leadReason({STATUS_ID:'3'}),'Не заполнена');assert.equal(leadReason({STATUS_ID:'1'}),'СПАМ');assert.equal(leadReason({STATUS_ID:'NEW',[reason]:'test'}),null);
+ const fields=Object.fromEntries(DG_REASON_FIELDS.map(f=>[f,{type:'string'}]));assert.doesNotThrow(()=>assertLeadReasonFields(fields));assert.throws(()=>assertLeadReasonFields({}),/unavailable/);fields[reason].type='enumeration';assert.throws(()=>assertLeadReasonFields(fields),/changed/);
+});
+test('requested sections are absent from rendered DOM, and speed/reasons precede deal funnel',()=>{
+ const h=dashboard().render();for(const title of ['Команда - план-факт','Выполнение плана','Динамика отдела','Динамика заявок','Качество разметки','Дисциплина данных','Сделки для исправления по отделу','Передача в производство','Отдел продаж: передачи и потенциал','Со сделанным предложением - под контроль'])assert.ok(!h.includes(title),title);
+ assert.ok(!h.includes('<h2>Менеджеры</h2>'));assert.ok(h.indexOf('Скорость по этапам')<h.indexOf('Воронка прохождения сделок'));assert.ok(h.indexOf('Причины отказов в сделках')<h.indexOf('Воронка прохождения сделок'));assert.equal((h.match(/<h2>/g)||[]).length,3);
+});
+test('distribution defaults to all creation-cohort deals, preserves every category, and separates count/amount',()=>{
+ const f=fixture(),seed=f.deals[0];f.deals=Array.from({length:12},(_,i)=>({...seed,id:String(20+i),assort:'Category '+i,budget:i===0?null:100}));const d=dashboard(sync(f));
+ assert.equal(d.run('dgDistributionRows().length'),12);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').length"),12);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.value,0)"),12);
+ d.run("S.dgDistUnit='money'");assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.value,0)"),1100);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.missing,0)"),1);
+ d.run("S.dgDistMode='sales'");const h=d.run('dgDistributionBlock()');assert.equal(d.run('dgDistributionRows().length'),0);assert.equal((h.match(/dg-empty-ring/g)||[]).length,3);assert.ok(!h.includes('<path '));assert.ok(h.includes('Нет продаж за выбранный период'));
+});
+test('sales distributions preserve GG prepayment event, amount and date-basis filters',()=>{
+ const f=fixture();Object.assign(f.deals[0],{created:'2026-09-01',stageCode:'C49:EXECUTING',stage:'Предоплата',prepayAmt:400,hist:[['C49:EXECUTING','2026-10-08']]});const d=dashboard(f);d.run("S.dgDistMode='sales';S.dgDistUnit='money';S.amtMode='prepay'");assert.equal(d.run('dgDistributionRows().length'),1);assert.equal(d.run('dgDistributionValue(dgDistributionRows()[0])'),400);d.run("S.dateBasis='created'");assert.equal(d.run('dgDistributionRows().length'),0);
+});
+test('lead selection and reason drilldown reconcile with related deals across dates',()=>{
+ const f=fixture();Object.assign(f.leads[0],{budget:750,currency:'RUB',updated:'2026-10-25',reason:null});f.leads.push({...f.leads[0],id:'11',statusCode:'JUNK',status:'Некачественный лид',reason:'Тест'});f.leads.push({...f.leads[1],id:'12',reason:'Некачественный лид'});f.deals[0].created='2026-09-20';const d=dashboard(sync(f));
+ assert.equal(d.data.deals[0].leadId,'10');assert.equal(d.data.leads[0].currency,'RUB');assert.equal(d.data.leads[0].updated,'2026-10-25');
+ d.run("S.dgDetail={kind:'leads',stage:'Сделки'}");assert.equal(d.run('dgLeadRows().length'),1);assert.ok(d.run('dgLeadDetails()').includes('/crm/deal/details/20/'));
+ d.run("S.dgDetail={kind:'leads',stage:'Отказ'}");assert.equal(d.run('dgLeadRows().length'),2);d.run("S.dgReason='Тест'");const h=d.run('dgLeadDetails()');assert.ok(h.includes('data-dg-lead-row="11"'));assert.ok(!h.includes('data-dg-lead-row="12"'));assert.ok(h.includes('50,0%'));
+ d.run("S.dgReason='';S.dgSearch='12'");assert.ok(d.run('dgLeadDetails()').includes('data-dg-lead-row="12"'));assert.ok(!d.run('dgLeadDetails()').includes('data-dg-lead-row="11"'));
+});

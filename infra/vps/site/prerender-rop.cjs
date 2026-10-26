@@ -33,6 +33,11 @@ const fs=require('fs'),path=require('path');
   if(!target.test(html))throw Error('Native root marker changed');
   html=html.replace(target,(_,open)=>open.slice(0,-1)+' data-gg-firstpaint="'+result.version+'">'+result.html+'</div>');
   html=html.replace('</head>','<script>if(location.search||location.hash)document.documentElement.dataset.ggFirstpaintSkip="true";</script><style data-gg-firstpaint-style>html[data-gg-ui=pending] #root[data-gg-firstpaint]{visibility:visible;pointer-events:none}html[data-gg-ui=pending][data-gg-firstpaint-skip] #root[data-gg-firstpaint]{visibility:hidden}html:has(#root[data-gg-firstpaint]) #gg-db-loading{position:fixed;right:12px;bottom:12px;z-index:999;border-radius:6px;background:var(--bg-card,#171a1f);padding:7px 10px!important;font-size:11px!important}</style></head>');
+  const menuSource=fs.readFileSync(path.join(__dirname,'rop-refinements.js'),'utf8');
+  const menuStart=menuSource.indexOf(' const sidebar='),menuEnd=menuSource.indexOf(' const scrollPositions=');
+  if(menuStart<0||menuEnd<menuStart)throw Error('Early shell markers changed');
+  const menuBoot='(function(){\n'+menuSource.slice(menuStart,menuEnd)+'})();';
+  html=html.replace('<script data-gg-db-loader>','<script data-gg-shell-bootstrap>'+menuBoot+'</script><script data-gg-db-loader>');
   fs.writeFileSync(file+'.firstpaint-tmp',html);fs.renameSync(file+'.firstpaint-tmp',file);
   console.log('ROP first screen prepared for snapshot',result.version.slice(0,12),'bytes',Buffer.byteLength(result.html));
  }finally{await browser.close()}

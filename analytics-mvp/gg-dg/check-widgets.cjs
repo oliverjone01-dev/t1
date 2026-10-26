@@ -133,3 +133,51 @@ test('transcript uncertainty survives serialization and appears next to speaker 
  const d=dashboard();d.run('dgCommCache.set("D20",'+JSON.stringify({events:[event]})+')');const html=d.run('dgCommunicationTable("D20")');assert.match(html,/Роли определены по тексту/);assert.match(html,/Надёжного разделения говорящих нет/);
  d.run("S.dgCalPick={row:'lost',reason:''}");assert.match(d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='lost'))"),/Причина и статус - из текущей карточки/);
 });
+
+test('DG sender cohort uses incoming envelope address, exact domain and all verified lead bindings',async()=>{
+ const {dgMailCohort,dgMailDomains}=require('./mail-cohort.cjs');assert.deepEqual(dgMailDomains('"sales@domglass.ru" <bank@tochka.com>'),['tochka.com']);assert.deepEqual(dgMailDomains('Manager <sales@DOMGLASS.RU>'),['domglass.ru']);
+ const leads=[{ID:'10'},{ID:'11'},{ID:'12'}],good={ID:'1',OWNER_TYPE_ID:'1',OWNER_ID:'10',TYPE_ID:'4',DIRECTION:'1',SETTINGS:{EMAIL_META:{from:'Manager <sales@domglass.ru>'}}},bad={...good,ID:'2',OWNER_ID:'11',SETTINGS:{EMAIL_META:{from:'info@tochka.com'}}};
+ const source=async(method,p)=>method==='crm.activity.list'?{result:[good,bad],total:2}:{result:[{entityTypeId:1,entityId:10},{entityTypeId:1,entityId:12}]};
+ const out=await dgMailCohort(leads,source,{throttleMs:0});assert.deepEqual(out.leads.map(l=>l.ID),['10','12']);assert.deepEqual(out.excluded,['11']);
+ await assert.rejects(dgMailCohort(leads,async(method,p)=>method==='crm.activity.list'?{result:[{...good,DIRECTION:'2'}],total:1}:source(method,p),{throttleMs:0}),/incoming email/);
+ await assert.rejects(dgMailCohort(leads,async(method,p)=>method==='crm.activity.list'?{result:[good],total:2}:source(method,p),{throttleMs:0}),/Incomplete/);
+});
+
+test('mail cohort fails on missing sender metadata instead of dropping valid DG leads silently',async()=>{
+ const {dgMailCohort}=require('./mail-cohort.cjs');await assert.rejects(dgMailCohort([{ID:'10'}],async method=>method==='crm.activity.list'?{result:[{ID:'1',OWNER_TYPE_ID:'1',OWNER_ID:'10',TYPE_ID:'4',DIRECTION:'1'}],total:1}:{result:{ID:'1',TYPE_ID:'4',DIRECTION:'1'}},{throttleMs:0}),/sender unavailable/);
+});
+
+test('GG calendar uses heat cells and inline manager rows while keeping the event table compact',()=>{
+ const d=dashboard();d.run("S.dgCalExpanded.add('deals')");const h=d.run('dgCalendarBlock()');assert.match(h,/dg-heat-row/);assert.match(h,/dg-heat-manager/);assert.match(h,/data-dg-calmanager=/);assert.ok(!h.includes('dg-cal-table'));
+ d.run('dgCommCache.set("D20",'+JSON.stringify({events:[{ts:Date.now(),entities:['D20'],type:'Письмо',who:'Client',body:'body'}]})+')');const feed=d.run('dgCommunicationTable("D20")');assert.ok(!feed.includes('dg-comm-title'));assert.ok(!feed.includes('dg-comm-filters'));assert.ok(feed.includes('Сначала старые'));
+ const {dgSafeText}=require('./communications.cjs');assert.equal(dgSafeText('ООО &laquo;ДомГласс&raquo;'),'ООО «ДомГласс»');assert.equal(dgSafeText('&amp;laquo;test&amp;raquo;'),'«test»');assert.ok(!dgSafeText('https&#58;&#47;&#47;example.com/rest/1/test/').includes('https'));
+});
+
+test('complete sender mailboxes reject domain prefixes and ignore quoted fake angle addresses',()=>{
+ const {dgMailDomains}=require('./mail-cohort.cjs');
+ for(const from of ['sales@domglass.ru123','sales@domglass.ru-evil','sales@domglass.ruа','message @domglass.ru','sales@domglass.ru.example.org'])assert.ok(!dgMailDomains(from).includes('domglass.ru'),from);
+ assert.deepEqual(dgMailDomains('"<display@elsewhere.test>" <actual@domglass.ru>'),['domglass.ru']);
+ assert.deepEqual(dgMailDomains('"<actual@domglass.ru>" <bank@elsewhere.test>'),['elsewhere.test']);
+ assert.deepEqual(dgMailDomains('Manager (display@elsewhere.test) <actual@DOMGLASS.RU>'),['domglass.ru']);
+ assert.deepEqual(dgMailDomains('one@domglass.ru, two@elsewhere.test'),['domglass.ru','elsewhere.test']);
+});
+
+test('fallback email metadata must belong to the same incoming email activity',async()=>{
+ const {dgMailCohort}=require('./mail-cohort.cjs'),row={ID:'1',TYPE_ID:'4',DIRECTION:'1',OWNER_TYPE_ID:'1',OWNER_ID:'10'},meta={from:'actual@domglass.ru'};
+ const source=details=>async method=>method==='crm.activity.list'?{result:[row],total:1}:method==='crm.activity.get'?{result:{...row,SETTINGS:{EMAIL_META:meta},...details}}:{result:[{entityTypeId:1,entityId:10}]};
+ for(const details of [{ID:'999'},{TYPE_ID:'2'},{DIRECTION:'2'}])await assert.rejects(dgMailCohort([{ID:'10'}],source(details),{throttleMs:0}),/identity mismatch/);
+ assert.equal((await dgMailCohort([{ID:'10'}],source({}),{throttleMs:0})).leads.length,1);
+});
+
+test('missing or malformed email activity IDs abort before requesting bindings',async()=>{
+ const {dgMailCohort}=require('./mail-cohort.cjs');
+ for(const ID of [undefined,'',0,'-1','1x'])await assert.rejects(dgMailCohort([{ID:'10'}],async method=>{assert.equal(method,'crm.activity.list');return {result:[{ID,TYPE_ID:4,DIRECTION:1,OWNER_TYPE_ID:1,OWNER_ID:10,SETTINGS:{EMAIL_META:{from:'actual@domglass.ru'}}}],total:1};},{throttleMs:0}),/incoming email/);
+});
+
+test('final decoding masks nested encoded contacts at the published communication boundary',()=>{
+ const {dgSafeText}=require('./communications.cjs'),phone='+79990001122';let encoded=Array.from(phone,c=>'&#'+c.codePointAt(0)+';').join('');for(let i=0;i<6;i++)encoded=encoded.replace(/&/g,'&amp;');
+ const safe=dgSafeText(encoded);assert.equal(safe,'+7999****22');assert.equal(dgSafeText(safe),safe);
+ const f=fixture();f.communications={generatedAt:f.generated_at,events:[{id:'act#777',ts:Date.now(),entities:['L10'],type:'Письмо',body:encoded}]};const published=build(f,template,builder,hook).communications.D20;
+ assert.ok(!JSON.stringify(published).includes(phone));assert.equal(published.events[0].body,safe);
+ let excessive='&laquo;';for(let i=0;i<70;i++)excessive=excessive.replace(/&/g,'&amp;');assert.throws(()=>dgSafeText(excessive),/nesting limit/);
+});

@@ -6,7 +6,7 @@ The page retains Company, Sales Department and Offered Deals. No DG plan exists;
 
 ## Data and privacy
 
-Leads require exact source UC_NQ3QUI (Заявка с ДГ). Deals require that source or an eligible lead link. Pagination, totals, unique IDs and owner scopes are checked. History, tasks, touches and production records are restricted to those IDs. Shared contact/company activity is excluded. Category 49 and RUB are required. Unsupported values, stale input or source drift stop publication.
+Leads require exact source UC_NQ3QUI (Заявка с ДГ) plus a bound incoming email whose actual From mailbox domain is exactly domglass.ru. Outgoing replies and sender display names do not qualify. Positive email bindings are checked; unavailable metadata aborts publication. Leads without qualifying incoming evidence and deals linked to explicitly rejected source-DG leads are excluded. Deals require that source or an eligible lead link. Pagination, totals, unique IDs and owner scopes are checked. History, tasks, touches and production records are restricted to those IDs. Shared contact/company activity is excluded. Category 49 and RUB are required. Unsupported values, stale input or source drift stop publication.
 
 The shared GG database lacks source IDs, lead links and extended reasons. DG therefore uses an independent server collector and a dedicated Bitrix environment file. Never source the general GG environment or invoke gg-poll, gg-job, their alert wrappers, OpenAI APIs or Telegram APIs for DG work.
 
@@ -45,3 +45,7 @@ The installer creates a dedicated gg-dg service account, private source/state, a
 Rollback by restoring the previous DG code and web symlinks. Nginx backups are under /srv/gg/dg/rollback; validate with nginx -t before reload. Never replace the shared GG root or restart unrelated applications. Review deployment code before each update.
 
 See CHANGELOG.md and metric-spec.json for development history and exact formulas.
+
+## Calendar presentation
+
+The calendar reuses the GG ROP compact heat-grid layout:22px colored cells, blank zero buckets, inverse alpha scale, inline manager rows, left-label expansion and cell/total record drilldown. Calendar computations and WIP final-stock totals are unchanged. The event heading/channel toolbar are removed; sorting and all available events remain. HTML entities in communication text decode to plain characters before URL redaction and escaping.

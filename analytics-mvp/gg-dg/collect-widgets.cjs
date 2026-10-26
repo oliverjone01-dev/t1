@@ -20,7 +20,8 @@ function adapt(source,mask){
   let s=source.replace(/\r\n/g,'\n');
   const normalizer=fs.readFileSync(path.join(__dirname,'dialog-normalize.cjs'),'utf8').replace('module.exports=','const createDGNormalizer=');
   const enrichment=fs.readFileSync(path.join(__dirname,'communications.cjs'),'utf8').replace("const createDGNormalizer=require('./dialog-normalize.cjs');",'').replace(/^module\.exports=.*$/m,'');
-  s=normalizer+'\n'+enrichment+'\n'+s;
+  const mail=fs.readFileSync(path.join(__dirname,'mail-cohort.cjs'),'utf8').replace(/^module\.exports=.*$/m,'');
+  s=normalizer+'\n'+enrichment+'\n'+mail+'\n'+s;
   s=`const DG_REASON_FIELDS=${JSON.stringify(DG_REASON_FIELDS)};\n${leadReason.toString()}\n${assertLeadReasonFields.toString()}\n`+s;
   s=once(s,'const leadFields: any = (await call("crm.lead.fields", {})).result || {};','const leadFields: any = (await call("crm.lead.fields", {})).result || {}; assertLeadReasonFields(leadFields);');
   s=once(s,'import { maskDeep } from "../../lib/mask-contacts.mjs";',mask.replace(/^export\s+/gm,''));
@@ -34,10 +35,11 @@ function adapt(source,mask){
   s=once(s,'const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });',`
   if(sourceName['${SOURCE_ID}']!=='${SOURCE_NAME}')throw Error('DG source dictionary changed');
   SC.leads=await strictList('crm.lead.list',{select:['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS],filter:{SOURCE_ID:'${SOURCE_ID}'}});
+  SC.mail=await dgMailCohort(SC.leads,call);SC.leads=SC.mail.leads;const excludedMailLeads=new Set(SC.mail.excluded);
   const direct=await strictList('crm.deal.list',{select:dealSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const linked=await scopedChunks('crm.deal.list',{select:dealSelect},'@LEAD_ID',SC.leads.map(x=>x.ID));
   const leadIDs=new Set(SC.leads.map(x=>String(x.ID)));
-  const dealRows=[...new Map([...direct,...linked].map(d=>[String(d.ID),d])).values()];
+  const dealRows=[...new Map([...direct,...linked].filter(d=>!excludedMailLeads.has(String(d.LEAD_ID))).map(d=>[String(d.ID),d])).values()];
   if(SC.leads.some(l=>l.SOURCE_ID!=='${SOURCE_ID}')||dealRows.some(d=>d.SOURCE_ID!=='${SOURCE_ID}'&&!leadIDs.has(String(d.LEAD_ID))))throw Error('Foreign CRM record');
   SC.deals=dealRows;
   `);
@@ -63,6 +65,7 @@ function adapt(source,mask){
   s=once(s,'writeFileSync(OUT, JSON.stringify(maskDeep(out, MASK_SKIP)));',`const extra=await dgEnrich({leads:SC.leads,deals:SC.deals,call,names:mgrName,reasonFields:DG_REASON_FIELDS});
   out.calendar=extra.calendar;out.communications=extra.communications;
   out.scope={sourceId:'${SOURCE_ID}',sourceName:'${SOURCE_NAME}',leadIds:SC.leads.map(x=>String(x.ID)),dealIds:SC.deals.map(x=>String(x.ID)),collection:'GG collector with source-scoped pagination'};
+  out.scope.mailPolicy={domain:'domglass.ru',direction:'incoming',before:SC.mail.before,excluded:SC.mail.excluded.length,confirmedLeadIds:SC.leads.map(x=>String(x.ID))};
   const text=JSON.stringify(maskDeep(out,MASK_SKIP));
   if(process.env.GG_DG_STDOUT==='1')process.stdout.write(text);else writeFileSync(OUT,text);`);
   // Keep stdout machine-readable for the existing secure SSH collection path.

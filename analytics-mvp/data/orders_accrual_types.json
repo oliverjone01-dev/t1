@@ -10,8 +10,8 @@
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2777405,
-  "n": 1611
+  "sum": -2777861,
+  "n": 1612
  },
  {
   "type_id": 3,
@@ -45,8 +45,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -309825,
-  "n": 198
+  "sum": -310281,
+  "n": 199
  },
  {
   "type_id": 95,
@@ -101,8 +101,8 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -20160,
-  "n": 1263
+  "sum": -20170,
+  "n": 1264
  },
  {
   "type_id": 10,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1333024,
-  "n": 311
+  "sum": 1355871,
+  "n": 318
  }
 ]

@@ -23,3 +23,9 @@
 .dg-calendar .dg-calendar-tabs button[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent-deep);color:var(--accent);font-weight:600}
 .dg-calendar button:focus-visible,.dg-calendar .drow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:700px){.dg-calendar .feedscroll{max-height:300px}.dg-calendar .t3{min-width:720px}.dg-calendar .dg-calendar-tabs button{padding:7px 9px;font-size:11px}}
+
+/* Vertical section navigation; records remain collapsed until explicitly opened. */
+.dg-calendar-workspace{max-width:100%;overflow-x:auto}.dg-calendar-layout{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;align-items:start;min-width:740px}.dg-calendar-layout .dg-calendar-tabs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:6px;margin:0;padding-top:16px}.dg-calendar .dg-calendar-tabs button{width:100%;min-height:38px;white-space:normal;border-left:3px solid var(--dg-tab-color);text-align:left}.dg-calendar .dg-calendar-tabs button[aria-selected="true"]{border-left-color:var(--dg-tab-color)}.dg-calendar-layout>.dg-heat-scroll{min-width:0}.dg-calendar-layout .dg-heat-calendar{min-width:0}
+
+/* Each disclosure level owns its scroll and is visibly indented. */
+.dg-calendar .dg-records{margin-left:12px;width:calc(100% - 12px);max-height:520px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}.dg-calendar .dg-record-list{margin-left:14px;width:calc(100% - 14px);max-height:420px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}.dg-calendar .dg-comm-host{margin-left:16px;width:calc(100% - 16px)}.dg-calendar .dg-records>.t1{min-width:720px}.dg-calendar .dg-record-list>.t2{min-width:1000px;table-layout:auto}.dg-records>.t1>thead>tr>th,.dg-record-list>.t2>thead>tr>th{position:sticky;top:0;z-index:1;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--border)}

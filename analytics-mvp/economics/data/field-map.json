@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-19T11:30:41.153Z",
+ "generated_at": "2026-10-26T11:43:17.770Z",
  "category": 49,
  "dealSince": "2026-01-01",
  "portal": "https://glassmemory.bitrix24.ru",
  "deal": {
   "entity": "crm.deal (воронка 49)",
-  "fieldCount": 425,
-  "dealCount": 23963,
+  "fieldCount": 426,
+  "dealCount": 24085,
   "cardFieldCount": 75,
   "cardSectionOrder": [
    "main",
@@ -32,8 +32,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23963,
-    "total": 23963,
+    "filled": 24085,
+    "total": 24085,
     "fillPct": 100,
     "distinct": 61
    },
@@ -48,8 +48,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23963,
-    "total": 23963,
+    "filled": 24085,
+    "total": 24085,
     "fillPct": 100,
     "distinct": 61
    },
@@ -96,8 +96,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23963,
-    "total": 23963,
+    "filled": 24085,
+    "total": 24085,
     "fillPct": 100,
     "distinct": 13
    },
@@ -432,9 +432,9 @@
     "items": [],
     "onCard49": true,
     "section": "Документы",
-    "filled": 865,
-    "total": 23963,
-    "fillPct": 3.6,
+    "filled": 916,
+    "total": 24085,
+    "fillPct": 3.8,
     "distinct": 61
    },
    {
@@ -448,10 +448,10 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23963,
-    "total": 23963,
+    "filled": 24085,
+    "total": 24085,
     "fillPct": 100,
-    "distinct": 35
+    "distinct": 36
    },
    {
     "code": "CREATED_BY_ID",
@@ -560,9 +560,9 @@
     "items": [],
     "onCard49": true,
     "section": "Источник",
-    "filled": 2386,
-    "total": 23963,
-    "fillPct": 10,
+    "filled": 2495,
+    "total": 24085,
+    "fillPct": 10.4,
     "distinct": 44
    },
    {
@@ -1633,8 +1633,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 567,
-    "total": 23963,
+    "filled": 585,
+    "total": 24085,
     "fillPct": 2.4,
     "distinct": 61
    },
@@ -1681,10 +1681,10 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 129,
-    "total": 23963,
-    "fillPct": 0.5,
-    "distinct": 47
+    "filled": 164,
+    "total": 24085,
+    "fillPct": 0.7,
+    "distinct": 55
    },
    {
     "code": "UF_CRM_1731096442850",
@@ -2257,9 +2257,9 @@
     ],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 1014,
-    "total": 23963,
-    "fillPct": 4.2,
+    "filled": 1034,
+    "total": 24085,
+    "fillPct": 4.3,
     "distinct": 4
    },
    {
@@ -2753,9 +2753,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 246,
-    "total": 23963,
-    "fillPct": 1,
+    "filled": 259,
+    "total": 24085,
+    "fillPct": 1.1,
     "distinct": 61
    },
    {
@@ -3847,9 +3847,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 347,
-    "total": 23963,
-    "fillPct": 1.4,
+    "filled": 364,
+    "total": 24085,
+    "fillPct": 1.5,
     "distinct": 61
    },
    {
@@ -3895,8 +3895,8 @@
     "items": [],
     "onCard49": true,
     "section": "Документы",
-    "filled": 2,
-    "total": 23963,
+    "filled": 3,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 1
    },
@@ -3980,8 +3980,8 @@
     ],
     "onCard49": true,
     "section": "Оплата",
-    "filled": 902,
-    "total": 23963,
+    "filled": 923,
+    "total": 24085,
     "fillPct": 3.8,
     "distinct": 7
    },
@@ -4029,9 +4029,9 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 16723,
-    "total": 23963,
-    "fillPct": 69.8,
+    "filled": 16834,
+    "total": 24085,
+    "fillPct": 69.9,
     "distinct": 8
    },
    {
@@ -4045,9 +4045,9 @@
     "items": [],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 294,
-    "total": 23963,
-    "fillPct": 1.2,
+    "filled": 303,
+    "total": 24085,
+    "fillPct": 1.3,
     "distinct": 61
    },
    {
@@ -4061,9 +4061,9 @@
     "items": [],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 484,
-    "total": 23963,
-    "fillPct": 2,
+    "filled": 518,
+    "total": 24085,
+    "fillPct": 2.2,
     "distinct": 61
    },
    {
@@ -4077,9 +4077,9 @@
     "items": [],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 7661,
-    "total": 23963,
-    "fillPct": 32,
+    "filled": 7669,
+    "total": 24085,
+    "fillPct": 31.8,
     "distinct": 61
    },
    {
@@ -4093,8 +4093,8 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 7601,
-    "total": 23963,
+    "filled": 7628,
+    "total": 24085,
     "fillPct": 31.7,
     "distinct": 61
    },
@@ -4109,9 +4109,9 @@
     "items": [],
     "onCard49": true,
     "section": "Источник",
-    "filled": 14999,
-    "total": 23963,
-    "fillPct": 62.6,
+    "filled": 15020,
+    "total": 24085,
+    "fillPct": 62.4,
     "distinct": 61
    },
    {
@@ -4125,9 +4125,9 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 3875,
-    "total": 23963,
-    "fillPct": 16.2,
+    "filled": 3881,
+    "total": 24085,
+    "fillPct": 16.1,
     "distinct": 61
    },
    {
@@ -4237,9 +4237,9 @@
     "items": [],
     "onCard49": true,
     "section": "Документы",
-    "filled": 76,
-    "total": 23963,
-    "fillPct": 0.3,
+    "filled": 94,
+    "total": 24085,
+    "fillPct": 0.4,
     "distinct": 1
    },
    {
@@ -4541,9 +4541,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 1460,
-    "total": 23963,
-    "fillPct": 6.1,
+    "filled": 1502,
+    "total": 24085,
+    "fillPct": 6.2,
     "distinct": 61
    },
    {
@@ -4558,7 +4558,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 717,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 3,
     "distinct": 61
    },
@@ -4634,9 +4634,9 @@
     "items": [],
     "onCard49": true,
     "section": "Отказ",
-    "filled": 2173,
-    "total": 23963,
-    "fillPct": 9.1,
+    "filled": 2228,
+    "total": 24085,
+    "fillPct": 9.3,
     "distinct": 61
    },
    {
@@ -4794,9 +4794,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 797,
-    "total": 23963,
-    "fillPct": 3.3,
+    "filled": 833,
+    "total": 24085,
+    "fillPct": 3.5,
     "distinct": 61
    },
    {
@@ -4899,9 +4899,9 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 1967,
-    "total": 23963,
-    "fillPct": 8.2,
+    "filled": 2048,
+    "total": 24085,
+    "fillPct": 8.5,
     "distinct": 6
    },
    {
@@ -4916,7 +4916,7 @@
     "onCard49": true,
     "section": "Оплата",
     "filled": 19,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0.1,
     "distinct": 19
    },
@@ -4947,8 +4947,8 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 375,
-    "total": 23963,
+    "filled": 395,
+    "total": 24085,
     "fillPct": 1.6,
     "distinct": 61
    },
@@ -4979,9 +4979,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 506,
-    "total": 23963,
-    "fillPct": 2.1,
+    "filled": 532,
+    "total": 24085,
+    "fillPct": 2.2,
     "distinct": 61
    },
    {
@@ -4996,7 +4996,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 2,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 1
    },
@@ -5011,9 +5011,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 604,
-    "total": 23963,
-    "fillPct": 2.5,
+    "filled": 646,
+    "total": 24085,
+    "fillPct": 2.7,
     "distinct": 35
    },
    {
@@ -5027,10 +5027,10 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 599,
-    "total": 23963,
-    "fillPct": 2.5,
-    "distinct": 18
+    "filled": 640,
+    "total": 24085,
+    "fillPct": 2.7,
+    "distinct": 20
    },
    {
     "code": "UF_CRM_69AFC82206B86",
@@ -5043,10 +5043,10 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 432,
-    "total": 23963,
-    "fillPct": 1.8,
-    "distinct": 20
+    "filled": 452,
+    "total": 24085,
+    "fillPct": 1.9,
+    "distinct": 22
    },
    {
     "code": "UF_CRM_69AFC82223115",
@@ -5059,8 +5059,8 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 425,
-    "total": 23963,
+    "filled": 445,
+    "total": 24085,
     "fillPct": 1.8,
     "distinct": 61
    },
@@ -5075,10 +5075,10 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 354,
-    "total": 23963,
+    "filled": 371,
+    "total": 24085,
     "fillPct": 1.5,
-    "distinct": 48
+    "distinct": 50
    },
    {
     "code": "UF_CRM_69AFC82268901",
@@ -5091,8 +5091,8 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 195,
-    "total": 23963,
+    "filled": 199,
+    "total": 24085,
     "fillPct": 0.8,
     "distinct": 61
    },
@@ -5331,9 +5331,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 511,
-    "total": 23963,
-    "fillPct": 2.1,
+    "filled": 525,
+    "total": 24085,
+    "fillPct": 2.2,
     "distinct": 61
    },
    {
@@ -5363,9 +5363,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 844,
-    "total": 23963,
-    "fillPct": 3.5,
+    "filled": 888,
+    "total": 24085,
+    "fillPct": 3.7,
     "distinct": 61
    },
    {
@@ -5388,9 +5388,9 @@
     ],
     "onCard49": true,
     "section": "СМАРТ-ПРОЦЕССЫ",
-    "filled": 1192,
-    "total": 23963,
-    "fillPct": 5,
+    "filled": 1234,
+    "total": 24085,
+    "fillPct": 5.1,
     "distinct": 2
    },
    {
@@ -5417,9 +5417,9 @@
     ],
     "onCard49": true,
     "section": "СМАРТ-ПРОЦЕССЫ",
-    "filled": 1033,
-    "total": 23963,
-    "fillPct": 4.3,
+    "filled": 1077,
+    "total": 24085,
+    "fillPct": 4.5,
     "distinct": 3
    },
    {
@@ -5561,10 +5561,10 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 144,
-    "total": 23963,
-    "fillPct": 0.6,
-    "distinct": 56
+    "filled": 178,
+    "total": 24085,
+    "fillPct": 0.7,
+    "distinct": 61
    },
    {
     "code": "UF_CRM_1774269222",
@@ -5586,9 +5586,9 @@
     ],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 1704,
-    "total": 23963,
-    "fillPct": 7.1,
+    "filled": 1801,
+    "total": 24085,
+    "fillPct": 7.5,
     "distinct": 2
    },
    {
@@ -5619,7 +5619,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 0
    },
@@ -5683,8 +5683,8 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 12,
-    "total": 23963,
-    "fillPct": 0.1,
+    "total": 24085,
+    "fillPct": 0,
     "distinct": 12
    },
    {
@@ -5715,7 +5715,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 2,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 2
    },
@@ -5730,9 +5730,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 404,
-    "total": 23963,
-    "fillPct": 1.7,
+    "filled": 427,
+    "total": 24085,
+    "fillPct": 1.8,
     "distinct": 61
    },
    {
@@ -5747,7 +5747,7 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 3,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 3
    },
@@ -5779,7 +5779,7 @@
     "onCard49": true,
     "section": "Обязательные поля",
     "filled": 3,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 3
    },
@@ -5811,7 +5811,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 377,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 1.6,
     "distinct": 61
    },
@@ -5867,9 +5867,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 10,
-    "total": 23963,
-    "fillPct": 0,
+    "filled": 13,
+    "total": 24085,
+    "fillPct": 0.1,
     "distinct": 3
    },
    {
@@ -5884,7 +5884,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 2,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 2
    },
@@ -5932,7 +5932,7 @@
     "onCard49": true,
     "section": "main",
     "filled": 40,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0.2,
     "distinct": 12
    },
@@ -6076,7 +6076,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 0
    },
@@ -6092,7 +6092,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 0
    },
@@ -6261,9 +6261,9 @@
     ],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 557,
-    "total": 23963,
-    "fillPct": 2.3,
+    "filled": 581,
+    "total": 24085,
+    "fillPct": 2.4,
     "distinct": 2
    },
    {
@@ -6277,9 +6277,9 @@
     "items": [],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 596,
-    "total": 23963,
-    "fillPct": 2.5,
+    "filled": 639,
+    "total": 24085,
+    "fillPct": 2.7,
     "distinct": 61
    },
    {
@@ -6293,8 +6293,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 134,
-    "total": 23963,
+    "filled": 140,
+    "total": 24085,
     "fillPct": 0.6,
     "distinct": 61
    },
@@ -6366,8 +6366,8 @@
     ],
     "onCard49": true,
     "section": "main",
-    "filled": 94,
-    "total": 23963,
+    "filled": 107,
+    "total": 24085,
     "fillPct": 0.4,
     "distinct": 2
    },
@@ -6382,10 +6382,10 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 5,
-    "total": 23963,
+    "filled": 4,
+    "total": 24085,
     "fillPct": 0,
-    "distinct": 5
+    "distinct": 4
    },
    {
     "code": "UF_CRM_6A9155D706F0F",
@@ -6430,9 +6430,9 @@
     "items": [],
     "onCard49": true,
     "section": "СМАРТ-ПРОЦЕССЫ",
-    "filled": 709,
-    "total": 23963,
-    "fillPct": 3,
+    "filled": 748,
+    "total": 24085,
+    "fillPct": 3.1,
     "distinct": 17
    },
    {
@@ -6447,7 +6447,7 @@
     "onCard49": true,
     "section": "СМАРТ-ПРОЦЕССЫ",
     "filled": 9,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 0,
     "distinct": 3
    },
@@ -6462,8 +6462,8 @@
     "items": [],
     "onCard49": true,
     "section": "СМАРТ-ПРОЦЕССЫ",
-    "filled": 41,
-    "total": 23963,
+    "filled": 42,
+    "total": 24085,
     "fillPct": 0.2,
     "distinct": 5
    },
@@ -6478,10 +6478,10 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 125,
-    "total": 23963,
-    "fillPct": 0.5,
-    "distinct": 44
+    "filled": 163,
+    "total": 24085,
+    "fillPct": 0.7,
+    "distinct": 55
    },
    {
     "code": "UF_CRM_1790581542805",
@@ -6503,9 +6503,9 @@
     ],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 7,
-    "total": 23963,
-    "fillPct": 0,
+    "filled": 16,
+    "total": 24085,
+    "fillPct": 0.1,
     "distinct": 2
    },
    {
@@ -6519,10 +6519,51 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 54,
-    "total": 23963,
-    "fillPct": 0.2,
-    "distinct": 54
+    "filled": 75,
+    "total": 24085,
+    "fillPct": 0.3,
+    "distinct": 61
+   },
+   {
+    "code": "UF_CRM_1792682356",
+    "title": "Тест1",
+    "type": "enumeration",
+    "required": false,
+    "readonly": false,
+    "multiple": true,
+    "isLink": false,
+    "items": [
+     {
+      "id": "3363",
+      "val": "1"
+     },
+     {
+      "id": "3365",
+      "val": "2"
+     },
+     {
+      "id": "3367",
+      "val": "3"
+     },
+     {
+      "id": "3369",
+      "val": "4"
+     },
+     {
+      "id": "3371",
+      "val": "5"
+     },
+     {
+      "id": "3373",
+      "val": "6"
+     }
+    ],
+    "onCard49": false,
+    "section": "",
+    "filled": 0,
+    "total": 0,
+    "fillPct": 0,
+    "distinct": 0
    },
    {
     "code": "UF_CRM_1677081257",
@@ -7059,8 +7100,8 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 350,
-    "total": 23963,
+    "filled": 369,
+    "total": 24085,
     "fillPct": 1.5,
     "distinct": 23
    },
@@ -7262,9 +7303,9 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 5142,
-    "total": 23963,
-    "fillPct": 21.5,
+    "filled": 5246,
+    "total": 24085,
+    "fillPct": 21.8,
     "distinct": 8
    },
    {
@@ -7379,9 +7420,9 @@
     ],
     "onCard49": true,
     "section": "Отказ",
-    "filled": 4613,
-    "total": 23963,
-    "fillPct": 19.3,
+    "filled": 4615,
+    "total": 24085,
+    "fillPct": 19.2,
     "distinct": 9
    },
    {
@@ -7484,8 +7525,8 @@
     "items": [],
     "onCard49": true,
     "section": "Документы",
-    "filled": 86,
-    "total": 23963,
+    "filled": 90,
+    "total": 24085,
     "fillPct": 0.4,
     "distinct": 13
    },
@@ -7517,9 +7558,9 @@
     ],
     "onCard49": true,
     "section": "Оплата",
-    "filled": 2687,
-    "total": 23963,
-    "fillPct": 11.2,
+    "filled": 2799,
+    "total": 24085,
+    "fillPct": 11.6,
     "distinct": 4
    },
    {
@@ -7646,7 +7687,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 1396,
-    "total": 23963,
+    "total": 24085,
     "fillPct": 5.8,
     "distinct": 61
    },
@@ -7693,9 +7734,9 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 2206,
-    "total": 23963,
-    "fillPct": 9.2,
+    "filled": 2252,
+    "total": 24085,
+    "fillPct": 9.4,
     "distinct": 61
    },
    {
@@ -7768,7 +7809,7 @@
   {
    "etid": 1056,
    "title": "Калькулятор GG",
-   "itemCount": 1473,
+   "itemCount": 1547,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -7783,8 +7824,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7799,8 +7840,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7816,7 +7857,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -7831,8 +7872,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7847,8 +7888,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7863,10 +7904,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
-     "distinct": 16
+     "distinct": 17
     },
     {
      "code": "updatedBy",
@@ -7879,10 +7920,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
-     "distinct": 11
+     "distinct": 12
     },
     {
      "code": "assignedById",
@@ -7895,10 +7936,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
-     "distinct": 28
+     "distinct": 29
     },
     {
      "code": "opened",
@@ -7911,8 +7952,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 2
     },
@@ -7927,8 +7968,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 1
     },
@@ -7944,7 +7985,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -7959,8 +8000,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7975,8 +8016,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -7991,8 +8032,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 1
     },
@@ -8007,8 +8048,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8023,10 +8064,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
-     "distinct": 9
+     "distinct": 10
     },
     {
      "code": "stageId",
@@ -8039,8 +8080,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 4
     },
@@ -8056,8 +8097,8 @@
      "onCard": null,
      "section": "",
      "filled": 1218,
-     "total": 1473,
-     "fillPct": 82.7,
+     "total": 1547,
+     "fillPct": 78.7,
      "distinct": 5
     },
     {
@@ -8071,10 +8112,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
-     "distinct": 19
+     "distinct": 20
     },
     {
      "code": "lastActivityTime",
@@ -8087,8 +8128,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1473,
-     "total": 1473,
+     "filled": 1547,
+     "total": 1547,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8103,9 +8144,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1400,
-     "total": 1473,
-     "fillPct": 95,
+     "filled": 1474,
+     "total": 1547,
+     "fillPct": 95.3,
      "distinct": 61
     },
     {
@@ -8120,7 +8161,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8136,7 +8177,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8152,7 +8193,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8168,7 +8209,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8184,7 +8225,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8200,7 +8241,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8215,9 +8256,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1467,
-     "total": 1473,
-     "fillPct": 99.6,
+     "filled": 1540,
+     "total": 1547,
+     "fillPct": 99.5,
      "distinct": 10
     },
     {
@@ -8231,9 +8272,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8247,9 +8288,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8263,9 +8304,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 57
     },
     {
@@ -8279,9 +8320,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8295,9 +8336,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 16
     },
     {
@@ -8311,9 +8352,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8327,9 +8368,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8343,9 +8384,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 226,
-     "total": 1473,
-     "fillPct": 15.3,
+     "filled": 257,
+     "total": 1547,
+     "fillPct": 16.6,
      "distinct": 61
     },
     {
@@ -8359,9 +8400,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 89,
-     "total": 1473,
-     "fillPct": 6,
+     "filled": 90,
+     "total": 1547,
+     "fillPct": 5.8,
      "distinct": 33
     },
     {
@@ -8375,9 +8416,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 299,
-     "total": 1473,
-     "fillPct": 20.3,
+     "filled": 321,
+     "total": 1547,
+     "fillPct": 20.7,
      "distinct": 61
     },
     {
@@ -8391,10 +8432,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 107,
-     "total": 1473,
-     "fillPct": 7.3,
-     "distinct": 30
+     "filled": 112,
+     "total": 1547,
+     "fillPct": 7.2,
+     "distinct": 33
     },
     {
      "code": "ufCrm15_1769240287",
@@ -8407,9 +8448,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 90,
-     "total": 1473,
-     "fillPct": 6.1,
+     "filled": 96,
+     "total": 1547,
+     "fillPct": 6.2,
      "distinct": 61
     },
     {
@@ -8423,10 +8464,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1197,
-     "total": 1473,
-     "fillPct": 81.3,
-     "distinct": 51
+     "filled": 1198,
+     "total": 1547,
+     "fillPct": 77.4,
+     "distinct": 52
     },
     {
      "code": "ufCrm15_1769240319",
@@ -8439,10 +8480,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 310,
-     "total": 1473,
-     "fillPct": 21,
-     "distinct": 43
+     "filled": 324,
+     "total": 1547,
+     "fillPct": 20.9,
+     "distinct": 44
     },
     {
      "code": "ufCrm15_1769240348",
@@ -8455,9 +8496,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 323,
-     "total": 1473,
-     "fillPct": 21.9,
+     "filled": 343,
+     "total": 1547,
+     "fillPct": 22.2,
      "distinct": 61
     },
     {
@@ -8471,9 +8512,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8487,8 +8528,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1468,
-     "total": 1473,
+     "filled": 1542,
+     "total": 1547,
      "fillPct": 99.7,
      "distinct": 2
     },
@@ -8504,8 +8545,8 @@
      "onCard": null,
      "section": "",
      "filled": 10,
-     "total": 1473,
-     "fillPct": 0.7,
+     "total": 1547,
+     "fillPct": 0.6,
      "distinct": 7
     },
     {
@@ -8520,7 +8561,7 @@
      "onCard": null,
      "section": "",
      "filled": 4,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0.3,
      "distinct": 4
     },
@@ -8536,7 +8577,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -8552,8 +8593,8 @@
      "onCard": null,
      "section": "",
      "filled": 14,
-     "total": 1473,
-     "fillPct": 1,
+     "total": 1547,
+     "fillPct": 0.9,
      "distinct": 13
     },
     {
@@ -8568,7 +8609,7 @@
      "onCard": null,
      "section": "",
      "filled": 15,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 1,
      "distinct": 14
     },
@@ -8583,9 +8624,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1225,
-     "total": 1473,
-     "fillPct": 83.2,
+     "filled": 1244,
+     "total": 1547,
+     "fillPct": 80.4,
      "distinct": 61
     },
     {
@@ -8599,9 +8640,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 78,
-     "total": 1473,
-     "fillPct": 5.3,
+     "filled": 79,
+     "total": 1547,
+     "fillPct": 5.1,
      "distinct": 6
     },
     {
@@ -8632,9 +8673,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 182,
-     "total": 1473,
-     "fillPct": 12.4,
+     "filled": 189,
+     "total": 1547,
+     "fillPct": 12.2,
      "distinct": 4
     },
     {
@@ -8658,8 +8699,8 @@
      "onCard": null,
      "section": "",
      "filled": 20,
-     "total": 1473,
-     "fillPct": 1.4,
+     "total": 1547,
+     "fillPct": 1.3,
      "distinct": 2
     },
     {
@@ -8674,7 +8715,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8719,7 +8760,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8760,7 +8801,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8793,7 +8834,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8808,10 +8849,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 45,
-     "total": 1473,
-     "fillPct": 3.1,
-     "distinct": 45
+     "filled": 65,
+     "total": 1547,
+     "fillPct": 4.2,
+     "distinct": 61
     },
     {
      "code": "ufCrm15_1790500786507",
@@ -8825,7 +8866,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8840,10 +8881,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 60,
-     "total": 1473,
-     "fillPct": 4.1,
-     "distinct": 25
+     "filled": 95,
+     "total": 1547,
+     "fillPct": 6.1,
+     "distinct": 32
     },
     {
      "code": "ufCrm15_1790752708405",
@@ -8856,9 +8897,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 83,
-     "total": 1473,
-     "fillPct": 5.6,
+     "filled": 127,
+     "total": 1547,
+     "fillPct": 8.2,
      "distinct": 61
     },
     {
@@ -8873,7 +8914,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1473,
+     "total": 1547,
      "fillPct": 0,
      "distinct": 0
     }
@@ -8882,7 +8923,7 @@
   {
    "etid": 1060,
    "title": "Расчёт",
-   "itemCount": 1322,
+   "itemCount": 1377,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -8897,8 +8938,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8913,8 +8954,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8930,7 +8971,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -8945,8 +8986,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8961,8 +9002,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -8977,10 +9018,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
-     "distinct": 28
+     "distinct": 29
     },
     {
      "code": "updatedBy",
@@ -8993,10 +9034,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
-     "distinct": 30
+     "distinct": 31
     },
     {
      "code": "assignedById",
@@ -9009,8 +9050,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 18
     },
@@ -9025,8 +9066,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 2
     },
@@ -9041,8 +9082,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 1
     },
@@ -9058,7 +9099,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9073,8 +9114,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9089,8 +9130,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9105,8 +9146,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 1
     },
@@ -9121,8 +9162,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 1
     },
@@ -9138,7 +9179,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9154,7 +9195,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9169,9 +9210,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1269,
-     "total": 1322,
-     "fillPct": 96,
+     "filled": 1323,
+     "total": 1377,
+     "fillPct": 96.1,
      "distinct": 61
     },
     {
@@ -9185,8 +9226,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 1
     },
@@ -9201,8 +9242,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9217,10 +9258,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
-     "distinct": 24
+     "distinct": 23
     },
     {
      "code": "stageId",
@@ -9233,8 +9274,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 14
     },
@@ -9249,9 +9290,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1315,
-     "total": 1322,
-     "fillPct": 99.5,
+     "filled": 1371,
+     "total": 1377,
+     "fillPct": 99.6,
      "distinct": 13
     },
     {
@@ -9265,8 +9306,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 1
     },
@@ -9281,8 +9322,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 2
     },
@@ -9297,8 +9338,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9313,8 +9354,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9329,10 +9370,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
-     "distinct": 36
+     "distinct": 37
     },
     {
      "code": "lastActivityTime",
@@ -9345,8 +9386,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1322,
-     "total": 1322,
+     "filled": 1377,
+     "total": 1377,
      "fillPct": 100,
      "distinct": 61
     },
@@ -9361,8 +9402,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1278,
-     "total": 1322,
+     "filled": 1331,
+     "total": 1377,
      "fillPct": 96.7,
      "distinct": 61
     },
@@ -9378,7 +9419,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9394,7 +9435,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9409,9 +9450,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 672,
-     "total": 1322,
-     "fillPct": 50.8,
+     "filled": 679,
+     "total": 1377,
+     "fillPct": 49.3,
      "distinct": 61
     },
     {
@@ -9426,7 +9467,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9442,7 +9483,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9458,7 +9499,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9474,7 +9515,7 @@
      "onCard": null,
      "section": "",
      "filled": 11,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.8,
      "distinct": 6
     },
@@ -9490,7 +9531,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9506,7 +9547,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.2,
      "distinct": 3
     },
@@ -9522,7 +9563,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9538,7 +9579,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9554,7 +9595,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9570,7 +9611,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9585,9 +9626,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 606,
-     "total": 1322,
-     "fillPct": 45.8,
+     "filled": 622,
+     "total": 1377,
+     "fillPct": 45.2,
      "distinct": 61
     },
     {
@@ -9601,9 +9642,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 585,
-     "total": 1322,
-     "fillPct": 44.3,
+     "filled": 602,
+     "total": 1377,
+     "fillPct": 43.7,
      "distinct": 61
     },
     {
@@ -9617,9 +9658,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 576,
-     "total": 1322,
-     "fillPct": 43.6,
+     "filled": 593,
+     "total": 1377,
+     "fillPct": 43.1,
      "distinct": 1
     },
     {
@@ -9633,9 +9674,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 588,
-     "total": 1322,
-     "fillPct": 44.5,
+     "filled": 605,
+     "total": 1377,
+     "fillPct": 43.9,
      "distinct": 61
     },
     {
@@ -9649,10 +9690,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 587,
-     "total": 1322,
-     "fillPct": 44.4,
-     "distinct": 52
+     "filled": 604,
+     "total": 1377,
+     "fillPct": 43.9,
+     "distinct": 53
     },
     {
      "code": "ufCrm17_1771905100",
@@ -9665,9 +9706,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 708,
-     "total": 1322,
-     "fillPct": 53.6,
+     "filled": 727,
+     "total": 1377,
+     "fillPct": 52.8,
      "distinct": 61
     },
     {
@@ -9681,10 +9722,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 11,
-     "total": 1322,
-     "fillPct": 0.8,
-     "distinct": 11
+     "filled": 12,
+     "total": 1377,
+     "fillPct": 0.9,
+     "distinct": 12
     },
     {
      "code": "ufCrm17_1771905165",
@@ -9698,7 +9739,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9714,7 +9755,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9730,7 +9771,7 @@
      "onCard": null,
      "section": "",
      "filled": 9,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.7,
      "distinct": 9
     },
@@ -9746,7 +9787,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9762,7 +9803,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -9778,7 +9819,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.2,
      "distinct": 3
     },
@@ -9793,9 +9834,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1308,
-     "total": 1322,
-     "fillPct": 98.9,
+     "filled": 1363,
+     "total": 1377,
+     "fillPct": 99,
      "distinct": 11
     },
     {
@@ -9810,7 +9851,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -9825,10 +9866,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 633,
-     "total": 1322,
-     "fillPct": 47.9,
-     "distinct": 21
+     "filled": 655,
+     "total": 1377,
+     "fillPct": 47.6,
+     "distinct": 22
     },
     {
      "code": "ufCrm17_1772437238",
@@ -9841,9 +9882,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 238,
-     "total": 1322,
-     "fillPct": 18,
+     "filled": 236,
+     "total": 1377,
+     "fillPct": 17.1,
      "distinct": 16
     },
     {
@@ -9858,8 +9899,8 @@
      "onCard": null,
      "section": "",
      "filled": 326,
-     "total": 1322,
-     "fillPct": 24.7,
+     "total": 1377,
+     "fillPct": 23.7,
      "distinct": 61
     },
     {
@@ -9873,9 +9914,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 603,
-     "total": 1322,
-     "fillPct": 45.6,
+     "filled": 638,
+     "total": 1377,
+     "fillPct": 46.3,
      "distinct": 35
     },
     {
@@ -9889,9 +9930,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1223,
-     "total": 1322,
-     "fillPct": 92.5,
+     "filled": 1276,
+     "total": 1377,
+     "fillPct": 92.7,
      "distinct": 61
     },
     {
@@ -9906,7 +9947,7 @@
      "onCard": null,
      "section": "",
      "filled": 23,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 1.7,
      "distinct": 13
     },
@@ -9921,9 +9962,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 817,
-     "total": 1322,
-     "fillPct": 61.8,
+     "filled": 839,
+     "total": 1377,
+     "fillPct": 60.9,
      "distinct": 61
     },
     {
@@ -9937,9 +9978,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 507,
-     "total": 1322,
-     "fillPct": 38.4,
+     "filled": 521,
+     "total": 1377,
+     "fillPct": 37.8,
      "distinct": 61
     },
     {
@@ -9953,10 +9994,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1250,
-     "total": 1322,
-     "fillPct": 94.6,
-     "distinct": 22
+     "filled": 1305,
+     "total": 1377,
+     "fillPct": 94.8,
+     "distinct": 23
     },
     {
      "code": "ufCrm17_1773233891",
@@ -9969,9 +10010,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1280,
-     "total": 1322,
-     "fillPct": 96.8,
+     "filled": 1335,
+     "total": 1377,
+     "fillPct": 96.9,
      "distinct": 13
     },
     {
@@ -9985,8 +10026,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1318,
-     "total": 1322,
+     "filled": 1373,
+     "total": 1377,
      "fillPct": 99.7,
      "distinct": 2
     },
@@ -10002,8 +10043,8 @@
      "onCard": null,
      "section": "",
      "filled": 18,
-     "total": 1322,
-     "fillPct": 1.4,
+     "total": 1377,
+     "fillPct": 1.3,
      "distinct": 17
     },
     {
@@ -10018,7 +10059,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -10058,9 +10099,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 757,
-     "total": 1322,
-     "fillPct": 57.3,
+     "filled": 786,
+     "total": 1377,
+     "fillPct": 57.1,
      "distinct": 5
     },
     {
@@ -10091,9 +10132,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 1058,
-     "total": 1322,
-     "fillPct": 80,
+     "filled": 1060,
+     "total": 1377,
+     "fillPct": 77,
      "distinct": 5
     },
     {
@@ -10107,10 +10148,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1279,
-     "total": 1322,
-     "fillPct": 96.7,
-     "distinct": 28
+     "filled": 1334,
+     "total": 1377,
+     "fillPct": 96.9,
+     "distinct": 29
     },
     {
      "code": "ufCrm17_1773574805",
@@ -10152,9 +10193,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 752,
-     "total": 1322,
-     "fillPct": 56.9,
+     "filled": 794,
+     "total": 1377,
+     "fillPct": 57.7,
      "distinct": 7
     },
     {
@@ -10168,10 +10209,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 569,
-     "total": 1322,
-     "fillPct": 43,
-     "distinct": 11
+     "filled": 584,
+     "total": 1377,
+     "fillPct": 42.4,
+     "distinct": 12
     },
     {
      "code": "ufCrm17_1773653853403",
@@ -10184,9 +10225,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 140,
-     "total": 1322,
-     "fillPct": 10.6,
+     "filled": 141,
+     "total": 1377,
+     "fillPct": 10.2,
      "distinct": 61
     },
     {
@@ -10209,9 +10250,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 921,
-     "total": 1322,
-     "fillPct": 69.7,
+     "filled": 963,
+     "total": 1377,
+     "fillPct": 69.9,
      "distinct": 2
     },
     {
@@ -10238,9 +10279,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 1185,
-     "total": 1322,
-     "fillPct": 89.6,
+     "filled": 1238,
+     "total": 1377,
+     "fillPct": 89.9,
      "distinct": 4
     },
     {
@@ -10255,8 +10296,8 @@
      "onCard": null,
      "section": "",
      "filled": 54,
-     "total": 1322,
-     "fillPct": 4.1,
+     "total": 1377,
+     "fillPct": 3.9,
      "distinct": 52
     },
     {
@@ -10270,9 +10311,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1166,
-     "total": 1322,
-     "fillPct": 88.2,
+     "filled": 1219,
+     "total": 1377,
+     "fillPct": 88.5,
      "distinct": 29
     },
     {
@@ -10286,9 +10327,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 697,
-     "total": 1322,
-     "fillPct": 52.7,
+     "filled": 716,
+     "total": 1377,
+     "fillPct": 52,
      "distinct": 61
     },
     {
@@ -10302,9 +10343,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 625,
-     "total": 1322,
-     "fillPct": 47.3,
+     "filled": 659,
+     "total": 1377,
+     "fillPct": 47.9,
      "distinct": 61
     },
     {
@@ -10318,9 +10359,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 669,
-     "total": 1322,
-     "fillPct": 50.6,
+     "filled": 718,
+     "total": 1377,
+     "fillPct": 52.1,
      "distinct": 61
     },
     {
@@ -10334,10 +10375,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1113,
-     "total": 1322,
-     "fillPct": 84.2,
-     "distinct": 7
+     "filled": 1136,
+     "total": 1377,
+     "fillPct": 82.5,
+     "distinct": 6
     },
     {
      "code": "ufCrm17_1774513503920",
@@ -10351,7 +10392,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10367,7 +10408,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.2,
      "distinct": 1
     },
@@ -10382,8 +10423,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 17,
-     "total": 1322,
+     "filled": 18,
+     "total": 1377,
      "fillPct": 1.3,
      "distinct": 6
     },
@@ -10399,7 +10440,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10415,7 +10456,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10431,7 +10472,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10447,7 +10488,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10463,7 +10504,7 @@
      "onCard": null,
      "section": "",
      "filled": 11,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0.8,
      "distinct": 2
     },
@@ -10478,9 +10519,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 725,
-     "total": 1322,
-     "fillPct": 54.8,
+     "filled": 767,
+     "total": 1377,
+     "fillPct": 55.7,
      "distinct": 61
     },
     {
@@ -10495,7 +10536,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10520,8 +10561,8 @@
      "onCard": null,
      "section": "",
      "filled": 306,
-     "total": 1322,
-     "fillPct": 23.1,
+     "total": 1377,
+     "fillPct": 22.2,
      "distinct": 2
     },
     {
@@ -10544,9 +10585,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 275,
-     "total": 1322,
-     "fillPct": 20.8,
+     "filled": 308,
+     "total": 1377,
+     "fillPct": 22.4,
      "distinct": 3
     },
     {
@@ -10560,9 +10601,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 225,
-     "total": 1322,
-     "fillPct": 17,
+     "filled": 274,
+     "total": 1377,
+     "fillPct": 19.9,
      "distinct": 2
     },
     {
@@ -10576,9 +10617,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 44,
-     "total": 1322,
-     "fillPct": 3.3,
+     "filled": 47,
+     "total": 1377,
+     "fillPct": 3.4,
      "distinct": 1
     },
     {
@@ -10592,10 +10633,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 235,
-     "total": 1322,
-     "fillPct": 17.8,
-     "distinct": 52
+     "filled": 288,
+     "total": 1377,
+     "fillPct": 20.9,
+     "distinct": 60
     },
     {
      "code": "ufCrm17_1789480867307",
@@ -10609,7 +10650,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1322,
+     "total": 1377,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10625,8 +10666,8 @@
      "onCard": null,
      "section": "",
      "filled": 6,
-     "total": 1322,
-     "fillPct": 0.5,
+     "total": 1377,
+     "fillPct": 0.4,
      "distinct": 4
     },
     {
@@ -10640,10 +10681,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 4,
-     "total": 1322,
-     "fillPct": 0.3,
-     "distinct": 4
+     "filled": 7,
+     "total": 1377,
+     "fillPct": 0.5,
+     "distinct": 7
     },
     {
      "code": "ufCrm17_1790666670623",
@@ -10656,10 +10697,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 110,
-     "total": 1322,
-     "fillPct": 8.3,
-     "distinct": 6
+     "filled": 124,
+     "total": 1377,
+     "fillPct": 9,
+     "distinct": 7
     },
     {
      "code": "ufCrm17_1790678433298",
@@ -10672,10 +10713,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 23,
-     "total": 1322,
-     "fillPct": 1.7,
-     "distinct": 7
+     "filled": 40,
+     "total": 1377,
+     "fillPct": 2.9,
+     "distinct": 8
     },
     {
      "code": "ufCrm17_1790707953588",
@@ -10688,9 +10729,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 112,
-     "total": 1322,
-     "fillPct": 8.5,
+     "filled": 169,
+     "total": 1377,
+     "fillPct": 12.3,
      "distinct": 61
     },
     {
@@ -10713,9 +10754,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 107,
-     "total": 1322,
-     "fillPct": 8.1,
+     "filled": 160,
+     "total": 1377,
+     "fillPct": 11.6,
      "distinct": 2
     },
     {
@@ -10729,10 +10770,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 10,
-     "total": 1322,
-     "fillPct": 0.8,
-     "distinct": 9
+     "filled": 19,
+     "total": 1377,
+     "fillPct": 1.4,
+     "distinct": 15
     },
     {
      "code": "ufCrm17_1791291551416",
@@ -10745,9 +10786,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 80,
-     "total": 1322,
-     "fillPct": 6.1,
+     "filled": 113,
+     "total": 1377,
+     "fillPct": 8.2,
      "distinct": 1
     },
     {
@@ -10761,9 +10802,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 72,
-     "total": 1322,
-     "fillPct": 5.4,
+     "filled": 129,
+     "total": 1377,
+     "fillPct": 9.4,
      "distinct": 61
     }
    ]
@@ -10771,7 +10812,7 @@
   {
    "etid": 1074,
    "title": "Закупка",
-   "itemCount": 939,
+   "itemCount": 966,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -10786,8 +10827,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10802,8 +10843,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10819,7 +10860,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10834,8 +10875,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10850,8 +10891,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10866,8 +10907,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 19
     },
@@ -10882,8 +10923,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 18
     },
@@ -10898,8 +10939,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 2
     },
@@ -10914,8 +10955,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 2
     },
@@ -10930,8 +10971,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 1
     },
@@ -10947,7 +10988,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10962,8 +11003,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10978,8 +11019,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10994,8 +11035,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11010,8 +11051,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11027,7 +11068,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11043,7 +11084,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11059,7 +11100,7 @@
      "onCard": null,
      "section": "",
      "filled": 5,
-     "total": 939,
+     "total": 966,
      "fillPct": 0.5,
      "distinct": 4
     },
@@ -11074,8 +11115,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11090,8 +11131,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11106,8 +11147,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 6
     },
@@ -11122,8 +11163,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 9
     },
@@ -11138,9 +11179,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 934,
-     "total": 939,
-     "fillPct": 99.5,
+     "filled": 964,
+     "total": 966,
+     "fillPct": 99.8,
      "distinct": 9
     },
     {
@@ -11154,10 +11195,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
-     "distinct": 22
+     "distinct": 23
     },
     {
      "code": "lastActivityTime",
@@ -11170,8 +11211,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 939,
-     "total": 939,
+     "filled": 966,
+     "total": 966,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11186,9 +11227,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 934,
-     "total": 939,
-     "fillPct": 99.5,
+     "filled": 957,
+     "total": 966,
+     "fillPct": 99.1,
      "distinct": 61
     },
     {
@@ -11203,7 +11244,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 939,
+     "total": 966,
      "fillPct": 0.3,
      "distinct": 3
     },
@@ -11219,7 +11260,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11234,9 +11275,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 177,
-     "total": 939,
-     "fillPct": 18.8,
+     "filled": 178,
+     "total": 966,
+     "fillPct": 18.4,
      "distinct": 61
     },
     {
@@ -11251,7 +11292,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11267,7 +11308,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11283,7 +11324,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11299,7 +11340,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11315,7 +11356,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11331,7 +11372,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11346,9 +11387,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 738,
-     "total": 939,
-     "fillPct": 78.6,
+     "filled": 762,
+     "total": 966,
+     "fillPct": 78.9,
      "distinct": 61
     },
     {
@@ -11362,9 +11403,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 231,
-     "total": 939,
-     "fillPct": 24.6,
+     "filled": 234,
+     "total": 966,
+     "fillPct": 24.2,
      "distinct": 61
     },
     {
@@ -11378,8 +11419,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 46,
-     "total": 939,
+     "filled": 47,
+     "total": 966,
      "fillPct": 4.9,
      "distinct": 32
     },
@@ -11394,10 +11435,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 101,
-     "total": 939,
-     "fillPct": 10.8,
-     "distinct": 47
+     "filled": 126,
+     "total": 966,
+     "fillPct": 13,
+     "distinct": 57
     },
     {
      "code": "ufCrm19_1772433940",
@@ -11411,8 +11452,8 @@
      "onCard": null,
      "section": "",
      "filled": 39,
-     "total": 939,
-     "fillPct": 4.2,
+     "total": 966,
+     "fillPct": 4,
      "distinct": 20
     },
     {
@@ -11427,8 +11468,8 @@
      "onCard": null,
      "section": "",
      "filled": 27,
-     "total": 939,
-     "fillPct": 2.9,
+     "total": 966,
+     "fillPct": 2.8,
      "distinct": 19
     },
     {
@@ -11442,9 +11483,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 369,
-     "total": 939,
-     "fillPct": 39.3,
+     "filled": 378,
+     "total": 966,
+     "fillPct": 39.1,
      "distinct": 61
     },
     {
@@ -11458,9 +11499,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 211,
-     "total": 939,
-     "fillPct": 22.5,
+     "filled": 235,
+     "total": 966,
+     "fillPct": 24.3,
      "distinct": 61
     },
     {
@@ -11475,8 +11516,8 @@
      "onCard": null,
      "section": "",
      "filled": 510,
-     "total": 939,
-     "fillPct": 54.3,
+     "total": 966,
+     "fillPct": 52.8,
      "distinct": 61
     },
     {
@@ -11491,7 +11532,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11506,9 +11547,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 903,
-     "total": 939,
-     "fillPct": 96.2,
+     "filled": 930,
+     "total": 966,
+     "fillPct": 96.3,
      "distinct": 12
     },
     {
@@ -11522,8 +11563,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 502,
-     "total": 939,
+     "filled": 517,
+     "total": 966,
      "fillPct": 53.5,
      "distinct": 15
     },
@@ -11539,8 +11580,8 @@
      "onCard": null,
      "section": "",
      "filled": 191,
-     "total": 939,
-     "fillPct": 20.3,
+     "total": 966,
+     "fillPct": 19.8,
      "distinct": 16
     },
     {
@@ -11554,9 +11595,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 866,
-     "total": 939,
-     "fillPct": 92.2,
+     "filled": 889,
+     "total": 966,
+     "fillPct": 92,
      "distinct": 61
     },
     {
@@ -11570,9 +11611,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 361,
-     "total": 939,
-     "fillPct": 38.4,
+     "filled": 380,
+     "total": 966,
+     "fillPct": 39.3,
      "distinct": 26
     },
     {
@@ -11586,9 +11627,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 877,
-     "total": 939,
-     "fillPct": 93.4,
+     "filled": 904,
+     "total": 966,
+     "fillPct": 93.6,
      "distinct": 19
     },
     {
@@ -11631,8 +11672,8 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 542,
-     "total": 939,
+     "filled": 557,
+     "total": 966,
      "fillPct": 57.7,
      "distinct": 6
     },
@@ -11672,9 +11713,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 326,
-     "total": 939,
-     "fillPct": 34.7,
+     "filled": 341,
+     "total": 966,
+     "fillPct": 35.3,
      "distinct": 5
     },
     {
@@ -11705,9 +11746,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 457,
-     "total": 939,
-     "fillPct": 48.7,
+     "filled": 466,
+     "total": 966,
+     "fillPct": 48.2,
      "distinct": 4
     },
     {
@@ -11735,7 +11776,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11764,7 +11805,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11793,7 +11834,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11822,7 +11863,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11838,7 +11879,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11854,7 +11895,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11870,7 +11911,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11886,7 +11927,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11902,7 +11943,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11918,7 +11959,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11934,8 +11975,8 @@
      "onCard": null,
      "section": "",
      "filled": 506,
-     "total": 939,
-     "fillPct": 53.9,
+     "total": 966,
+     "fillPct": 52.4,
      "distinct": 61
     },
     {
@@ -11949,8 +11990,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 804,
-     "total": 939,
+     "filled": 827,
+     "total": 966,
      "fillPct": 85.6,
      "distinct": 19
     },
@@ -11965,9 +12006,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 278,
-     "total": 939,
-     "fillPct": 29.6,
+     "filled": 288,
+     "total": 966,
+     "fillPct": 29.8,
      "distinct": 61
     },
     {
@@ -11982,7 +12023,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11998,7 +12039,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12014,7 +12055,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12030,7 +12071,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12046,7 +12087,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12062,7 +12103,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12077,9 +12118,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 841,
-     "total": 939,
-     "fillPct": 89.6,
+     "filled": 868,
+     "total": 966,
+     "fillPct": 89.9,
      "distinct": 1
     },
     {
@@ -12103,7 +12144,7 @@
      "onCard": null,
      "section": "",
      "filled": 19,
-     "total": 939,
+     "total": 966,
      "fillPct": 2,
      "distinct": 1
     },
@@ -12118,9 +12159,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 197,
-     "total": 939,
-     "fillPct": 21,
+     "filled": 207,
+     "total": 966,
+     "fillPct": 21.4,
      "distinct": 61
     },
     {
@@ -12134,10 +12175,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 67,
-     "total": 939,
-     "fillPct": 7.1,
-     "distinct": 59
+     "filled": 72,
+     "total": 966,
+     "fillPct": 7.5,
+     "distinct": 61
     },
     {
      "code": "ufCrm19_1782743347774",
@@ -12151,7 +12192,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12166,9 +12207,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 429,
-     "total": 939,
-     "fillPct": 45.7,
+     "filled": 438,
+     "total": 966,
+     "fillPct": 45.3,
      "distinct": 61
     },
     {
@@ -12183,7 +12224,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12199,7 +12240,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12215,7 +12256,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 939,
+     "total": 966,
      "fillPct": 0.3,
      "distinct": 3
     },
@@ -12230,10 +12271,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 37,
-     "total": 939,
-     "fillPct": 3.9,
-     "distinct": 16
+     "filled": 47,
+     "total": 966,
+     "fillPct": 4.9,
+     "distinct": 20
     },
     {
      "code": "ufCrm19_1790577314892",
@@ -12247,7 +12288,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 939,
+     "total": 966,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -12263,7 +12304,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12278,9 +12319,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 38,
-     "total": 939,
-     "fillPct": 4,
+     "filled": 50,
+     "total": 966,
+     "fillPct": 5.2,
      "distinct": 8
     },
     {
@@ -12304,7 +12345,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12319,8 +12360,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 31,
-     "total": 939,
+     "filled": 32,
+     "total": 966,
      "fillPct": 3.3,
      "distinct": 2
     },
@@ -12336,7 +12377,7 @@
      "onCard": null,
      "section": "",
      "filled": 2,
-     "total": 939,
+     "total": 966,
      "fillPct": 0.2,
      "distinct": 1
     },
@@ -12351,9 +12392,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 72,
-     "total": 939,
-     "fillPct": 7.7,
+     "filled": 89,
+     "total": 966,
+     "fillPct": 9.2,
      "distinct": 61
     },
     {
@@ -12376,9 +12417,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 48,
-     "total": 939,
-     "fillPct": 5.1,
+     "filled": 58,
+     "total": 966,
+     "fillPct": 6,
      "distinct": 2
     },
     {
@@ -12393,7 +12434,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12409,7 +12450,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 939,
+     "total": 966,
      "fillPct": 0,
      "distinct": 0
     }
@@ -12418,7 +12459,7 @@
   {
    "etid": 1086,
    "title": "Производство  GG",
-   "itemCount": 614,
+   "itemCount": 639,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -12433,8 +12474,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12449,8 +12490,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12466,7 +12507,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12481,8 +12522,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12497,8 +12538,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12513,10 +12554,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
-     "distinct": 13
+     "distinct": 12
     },
     {
      "code": "updatedBy",
@@ -12529,10 +12570,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
-     "distinct": 16
+     "distinct": 19
     },
     {
      "code": "assignedById",
@@ -12545,8 +12586,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 3
     },
@@ -12561,8 +12602,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 2
     },
@@ -12577,8 +12618,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12594,7 +12635,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12609,8 +12650,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12625,8 +12666,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12642,7 +12683,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12658,7 +12699,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12673,9 +12714,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 609,
-     "total": 614,
-     "fillPct": 99.2,
+     "filled": 627,
+     "total": 639,
+     "fillPct": 98.1,
      "distinct": 61
     },
     {
@@ -12689,8 +12730,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12705,8 +12746,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12721,8 +12762,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 5
     },
@@ -12737,8 +12778,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 9
     },
@@ -12753,9 +12794,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 613,
-     "total": 614,
-     "fillPct": 99.8,
+     "filled": 631,
+     "total": 639,
+     "fillPct": 98.7,
      "distinct": 14
     },
     {
@@ -12769,8 +12810,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 2
     },
@@ -12786,7 +12827,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12801,8 +12842,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12817,8 +12858,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12833,8 +12874,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12849,8 +12890,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12865,10 +12906,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
-     "distinct": 13
+     "distinct": 12
     },
     {
      "code": "lastActivityTime",
@@ -12881,8 +12922,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 61
     },
@@ -12897,9 +12938,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 593,
-     "total": 614,
-     "fillPct": 96.6,
+     "filled": 618,
+     "total": 639,
+     "fillPct": 96.7,
      "distinct": 61
     },
     {
@@ -12914,7 +12955,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12930,8 +12971,8 @@
      "onCard": null,
      "section": "",
      "filled": 503,
-     "total": 614,
-     "fillPct": 81.9,
+     "total": 639,
+     "fillPct": 78.7,
      "distinct": 61
     },
     {
@@ -12946,7 +12987,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12962,7 +13003,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12978,7 +13019,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12994,7 +13035,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13010,7 +13051,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13026,7 +13067,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13042,7 +13083,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13057,9 +13098,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 553,
-     "total": 614,
-     "fillPct": 90.1,
+     "filled": 579,
+     "total": 639,
+     "fillPct": 90.6,
      "distinct": 61
     },
     {
@@ -13073,9 +13114,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 590,
-     "total": 614,
-     "fillPct": 96.1,
+     "filled": 616,
+     "total": 639,
+     "fillPct": 96.4,
      "distinct": 61
     },
     {
@@ -13089,9 +13130,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 574,
-     "total": 614,
-     "fillPct": 93.5,
+     "filled": 594,
+     "total": 639,
+     "fillPct": 93,
      "distinct": 61
     },
     {
@@ -13105,9 +13146,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 590,
-     "total": 614,
-     "fillPct": 96.1,
+     "filled": 607,
+     "total": 639,
+     "fillPct": 95,
      "distinct": 61
     },
     {
@@ -13146,9 +13187,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 416,
-     "total": 614,
-     "fillPct": 67.8,
+     "filled": 428,
+     "total": 639,
+     "fillPct": 67,
      "distinct": 5
     },
     {
@@ -13163,8 +13204,8 @@
      "onCard": null,
      "section": "",
      "filled": 28,
-     "total": 614,
-     "fillPct": 4.6,
+     "total": 639,
+     "fillPct": 4.4,
      "distinct": 17
     },
     {
@@ -13178,9 +13219,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 573,
-     "total": 614,
-     "fillPct": 93.3,
+     "filled": 595,
+     "total": 639,
+     "fillPct": 93.1,
      "distinct": 61
     },
     {
@@ -13194,9 +13235,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 559,
-     "total": 614,
-     "fillPct": 91,
+     "filled": 577,
+     "total": 639,
+     "fillPct": 90.3,
      "distinct": 61
     },
     {
@@ -13210,10 +13251,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 466,
-     "total": 614,
-     "fillPct": 75.9,
-     "distinct": 20
+     "filled": 492,
+     "total": 639,
+     "fillPct": 77,
+     "distinct": 21
     },
     {
      "code": "ufCrm23_1773571524",
@@ -13226,9 +13267,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 237,
-     "total": 614,
-     "fillPct": 38.6,
+     "filled": 240,
+     "total": 639,
+     "fillPct": 37.6,
      "distinct": 16
     },
     {
@@ -13242,9 +13283,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 553,
-     "total": 614,
-     "fillPct": 90.1,
+     "filled": 575,
+     "total": 639,
+     "fillPct": 90,
      "distinct": 61
     },
     {
@@ -13258,8 +13299,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 9
     },
@@ -13275,8 +13316,8 @@
      "onCard": null,
      "section": "",
      "filled": 47,
-     "total": 614,
-     "fillPct": 7.7,
+     "total": 639,
+     "fillPct": 7.4,
      "distinct": 46
     },
     {
@@ -13291,8 +13332,8 @@
      "onCard": null,
      "section": "",
      "filled": 74,
-     "total": 614,
-     "fillPct": 12.1,
+     "total": 639,
+     "fillPct": 11.6,
      "distinct": 61
     },
     {
@@ -13307,8 +13348,8 @@
      "onCard": null,
      "section": "",
      "filled": 74,
-     "total": 614,
-     "fillPct": 12.1,
+     "total": 639,
+     "fillPct": 11.6,
      "distinct": 61
     },
     {
@@ -13323,8 +13364,8 @@
      "onCard": null,
      "section": "",
      "filled": 59,
-     "total": 614,
-     "fillPct": 9.6,
+     "total": 639,
+     "fillPct": 9.2,
      "distinct": 44
     },
     {
@@ -13339,7 +13380,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13355,7 +13396,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 614,
+     "total": 639,
      "fillPct": 0.2,
      "distinct": 1
     },
@@ -13371,8 +13412,8 @@
      "onCard": null,
      "section": "",
      "filled": 61,
-     "total": 614,
-     "fillPct": 9.9,
+     "total": 639,
+     "fillPct": 9.5,
      "distinct": 16
     },
     {
@@ -13387,7 +13428,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13403,8 +13444,8 @@
      "onCard": null,
      "section": "",
      "filled": 78,
-     "total": 614,
-     "fillPct": 12.7,
+     "total": 639,
+     "fillPct": 12.2,
      "distinct": 61
     },
     {
@@ -13447,9 +13488,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 402,
-     "total": 614,
-     "fillPct": 65.5,
+     "filled": 424,
+     "total": 639,
+     "fillPct": 66.4,
      "distinct": 6
     },
     {
@@ -13480,9 +13521,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 394,
-     "total": 614,
-     "fillPct": 64.2,
+     "filled": 400,
+     "total": 639,
+     "fillPct": 62.6,
      "distinct": 4
     },
     {
@@ -13496,10 +13537,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
-     "distinct": 21
+     "distinct": 23
     },
     {
      "code": "ufCrm23_1773586553",
@@ -13513,8 +13554,8 @@
      "onCard": null,
      "section": "",
      "filled": 56,
-     "total": 614,
-     "fillPct": 9.1,
+     "total": 639,
+     "fillPct": 8.8,
      "distinct": 12
     },
     {
@@ -13528,10 +13569,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 418,
-     "total": 614,
-     "fillPct": 68.1,
-     "distinct": 43
+     "filled": 434,
+     "total": 639,
+     "fillPct": 67.9,
+     "distinct": 44
     },
     {
      "code": "ufCrm23_1773586568",
@@ -13545,7 +13586,7 @@
      "onCard": null,
      "section": "",
      "filled": 7,
-     "total": 614,
+     "total": 639,
      "fillPct": 1.1,
      "distinct": 5
     },
@@ -13561,7 +13602,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 614,
+     "total": 639,
      "fillPct": 0.5,
      "distinct": 2
     },
@@ -13577,7 +13618,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13592,8 +13633,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13608,8 +13649,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13624,8 +13665,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13640,8 +13681,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13656,8 +13697,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13672,8 +13713,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 614,
-     "total": 614,
+     "filled": 639,
+     "total": 639,
      "fillPct": 100,
      "distinct": 1
     },
@@ -13689,7 +13730,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13705,7 +13746,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13721,8 +13762,8 @@
      "onCard": null,
      "section": "",
      "filled": 29,
-     "total": 614,
-     "fillPct": 4.7,
+     "total": 639,
+     "fillPct": 4.5,
      "distinct": 6
     },
     {
@@ -13736,9 +13777,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 570,
-     "total": 614,
-     "fillPct": 92.8,
+     "filled": 596,
+     "total": 639,
+     "fillPct": 93.3,
      "distinct": 19
     },
     {
@@ -13752,9 +13793,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 256,
-     "total": 614,
-     "fillPct": 41.7,
+     "filled": 264,
+     "total": 639,
+     "fillPct": 41.3,
      "distinct": 61
     },
     {
@@ -13769,7 +13810,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13784,10 +13825,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 55,
-     "total": 614,
-     "fillPct": 9,
-     "distinct": 55
+     "filled": 69,
+     "total": 639,
+     "fillPct": 10.8,
+     "distinct": 61
     },
     {
      "code": "ufCrm23_1774847738227",
@@ -13800,9 +13841,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 600,
-     "total": 614,
-     "fillPct": 97.7,
+     "filled": 625,
+     "total": 639,
+     "fillPct": 97.8,
      "distinct": 61
     },
     {
@@ -13817,7 +13858,7 @@
      "onCard": null,
      "section": "",
      "filled": 8,
-     "total": 614,
+     "total": 639,
      "fillPct": 1.3,
      "distinct": 8
     },
@@ -13833,7 +13874,7 @@
      "onCard": null,
      "section": "",
      "filled": 2,
-     "total": 614,
+     "total": 639,
      "fillPct": 0.3,
      "distinct": 2
     },
@@ -13848,9 +13889,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 487,
-     "total": 614,
-     "fillPct": 79.3,
+     "filled": 509,
+     "total": 639,
+     "fillPct": 79.7,
      "distinct": 61
     },
     {
@@ -13864,9 +13905,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 489,
-     "total": 614,
-     "fillPct": 79.6,
+     "filled": 511,
+     "total": 639,
+     "fillPct": 80,
      "distinct": 61
     },
     {
@@ -13880,9 +13921,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 476,
-     "total": 614,
-     "fillPct": 77.5,
+     "filled": 498,
+     "total": 639,
+     "fillPct": 77.9,
      "distinct": 1
     },
     {
@@ -13896,10 +13937,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 488,
-     "total": 614,
-     "fillPct": 79.5,
-     "distinct": 48
+     "filled": 510,
+     "total": 639,
+     "fillPct": 79.8,
+     "distinct": 49
     },
     {
      "code": "ufCrm23_1774847884516",
@@ -13913,7 +13954,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13929,7 +13970,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13945,7 +13986,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13961,7 +14002,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13977,7 +14018,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13992,10 +14033,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1,
-     "total": 614,
-     "fillPct": 0.2,
-     "distinct": 1
+     "filled": 0,
+     "total": 639,
+     "fillPct": 0,
+     "distinct": 0
     },
     {
      "code": "ufCrm23_1774848165596",
@@ -14008,9 +14049,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 594,
-     "total": 614,
-     "fillPct": 96.7,
+     "filled": 619,
+     "total": 639,
+     "fillPct": 96.9,
      "distinct": 61
     },
     {
@@ -14024,9 +14065,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 611,
-     "total": 614,
-     "fillPct": 99.5,
+     "filled": 637,
+     "total": 639,
+     "fillPct": 99.7,
      "distinct": 61
     },
     {
@@ -14041,7 +14082,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14057,8 +14098,8 @@
      "onCard": null,
      "section": "",
      "filled": 25,
-     "total": 614,
-     "fillPct": 4.1,
+     "total": 639,
+     "fillPct": 3.9,
      "distinct": 12
     },
     {
@@ -14073,7 +14114,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14089,7 +14130,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14105,7 +14146,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14130,8 +14171,8 @@
      "onCard": null,
      "section": "",
      "filled": 4,
-     "total": 614,
-     "fillPct": 0.7,
+     "total": 639,
+     "fillPct": 0.6,
      "distinct": 3
     },
     {
@@ -14146,7 +14187,7 @@
      "onCard": null,
      "section": "",
      "filled": 8,
-     "total": 614,
+     "total": 639,
      "fillPct": 1.3,
      "distinct": 8
     },
@@ -14161,9 +14202,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 256,
-     "total": 614,
-     "fillPct": 41.7,
+     "filled": 264,
+     "total": 639,
+     "fillPct": 41.3,
      "distinct": 61
     },
     {
@@ -14178,8 +14219,8 @@
      "onCard": null,
      "section": "",
      "filled": 14,
-     "total": 614,
-     "fillPct": 2.3,
+     "total": 639,
+     "fillPct": 2.2,
      "distinct": 8
     },
     {
@@ -14193,9 +14234,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 512,
-     "total": 614,
-     "fillPct": 83.4,
+     "filled": 538,
+     "total": 639,
+     "fillPct": 84.2,
      "distinct": 61
     },
     {
@@ -14210,7 +14251,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14235,7 +14276,7 @@
      "onCard": null,
      "section": "",
      "filled": 2,
-     "total": 614,
+     "total": 639,
      "fillPct": 0.3,
      "distinct": 1
     },
@@ -14250,10 +14291,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 67,
-     "total": 614,
-     "fillPct": 10.9,
-     "distinct": 21
+     "filled": 77,
+     "total": 639,
+     "fillPct": 12.1,
+     "distinct": 25
     },
     {
      "code": "ufCrm23_1790578948704",
@@ -14267,7 +14308,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14282,9 +14323,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 28,
-     "total": 614,
-     "fillPct": 4.6,
+     "filled": 30,
+     "total": 639,
+     "fillPct": 4.7,
      "distinct": 1
     },
     {
@@ -14298,10 +14339,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1,
-     "total": 614,
-     "fillPct": 0.2,
-     "distinct": 1
+     "filled": 0,
+     "total": 639,
+     "fillPct": 0,
+     "distinct": 0
     },
     {
      "code": "ufCrm23_1791270560961",
@@ -14323,9 +14364,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 55,
-     "total": 614,
-     "fillPct": 9,
+     "filled": 69,
+     "total": 639,
+     "fillPct": 10.8,
      "distinct": 2
     },
     {
@@ -14340,7 +14381,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14356,7 +14397,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 614,
+     "total": 639,
      "fillPct": 0,
      "distinct": 0
     }
@@ -14365,7 +14406,7 @@
   {
    "etid": 1094,
    "title": "Сборка",
-   "itemCount": 949,
+   "itemCount": 978,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -14380,8 +14421,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14396,8 +14437,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14413,7 +14454,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14428,8 +14469,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14444,8 +14485,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14460,8 +14501,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 8
     },
@@ -14476,10 +14517,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
-     "distinct": 15
+     "distinct": 17
     },
     {
      "code": "assignedById",
@@ -14492,8 +14533,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 3
     },
@@ -14508,8 +14549,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 2
     },
@@ -14524,8 +14565,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 1
     },
@@ -14541,7 +14582,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14557,7 +14598,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14572,8 +14613,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 1
     },
@@ -14588,8 +14629,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14604,8 +14645,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 8
     },
@@ -14620,8 +14661,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 3
     },
@@ -14637,8 +14678,8 @@
      "onCard": null,
      "section": "",
      "filled": 13,
-     "total": 949,
-     "fillPct": 1.4,
+     "total": 978,
+     "fillPct": 1.3,
      "distinct": 1
     },
     {
@@ -14652,8 +14693,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 16
     },
@@ -14669,7 +14710,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14684,8 +14725,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 1
     },
@@ -14700,8 +14741,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 1
     },
@@ -14716,8 +14757,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14732,8 +14773,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 1
     },
@@ -14748,8 +14789,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 8
     },
@@ -14764,8 +14805,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 949,
-     "total": 949,
+     "filled": 978,
+     "total": 978,
      "fillPct": 100,
      "distinct": 61
     },
@@ -14780,8 +14821,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 911,
-     "total": 949,
+     "filled": 939,
+     "total": 978,
      "fillPct": 96,
      "distinct": 61
     },
@@ -14797,7 +14838,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14812,9 +14853,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 182,
-     "total": 949,
-     "fillPct": 19.2,
+     "filled": 183,
+     "total": 978,
+     "fillPct": 18.7,
      "distinct": 61
     },
     {
@@ -14829,7 +14870,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14845,7 +14886,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14861,7 +14902,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14877,7 +14918,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14893,7 +14934,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14909,7 +14950,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14925,7 +14966,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14941,7 +14982,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14956,9 +14997,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 365,
-     "total": 949,
-     "fillPct": 38.5,
+     "filled": 384,
+     "total": 978,
+     "fillPct": 39.3,
      "distinct": 61
     },
     {
@@ -14973,7 +15014,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -14988,10 +15029,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
-     "distinct": 21
+     "distinct": 22
     },
     {
      "code": "ufCrm25_1773575311",
@@ -15033,10 +15074,10 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 213,
-     "total": 949,
-     "fillPct": 22.4,
-     "distinct": 5
+     "filled": 223,
+     "total": 978,
+     "fillPct": 22.8,
+     "distinct": 6
     },
     {
      "code": "ufCrm25_1773575543",
@@ -15074,9 +15115,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 156,
-     "total": 949,
-     "fillPct": 16.4,
+     "filled": 164,
+     "total": 978,
+     "fillPct": 16.8,
      "distinct": 4
     },
     {
@@ -15107,9 +15148,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 241,
-     "total": 949,
-     "fillPct": 25.4,
+     "filled": 249,
+     "total": 978,
+     "fillPct": 25.5,
      "distinct": 4
     },
     {
@@ -15123,8 +15164,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
      "distinct": 1
     },
@@ -15139,8 +15180,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
      "distinct": 1
     },
@@ -15155,8 +15196,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
      "distinct": 1
     },
@@ -15185,7 +15226,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15200,9 +15241,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 931,
-     "total": 949,
-     "fillPct": 98.1,
+     "filled": 960,
+     "total": 978,
+     "fillPct": 98.2,
      "distinct": 61
     },
     {
@@ -15216,10 +15257,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 54,
-     "total": 949,
-     "fillPct": 5.7,
-     "distinct": 23
+     "filled": 75,
+     "total": 978,
+     "fillPct": 7.7,
+     "distinct": 30
     },
     {
      "code": "ufCrm25_1773576220",
@@ -15233,7 +15274,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15249,7 +15290,7 @@
      "onCard": null,
      "section": "",
      "filled": 2,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.2,
      "distinct": 2
     },
@@ -15264,8 +15305,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
      "distinct": 1
     },
@@ -15280,8 +15321,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 948,
-     "total": 949,
+     "filled": 977,
+     "total": 978,
      "fillPct": 99.9,
      "distinct": 1
     },
@@ -15296,9 +15337,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 70,
-     "total": 949,
-     "fillPct": 7.4,
+     "filled": 78,
+     "total": 978,
+     "fillPct": 8,
      "distinct": 6
     },
     {
@@ -15312,10 +15353,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 26,
-     "total": 949,
-     "fillPct": 2.7,
-     "distinct": 20
+     "filled": 28,
+     "total": 978,
+     "fillPct": 2.9,
+     "distinct": 22
     },
     {
      "code": "ufCrm25_1774240497",
@@ -15328,9 +15369,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 203,
-     "total": 949,
-     "fillPct": 21.4,
+     "filled": 218,
+     "total": 978,
+     "fillPct": 22.3,
      "distinct": 61
     },
     {
@@ -15354,8 +15395,8 @@
      "onCard": null,
      "section": "",
      "filled": 45,
-     "total": 949,
-     "fillPct": 4.7,
+     "total": 978,
+     "fillPct": 4.6,
      "distinct": 2
     },
     {
@@ -15369,9 +15410,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 339,
-     "total": 949,
-     "fillPct": 35.7,
+     "filled": 358,
+     "total": 978,
+     "fillPct": 36.6,
      "distinct": 12
     },
     {
@@ -15385,9 +15426,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 129,
-     "total": 949,
-     "fillPct": 13.6,
+     "filled": 135,
+     "total": 978,
+     "fillPct": 13.8,
      "distinct": 61
     },
     {
@@ -15402,7 +15443,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15417,9 +15458,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 931,
-     "total": 949,
-     "fillPct": 98.1,
+     "filled": 960,
+     "total": 978,
+     "fillPct": 98.2,
      "distinct": 7
     },
     {
@@ -15434,8 +15475,8 @@
      "onCard": null,
      "section": "",
      "filled": 41,
-     "total": 949,
-     "fillPct": 4.3,
+     "total": 978,
+     "fillPct": 4.2,
      "distinct": 4
     },
     {
@@ -15450,7 +15491,7 @@
      "onCard": null,
      "section": "",
      "filled": 9,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.9,
      "distinct": 6
     },
@@ -15465,10 +15506,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 49,
-     "total": 949,
-     "fillPct": 5.2,
-     "distinct": 25
+     "filled": 72,
+     "total": 978,
+     "fillPct": 7.4,
+     "distinct": 37
     },
     {
      "code": "ufCrm25_1774932880",
@@ -15482,7 +15523,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15497,9 +15538,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 70,
-     "total": 949,
-     "fillPct": 7.4,
+     "filled": 89,
+     "total": 978,
+     "fillPct": 9.1,
      "distinct": 61
     },
     {
@@ -15514,7 +15555,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -15530,7 +15571,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15546,7 +15587,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15562,7 +15603,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15578,7 +15619,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -15594,7 +15635,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -15610,7 +15651,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -15626,7 +15667,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -15641,9 +15682,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 287,
-     "total": 949,
-     "fillPct": 30.2,
+     "filled": 307,
+     "total": 978,
+     "fillPct": 31.4,
      "distinct": 61
     },
     {
@@ -15667,7 +15708,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.3,
      "distinct": 1
     },
@@ -15683,7 +15724,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15698,9 +15739,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 35,
-     "total": 949,
-     "fillPct": 3.7,
+     "filled": 38,
+     "total": 978,
+     "fillPct": 3.9,
      "distinct": 1
     },
     {
@@ -15715,7 +15756,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 949,
+     "total": 978,
      "fillPct": 0.3,
      "distinct": 2
     },
@@ -15739,9 +15780,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 70,
-     "total": 949,
-     "fillPct": 7.4,
+     "filled": 89,
+     "total": 978,
+     "fillPct": 9.1,
      "distinct": 2
     },
     {
@@ -15755,10 +15796,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 54,
-     "total": 949,
-     "fillPct": 5.7,
-     "distinct": 32
+     "filled": 74,
+     "total": 978,
+     "fillPct": 7.6,
+     "distinct": 41
     },
     {
      "code": "ufCrm25_1791294358688",
@@ -15772,7 +15813,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 949,
+     "total": 978,
      "fillPct": 0,
      "distinct": 0
     }
@@ -15781,7 +15822,7 @@
   {
    "etid": 1098,
    "title": "Логистика",
-   "itemCount": 1010,
+   "itemCount": 1061,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -15796,8 +15837,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -15812,8 +15853,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -15829,7 +15870,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15844,8 +15885,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -15860,8 +15901,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -15876,10 +15917,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 22
+     "distinct": 23
     },
     {
      "code": "updatedBy",
@@ -15892,10 +15933,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 23
+     "distinct": 24
     },
     {
      "code": "assignedById",
@@ -15908,8 +15949,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 2
     },
@@ -15924,8 +15965,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -15940,8 +15981,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -15957,7 +15998,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -15972,8 +16013,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -15988,8 +16029,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -16005,7 +16046,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16020,8 +16061,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -16036,8 +16077,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -16052,10 +16093,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 23
+     "distinct": 24
     },
     {
      "code": "stageId",
@@ -16068,8 +16109,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 8
     },
@@ -16084,9 +16125,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 508,
-     "total": 1010,
-     "fillPct": 50.3,
+     "filled": 519,
+     "total": 1061,
+     "fillPct": 48.9,
      "distinct": 6
     },
     {
@@ -16100,8 +16141,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -16116,8 +16157,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -16132,8 +16173,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -16148,10 +16189,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 20
+     "distinct": 21
     },
     {
      "code": "lastActivityBy",
@@ -16164,10 +16205,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 24
+     "distinct": 25
     },
     {
      "code": "lastActivityTime",
@@ -16180,8 +16221,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -16196,8 +16237,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1002,
-     "total": 1010,
+     "filled": 1053,
+     "total": 1061,
      "fillPct": 99.2,
      "distinct": 61
     },
@@ -16212,9 +16253,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 564,
-     "total": 1010,
-     "fillPct": 55.8,
+     "filled": 590,
+     "total": 1061,
+     "fillPct": 55.6,
      "distinct": 61
     },
     {
@@ -16229,7 +16270,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16245,7 +16286,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16261,7 +16302,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16277,7 +16318,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16293,7 +16334,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16309,7 +16350,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16325,7 +16366,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16341,7 +16382,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16357,7 +16398,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16373,7 +16414,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16388,8 +16429,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 1
     },
@@ -16404,10 +16445,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
-     "distinct": 22
+     "distinct": 23
     },
     {
      "code": "ufCrm26_1773586185",
@@ -16421,7 +16462,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16437,7 +16478,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16452,8 +16493,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 61
     },
@@ -16469,7 +16510,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -16485,7 +16526,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16500,9 +16541,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 192,
-     "total": 1010,
-     "fillPct": 19,
+     "filled": 203,
+     "total": 1061,
+     "fillPct": 19.1,
      "distinct": 61
     },
     {
@@ -16517,7 +16558,7 @@
      "onCard": null,
      "section": "",
      "filled": 2,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.2,
      "distinct": 2
     },
@@ -16533,7 +16574,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16548,10 +16589,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 79,
-     "total": 1010,
-     "fillPct": 7.8,
-     "distinct": 48
+     "filled": 86,
+     "total": 1061,
+     "fillPct": 8.1,
+     "distinct": 52
     },
     {
      "code": "ufCrm26_1773586745",
@@ -16565,7 +16606,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -16581,7 +16622,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -16597,7 +16638,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16613,7 +16654,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16629,7 +16670,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16645,7 +16686,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16681,9 +16722,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 467,
-     "total": 1010,
-     "fillPct": 46.2,
+     "filled": 489,
+     "total": 1061,
+     "fillPct": 46.1,
      "distinct": 3
     },
     {
@@ -16697,9 +16738,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 131,
-     "total": 1010,
-     "fillPct": 13,
+     "filled": 139,
+     "total": 1061,
+     "fillPct": 13.1,
      "distinct": 61
     },
     {
@@ -16714,7 +16755,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16730,7 +16771,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16763,7 +16804,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16779,7 +16820,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16795,7 +16836,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16811,7 +16852,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16827,7 +16868,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16843,7 +16884,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16859,7 +16900,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16875,7 +16916,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -16907,8 +16948,8 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 4
     },
@@ -16948,9 +16989,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 505,
-     "total": 1010,
-     "fillPct": 50,
+     "filled": 534,
+     "total": 1061,
+     "fillPct": 50.3,
      "distinct": 5
     },
     {
@@ -16993,9 +17034,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 518,
-     "total": 1010,
-     "fillPct": 51.3,
+     "filled": 552,
+     "total": 1061,
+     "fillPct": 52,
      "distinct": 6
     },
     {
@@ -17009,9 +17050,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 811,
-     "total": 1010,
-     "fillPct": 80.3,
+     "filled": 851,
+     "total": 1061,
+     "fillPct": 80.2,
      "distinct": 61
     },
     {
@@ -17034,8 +17075,8 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 1010,
-     "total": 1010,
+     "filled": 1061,
+     "total": 1061,
      "fillPct": 100,
      "distinct": 2
     },
@@ -17051,7 +17092,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17076,7 +17117,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17101,7 +17142,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17116,9 +17157,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 458,
-     "total": 1010,
-     "fillPct": 45.3,
+     "filled": 471,
+     "total": 1061,
+     "fillPct": 44.4,
      "distinct": 61
     },
     {
@@ -17133,7 +17174,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17149,7 +17190,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -17165,8 +17206,8 @@
      "onCard": null,
      "section": "",
      "filled": 13,
-     "total": 1010,
-     "fillPct": 1.3,
+     "total": 1061,
+     "fillPct": 1.2,
      "distinct": 11
     },
     {
@@ -17181,7 +17222,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17197,7 +17238,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -17213,7 +17254,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17228,10 +17269,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 124,
-     "total": 1010,
-     "fillPct": 12.3,
-     "distinct": 53
+     "filled": 161,
+     "total": 1061,
+     "fillPct": 15.2,
+     "distinct": 61
     },
     {
      "code": "ufCrm26_1774933814",
@@ -17245,7 +17286,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17261,7 +17302,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17277,7 +17318,7 @@
      "onCard": null,
      "section": "",
      "filled": 1,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -17293,7 +17334,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17318,7 +17359,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17343,7 +17384,7 @@
      "onCard": null,
      "section": "",
      "filled": 5,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0.5,
      "distinct": 1
     },
@@ -17359,8 +17400,8 @@
      "onCard": null,
      "section": "",
      "filled": 18,
-     "total": 1010,
-     "fillPct": 1.8,
+     "total": 1061,
+     "fillPct": 1.7,
      "distinct": 14
     },
     {
@@ -17375,8 +17416,8 @@
      "onCard": null,
      "section": "",
      "filled": 508,
-     "total": 1010,
-     "fillPct": 50.3,
+     "total": 1061,
+     "fillPct": 47.9,
      "distinct": 12
     },
     {
@@ -17390,9 +17431,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 101,
-     "total": 1010,
-     "fillPct": 10,
+     "filled": 109,
+     "total": 1061,
+     "fillPct": 10.3,
      "distinct": 61
     },
     {
@@ -17406,10 +17447,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 34,
-     "total": 1010,
-     "fillPct": 3.4,
-     "distinct": 25
+     "filled": 43,
+     "total": 1061,
+     "fillPct": 4.1,
+     "distinct": 31
     },
     {
      "code": "ufCrm26_1790667877525",
@@ -17422,9 +17463,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 67,
-     "total": 1010,
-     "fillPct": 6.6,
+     "filled": 78,
+     "total": 1061,
+     "fillPct": 7.4,
      "distinct": 1
     },
     {
@@ -17438,10 +17479,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 104,
-     "total": 1010,
-     "fillPct": 10.3,
-     "distinct": 42
+     "filled": 144,
+     "total": 1061,
+     "fillPct": 13.6,
+     "distinct": 53
     },
     {
      "code": "ufCrm26_1790688230851",
@@ -17454,9 +17495,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 7,
-     "total": 1010,
-     "fillPct": 0.7,
+     "filled": 14,
+     "total": 1061,
+     "fillPct": 1.3,
      "distinct": 2
     },
     {
@@ -17471,7 +17512,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17487,7 +17528,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17503,7 +17544,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17519,7 +17560,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17534,10 +17575,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 106,
-     "total": 1010,
-     "fillPct": 10.5,
-     "distinct": 40
+     "filled": 145,
+     "total": 1061,
+     "fillPct": 13.7,
+     "distinct": 52
     },
     {
      "code": "ufCrm26_1791279148857",
@@ -17551,7 +17592,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 1010,
+     "total": 1061,
      "fillPct": 0,
      "distinct": 0
     },
@@ -17566,9 +17607,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 6,
-     "total": 1010,
-     "fillPct": 0.6,
+     "filled": 11,
+     "total": 1061,
+     "fillPct": 1,
      "distinct": 4
     }
    ]
@@ -21197,7 +21238,7 @@
   {
    "etid": 1120,
    "title": "Производство GM",
-   "itemCount": 438,
+   "itemCount": 446,
    "cardFieldCount": 0,
    "cardSectionOrder": [],
    "fields": [
@@ -21212,8 +21253,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21228,8 +21269,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21245,7 +21286,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21260,8 +21301,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21276,8 +21317,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21292,8 +21333,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 6
     },
@@ -21308,8 +21349,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 4
     },
@@ -21324,8 +21365,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 5
     },
@@ -21340,8 +21381,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21356,8 +21397,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21373,7 +21414,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21388,8 +21429,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21404,8 +21445,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21420,8 +21461,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 378,
-     "total": 438,
+     "filled": 385,
+     "total": 446,
      "fillPct": 86.3,
      "distinct": 61
     },
@@ -21437,7 +21478,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21453,7 +21494,7 @@
      "onCard": null,
      "section": "",
      "filled": 4,
-     "total": 438,
+     "total": 446,
      "fillPct": 0.9,
      "distinct": 3
     },
@@ -21468,8 +21509,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21484,8 +21525,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21500,8 +21541,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 3
     },
@@ -21516,8 +21557,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 11
     },
@@ -21532,9 +21573,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
-     "fillPct": 100,
+     "filled": 444,
+     "total": 446,
+     "fillPct": 99.6,
      "distinct": 12
     },
     {
@@ -21548,8 +21589,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 14
     },
@@ -21565,7 +21606,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21580,8 +21621,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21596,8 +21637,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21612,8 +21653,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21628,8 +21669,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21644,8 +21685,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 9
     },
@@ -21660,8 +21701,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21677,8 +21718,8 @@
      "onCard": null,
      "section": "",
      "filled": 28,
-     "total": 438,
-     "fillPct": 6.4,
+     "total": 446,
+     "fillPct": 6.3,
      "distinct": 28
     },
     {
@@ -21692,8 +21733,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21709,7 +21750,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21724,10 +21765,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 24,
-     "total": 438,
-     "fillPct": 5.5,
-     "distinct": 24
+     "filled": 25,
+     "total": 446,
+     "fillPct": 5.6,
+     "distinct": 25
     },
     {
      "code": "lastCommunicationCallTime",
@@ -21741,7 +21782,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21757,7 +21798,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21773,7 +21814,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21789,7 +21830,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21804,8 +21845,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 1
     },
@@ -21820,8 +21861,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 438,
-     "total": 438,
+     "filled": 446,
+     "total": 446,
      "fillPct": 100,
      "distinct": 61
     },
@@ -21836,9 +21877,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 426,
-     "total": 438,
-     "fillPct": 97.3,
+     "filled": 431,
+     "total": 446,
+     "fillPct": 96.6,
      "distinct": 61
     },
     {
@@ -21862,7 +21903,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21882,8 +21923,8 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 370,
-     "total": 438,
+     "filled": 377,
+     "total": 446,
      "fillPct": 84.5,
      "distinct": 1
     },
@@ -21898,9 +21939,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 364,
-     "total": 438,
-     "fillPct": 83.1,
+     "filled": 371,
+     "total": 446,
+     "fillPct": 83.2,
      "distinct": 61
     },
     {
@@ -21931,8 +21972,8 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 437,
-     "total": 438,
+     "filled": 445,
+     "total": 446,
      "fillPct": 99.8,
      "distinct": 4
     },
@@ -21948,7 +21989,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -21963,8 +22004,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 437,
-     "total": 438,
+     "filled": 445,
+     "total": 446,
      "fillPct": 99.8,
      "distinct": 61
     },
@@ -21979,8 +22020,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 437,
-     "total": 438,
+     "filled": 445,
+     "total": 446,
      "fillPct": 99.8,
      "distinct": 61
     },
@@ -21996,7 +22037,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -22012,7 +22053,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -22027,9 +22068,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 363,
-     "total": 438,
-     "fillPct": 82.9,
+     "filled": 374,
+     "total": 446,
+     "fillPct": 83.9,
      "distinct": 2
     },
     {
@@ -22043,9 +22084,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 311,
-     "total": 438,
-     "fillPct": 71,
+     "filled": 321,
+     "total": 446,
+     "fillPct": 72,
      "distinct": 2
     },
     {
@@ -22059,9 +22100,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 120,
-     "total": 438,
-     "fillPct": 27.4,
+     "filled": 126,
+     "total": 446,
+     "fillPct": 28.3,
      "distinct": 2
     },
     {
@@ -22075,9 +22116,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 56,
-     "total": 438,
-     "fillPct": 12.8,
+     "filled": 64,
+     "total": 446,
+     "fillPct": 14.3,
      "distinct": 2
     },
     {
@@ -22091,9 +22132,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 262,
-     "total": 438,
-     "fillPct": 59.8,
+     "filled": 273,
+     "total": 446,
+     "fillPct": 61.2,
      "distinct": 2
     },
     {
@@ -22107,9 +22148,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 263,
-     "total": 438,
-     "fillPct": 60,
+     "filled": 266,
+     "total": 446,
+     "fillPct": 59.6,
      "distinct": 2
     },
     {
@@ -22123,9 +22164,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 212,
-     "total": 438,
-     "fillPct": 48.4,
+     "filled": 215,
+     "total": 446,
+     "fillPct": 48.2,
      "distinct": 2
     },
     {
@@ -22139,9 +22180,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 222,
-     "total": 438,
-     "fillPct": 50.7,
+     "filled": 233,
+     "total": 446,
+     "fillPct": 52.2,
      "distinct": 2
     },
     {
@@ -22155,9 +22196,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 44,
-     "total": 438,
-     "fillPct": 10,
+     "filled": 51,
+     "total": 446,
+     "fillPct": 11.4,
      "distinct": 2
     },
     {
@@ -22171,9 +22212,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 397,
-     "total": 438,
-     "fillPct": 90.6,
+     "filled": 413,
+     "total": 446,
+     "fillPct": 92.6,
      "distinct": 1
     },
     {
@@ -22187,9 +22228,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 88,
-     "total": 438,
-     "fillPct": 20.1,
+     "filled": 97,
+     "total": 446,
+     "fillPct": 21.7,
      "distinct": 2
     },
     {
@@ -22203,9 +22244,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 45,
-     "total": 438,
-     "fillPct": 10.3,
+     "filled": 52,
+     "total": 446,
+     "fillPct": 11.7,
      "distinct": 2
     },
     {
@@ -22219,9 +22260,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 37,
-     "total": 438,
-     "fillPct": 8.4,
+     "filled": 44,
+     "total": 446,
+     "fillPct": 9.9,
      "distinct": 2
     },
     {
@@ -22236,8 +22277,8 @@
      "onCard": null,
      "section": "",
      "filled": 33,
-     "total": 438,
-     "fillPct": 7.5,
+     "total": 446,
+     "fillPct": 7.4,
      "distinct": 33
     },
     {
@@ -22252,7 +22293,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 438,
+     "total": 446,
      "fillPct": 0.7,
      "distinct": 1
     },
@@ -22267,9 +22308,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 424,
-     "total": 438,
-     "fillPct": 96.8,
+     "filled": 440,
+     "total": 446,
+     "fillPct": 98.7,
      "distinct": 61
     },
     {
@@ -22283,10 +22324,10 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 422,
-     "total": 438,
-     "fillPct": 96.3,
-     "distinct": 35
+     "filled": 440,
+     "total": 446,
+     "fillPct": 98.7,
+     "distinct": 37
     },
     {
      "code": "ufCrm33_1777296860546",
@@ -22299,9 +22340,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 424,
-     "total": 438,
-     "fillPct": 96.8,
+     "filled": 441,
+     "total": 446,
+     "fillPct": 98.9,
      "distinct": 5
     },
     {
@@ -22316,7 +22357,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -22331,8 +22372,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 435,
-     "total": 438,
+     "filled": 443,
+     "total": 446,
      "fillPct": 99.3,
      "distinct": 2
     },
@@ -22347,8 +22388,8 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 212,
-     "total": 438,
+     "filled": 216,
+     "total": 446,
      "fillPct": 48.4,
      "distinct": 61
     },
@@ -22364,7 +22405,7 @@
      "onCard": null,
      "section": "",
      "filled": 0,
-     "total": 438,
+     "total": 446,
      "fillPct": 0,
      "distinct": 0
     },
@@ -22408,9 +22449,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 420,
-     "total": 438,
-     "fillPct": 95.9,
+     "filled": 440,
+     "total": 446,
+     "fillPct": 98.7,
      "distinct": 2
     },
     {
@@ -22429,9 +22470,9 @@
      ],
      "onCard": null,
      "section": "",
-     "filled": 23,
-     "total": 438,
-     "fillPct": 5.3,
+     "filled": 24,
+     "total": 446,
+     "fillPct": 5.4,
      "distinct": 1
     },
     {
@@ -22445,9 +22486,9 @@
      "items": [],
      "onCard": null,
      "section": "",
-     "filled": 337,
-     "total": 438,
-     "fillPct": 76.9,
+     "filled": 345,
+     "total": 446,
+     "fillPct": 77.4,
      "distinct": 61
     },
     {
@@ -22462,7 +22503,7 @@
      "onCard": null,
      "section": "",
      "filled": 3,
-     "total": 438,
+     "total": 446,
      "fillPct": 0.7,
      "distinct": 1
     }
@@ -23011,7 +23052,7 @@
    }
   ],
   "fieldCount": 151,
-  "leadCount": 7719,
+  "leadCount": 8009,
   "cardFieldCount": 60,
   "cardSectionOrder": [
    "О лиде",
@@ -23031,8 +23072,8 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23047,8 +23088,8 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23064,7 +23105,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -23143,8 +23184,8 @@
     "items": [],
     "onCard": true,
     "section": "Время клиента",
-    "filled": 866,
-    "total": 7719,
+    "filled": 896,
+    "total": 8009,
     "fillPct": 11.2,
     "distinct": 4
    },
@@ -23159,8 +23200,8 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 7713,
-    "total": 7719,
+    "filled": 8003,
+    "total": 8009,
     "fillPct": 99.9,
     "distinct": 58
    },
@@ -23175,9 +23216,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 1656,
-    "total": 7719,
-    "fillPct": 21.5,
+    "filled": 1734,
+    "total": 8009,
+    "fillPct": 21.7,
     "distinct": 27
    },
    {
@@ -23191,8 +23232,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 8
    },
@@ -23208,7 +23249,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -23223,8 +23264,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 3
    },
@@ -23239,10 +23280,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 18,
-    "total": 7719,
+    "filled": 19,
+    "total": 8009,
     "fillPct": 0.2,
-    "distinct": 1
+    "distinct": 2
    },
    {
     "code": "ADDRESS",
@@ -23399,8 +23440,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 1
    },
@@ -23415,8 +23456,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23431,8 +23472,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23447,8 +23488,8 @@
     "items": [],
     "onCard": true,
     "section": "Дополнительно",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23463,9 +23504,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 3541,
-    "total": 7719,
-    "fillPct": 45.9,
+    "filled": 3711,
+    "total": 8009,
+    "fillPct": 46.3,
     "distinct": 61
    },
    {
@@ -23479,8 +23520,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23495,8 +23536,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23511,8 +23552,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23527,10 +23568,10 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
-    "distinct": 40
+    "distinct": 43
    },
    {
     "code": "CREATED_BY_ID",
@@ -23543,8 +23584,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 31
    },
@@ -23559,10 +23600,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
-    "distinct": 34
+    "distinct": 36
    },
    {
     "code": "MOVED_BY_ID",
@@ -23575,10 +23616,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
-    "distinct": 25
+    "distinct": 26
    },
    {
     "code": "DATE_CREATE",
@@ -23591,8 +23632,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23607,8 +23648,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23623,8 +23664,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23640,8 +23681,8 @@
     "onCard": false,
     "section": "",
     "filled": 175,
-    "total": 7719,
-    "fillPct": 2.3,
+    "total": 8009,
+    "fillPct": 2.2,
     "distinct": 61
    },
    {
@@ -23655,9 +23696,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 3182,
-    "total": 7719,
-    "fillPct": 41.2,
+    "filled": 3322,
+    "total": 8009,
+    "fillPct": 41.5,
     "distinct": 61
    },
    {
@@ -23672,7 +23713,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -23687,8 +23728,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 2
    },
@@ -23703,9 +23744,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 6947,
-    "total": 7719,
-    "fillPct": 90,
+    "filled": 7136,
+    "total": 8009,
+    "fillPct": 89.1,
     "distinct": 61
    },
    {
@@ -23719,8 +23760,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 864,
-    "total": 7719,
+    "filled": 894,
+    "total": 8009,
     "fillPct": 11.2,
     "distinct": 1
    },
@@ -23735,8 +23776,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 864,
-    "total": 7719,
+    "filled": 894,
+    "total": 8009,
     "fillPct": 11.2,
     "distinct": 19
    },
@@ -23751,9 +23792,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 2113,
-    "total": 7719,
-    "fillPct": 27.4,
+    "filled": 2227,
+    "total": 8009,
+    "fillPct": 27.8,
     "distinct": 61
    },
    {
@@ -23767,10 +23808,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 2065,
-    "total": 7719,
-    "fillPct": 26.8,
-    "distinct": 43
+    "filled": 2170,
+    "total": 8009,
+    "fillPct": 27.1,
+    "distinct": 46
    },
    {
     "code": "UTM_CAMPAIGN",
@@ -23783,10 +23824,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 1696,
-    "total": 7719,
-    "fillPct": 22,
-    "distinct": 47
+    "filled": 1754,
+    "total": 8009,
+    "fillPct": 21.9,
+    "distinct": 48
    },
    {
     "code": "UTM_CONTENT",
@@ -23799,8 +23840,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 1480,
-    "total": 7719,
+    "filled": 1538,
+    "total": 8009,
     "fillPct": 19.2,
     "distinct": 61
    },
@@ -23815,8 +23856,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 1289,
-    "total": 7719,
+    "filled": 1338,
+    "total": 8009,
     "fillPct": 16.7,
     "distinct": 61
    },
@@ -23832,7 +23873,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -23848,7 +23889,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -23863,8 +23904,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
     "distinct": 61
    },
@@ -23879,10 +23920,10 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 7719,
-    "total": 7719,
+    "filled": 8009,
+    "total": 8009,
     "fillPct": 100,
-    "distinct": 35
+    "distinct": 36
    },
    {
     "code": "LAST_COMMUNICATION_TIME",
@@ -23895,9 +23936,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 2861,
-    "total": 7719,
-    "fillPct": 37.1,
+    "filled": 2958,
+    "total": 8009,
+    "fillPct": 36.9,
     "distinct": 61
    },
    {
@@ -23975,9 +24016,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 490,
-    "total": 7719,
-    "fillPct": 6.3,
+    "filled": 491,
+    "total": 8009,
+    "fillPct": 6.1,
     "distinct": 1
    },
    {
@@ -23992,7 +24033,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24007,10 +24048,10 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 388,
-    "total": 7719,
-    "fillPct": 5,
-    "distinct": 53
+    "filled": 407,
+    "total": 8009,
+    "fillPct": 5.1,
+    "distinct": 54
    },
    {
     "code": "UF_CRM_MGO_CC_RESULT",
@@ -24024,7 +24065,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -24040,7 +24081,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24056,7 +24097,7 @@
     "onCard": false,
     "section": "",
     "filled": 1,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -24072,7 +24113,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24088,7 +24129,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -24104,7 +24145,7 @@
     "onCard": true,
     "section": "О лиде",
     "filled": 1,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -24119,9 +24160,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 975,
-    "total": 7719,
-    "fillPct": 12.6,
+    "filled": 989,
+    "total": 8009,
+    "fillPct": 12.3,
     "distinct": 61
    },
    {
@@ -24135,10 +24176,10 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 42,
-    "total": 7719,
+    "filled": 44,
+    "total": 8009,
     "fillPct": 0.5,
-    "distinct": 42
+    "distinct": 44
    },
    {
     "code": "UF_CRM_INSTAGRAM_WZ",
@@ -24152,7 +24193,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24168,7 +24209,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24184,7 +24225,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24199,9 +24240,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 821,
-    "total": 7719,
-    "fillPct": 10.6,
+    "filled": 865,
+    "total": 8009,
+    "fillPct": 10.8,
     "distinct": 61
    },
    {
@@ -24215,9 +24256,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 1062,
-    "total": 7719,
-    "fillPct": 13.8,
+    "filled": 1116,
+    "total": 8009,
+    "fillPct": 13.9,
     "distinct": 61
    },
    {
@@ -24232,8 +24273,8 @@
     "onCard": false,
     "section": "",
     "filled": 20,
-    "total": 7719,
-    "fillPct": 0.3,
+    "total": 8009,
+    "fillPct": 0.2,
     "distinct": 7
    },
    {
@@ -24248,7 +24289,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24264,7 +24305,7 @@
     "onCard": true,
     "section": "Дополнительно",
     "filled": 26,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.3,
     "distinct": 1
    },
@@ -24279,9 +24320,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 913,
-    "total": 7719,
-    "fillPct": 11.8,
+    "filled": 973,
+    "total": 8009,
+    "fillPct": 12.1,
     "distinct": 61
    },
    {
@@ -24296,7 +24337,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24312,7 +24353,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24328,7 +24369,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24344,7 +24385,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24360,7 +24401,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24376,7 +24417,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24392,7 +24433,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24408,7 +24449,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24424,7 +24465,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24440,7 +24481,7 @@
     "onCard": true,
     "section": "Время клиента",
     "filled": 1,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -24456,7 +24497,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24472,7 +24513,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24487,9 +24528,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 1479,
-    "total": 7719,
-    "fillPct": 19.2,
+    "filled": 1517,
+    "total": 8009,
+    "fillPct": 18.9,
     "distinct": 17
    },
    {
@@ -24503,8 +24544,8 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 105,
-    "total": 7719,
+    "filled": 112,
+    "total": 8009,
     "fillPct": 1.4,
     "distinct": 61
    },
@@ -24519,9 +24560,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 602,
-    "total": 7719,
-    "fillPct": 7.8,
+    "filled": 620,
+    "total": 8009,
+    "fillPct": 7.7,
     "distinct": 61
    },
    {
@@ -24560,9 +24601,9 @@
     ],
     "onCard": true,
     "section": "О лиде",
-    "filled": 6536,
-    "total": 7719,
-    "fillPct": 84.7,
+    "filled": 6796,
+    "total": 8009,
+    "fillPct": 84.9,
     "distinct": 6
    },
    {
@@ -24576,9 +24617,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 750,
-    "total": 7719,
-    "fillPct": 9.7,
+    "filled": 800,
+    "total": 8009,
+    "fillPct": 10,
     "distinct": 38
    },
    {
@@ -24592,8 +24633,8 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1423,
-    "total": 7719,
+    "filled": 1471,
+    "total": 8009,
     "fillPct": 18.4,
     "distinct": 61
    },
@@ -24609,7 +24650,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 14,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.2,
     "distinct": 11
    },
@@ -24624,9 +24665,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1270,
-    "total": 7719,
-    "fillPct": 16.5,
+    "filled": 1330,
+    "total": 8009,
+    "fillPct": 16.6,
     "distinct": 61
    },
    {
@@ -24640,9 +24681,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1387,
-    "total": 7719,
-    "fillPct": 18,
+    "filled": 1430,
+    "total": 8009,
+    "fillPct": 17.9,
     "distinct": 38
    },
    {
@@ -24657,7 +24698,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -24672,9 +24713,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1596,
-    "total": 7719,
-    "fillPct": 20.7,
+    "filled": 1689,
+    "total": 8009,
+    "fillPct": 21.1,
     "distinct": 61
    },
    {
@@ -24688,10 +24729,10 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1590,
-    "total": 7719,
-    "fillPct": 20.6,
-    "distinct": 38
+    "filled": 1682,
+    "total": 8009,
+    "fillPct": 21,
+    "distinct": 40
    },
    {
     "code": "UF_CRM_1772800882",
@@ -24704,10 +24745,10 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1328,
-    "total": 7719,
-    "fillPct": 17.2,
-    "distinct": 43
+    "filled": 1384,
+    "total": 8009,
+    "fillPct": 17.3,
+    "distinct": 44
    },
    {
     "code": "UF_CRM_1772800899",
@@ -24720,9 +24761,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1297,
-    "total": 7719,
-    "fillPct": 16.8,
+    "filled": 1353,
+    "total": 8009,
+    "fillPct": 16.9,
     "distinct": 61
    },
    {
@@ -24736,9 +24777,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1177,
-    "total": 7719,
-    "fillPct": 15.2,
+    "filled": 1225,
+    "total": 8009,
+    "fillPct": 15.3,
     "distinct": 61
    },
    {
@@ -24752,9 +24793,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 2420,
-    "total": 7719,
-    "fillPct": 31.4,
+    "filled": 2531,
+    "total": 8009,
+    "fillPct": 31.6,
     "distinct": 61
    },
    {
@@ -24768,8 +24809,8 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1516,
-    "total": 7719,
+    "filled": 1573,
+    "total": 8009,
     "fillPct": 19.6,
     "distinct": 61
    },
@@ -24784,9 +24825,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 2002,
-    "total": 7719,
-    "fillPct": 25.9,
+    "filled": 2098,
+    "total": 8009,
+    "fillPct": 26.2,
     "distinct": 61
    },
    {
@@ -24800,10 +24841,10 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 62,
-    "total": 7719,
+    "filled": 63,
+    "total": 8009,
     "fillPct": 0.8,
-    "distinct": 54
+    "distinct": 55
    },
    {
     "code": "UF_CRM_1772800993",
@@ -24816,9 +24857,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 302,
-    "total": 7719,
-    "fillPct": 3.9,
+    "filled": 317,
+    "total": 8009,
+    "fillPct": 4,
     "distinct": 61
    },
    {
@@ -24833,7 +24874,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24849,7 +24890,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24865,7 +24906,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 1,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -24881,7 +24922,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24897,7 +24938,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -24912,9 +24953,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 867,
-    "total": 7719,
-    "fillPct": 11.2,
+    "filled": 868,
+    "total": 8009,
+    "fillPct": 10.8,
     "distinct": 61
    },
    {
@@ -24928,9 +24969,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 1376,
-    "total": 7719,
-    "fillPct": 17.8,
+    "filled": 1419,
+    "total": 8009,
+    "fillPct": 17.7,
     "distinct": 6
    },
    {
@@ -24945,7 +24986,7 @@
     "onCard": false,
     "section": "",
     "filled": 17,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.2,
     "distinct": 3
    },
@@ -24961,7 +25002,7 @@
     "onCard": false,
     "section": "",
     "filled": 17,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.2,
     "distinct": 14
    },
@@ -24977,8 +25018,8 @@
     "onCard": false,
     "section": "",
     "filled": 52,
-    "total": 7719,
-    "fillPct": 0.7,
+    "total": 8009,
+    "fillPct": 0.6,
     "distinct": 1
    },
    {
@@ -24993,7 +25034,7 @@
     "onCard": false,
     "section": "",
     "filled": 6,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.1,
     "distinct": 6
    },
@@ -25009,8 +25050,8 @@
     "onCard": false,
     "section": "",
     "filled": 152,
-    "total": 7719,
-    "fillPct": 2,
+    "total": 8009,
+    "fillPct": 1.9,
     "distinct": 61
    },
    {
@@ -25025,7 +25066,7 @@
     "onCard": false,
     "section": "",
     "filled": 149,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 1.9,
     "distinct": 61
    },
@@ -25041,7 +25082,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -25057,7 +25098,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -25073,7 +25114,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -25089,7 +25130,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -25105,7 +25146,7 @@
     "onCard": false,
     "section": "",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 1
    },
@@ -25121,8 +25162,8 @@
     "onCard": false,
     "section": "",
     "filled": 97,
-    "total": 7719,
-    "fillPct": 1.3,
+    "total": 8009,
+    "fillPct": 1.2,
     "distinct": 2
    },
    {
@@ -25137,7 +25178,7 @@
     "onCard": false,
     "section": "",
     "filled": 22,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.3,
     "distinct": 4
    },
@@ -25153,7 +25194,7 @@
     "onCard": false,
     "section": "",
     "filled": 24,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.3,
     "distinct": 4
    },
@@ -25169,8 +25210,8 @@
     "onCard": false,
     "section": "",
     "filled": 123,
-    "total": 7719,
-    "fillPct": 1.6,
+    "total": 8009,
+    "fillPct": 1.5,
     "distinct": 3
    },
    {
@@ -25185,7 +25226,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -25200,8 +25241,8 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 63,
-    "total": 7719,
+    "filled": 66,
+    "total": 8009,
     "fillPct": 0.8,
     "distinct": 61
    },
@@ -25217,8 +25258,8 @@
     "onCard": false,
     "section": "",
     "filled": 706,
-    "total": 7719,
-    "fillPct": 9.1,
+    "total": 8009,
+    "fillPct": 8.8,
     "distinct": 4
    },
    {
@@ -25233,7 +25274,7 @@
     "onCard": false,
     "section": "",
     "filled": 71,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.9,
     "distinct": 3
    },
@@ -25249,7 +25290,7 @@
     "onCard": false,
     "section": "",
     "filled": 71,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0.9,
     "distinct": 3
    },
@@ -25265,8 +25306,8 @@
     "onCard": false,
     "section": "",
     "filled": 128,
-    "total": 7719,
-    "fillPct": 1.7,
+    "total": 8009,
+    "fillPct": 1.6,
     "distinct": 2
    },
    {
@@ -25281,7 +25322,7 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    },
@@ -25296,9 +25337,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 18,
-    "total": 7719,
-    "fillPct": 0.2,
+    "filled": 22,
+    "total": 8009,
+    "fillPct": 0.3,
     "distinct": 5
    },
    {
@@ -25313,7 +25354,7 @@
     "onCard": true,
     "section": "дополнительные данные",
     "filled": 2,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 2
    },
@@ -25328,9 +25369,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 768,
-    "total": 7719,
-    "fillPct": 9.9,
+    "filled": 846,
+    "total": 8009,
+    "fillPct": 10.6,
     "distinct": 61
    },
    {
@@ -25344,9 +25385,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 746,
-    "total": 7719,
-    "fillPct": 9.7,
+    "filled": 820,
+    "total": 8009,
+    "fillPct": 10.2,
     "distinct": 61
    },
    {
@@ -25360,9 +25401,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 768,
-    "total": 7719,
-    "fillPct": 9.9,
+    "filled": 846,
+    "total": 8009,
+    "fillPct": 10.6,
     "distinct": 4
    },
    {
@@ -25376,9 +25417,9 @@
     "items": [],
     "onCard": true,
     "section": "дополнительные данные",
-    "filled": 720,
-    "total": 7719,
-    "fillPct": 9.3,
+    "filled": 798,
+    "total": 8009,
+    "fillPct": 10,
     "distinct": 61
    },
    {
@@ -25392,9 +25433,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 788,
-    "total": 7719,
-    "fillPct": 10.2,
+    "filled": 799,
+    "total": 8009,
+    "fillPct": 10,
     "distinct": 61
    },
    {
@@ -25408,9 +25449,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 202,
-    "total": 7719,
-    "fillPct": 2.6,
+    "filled": 233,
+    "total": 8009,
+    "fillPct": 2.9,
     "distinct": 61
    },
    {
@@ -25424,9 +25465,9 @@
     "items": [],
     "onCard": false,
     "section": "",
-    "filled": 369,
-    "total": 7719,
-    "fillPct": 4.8,
+    "filled": 396,
+    "total": 8009,
+    "fillPct": 4.9,
     "distinct": 61
    },
    {
@@ -25440,9 +25481,9 @@
     "items": [],
     "onCard": true,
     "section": "О лиде",
-    "filled": 155,
-    "total": 7719,
-    "fillPct": 2,
+    "filled": 175,
+    "total": 8009,
+    "fillPct": 2.2,
     "distinct": 61
    },
    {
@@ -25457,19 +25498,19 @@
     "onCard": false,
     "section": "",
     "filled": 0,
-    "total": 7719,
+    "total": 8009,
     "fillPct": 0,
     "distinct": 0
    }
   ],
-  "pairs": 2152,
+  "pairs": 2249,
   "toDeal": [
    {
     "lead": "SOURCE_ID",
     "leadTitle": "Источник",
     "deal": "SOURCE_ID",
     "dealTitle": "Источник",
-    "pairs": 2148,
+    "pairs": 2245,
     "matchPct": 99.1
    },
    {
@@ -25485,15 +25526,15 @@
     "leadTitle": "Комментарий",
     "deal": "COMMENTS",
     "dealTitle": "Комментарий",
-    "pairs": 703,
-    "matchPct": 82.9
+    "pairs": 746,
+    "matchPct": 83
    },
    {
     "lead": "UTM_SOURCE",
     "leadTitle": "Рекламная система",
     "deal": "UTM_SOURCE",
     "dealTitle": "Рекламная система",
-    "pairs": 795,
+    "pairs": 847,
     "matchPct": 100
    },
    {
@@ -25501,7 +25542,7 @@
     "leadTitle": "Тип трафика",
     "deal": "UTM_MEDIUM",
     "dealTitle": "Тип трафика",
-    "pairs": 776,
+    "pairs": 820,
     "matchPct": 100
    },
    {
@@ -25509,7 +25550,7 @@
     "leadTitle": "Обозначение рекламной кампании",
     "deal": "UTM_CAMPAIGN",
     "dealTitle": "Обозначение рекламной кампании",
-    "pairs": 532,
+    "pairs": 553,
     "matchPct": 100
    },
    {
@@ -25517,7 +25558,7 @@
     "leadTitle": "Содержание кампании",
     "deal": "UTM_CONTENT",
     "dealTitle": "Содержание кампании",
-    "pairs": 479,
+    "pairs": 500,
     "matchPct": 100
    },
    {
@@ -25525,7 +25566,7 @@
     "leadTitle": "Условие поиска кампании",
     "deal": "UTM_TERM",
     "dealTitle": "Условие поиска кампании",
-    "pairs": 362,
+    "pairs": 380,
     "matchPct": 100
    },
    {
@@ -25533,7 +25574,7 @@
     "leadTitle": "UF_CRM_1772609158",
     "deal": "UF_CRM_69A7F70A18816",
     "dealTitle": "Направление бизнеса",
-    "pairs": 1832,
+    "pairs": 1908,
     "matchPct": 100
    },
    {
@@ -25541,7 +25582,7 @@
     "leadTitle": "UF_CRM_1772800748",
     "deal": "UF_CRM_69AFC8216B570",
     "dealTitle": "Url страницы",
-    "pairs": 373,
+    "pairs": 393,
     "matchPct": 100
    },
    {
@@ -25549,15 +25590,15 @@
     "leadTitle": "UF_CRM_1772800785",
     "deal": "UF_CRM_69AFC8219B7D2",
     "dealTitle": "Tittle/Название товара//Загаловок",
-    "pairs": 524,
-    "matchPct": 95
+    "pairs": 553,
+    "matchPct": 94.8
    },
    {
     "lead": "UF_CRM_1772800817",
     "leadTitle": "UF_CRM_1772800817",
     "deal": "UF_CRM_1770361922",
     "dealTitle": "Название формы",
-    "pairs": 349,
+    "pairs": 368,
     "matchPct": 100
    },
    {
@@ -25565,7 +25606,7 @@
     "leadTitle": "UF_CRM_1772800855",
     "deal": "UF_CRM_69AFC821CD83E",
     "dealTitle": "UTM Source",
-    "pairs": 604,
+    "pairs": 646,
     "matchPct": 100
    },
    {
@@ -25573,7 +25614,7 @@
     "leadTitle": "UF_CRM_1772800869",
     "deal": "UF_CRM_69AFC821E3C1D",
     "dealTitle": "UTM Medium",
-    "pairs": 599,
+    "pairs": 640,
     "matchPct": 100
    },
    {
@@ -25581,7 +25622,7 @@
     "leadTitle": "UF_CRM_1772800882",
     "deal": "UF_CRM_69AFC82206B86",
     "dealTitle": "UTM Campaign",
-    "pairs": 432,
+    "pairs": 452,
     "matchPct": 100
    },
    {
@@ -25589,7 +25630,7 @@
     "leadTitle": "UF_CRM_1772800899",
     "deal": "UF_CRM_69AFC82223115",
     "dealTitle": "UTM Content",
-    "pairs": 425,
+    "pairs": 445,
     "matchPct": 100
    },
    {
@@ -25597,7 +25638,7 @@
     "leadTitle": "UF_CRM_1772800914",
     "deal": "UF_CRM_69AFC8224F8A2",
     "dealTitle": "UTM Term",
-    "pairs": 354,
+    "pairs": 371,
     "matchPct": 100
    },
    {
@@ -25605,7 +25646,7 @@
     "leadTitle": "UF_CRM_1772800929",
     "deal": "UF_CRM_DEAL_AMO_AETPICTBTYHOCZZK",
     "dealTitle": "UF_CRM_DEAL_AMO_AETPICTBTYHOCZZK",
-    "pairs": 982,
+    "pairs": 1028,
     "matchPct": 100
    },
    {
@@ -25613,7 +25654,7 @@
     "leadTitle": "UF_CRM_1772800957",
     "deal": "UF_CRM_1768567267991",
     "dealTitle": "clientID",
-    "pairs": 752,
+    "pairs": 794,
     "matchPct": 99.9
    },
    {
@@ -25621,7 +25662,7 @@
     "leadTitle": "UF_CRM_1772800993",
     "deal": "UF_CRM_69AFC82268901",
     "dealTitle": "ym_uid",
-    "pairs": 191,
+    "pairs": 195,
     "matchPct": 100
    }
   ]

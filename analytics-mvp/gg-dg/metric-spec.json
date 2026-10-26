@@ -35,7 +35,7 @@
     "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments."
   },
   "drilldown": {
-    "leads": "Lead funnel opens same FL creation cohort; refusal chart is nonclickable. Calendar refusals expand by operational reason then current manager, record and full communication history.",
+    "leads": "Lead funnel opens the same FL creation cohort; refusal chart stays nonclickable. Calendar expands current manager, record and full communication history; refusals have a separate reason column without summary chips.",
     "deals": "A distribution category opens the same selected deals/sales subset. IDs are plain text; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
     "reasonFields": [
       "UF_CRM_1730742511284",
@@ -90,7 +90,8 @@
     "eventPolicy": "First lifetime entry only; repeat entries do not inflate counts. History completeness/current-stage consistency required before publication. Different stage rows are not additive.",
     "money": "Lead: known RUB opportunity, missing/foreign currency flagged. Deal: selected amount field. Manager table budget labelled separately.",
     "manager": "Current responsible manager, not historical owner.",
-    "presentation": "Same compact heat-calendar geometry, row colors, inverse-intensity scale, date grid, blank zero cells and inline manager rows as GG ROP. Clicking a nonzero cell/total opens record/event detail. Existing count/date/stock formulas retained."
+    "presentation": "Five top-level tabs: leads, deals, work in progress, order movement and outcomes. Each contains the GG heat grid and expands through current manager, record and full communication table. Only the communication feed has a bounded vertical viewport and sticky headings. No extra summary/reason toolbar or final-stock caption. Existing count/date/stock formulas retained.",
+    "refusalColumn": "Separate current CRM refusal reason column for refused leads and deals. Lead detail uses observed reason fields; deal reason uses the existing reason-comment field, then enum fallback. Decode, redact and contact-mask before publication; escape when rendered."
   },
   "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
   "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects.",
@@ -105,7 +106,7 @@
     "dedup": "Global source ID act#/cmt#; union of direct eligible bindings. Converted lead cache events can live under D-key but original entity stage is rechecked. Deal history includes originating eligible lead; aggregate counts use distinct event IDs.",
     "types": "Calls/email/messages/SMS count as communications; tasks/notes/service/stages are separate events.",
     "period": "Full record history on expansion; calendar period only highlights relevant events.",
-    "delivery": "Lazy static communications/L<id>.json or D<id>.json protected by dedicated DG Basic Auth; no arbitrary proxy. Payload generation must equal page generation.",
+    "delivery": "Unique sanitized events are embedded in the authenticated HTML snapshot and mapped by the existing per-record ID index. Counters and event history always share a generation. Dedicated-auth per-record JSON files remain for compatibility; no arbitrary proxy.",
     "security": "Contact mask, escaped text, no links/webhooks/keys/AI actions; existing transcripts only, no model or Telegram API use.",
     "coverage": "Source API visibility applies. Dialog freshness is explicit and can lag. Missing cache is a labelled gap, not zero communication. No claim of recovering deleted/unavailable CRM content.",
     "presentation": "No full-history heading or channel toolbar. Sort remains. HTML character references decoded as plain text before URL redaction and escaping; no HTML interpretation in browser."

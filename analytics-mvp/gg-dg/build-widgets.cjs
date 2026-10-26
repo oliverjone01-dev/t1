@@ -14,7 +14,7 @@ function prepareCommunications(raw){
   files[key]={key,generatedAt:raw.communications?.generatedAt||raw.generated_at,events:rows};
   index[key]={ids:rows.map(e=>e.id),commIds:comm.map(e=>e.id),types:Object.fromEntries([...new Set(rows.map(e=>e.type))].map(t=>[t,rows.filter(e=>e.type===t).length])),lastAt:comm.length?Math.max(...comm.map(e=>e.ts)):null,openTasks:rows.filter(e=>e.type==='Дело'&&['просрочено','запланировано'].includes(e.status)).length};
  }
- return {files,index,coverage:{generatedAt:raw.communications?.generatedAt||null,cache:raw.communications?.cache||{status:'unavailable',generatedAt:null},events:events.length}};
+ return {files,index,events,coverage:{generatedAt:raw.communications?.generatedAt||null,cache:raw.communications?.cache||{status:'unavailable',generatedAt:null},events:events.length}};
 }
 function validateRaw(r,now=Date.now()){
   if(r.scope?.sourceId!==SOURCE_ID||!Array.isArray(r.leads)||!Array.isArray(r.deals))throw Error('Invalid DG source scope');
@@ -51,7 +51,7 @@ function build(raw,template,builder,hook,now=Date.now()){
   if(!html||html.includes('"placeholder":true')||html.includes('docs.google.com/spreadsheets/d/14jm7'))throw Error('Invalid GG&DG bundle');
   const marker='const DATA=',a=html.indexOf(marker)+marker.length,b=html.indexOf(';\n',a),data=JSON.parse(html.slice(a,b));
   const communications=prepareCommunications(raw);
-  data.calendar=raw.calendar||null;data.communicationIndex=communications.index;data.communicationCoverage=communications.coverage;
+  data.calendar=raw.calendar||null;data.communicationIndex=communications.index;data.communicationCoverage=communications.coverage;data.communicationEvents=communications.events;
   html=html.slice(0,a)+JSON.stringify(data).replace(/</g,'\\u003c')+html.slice(b);
   if(data.leads.length!==raw.leads.length||data.deals.length!==raw.deals.length||data.plan!==null||data.planCsv||data.planUrl)throw Error('GG builder altered source scope/plan');
   if(data.b24Portal||Object.keys(data.managerPhotos||{}).length||/https?:\/\/[^\s"'<>]*bitrix24\./i.test(html)||/B24_WEBHOOK_URL|api\.telegram\.org|OPENAI_API_KEY|\/rest\/\d+\/[a-z0-9]+/i.test(html))throw Error('Private endpoint in partner bundle');

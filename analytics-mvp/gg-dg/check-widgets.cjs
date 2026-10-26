@@ -14,9 +14,9 @@ test('communication includes only directly bound DG leads/deals',async()=>{let q
 test('production and history queries preserve separate entity scopes',async()=>{let qs=[];const h=helpers(async(m,p)=>{qs.push([m,p]);return m==='crm.item.list'?{result:{items:[{id:'30',parentId2:'20'}]},total:1}:{result:{items:[]},total:0};});h.SC.deals=[{ID:'20'}];await h.listSharded('crm.item.list',{entityTypeId:1086},{itemsPath:true,idField:'id'});await h.listSharded('crm.stagehistory.list',{entityTypeId:1086},{itemsPath:true});assert.deepEqual(Array.from(qs[0][1].filter['@parentId2']),['20']);assert.deepEqual(Array.from(qs[1][1].filter['@OWNER_ID']),['30']);});
 test('scope validation rejects stale, foreign, duplicate, unsupported money and production rows',()=>{for(const mutate of [r=>r.generated_at='2020-01-01',r=>r.leads[0].sourceId='OTHER',r=>r.deals[0].leadId='999',r=>r.deals.push(r.deals[0]),r=>r.deals[0].currency='USD',r=>r.deals[0].category=99,r=>r.prodItems.push({dealId:'999'}),r=>r.channelMix.Foreign={}]){const r=fixture();mutate(r);assert.throws(()=>validateRaw(r));}});
 test('GG builder retains linked-only DG and GM assignees, excludes private text, never imports GG plan',()=>{const r=build(fixture(),template,builder,hook);assert.equal(r.data.leads.length,1);assert.equal(r.data.deals.length,1);assert.equal(r.data.deals[0].budget,218500);assert.equal(r.data.from,'2026-10-01');assert.equal(r.data.plan,null);assert.equal(r.data.planUrl,'');assert.equal(r.data.planCsv,'');assert.deepEqual(r.data.managerPhotos,{});assert.ok(!r.html.includes('PRIVATE CLIENT'));assert.ok(!r.html.includes('PRIVATE TASK'));assert.ok(!r.html.includes('<div id="planDock"'));new vm.Script(r.html.match(/<script>([\s\S]*)<\/script>/)[1]);});
-test('empty DG dataset builds all section definitions with no fake source records',()=>{const f=fixture();f.leads=[];f.deals=[];f.counts={leads:0,deals:0};f.scope.leadIds=[];f.scope.dealIds=[];const r=build(f,template,builder,hook);assert.equal(r.data.leads.length,0);assert.equal(r.data.deals.length,0);for(const title of ['Компания','Отдел продаж','Менеджеры','Передано без карточки СП','Причины отказов со стадии предложения'])assert.ok(r.html.includes(title));assert.ok(r.html.includes('const ltot=L.length;'));assert.ok(!r.html.includes('const refused=refCats.reduce((s,x)=>s+x[1],0)||1;'));});
+test('empty DG dataset builds all section definitions with no fake source records',()=>{const f=fixture();f.leads=[];f.deals=[];f.counts={leads:0,deals:0};f.scope.leadIds=[];f.scope.dealIds=[];const r=build(f,template,builder,hook);assert.equal(r.data.leads.length,0);assert.equal(r.data.deals.length,0);for(const title of ['Лиды от Домгласс','Работа отдела продаж','Менеджеры','Передано без карточки СП','Причины отказов со стадии предложения'])assert.ok(r.html.includes(title));assert.ok(r.html.includes('const ltot=L.length;'));assert.ok(!r.html.includes('const refused=refCats.reduce((s,x)=>s+x[1],0)||1;'));});
 test('CRM content cannot terminate the baked data script',()=>{const f=fixture();f.deals[0].client='</script><script>alert(1)</script>';const r=build(f,template,builder,hook);assert.ok(!r.html.includes('</script><script>alert'));assert.equal(r.data.deals[0].client,f.deals[0].client);});
-test('reference collector compiles with scope adapter and fails on source contract drift',()=>{const source=adapt(collector,mask);assert.ok(source.includes('foreign scoped row'));assert.ok(source.includes('Указана в CRM'));assert.throws(()=>adapt(collector.replace('const OUT = "rop/data/rop.json";','const OUT="other";'),mask),/contract changed/);});
+test('reference collector compiles with scope adapter and fails on source contract drift',()=>{const source=adapt(collector,mask);assert.ok(source.includes('foreign scoped row'));assert.ok(source.includes('reason: dgSafeText'));assert.throws(()=>adapt(collector.replace('const OUT = "rop/data/rop.json";','const OUT="other";'),mask),/contract changed/);});
 
 // Exercise generated page functions with synthetic records; no network or credentials.
 function dashboard(raw=fixture()){
@@ -71,9 +71,9 @@ test('zero comparison is a labelled placeholder; previous windows match selected
  for(const [start,end,prevStart,prevEnd] of [['2026-10-20','2026-10-26','2026-10-13','2026-10-19'],['2026-09-27','2026-10-26','2026-08-28','2026-09-26'],['2026-10-10','2026-10-12','2026-10-07','2026-10-09']]){d.run(`S.start='${start}';S.end='${end}'`);assert.equal(JSON.stringify(d.run('prevWin()')),JSON.stringify([prevStart,prevEnd]));}
 });
 test('calendar counts first production/shipping/completion events and keeps WIP separate',()=>{
- const f=fixture();Object.assign(f.deals[0],{won:true,stageCode:'C49:WON',stage:'Сделка успешна',closed:'2026-10-08',prepayAmt:500,hist:[['C49:PREPAYMENT_INVOIC','2026-09-20'],['C49:EXECUTING','2026-10-03'],['C49:FINAL_INVOICE','2026-10-11'],['C49:FINAL_INVOICE','2026-10-04'],['C49:2','2026-10-06'],['C49:WON','2026-10-08']]});const d=dashboard(f);d.run("S.gran='day';S.calUnit='count'");const h=d.render();
+ const f=fixture();Object.assign(f.deals[0],{won:true,stageCode:'C49:WON',stage:'Сделка успешна',closed:'2026-10-08',prepayAmt:500,hist:[['C49:PREPAYMENT_INVOIC','2026-09-20'],['C49:EXECUTING','2026-10-03'],['C49:FINAL_INVOICE','2026-10-11'],['C49:FINAL_INVOICE','2026-10-04'],['C49:2','2026-10-06'],['C49:WON','2026-10-08']]});const d=dashboard(f);d.run("S.gran='day';S.calUnit='count';S.dgCalGroup='wip'");const h=d.render();
  for(const [row,day] of [['production','04'],['shipping','06'],['completed','08']])assert.equal(d.run(`dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='${row}'))[0].at`),'2026-10-'+day);
- assert.ok(h.includes('КП отправлено'));assert.ok(h.includes('Формирование ТЗ'));assert.ok(h.includes('остаток на конец'));assert.ok(!h.includes('data-dg-leadstatus='));
+ assert.ok(h.includes('КП отправлено'));assert.ok(h.includes('Формирование ТЗ'));assert.ok(!h.includes('<small>на конец</small>'));assert.ok(!h.includes('data-dg-leadstatus='));
  d.run("S.start='2026-10-09';S.end='2026-10-31'");assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='completed')).length"),0);
 });
 
@@ -91,9 +91,9 @@ test('calendar dates use Moscow midnight and reject foreign event owners',()=>{
  f.calendar.lead[0].key='L999';assert.throws(()=>validateRaw(f),/calendar history/);
 });
 
-test('communication files are lazy, scoped and deduplicate the source lead inside a deal',()=>{
+test('communication snapshot and files stay scoped and deduplicate the source lead inside a deal',()=>{
  const f=fixture();f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#1',ts:Date.now(),entities:['L10','D20'],type:'Письмо',dir:'входящее',who:'Клиент',body:'full message'}]};
- const r=build(f,template,builder,hook);assert.equal(r.communications.D20.events.length,1);assert.equal(r.communications.L10.events.length,1);assert.equal(r.data.communicationIndex.D20.commIds.length,1);assert.ok(!r.html.includes('full message'));
+ const r=build(f,template,builder,hook);assert.equal(r.communications.D20.events.length,1);assert.equal(r.communications.L10.events.length,1);assert.equal(r.data.communicationIndex.D20.commIds.length,1);assert.ok(r.html.includes('full message'));assert.equal(r.data.communicationEvents.length,1);
  f.communications.events[0].entities.push('D999');assert.throws(()=>build(f,template,builder,hook),/Foreign/);
 });
 
@@ -114,7 +114,7 @@ test('fresh communications retain full text, enforce actual bindings and stop on
 });
 
 
-test('calendar reason filter updates both record table and selected totals',()=>{const f=fixture();f.leads[0].qual='неквал';f.leads[0].reason='Тест';f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-04T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[]};const d=dashboard(f);d.run("S.dgCalPick={row:'leadLost',bucket:null,reason:'Absent'}");assert.match(d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='leadLost'))"),/0 из 1 лидов/);});
+test('calendar drilldown removes the summary and reason toolbar without hiding records',()=>{const f=fixture();f.leads[0].qual='неквал';f.leads[0].reason='Тест';f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-04T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[]};const d=dashboard(f);d.run("S.dgCalPick={row:'leadLost',bucket:null,reason:''}");const h=d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='leadLost'))");assert.ok(!h.includes('dg-cal-facts'));assert.ok(!h.includes('dg-reasons'));assert.ok(h.includes('Виктория Преснякова'));});
 
 test('ambiguous archive entity stage and invalid cache dates never become available DG history',async()=>{
  const {dgDialogCache}=require('./communications.cjs');const item={src:'act#1',ts:Date.now(),leadId:'999',dealId:'20',type:'Письмо',body:'foreign'};
@@ -131,7 +131,7 @@ test('timeline ID collisions do not cross lead/deal types',async()=>{
 test('transcript uncertainty survives serialization and appears next to speaker roles',()=>{
  const {dgCleanEvent}=require('./communications.cjs'),event=dgCleanEvent({src:'cmt#1',ts:Date.now(),type:'Транскрипт звонка',body:'dialog',roleGuess:true,undiar:true,due:'<img src=x>',speakers:[{role:'Менеджер',text:'hello'}]},['D20']);assert.equal(event.undiar,true);assert.equal(event.due,null);
  const d=dashboard();d.run('dgCommCache.set("D20",'+JSON.stringify({events:[event]})+')');const html=d.run('dgCommunicationTable("D20")');assert.match(html,/Роли определены по тексту/);assert.match(html,/Надёжного разделения говорящих нет/);
- d.run("S.dgCalPick={row:'lost',reason:''}");assert.match(d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='lost'))"),/Причина и статус - из текущей карточки/);
+ d.run("S.dgCalPick={row:'lost',reason:''}");assert.match(d.run("dgCalendarRecordTable([],DG_CAL_ROWS.find(r=>r.id==='lost'))"),/Причина отказа/);
 });
 
 test('DG sender cohort uses incoming envelope address, exact domain and all verified lead bindings',async()=>{
@@ -148,7 +148,7 @@ test('mail cohort fails on missing sender metadata instead of dropping valid DG 
 });
 
 test('GG calendar uses heat cells and inline manager rows while keeping the event table compact',()=>{
- const d=dashboard();d.run("S.dgCalExpanded.add('deals')");const h=d.run('dgCalendarBlock()');assert.match(h,/dg-heat-row/);assert.match(h,/dg-heat-manager/);assert.match(h,/data-dg-calmanager=/);assert.ok(!h.includes('dg-cal-table'));
+ const d=dashboard();d.run("S.dgCalGroup='deals';S.dgCalExpanded.add('deals')");const h=d.run('dgCalendarBlock()');assert.match(h,/dg-heat-row/);assert.match(h,/dg-heat-manager/);assert.match(h,/data-dg-calmanager=/);assert.ok(!h.includes('dg-cal-table'));
  d.run('dgCommCache.set("D20",'+JSON.stringify({events:[{ts:Date.now(),entities:['D20'],type:'Письмо',who:'Client',body:'body'}]})+')');const feed=d.run('dgCommunicationTable("D20")');assert.ok(!feed.includes('dg-comm-title'));assert.ok(!feed.includes('dg-comm-filters'));assert.ok(feed.includes('Сначала старые'));
  const {dgSafeText}=require('./communications.cjs');assert.equal(dgSafeText('ООО &laquo;ДомГласс&raquo;'),'ООО «ДомГласс»');assert.equal(dgSafeText('&amp;laquo;test&amp;raquo;'),'«test»');assert.ok(!dgSafeText('https&#58;&#47;&#47;example.com/rest/1/test/').includes('https'));
 });
@@ -180,4 +180,12 @@ test('final decoding masks nested encoded contacts at the published communicatio
  const f=fixture();f.communications={generatedAt:f.generated_at,events:[{id:'act#777',ts:Date.now(),entities:['L10'],type:'Письмо',body:encoded}]};const published=build(f,template,builder,hook).communications.D20;
  assert.ok(!JSON.stringify(published).includes(phone));assert.equal(published.events[0].body,safe);
  let excessive='&laquo;';for(let i=0;i<70;i++)excessive=excessive.replace(/&/g,'&amp;');assert.throws(()=>dgSafeText(excessive),/nesting limit/);
+});
+
+test('an open snapshot reads its own communication history after the server refreshes',async()=>{
+ const f=fixture();f.communications={version:1,generatedAt:f.generated_at,events:[{id:'act#888',ts:Date.now(),entities:['L10'],type:'Письмо',body:'same snapshot </script><script>alert(1)</script>'}]};
+ const built=build(f,template,builder,hook);assert.ok(!built.html.includes('</script><script>alert(1)'));const d=dashboard(f);
+ d.run("fetch=()=>{throw Error('different server snapshot');}");await d.run("dgLoadCommunication('D20')");
+ assert.equal(d.run("dgCommCache.get('D20').generatedAt"),f.generated_at);assert.equal(d.run("dgCommCache.get('D20').events.filter(e=>e.id==='act#888').length"),1);assert.ok(!d.run("dgCommCache.has('D999')"));
+ assert.ok(d.run("dgCommunicationTable('D20')").includes('same snapshot &lt;/script&gt;'));
 });

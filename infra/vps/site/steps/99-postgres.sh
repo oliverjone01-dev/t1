@@ -9,3 +9,5 @@ fi
 GG_SYSTEM_SITE="$SITE" python3 /srv/gg/system-db/current/server.py import
 # Same-version, read-only first screen; filters hydrate from the PostgreSQL payload.
 node "$GG_OPS/site/prerender-rop.cjs" "$SITE"
+
+node "$GG_OPS/site/prepare-shell.cjs" "$SITE"

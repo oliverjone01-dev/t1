@@ -709,7 +709,7 @@ jobs:
         with:
           enablement: true
       # DG is served behind its own login on the VPS; Pages contains no DG records.
-      - name: Verify DG and publish data-free handoff
+      - name: Verify DG and remove retired public routes
         run: |
           set -euo pipefail
           GG_REFERENCE_ROOT=/tmp/rop/analytics-mvp node --test analytics-mvp/gg-dg/check-widgets.cjs

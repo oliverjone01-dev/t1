@@ -1,6 +1,6 @@
 # GG&DG · Домгласс
 
-Production: **https://dash.genglas.ru/gg-dg/**, separate DG login. GitHub stores source and development history. Both former Pages routes contain only a data-free redirect.
+Production: **https://dash.genglas.ru/gg-dg/**, separate DG login. GitHub stores source and development history. Both former Pages routes are removed (404), without redirects.
 
 The page retains Company, Sales Department and Offered Deals. No DG plan exists. Removed widgets are listed in metric-spec.json. The main conversion funnel is vertical and retains the DG lead / qualified-lead / sale counts. Deals/Sales sits beside Count/Amount. Prepayment is the default global amount.
 

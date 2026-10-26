@@ -72,7 +72,64 @@ test('zero comparison is a labelled placeholder; previous windows match selected
 });
 test('calendar counts first production/shipping/completion events and keeps WIP separate',()=>{
  const f=fixture();Object.assign(f.deals[0],{won:true,stageCode:'C49:WON',stage:'Сделка успешна',closed:'2026-10-08',prepayAmt:500,hist:[['C49:PREPAYMENT_INVOIC','2026-09-20'],['C49:EXECUTING','2026-10-03'],['C49:FINAL_INVOICE','2026-10-11'],['C49:FINAL_INVOICE','2026-10-04'],['C49:2','2026-10-06'],['C49:WON','2026-10-08']]});const d=dashboard(f);d.run("S.gran='day';S.calUnit='count'");const h=d.render();
- for(const [row,day] of [['production','04'],['shipping','06'],['completed','08']])assert.ok(h.includes(`data-calcell="${row}|2026-10-${day}"`),row);
- assert.ok(!h.includes('data-calcell="production|2026-10-11"'));for(const row of ['kp','dec','long'])assert.ok(!h.includes(`data-calcell="${row}|`));assert.ok(h.includes('В работе (на конец)'));
- d.run("S.start='2026-10-09';S.end='2026-10-31'");assert.ok(!d.render().includes('data-calcell="completed|'));
+ for(const [row,day] of [['production','04'],['shipping','06'],['completed','08']])assert.equal(d.run(`dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='${row}'))[0].at`),'2026-10-'+day);
+ assert.ok(h.includes('КП отправлено'));assert.ok(h.includes('Формирование ТЗ'));assert.ok(h.includes('остаток на конец'));assert.ok(!h.includes('data-dg-leadstatus='));
+ d.run("S.start='2026-10-09';S.end='2026-10-31'");assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='completed')).length"),0);
+});
+
+test('calendar stock is the stage at bucket end and is never added across buckets',()=>{
+ const f=fixture();f.deals[0].hist=[['C49:NEW','2026-10-02'],['C49:PREPARATION','2026-10-03'],['C49:PREPAYMENT_INVOIC','2026-10-15']];const d=dashboard(f);
+ d.run("S.gran='day';S.start='2026-10-10';S.end='2026-10-20'");
+ assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip'),'2026-10-14').length"),1);
+ assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip'),'2026-10-15').length"),0);
+ assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip')).length"),0);
+});
+
+test('calendar dates use Moscow midnight and reject foreign event owners',()=>{
+ const f=fixture();f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-04T21:30:00Z'),code:'JUNK',semantic:'F'}],deal:[]};const d=dashboard(f);d.run("S.gran='day'");
+ assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='leadLost'))[0].at"),'2026-10-05');
+ f.calendar.lead[0].key='L999';assert.throws(()=>validateRaw(f),/calendar history/);
+});
+
+test('communication files are lazy, scoped and deduplicate the source lead inside a deal',()=>{
+ const f=fixture();f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#1',ts:Date.now(),entities:['L10','D20'],type:'Письмо',dir:'входящее',who:'Клиент',body:'full message'}]};
+ const r=build(f,template,builder,hook);assert.equal(r.communications.D20.events.length,1);assert.equal(r.communications.L10.events.length,1);assert.equal(r.data.communicationIndex.D20.commIds.length,1);assert.ok(!r.html.includes('full message'));
+ f.communications.events[0].entities.push('D999');assert.throws(()=>build(f,template,builder,hook),/Foreign/);
+});
+
+test('Dialog cache paginates all rows and ignores other-source entities',async()=>{
+ const {dgDialogCache}=require('./communications.cjs');const all=Array.from({length:101},(_,i)=>({src:'act#'+i,ts:Date.now(),leadId:'10',stage:'lead',type:'Письмо',body:'body'}));let pages=0;
+ const fetcher=async url=>({ok:true,json:async()=>url.endsWith('/api/status')?{generatedAt:'2026-10-26',imported:'2026-10-26T05:47:00Z'}:(pages++,{total:101,items:all.slice(Number(new URL(url).searchParams.get('page'))*100,Number(new URL(url).searchParams.get('page'))*100+100)})});
+ const c=await dgDialogCache(new Set(['L10']),fetcher);assert.equal(c.events.length,101);assert.equal(pages,2);
+ all[0].leadId='999';assert.equal((await dgDialogCache(new Set(['L10']),fetcher)).events.length,100);
+});
+
+test('fresh communications retain full text, enforce actual bindings and stop on incomplete pages',async()=>{
+ const {dgEnrich}=require('./communications.cjs');const now=Date.now(),body='text '.repeat(1500)+' prefixhttps://example.com/rest/1/private/';const activity={ID:'1',OWNER_TYPE_ID:'2',OWNER_ID:'20',TYPE_ID:'4',DIRECTION:'1',CREATED:new Date(now).toISOString(),SUBJECT:'Mail',DESCRIPTION:body,COMPLETED:'Y'};
+ const source=async(method,p)=>method==='crm.stagehistory.list'?{result:{items:[]},total:0}:method==='crm.activity.binding.list'?{result:[{entityTypeId:1,entityId:10},{entityTypeId:2,entityId:20}]}:method==='crm.activity.list'?{result:[activity],total:1}:{result:[],total:0};
+ const options={leads:[{ID:'10'}],deals:[{ID:'20'}],call:source,now,throttleMs:0,fetcher:async()=>{throw Error('cache down');}};
+ const out=await dgEnrich(options);assert.equal(out.communications.events.length,1);assert.deepEqual(out.communications.events[0].entities,['L10','D20']);assert.ok(out.communications.events[0].body.length>4000);assert.ok(!out.communications.events[0].body.includes('https://'));assert.equal(out.communications.cache.status,'unavailable');
+ await assert.rejects(dgEnrich({...options,call:async(method,p)=>method==='crm.activity.list'?{result:[activity],total:2}:source(method,p)}),/Incomplete/);
+ await assert.rejects(dgEnrich({...options,call:async(method,p)=>method==='crm.activity.binding.list'?{result:[{entityTypeId:2,entityId:999}]}:source(method,p)}),/Foreign bound/);
+});
+
+
+test('calendar reason filter updates both record table and selected totals',()=>{const f=fixture();f.leads[0].qual='неквал';f.leads[0].reason='Тест';f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-04T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[]};const d=dashboard(f);d.run("S.dgCalPick={row:'leadLost',bucket:null,reason:'Absent'}");assert.match(d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='leadLost'))"),/0 из 1 лидов/);});
+
+test('ambiguous archive entity stage and invalid cache dates never become available DG history',async()=>{
+ const {dgDialogCache}=require('./communications.cjs');const item={src:'act#1',ts:Date.now(),leadId:'999',dealId:'20',type:'Письмо',body:'foreign'};
+ const source=async url=>({ok:true,json:async()=>url.endsWith('/api/status')?{generatedAt:'2026-10-26',imported:'2026-10-26T05:47:00Z'}:{total:1,items:[item]}});
+ const out=await dgDialogCache(new Set(['D20']),source);assert.equal(out.events.length,0);assert.equal(out.skippedUnattributed,1);
+ await assert.rejects(dgDialogCache(new Set(['D20']),async()=>({ok:true,json:async()=>({generatedAt:'not-a-date',imported:'2026-10-26T05:47:00Z'})})),/cache version/);
+ const f=fixture();f.communications={generatedAt:'not-a-date',cache:{status:'unavailable'},events:[]};assert.throws(()=>validateRaw(f),/freshness/);
+});
+
+test('timeline ID collisions do not cross lead/deal types',async()=>{
+ const {dgEnrich}=require('./communications.cjs');await assert.rejects(dgEnrich({leads:[{ID:'10'}],deals:[],throttleMs:0,fetcher:async()=>{throw Error();},call:async(method)=>method==='crm.stagehistory.list'?{result:{items:[]},total:0}:method==='crm.activity.list'?{result:[],total:0}:{result:[{ID:'1',ENTITY_ID:'10',ENTITY_TYPE:'deal',CREATED:new Date().toISOString(),COMMENT:'foreign'}],total:1}}),/Foreign timeline/);
+});
+
+test('transcript uncertainty survives serialization and appears next to speaker roles',()=>{
+ const {dgCleanEvent}=require('./communications.cjs'),event=dgCleanEvent({src:'cmt#1',ts:Date.now(),type:'Транскрипт звонка',body:'dialog',roleGuess:true,undiar:true,due:'<img src=x>',speakers:[{role:'Менеджер',text:'hello'}]},['D20']);assert.equal(event.undiar,true);assert.equal(event.due,null);
+ const d=dashboard();d.run('dgCommCache.set("D20",'+JSON.stringify({events:[event]})+')');const html=d.run('dgCommunicationTable("D20")');assert.match(html,/Роли определены по тексту/);assert.match(html,/Надёжного разделения говорящих нет/);
+ d.run("S.dgCalPick={row:'lost',reason:''}");assert.match(d.run("dgCalendarDetail(DG_CAL_ROWS.find(r=>r.id==='lost'))"),/Причина и статус - из текущей карточки/);
 });

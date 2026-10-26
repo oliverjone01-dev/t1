@@ -1,5 +1,5 @@
 {
-  "id": "gg-dg-source-dashboard-v3-compact-drilldowns",
+  "id": "gg-dg-source-dashboard-v4-calendar-communications",
   "authorization": "User requests every GG widget reproduced for DG, published at gg&dg on GitHub. Explicit reply: План ДГ пока не задан. Existing GG metric definitions are inherited, never GG targets. Follow-up: remove requested plan, dynamics, manager, production, data-discipline and offer-control widgets; swap speed/loss widgets before deal funnel; add deal/sales switch, zero rings and lead/deal reason tables.",
   "source": {
     "portal": "glassmemory.bitrix24.ru",
@@ -22,10 +22,10 @@
   "period": "Inclusive Moscow dates. Lead cohort by creation. GG default 30 days, weekly buckets. User can select dates, month, granularity, creation/outcome date basis and created/active funnel modes. Current day partial. Open-pipeline and discipline widgets operate on the current open inventory where the GG reference does so.",
   "conversion": "GG CR1 = converted leads / same lead creation cohort. CR2 and success rates use GG selected cohort/outcome basis and displayed denominators. Ratios are descriptive CRM metrics, not controlled acquisition attribution or fixed-maturation conversion.",
   "money": "GG prepayment/won mode and budget/prepayment amount switches are preserved. Default prepayment event uses first EXECUTING stage, then first later stage in history, then close-date fallback for a won record; amount uses selected CRM field. Open pipeline = current opportunity, not bank revenue. No refunds/tax/accounting inference. RUB/category 49 contract checked before publication.",
-  "plan": "Absent. Requested plan gauges, department dynamics and team plan/fact are removed. Remaining calendar/health widgets show facts and no-plan notes; no GG targets are imported.",
+  "plan": "All plan UI and sales-health widgets removed; no GG targets imported.",
   "production": "GG transfer event and SP1086 link/quantity fields, restricted to eligible deal IDs. Zero linked items is known empty, not unavailable. No sales/production assumed when missing.",
   "manager": "Current assigned managers from DG data, including inactive owners. System/non-sales accounts stay in totals/unallocated rows. Manager cards filter the same DG page; no link to all-source personal dashboards.",
-  "privacy": "No credentials, client titles, contacts, task subjects or free-text comments. Refusal enum retained; comment-only reason marked Указана в CRM. CRM IDs, staff names and aggregate operational metrics remain. Lead reasons only use the explicit observed label dictionary described in drilldown. API keys and raw CRM snapshots never enter the release. Partner HTML has no CRM or internal dashboard links, photos, webhook URLs or credentials. IDs remain plain text.",
+  "privacy": "Customer titles/photos and credentials excluded. Directly bound DG communication text/subjects and reason notes included by user request. Contact masking retained, all URLs and credential-like markers redacted; IDs plain text. Per-record JSON authenticated and scoped; no raw snapshot or credentials in Git.",
   "freshness": "Independent VPS refresh every 15 minutes. Private raw snapshot; atomic publication retains last successful release on failure. Input older than 24 hours fails validation. Source and build timestamps remain visible.",
   "limitations": "Live CRM and GG snapshot share a source family. No external financial reconciliation. Unsupported future currency/category fails publication explicitly; parent source changes must satisfy adapter contracts. No DG sales plan exists.",
   "distribution": {
@@ -35,7 +35,7 @@
     "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments."
   },
   "drilldown": {
-    "leads": "Funnel stage or refusal status opens the same FL cohort; optional reason filter and text search. Shows ID, owner, dates, status, main reason, amount/currency, source/direction and linked DG deals from all dates.",
+    "leads": "Lead funnel opens same FL creation cohort; refusal chart is nonclickable. Calendar refusals expand by operational reason then current manager, record and full communication history.",
     "deals": "A distribution category opens the same selected deals/sales subset. IDs are plain text; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
     "reasonFields": [
       "UF_CRM_1730742511284",
@@ -69,26 +69,43 @@
     "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values."
   },
   "calendar": {
-    "cohort": "Eligible DG deals with an offer-stage history entry. Later rows do not invent offers for skipped stages.",
-    "rows": [
-      "in",
-      "wip",
-      "vyhod",
-      "win",
-      "loss",
-      "production",
-      "shipping",
-      "completed"
-    ],
-    "events": {
-      "production": "First C49:FINAL_INVOICE entry",
-      "shipping": "First C49:2 entry",
-      "completed": "First C49:WON entry, or closed date only for won deal if history is absent"
+    "population": "All current source-eligible DG leads/deals, irrespective of their creation date when counting later stage events.",
+    "dates": "Inclusive Europe/Moscow dates; current day partial.",
+    "leadCreated": "CRM creation date",
+    "leadLost": "First historical F semantic entry; reason/current assignee from current CRM card.",
+    "dealCreated": "CRM creation date",
+    "wip": {
+      "userConfirmation": "26.10.2026: Остаток открытых сделок на этапе",
+      "stage": "C49:PREPARATION",
+      "formula": "Latest history event at min(bucket end 23:59:59.999+03:00,snapshot time) is this stage with P semantics. Period total is final stock, not sum of buckets."
     },
-    "wip": "Open offer cohort at bucket end, not a sum of events. Rows can overlap across lifecycle stages.",
-    "money": "Selected global amount mode; prepayment by default."
+    "stages": {
+      "kp": "C49:PREPAYMENT_INVOIC",
+      "prepay": "C49:EXECUTING",
+      "production": "C49:FINAL_INVOICE",
+      "shipping": "C49:2",
+      "success": "C49:WON",
+      "lost": "First F semantic deal history event"
+    },
+    "eventPolicy": "First lifetime entry only; repeat entries do not inflate counts. History completeness/current-stage consistency required before publication. Different stage rows are not additive.",
+    "money": "Lead: known RUB opportunity, missing/foreign currency flagged. Deal: selected amount field. Manager table budget labelled separately.",
+    "manager": "Current responsible manager, not historical owner."
   },
   "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
   "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects.",
-  "planPresentation": "All plan controls, notices and calendar plan strips are removed. Sales health is removed. Factual metric definitions are unchanged."
+  "planPresentation": "All plan controls, notices and calendar plan strips are removed. Sales health is removed. Factual metric definitions are unchanged.",
+  "communications": {
+    "authorization": "User asks all communications for DG leads/deals with Dialog table hierarchy.",
+    "sources": [
+      "Complete Bitrix activity lists filtered by exact BINDINGS",
+      "Lead/deal timeline comments, every page",
+      "Existing read-only loopback Dialog cache, only eligible L/D keys"
+    ],
+    "dedup": "Global source ID act#/cmt#; union of direct eligible bindings. Converted lead cache events can live under D-key but original entity stage is rechecked. Deal history includes originating eligible lead; aggregate counts use distinct event IDs.",
+    "types": "Calls/email/messages/SMS count as communications; tasks/notes/service/stages are separate events.",
+    "period": "Full record history on expansion; calendar period only highlights relevant events.",
+    "delivery": "Lazy static communications/L<id>.json or D<id>.json protected by dedicated DG Basic Auth; no arbitrary proxy. Payload generation must equal page generation.",
+    "security": "Contact mask, escaped text, no links/webhooks/keys/AI actions; existing transcripts only, no model or Telegram API use.",
+    "coverage": "Source API visibility applies. Dialog freshness is explicit and can lag. Missing cache is a labelled gap, not zero communication. No claim of recovering deleted/unavailable CRM content."
+  }
 }

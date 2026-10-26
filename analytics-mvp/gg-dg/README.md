@@ -1,32 +1,43 @@
-# GG&DG — source-scoped dashboard and CRM drilldowns
+# GG&DG · Домгласс
 
-Published at `/gg&dg/`. The user requested every widget from `/rop/` and confirmed on 2026-10-26 that **no DG plan exists**. The production build uses the same GG collector, builder and template already checked out by the shared Pages workflow. The follow-up layout has three sections: Company, Sales Department and Offered Deals. It retains GG styling, factual formulas and filters while removing the exact widgets listed in `metric-spec.json`. `template.cjs` adapts source-specific behavior, empty states, links and absent plans; `no-plan.js` keeps factual values without GG goals, quotas or attainment colors.
+Production: **https://dash.genglas.ru/gg-dg/**, separate DG login. GitHub stores source and development history. Both former Pages routes contain only a data-free redirect.
 
-## Interaction
+The page retains Company, Sales Department and Offered Deals. No DG plan exists. Removed widgets are listed in metric-spec.json. The main conversion funnel is vertical and retains the DG lead / qualified-lead / sale counts. Deals/Sales sits beside Count/Amount. Prepayment is the default global amount.
 
-`sales-explorer.js` adds Deals / Sales and Count / Amount switches to all three distributions. Deals use the selected creation cohort; sales reuse the GG sale event and date-basis controls. Every category is retained. Empty/zero totals render gray rings. Category clicks open a sortable, searchable table with CRM links.
+## Data and privacy
 
-Lead funnel bars and refusal segments/legend rows open a reason summary and the matching lead table. Related DG deals are shown across all dates and labelled accordingly. The three CRM lead reason fields are verified as strings; only exact known operational labels are published. Unknown free text stays in CRM. The reason percentage denominator is the displayed refused-lead subset. No customer titles, phone numbers or raw comments are exposed.
+Leads require exact source UC_NQ3QUI (Заявка с ДГ). Deals require that source or an eligible lead link. Pagination, totals, unique IDs and owner scopes are checked. History, tasks, touches and production records are restricted to those IDs. Shared contact/company activity is excluded. Category 49 and RUB are required. Unsupported values, stale input or source drift stop publication.
 
-## Build
+The shared GG database lacks source IDs, lead links and extended reasons. DG therefore uses an independent server collector and a dedicated Bitrix environment file. Never source the general GG environment or invoke gg-poll, gg-job, their alert wrappers, OpenAI APIs or Telegram APIs for DG work.
 
-Node 22.23+ and existing `B24_WEBHOOK_URL` secret:
+The browser receives only sanitized scoped records. Customer titles, contacts, task subjects, arbitrary comments, photos and credentials are excluded. Lead reasons use a strict operational label dictionary. IDs remain plain text. CRM and other dashboard links are removed before DOM insertion. No raw snapshot or password may enter Git.
 
-```sh
-GG_REFERENCE_ROOT=/tmp/rop/analytics-mvp node --test analytics-mvp/gg-dg/check-widgets.cjs
-node analytics-mvp/gg-dg/collect-widgets.cjs /tmp/rop/analytics-mvp /tmp/gg-dg-collector.mjs
-node /tmp/gg-dg-collector.mjs
-node analytics-mvp/gg-dg/build-widgets.cjs /tmp/gg-dg-widgets.json /tmp/rop/analytics-mvp '_site/gg&dg'
-```
+## Metrics and interaction
 
-Only read methods are used. Leads have source `UC_NQ3QUI` (“Заявка с ДГ”). Deals have that source or link to an eligible lead. IDs are deduplicated. All pages, totals and returned owner IDs are checked. History, open tasks, touches, channel counts and production items are queried by these IDs. Contact/company activity is excluded because a shared contact can concern a different source. Empty scopes never result in unrestricted queries. Reference source drift, incomplete collection, a stale snapshot or an unsupported stage/currency stops deployment before upload.
+Distribution deals use the creation cohort and budget. Sales reuse the selected GG sale event, date basis and amount. Every category is retained; zero totals show gray rings. Categories and lead refusal segments open searchable, sortable tables. Related DG deals may come from other dates and are labelled accordingly.
 
-The same GG formulas require category 49 and RUB; current DG records satisfy these contracts. A future different category/currency fails explicitly and needs a matching widget model rather than being silently dropped. Dates use Moscow calendar days. The current day is visibly marked incomplete. See `metric-spec.json` for date-basis, revenue-mode and funnel semantics inherited from GG.
+Calendar WIP is a stock at bucket end. Other rows count lifecycle events and cannot be summed across stages. Production is first C49:FINAL_INVOICE, shipping first C49:2, completion first C49:WON. Won deals without completion history use the close date. The offer cohort remains; skipped stages are not invented. Calendar amounts use the selected global amount.
 
-Source snapshots and credentials are not committed. Only generated HTML, freshness stamp and an aggregate manifest are published. Client titles, contact fields, task subjects and raw comments are excluded; deal refusal reasons use the CRM enum or “Указана в CRM” when only a free-text comment exists; lead reasons use the small verified operational-label dictionary. Manager names and operational CRM IDs remain, as in GG. `noindex,nofollow` is not access control.
+Moscow calendar dates are used. Comparison uses the previous adjacent interval of equal inclusive length (7 vs previous 7, 30 vs previous 30, likewise for custom ranges). A zero/missing previous value shows neutral 0% with a tooltip. A nonzero base uses the calculated relative change.
 
-The existing Pages schedule is retained. Each deployment collects DG again. The manifest records the exact GG template SHA-256, collection timestamp, source ID and counts. At the live probe on 2026-10-26 12:02 Moscow there were 45 leads, 7 deals, 6 open deals and RUB 513111 open pipeline; example 54999 belongs to the source. No won/prepayment events existed at that point. These are live CRM figures, not accounting reconciliation.
+## Verification
 
-## Verification and rollback
+Node 22.23+ is required. Set GG_REFERENCE_ROOT to a GG analytics root and run node --test analytics-mvp/gg-dg/check-widgets.cjs. Tests use synthetic records without network or credentials. Also check desktop/phone layout, filters, zero sales, drilldowns and navigation.
 
-`check-widgets.cjs` verifies pagination, source isolation, empty datasets, category/currency guards, private-text exclusion, script escaping and no-plan output against the live GG source contract. The tests also verify removed rendered sections, section order, gray zero rings, reconciliation across more than eight categories, prepayment/date-basis semantics, safe reason mapping, linked deals across dates and filtered lead rows. Browser checks cover clicks, searches, switches, empty periods and mobile overflow. The original small-dashboard files are retained for rollback but are no longer deployed. Revert this GG&DG workflow step to the earlier collector/build commands to restore the first version. Shared GG pages, their sources, CRM records and schedules are unchanged.
+collect-widgets.cjs adapts the four reference files from rop-dashboard-v1. Run the generated collector only with the dedicated Bitrix setting. build-widgets.cjs validates the private snapshot, then builds HTML/v.txt/manifest. Reference files are pinned inside each code release and hashed in release.json.
+
+## VPS operation
+
+vps/install.py accepts an audited JSON package over authenticated SSH stdin: fingerprint, gitCommit, files (relative paths to base64 source), reference (four base64 files), referenceSha256, username=domglass, and the locally generated password. Keep the package/password out of Git and process arguments.
+
+The installer creates a dedicated gg-dg service account, private source/state, a separate nginx password file and route include. It validates a fresh build before exposing the route, tests nginx before reload, and verifies that DG credentials cannot open other dashboards or the shared API.
+
+- Source: /srv/gg/dg/code/releases/<fingerprint>, with a current symlink.
+- Private state: /srv/gg/dg/state. Bitrix environment: /etc/gg-dg/bitrix.env, root-only.
+- Authenticated files: /srv/gg/dg-www/current/index.html and v.txt. This root is outside the shared importer scan and has no legacy fallback.
+- gg-dg-refresh.timer runs every 15 minutes and after startup. Its service limits CPU/memory and has no notification hooks. Publication is atomic; five releases remain for rollback. Failed collection keeps the last successful page and logs only the failed stage.
+- TLS /gg-dg/ uses its own realm and password file. Common root/API routes still require GG credentials. CSP limits connections to this origin and existing font providers.
+
+Rollback by restoring the previous DG code and web symlinks. Nginx backups are under /srv/gg/dg/rollback; validate with nginx -t before reload. Never replace the shared GG root or restart unrelated applications. Review deployment code before each update.
+
+See CHANGELOG.md and metric-spec.json for development history and exact formulas.

@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh Domglass dashboard every 15 minutes
+
+[Timer]
+OnBootSec=2min
+OnCalendar=*-*-* *:00/15:00
+RandomizedDelaySec=30
+Persistent=true
+Unit=gg-dg-refresh.service
+
+[Install]
+WantedBy=timers.target

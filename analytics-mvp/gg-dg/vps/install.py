@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """Transactional DG install from an audited package over SSH stdin."""
-import base64,datetime,fcntl,grp,hashlib,http.client,json,os,pathlib,pwd,re,shutil,ssl,subprocess,sys
+import base64,datetime,fcntl,grp,hashlib,http.client,json,os,pathlib,pwd,re,shutil,ssl,subprocess,sys,time
 payload=json.load(sys.stdin)
 fingerprint=payload['fingerprint']
 assert re.fullmatch('[a-f0-9]{64}',fingerprint)
@@ -115,7 +115,7 @@ try:
     for target in [conf,snippet]:
         assert (target.read_bytes() if target.exists() else None)==(saved[target][0].read_bytes() if saved[target] else None), 'Nginx changed during preparation'
     touched.update([conf,snippet])
-    snippet.write_text((CODE/'vps/nginx.conf').read_text().replace('/etc/nginx/gg-dg.htpasswd',str(auth_path)));snippet.chmod(0o644)
+    snippet.write_text((CODE/'vps/nginx.conf').read_text().replace('/etc/nginx/gg-dg.htpasswd',str(auth_path)).replace('__DG_RELEASE__',fingerprint));snippet.chmod(0o644)
     nginx_touched=True;conf.write_text(candidate)
     command(['/usr/sbin/nginx','-t'])
     set_link(BASE/'code/current',CODE)
@@ -128,10 +128,16 @@ try:
     command(['/usr/bin/systemctl','daemon-reload'])
     command(['/usr/bin/systemctl','reload','nginx'])
     authorization='Basic '+base64.b64encode((payload['username']+':'+payload['password']).encode()).decode()
-    def status(path,authenticated):
+    def status(path,authenticated,with_release=False):
         connection=http.client.HTTPSConnection('dash.genglas.ru',timeout=20,context=ssl.create_default_context())
         connection.request('GET',path,headers={'Authorization':authorization} if authenticated else {})
-        response=connection.getresponse();code=response.status;response.read();connection.close();return code
+        response=connection.getresponse();code=response.status;version=response.getheader('X-DG-Release');response.read();connection.close();return (code,version) if with_release else code
+    # reload is asynchronous: old workers can still answer with the GG auth realm.
+    # Wait for this exact route generation before testing its credentials.
+    for attempt in range(40):
+        if status('/gg-dg/',False,True)==(401,fingerprint): break
+        time.sleep(0.25)
+    else: raise RuntimeError('DG route generation did not become ready')
     checks=[]
     for path in ['/gg-dg/','/gg-dg/index.html','/gg-dg/v.txt']:
         for authenticated,expected in [(False,401),(True,200)]:

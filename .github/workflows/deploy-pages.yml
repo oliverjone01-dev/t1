@@ -708,8 +708,19 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      # GG&DG: scoped, read-only live CRM snapshot; no customer contacts or titles.
+      - name: Build GG&DG source dashboard (/gg&dg/)
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          node --test analytics-mvp/gg-dg/metrics.test.cjs
+          node analytics-mvp/gg-dg/fetch.cjs /tmp/gg-dg-snapshot.json
+          node analytics-mvp/gg-dg/build.cjs /tmp/gg-dg-snapshot.json "_site/gg&dg"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
+

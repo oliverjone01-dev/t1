@@ -236,3 +236,6 @@ table thead{position:sticky!important;top:0!important;z-index:12;background:var(
 #gg-dashboard .gg-loss-layout>.card{width:100%!important;max-width:none;margin:0;box-sizing:border-box}
 #gg-dashboard svg[aria-label="Вертикальная труба: вход, в работе, выход"] text[fill="#fff"]{fill:#101418!important}
 
+
+/* Ring hit testing is handled by the shared legend link rather than full dashed circle strokes. */
+.gg-revenue-composition .gg-composition-arc{pointer-events:none}

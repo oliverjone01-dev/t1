@@ -261,3 +261,26 @@
 
 // Apply the complete adapter chain once after all wrappers are installed.
 render();
+
+// Linked ring/legend hover uses angle hit testing, so dashed SVG circles cannot steal hits.
+(function(){
+ let activeHost=null;
+ function mark(host,index){
+  if(activeHost&&activeHost!==host)mark(activeHost,null);
+  if(!host)return;const value=index==null?'':String(index);if(host.dataset.ggHoverCategory===value)return;
+  host.querySelectorAll('[data-category-index]').forEach(n=>n.classList.toggle('gg-category-active',value!==''&&n.dataset.categoryIndex===value));
+  host.dataset.ggHoverCategory=value;const svg=host.querySelector('svg.gg-composition'),row=value!==''&&host.querySelector('.gg-revenue-category[data-category-index="'+value+'"]');
+  if(svg){if(row?.dataset?.tip)svg.dataset.tip=row.dataset.tip;else delete svg.dataset.tip;}
+  activeHost=value!==''?host:null;
+ }
+ function entry(e){const n=e.target.closest?.('.gg-revenue-composition [data-category-index]');if(n)mark(n.closest('.gg-revenue-composition'),n.dataset.categoryIndex);}
+ document.addEventListener('pointerover',entry);document.addEventListener('focusin',entry);
+ document.addEventListener('pointermove',e=>{
+  const svg=e.target.closest?.('.gg-revenue-composition svg.gg-composition');if(!svg){if(activeHost&&!activeHost.contains(e.target)&&!e.target.closest?.('#tip'))mark(activeHost,null);return;}
+  const host=svg.closest('.gg-revenue-composition'),pointInSvg=svg.createSVGPoint(),matrix=svg.getScreenCTM();if(!matrix)return;pointInSvg.x=e.clientX;pointInSvg.y=e.clientY;const local=pointInSvg.matrixTransform(matrix.inverse()),x=local.x-100,y=local.y-100,d=Math.hypot(x,y);
+  if(d<50||d>88){mark(host,null);return;}
+  const arcs=[...svg.querySelectorAll('.gg-composition-arc')],total=arcs.reduce((s,n)=>s+Number(n.dataset.arcLength||0),0),angle=(Math.atan2(y,x)+Math.PI/2+2*Math.PI)%(2*Math.PI),point=angle/(2*Math.PI)*total;
+  let end=0,index=null;for(const arc of arcs){end+=Number(arc.dataset.arcLength||0);if(point<end){index=arc.dataset.categoryIndex;break;}}mark(host,index);
+ });
+ for(const type of ['pointerout','focusout'])document.addEventListener(type,e=>{const host=e.target.closest?.('.gg-revenue-composition');if(!host)return;const next=e.relatedTarget?.closest?.('.gg-revenue-composition [data-category-index]');if(next&&next.closest('.gg-revenue-composition')===host)return;if(type==='pointerout'&&(e.relatedTarget?.closest?.('svg.gg-composition')?.closest('.gg-revenue-composition')===host||e.relatedTarget?.closest?.('#tip')))return;mark(host,null);});
+})();

@@ -18,6 +18,9 @@ function leadReason(row){
 function once(s,from,to){if(s.split(from).length!==2)throw Error('GG collector contract changed: '+from.slice(0,90));return s.replace(from,to);}
 function adapt(source,mask){
   let s=source.replace(/\r\n/g,'\n');
+  const normalizer=fs.readFileSync(path.join(__dirname,'dialog-normalize.cjs'),'utf8').replace('module.exports=','const createDGNormalizer=');
+  const enrichment=fs.readFileSync(path.join(__dirname,'communications.cjs'),'utf8').replace("const createDGNormalizer=require('./dialog-normalize.cjs');",'').replace(/^module\.exports=.*$/m,'');
+  s=normalizer+'\n'+enrichment+'\n'+s;
   s=`const DG_REASON_FIELDS=${JSON.stringify(DG_REASON_FIELDS)};\n${leadReason.toString()}\n${assertLeadReasonFields.toString()}\n`+s;
   s=once(s,'const leadFields: any = (await call("crm.lead.fields", {})).result || {};','const leadFields: any = (await call("crm.lead.fields", {})).result || {}; assertLeadReasonFields(leadFields);');
   s=once(s,'import { maskDeep } from "../../lib/mask-contacts.mjs";',mask.replace(/^export\s+/gm,''));
@@ -57,7 +60,9 @@ function adapt(source,mask){
   s=once(s,'filter: { ENTITY_ID: dl.id, ENTITY_TYPE: "deal" }, order: { CREATED: "ASC" },\n      });','filter: { ENTITY_ID: dl.id, ENTITY_TYPE: "deal" }, order: { CREATED: "ASC" },\n      })};');
   s=once(s,'} catch { return; }','} catch (e) { throw e; }');
   s=s.replaceAll('mkdirSync("rop/data", { recursive: true });','// Output parent is prepared by the workflow.');
-  s=once(s,'writeFileSync(OUT, JSON.stringify(maskDeep(out, MASK_SKIP)));',`out.scope={sourceId:'${SOURCE_ID}',sourceName:'${SOURCE_NAME}',leadIds:SC.leads.map(x=>String(x.ID)),dealIds:SC.deals.map(x=>String(x.ID)),collection:'GG collector with source-scoped pagination'};
+  s=once(s,'writeFileSync(OUT, JSON.stringify(maskDeep(out, MASK_SKIP)));',`const extra=await dgEnrich({leads:SC.leads,deals:SC.deals,call,names:mgrName,reasonFields:DG_REASON_FIELDS});
+  out.calendar=extra.calendar;out.communications=extra.communications;
+  out.scope={sourceId:'${SOURCE_ID}',sourceName:'${SOURCE_NAME}',leadIds:SC.leads.map(x=>String(x.ID)),dealIds:SC.deals.map(x=>String(x.ID)),collection:'GG collector with source-scoped pagination'};
   const text=JSON.stringify(maskDeep(out,MASK_SKIP));
   if(process.env.GG_DG_STDOUT==='1')process.stdout.write(text);else writeFileSync(OUT,text);`);
   // Keep stdout machine-readable for the existing secure SSH collection path.

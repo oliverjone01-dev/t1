@@ -271,6 +271,19 @@ const readNd = (f: string): any[] => existsSync(f)
 const add = (m: Map<string, number>, k: string, v: number): void => { m.set(k, (m.get(k) ?? 0) + v); };
 const chip = (st: string): string => `<span class="chip ${st === "идём" ? "chip-done" : st === "отстаём" ? "chip-bad" : "chip-off"}">${st}</span>`;
 
+interface OrderModel { model: string; units: number; share: number; skus: Array<{ sku: string; offer: string; units: number }> }
+interface OrderBreakdown { total: number | null; end: string; models: OrderModel[] }
+function renderOrderBreakdown(b: OrderBreakdown, start: string): string {
+  const head = `<div class="ob-head"><b>Заказы по моделям</b><span>${DM(start)}-${b.end ? DM(b.end) : "?"} · ${F(b.total)} шт.</span></div>`;
+  if (b.total == null || b.total === 0) return `<section class="order-breakdown">${head}<p class="muted">${b.total == null ? "Нет данных за период" : "Заказов за период нет"}</p></section>`;
+  return `<section class="order-breakdown">${head}` + b.models.map((m) =>
+    `<details class="ob-model"><summary><span class="ob-name">${esc(m.model)}</span>`
+    + `<span class="ob-track" aria-hidden="true"><span style="width:${m.share}%"></span></span>`
+    + `<b>${F(m.units)} шт.</b><span class="ob-share">${F(m.share, 1)}%</span></summary>`
+    + `<div class="ob-skus">${m.skus.map((s) => `<div><span>${esc(s.offer)} <span class="muted">· SKU ${esc(s.sku)}</span></span><b>${F(s.units)} шт.</b></div>`).join("")}</div></details>`
+  ).join("") + `</section>`;
+}
+
 export interface PlanBlock { html: string; css: string; js: string; warnings: string[] }
 
 /** Блок целиком. null - плана нет (файл не положен), страница собирается без блока. */
@@ -323,6 +336,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   // заказы
   const skuDayAll = new Map<string, number>();   // с отменами, для сверки с кабинетом
   const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
+  const orderSkuUnits = new Map<string, number>(); // детализация того же окна и тех же принятых строк
   const odArt = new Map<string, number>();   // артикул|день -> шт без отмен (раздел 5, Иван 20.10)
   const ordRows = readNd(dp("orders_daily.ndjson"));
   const OD_RAW_LAST = ordRows.reduce((m, o) => o.d > m ? o.d : m, "");
@@ -337,6 +351,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (o.status === "cancelled") continue;
     const u = Number(o.units) || 0, i = SKU_CARD.get(String(o.sku));
     if (i != null) add(od[i]!, o.d, u);
+    if (o.d >= START && o.d <= W1) add(orderSkuUnits, String(o.sku), u);
     add(stU, o.d, u); add(stRev, o.d, Number(o.revenue) || 0);
     // заказы по артикулу (offer) для раздела 5 «Цена»: те же строки и правила, что у карточек (без отмен, день по Москве)
     add(odArt, `${o.offer}|${o.d}`, u);
@@ -399,6 +414,32 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const nIn = daysIn(START, OD_LAST >= START ? OD_LAST : "");
   const gU = P.goal.units.oct;
 
+  const taxonomy: Record<string, { model?: string; offer?: string }> = existsSync(dp("sku_taxonomy.json"))
+    ? JSON.parse(readFileSync(dp("sku_taxonomy.json"), "utf-8")) : {};
+  const frozenOffers = new Map(G.flatMap((g) => g.skus.map((s) => [String(s.sku), s.offer] as const)));
+  const orderWindow = ordWindow(START, W1, OD_LAST);
+  const breakdown = (skus: string[], total: number | null): OrderBreakdown => {
+    const byModel = new Map<string, OrderModel>();
+    for (const sku of new Set(skus)) {
+      const units = orderSkuUnits.get(sku) ?? 0;
+      if (units === 0) continue;
+      const offer = frozenOffers.get(sku) || taxonomy[sku]?.offer || sku;
+      const model = taxonomy[sku]?.model?.trim() || `Модель не указана · ${offer}`;
+      const m = byModel.get(model) ?? { model, units: 0, share: 0, skus: [] };
+      m.units += units; m.skus.push({ sku, offer, units }); byModel.set(model, m);
+    }
+    const models = [...byModel.values()].sort((a, b) => b.units - a.units || a.model.localeCompare(b.model, "ru"));
+    const sum = models.reduce((n, m) => n + m.units, 0);
+    if (sum !== (total ?? 0)) throw new Error(`Разбивка заказов: ${sum} != ${total}`);
+    for (const m of models) {
+      m.share = total ? m.units / total * 100 : 0;
+      m.skus.sort((a, b) => b.units - a.units || a.offer.localeCompare(b.offer, "ru"));
+    }
+    return { total, end: orderWindow.end, models };
+  };
+  const orderBreakdown = cards.map((c, i) => breakdown(c.skus, wsum(SER[i]!.orders, START, W1)));
+  const storeBreakdown = breakdown([...orderSkuUnits.keys()], wsum(STORE.orders, START, W1));
+
   // ---------- 1. заказы: 10 карточек и весь магазин
   const rows2: string[] = [];
   cards.forEach((c, i) => {
@@ -407,14 +448,14 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     rows2.push(`<tr class="crow" data-i="${i}"><td><b><span class="tw">▸</span> ${esc(c.short)}</b><div class="muted s">${esc(c.main_art)}</div></td>`
       + `<td class="r">${c.threshold}${thrP}</td><td class="r">${F(got)}</td><td class="r">${F(Math.max(0, c.threshold - (got ?? 0)))}</td>`
       + `<td class="r">${F(2 * c.u_wk_base, 1)}</td><td class="r">${F(pre)}</td><td>${chip(cardStatus(got, c.threshold, nIn))}</td></tr>`
-      + `<tr class="cdet" id="pt-cdet${i}" hidden><td colspan="7"><div id="pt-mc${i}"></div></td></tr>`);
+      + `<tr class="cdet" id="pt-cdet${i}" hidden><td colspan="7"><div id="pt-mc${i}"></div>${renderOrderBreakdown(orderBreakdown[i]!, START)}</td></tr>`);
   });
   const sNeed = Math.round(goalPath(gU, 28, "mid") - goalPath(gU, 14, "mid")), sBase = goalPath(gU, 28, "lo") - goalPath(gU, 14, "lo");
   const sGot = wsum(STORE.orders, START, W1), sPre = wsum(STORE.orders, "2026-10-01", "2026-10-14");
   rows2.push(`<tr class="crow total" data-i="S"><td><b><span class="tw">▸</span> Весь магазин</b><div class="muted s">цель октября, 15-28.10</div></td>`
     + `<td class="r">${sNeed}</td><td class="r">${F(sGot)}</td><td class="r">${F(Math.max(0, sNeed - (sGot ?? 0)))}</td>`
     + `<td class="r">${F(sBase, 1)}</td><td class="r">${F(sPre)}</td><td>${chip(sGot == null ? "нет данных" : nIn < 3 ? "рано" : sGot >= storeNeed(gU, nIn) ? "идём" : "отстаём")}</td></tr>`
-    + `<tr class="cdet" id="pt-cdetS" hidden><td colspan="7"><div id="pt-mcS"></div></td></tr>`);
+    + `<tr class="cdet" id="pt-cdetS" hidden><td colspan="7"><div id="pt-mcS"></div>${renderOrderBreakdown(storeBreakdown, START)}</td></tr>`);
   const tbl2 = `<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>`
     + `<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>`
     + `<th class="r" title="Те же 14 дней до старта">01-14.10</th><th>Статус</th></tr></thead><tbody>${rows2.join("")}</tbody></table></div>`;
@@ -553,6 +594,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const DATA = {
     days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),
     cards: cards.map((c) => ({ short: c.short, art: c.main_art, thr: c.threshold, thrp: c.threshold_price, base2: Math.round(2 * c.u_wk_base * 100) / 100 })),
+    order_breakdown: orderBreakdown, store_breakdown: storeBreakdown,
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,
     store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10,
       path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },

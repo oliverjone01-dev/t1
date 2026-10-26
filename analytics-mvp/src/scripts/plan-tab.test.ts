@@ -523,9 +523,18 @@ describe("заказы внутри группы по моделям", () => {
     const doc = dom.window.document;
     (doc.querySelector('.crow[data-i="0"]') as HTMLElement).click();
     expect(doc.querySelector('#pt-cdet0')?.hasAttribute('hidden')).toBe(false);
-    expect(doc.querySelector('#pt-cdet0 .ob-track>span')?.getAttribute('style')).toBe('width:100%');
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-stack>span')?.style.width).toBe('100%');
+    expect(doc.querySelector('#pt-cdet0 .order-breakdown')?.textContent).not.toContain('%');
+    const pill = doc.querySelector<HTMLButtonElement>('#pt-cdet0 .ob-pill')!;
+    expect(pill.textContent).toBe('Стол 1603 шт.');
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(true);
+    pill.click();
+    expect(pill.getAttribute('aria-expanded')).toBe('true');
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(false);
     expect(doc.querySelector('#pt-cdet0 .ob-skus')?.textContent).toContain('A-1');
     expect(doc.querySelector('#pt-mc0 svg')).not.toBeNull();
+    pill.click();
+    expect(doc.querySelector<HTMLElement>('#pt-cdet0 .ob-skus')?.hidden).toBe(true);
     dom.window.close();
   });
   it("разные модели: доли от общего числа, неизвестная модель не теряется", () => {
@@ -566,5 +575,30 @@ describe("заказы внутри группы по моделям", () => {
     const doc = new JSDOM(b.html).window.document;
     expect(doc.querySelector('#pt-cdet0 .ob-name')?.textContent).toBe(model);
     expect(doc.querySelector('#pt-cdet0 img')).toBeNull();
+  });
+});
+
+describe("компактные плашки моделей", () => {
+  it("полное имя и штуки без процентов; одна открытая модель; малая доля", () => {
+    const dp = fixture({ orders: [
+      { d: "2026-10-16", sku: "1", units: 99, status: "delivered" },
+      { d: "2026-10-16", sku: "2", units: 1, status: "delivered" },
+    ] });
+    const longName = "KUVINO NF LED L, с сенсорным выключателем";
+    writeFileSync(dp("sku_taxonomy.json"), JSON.stringify({ "1": { model: "TRUBIS Wood Oval 160" }, "2": { model: longName } }));
+    const b = planBlock("2026-10-26", dp)!;
+    const dom = new JSDOM(`<html><body>${b.html}<script>${b.js}</script></body></html>`, { runScripts: "dangerously", pretendToBeVisual: true });
+    const doc = dom.window.document, group = doc.querySelector('#pt-cdet0 .order-breakdown')!;
+    const pills = group.querySelectorAll<HTMLButtonElement>('.ob-pill'), panels = group.querySelectorAll<HTMLElement>('.ob-skus');
+    expect(pills[1]!.querySelector('.ob-name')!.textContent).toBe(longName);
+    expect(pills[1]!.querySelector('b')!.textContent).toBe('1 шт.');
+    expect(group.textContent).not.toContain('%');
+    expect(group.querySelectorAll<HTMLElement>('.ob-stack>span')[1]!.style.width).toBe('1%');
+    pills[0]!.click(); expect(panels[0]!.hidden).toBe(false);
+    pills[1]!.click(); expect(panels[0]!.hidden).toBe(true); expect(panels[1]!.hidden).toBe(false);
+    expect(pills[0]!.getAttribute('aria-expanded')).toBe('false');
+    pills[1]!.click(); expect(panels[1]!.hidden).toBe(true);
+    const ids = Array.from(doc.querySelectorAll('[id]'), el => el.id); expect(new Set(ids).size).toBe(ids.length);
+    dom.window.close();
   });
 });

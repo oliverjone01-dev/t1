@@ -273,15 +273,20 @@ const chip = (st: string): string => `<span class="chip ${st === "идём" ? "c
 
 interface OrderModel { model: string; units: number; share: number; skus: Array<{ sku: string; offer: string; units: number }> }
 interface OrderBreakdown { total: number | null; end: string; models: OrderModel[] }
-function renderOrderBreakdown(b: OrderBreakdown, start: string): string {
+const MODEL_COLORS = ["#22d3ee", "#a28eea", "#efbb55", "#65c7a3", "#d58aad", "#72a7ed", "#e89965", "#a6be63"];
+function renderOrderBreakdown(b: OrderBreakdown, start: string, id: string): string {
   const head = `<div class="ob-head"><b>Заказы по моделям</b><span>${DM(start)}-${b.end ? DM(b.end) : "?"} · ${F(b.total)} шт.</span></div>`;
   if (b.total == null || b.total === 0) return `<section class="order-breakdown">${head}<p class="muted">${b.total == null ? "Нет данных за период" : "Заказов за период нет"}</p></section>`;
-  return `<section class="order-breakdown">${head}` + b.models.map((m) =>
-    `<details class="ob-model"><summary><span class="ob-name">${esc(m.model)}</span>`
-    + `<span class="ob-track" aria-hidden="true"><span style="width:${m.share}%"></span></span>`
-    + `<b>${F(m.units)} шт.</b><span class="ob-share">${F(m.share, 1)}%</span></summary>`
-    + `<div class="ob-skus">${m.skus.map((s) => `<div><span>${esc(s.offer)} <span class="muted">· SKU ${esc(s.sku)}</span></span><b>${F(s.units)} шт.</b></div>`).join("")}</div></details>`
-  ).join("") + `</section>`;
+  // Цвет одинаков у сегмента и его плашки; имя и штуки доступны без наведения, даже у доли в 1 шт.
+  const color = (i: number): string => MODEL_COLORS[i % MODEL_COLORS.length]!;
+  const strip = `<div class="ob-stack" aria-hidden="true">${b.models.map((m, i) =>
+    `<span style="width:${m.share}%;background:${color(i)}"></span>`).join("")}</div>`;
+  const pills = `<div class="ob-pills">${b.models.map((m, i) =>
+    `<button type="button" class="ob-pill" id="${id}-button-${i}" style="--model-color:${color(i)}" aria-expanded="false" aria-controls="${id}-sku-${i}">`
+    + `<span class="ob-name">${esc(m.model)}</span><b>${F(m.units)} шт.</b></button>`).join("")}</div>`;
+  const skuPanels = b.models.map((m, i) => `<div class="ob-skus" id="${id}-sku-${i}" role="region" aria-labelledby="${id}-button-${i}" hidden>`
+    + m.skus.map((s) => `<div><span>${esc(s.offer)} <span class="muted">· SKU ${esc(s.sku)}</span></span><b>${F(s.units)} шт.</b></div>`).join("") + `</div>`).join("");
+  return `<section class="order-breakdown">${head}${strip}${pills}${skuPanels}</section>`;
 }
 
 export interface PlanBlock { html: string; css: string; js: string; warnings: string[] }
@@ -448,14 +453,14 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     rows2.push(`<tr class="crow" data-i="${i}"><td><b><span class="tw">▸</span> ${esc(c.short)}</b><div class="muted s">${esc(c.main_art)}</div></td>`
       + `<td class="r">${c.threshold}${thrP}</td><td class="r">${F(got)}</td><td class="r">${F(Math.max(0, c.threshold - (got ?? 0)))}</td>`
       + `<td class="r">${F(2 * c.u_wk_base, 1)}</td><td class="r">${F(pre)}</td><td>${chip(cardStatus(got, c.threshold, nIn))}</td></tr>`
-      + `<tr class="cdet" id="pt-cdet${i}" hidden><td colspan="7"><div id="pt-mc${i}"></div>${renderOrderBreakdown(orderBreakdown[i]!, START)}</td></tr>`);
+      + `<tr class="cdet" id="pt-cdet${i}" hidden><td colspan="7"><div id="pt-mc${i}"></div>${renderOrderBreakdown(orderBreakdown[i]!, START, `pt-ob${i}`)}</td></tr>`);
   });
   const sNeed = Math.round(goalPath(gU, 28, "mid") - goalPath(gU, 14, "mid")), sBase = goalPath(gU, 28, "lo") - goalPath(gU, 14, "lo");
   const sGot = wsum(STORE.orders, START, W1), sPre = wsum(STORE.orders, "2026-10-01", "2026-10-14");
   rows2.push(`<tr class="crow total" data-i="S"><td><b><span class="tw">▸</span> Весь магазин</b><div class="muted s">цель октября, 15-28.10</div></td>`
     + `<td class="r">${sNeed}</td><td class="r">${F(sGot)}</td><td class="r">${F(Math.max(0, sNeed - (sGot ?? 0)))}</td>`
     + `<td class="r">${F(sBase, 1)}</td><td class="r">${F(sPre)}</td><td>${chip(sGot == null ? "нет данных" : nIn < 3 ? "рано" : sGot >= storeNeed(gU, nIn) ? "идём" : "отстаём")}</td></tr>`
-    + `<tr class="cdet" id="pt-cdetS" hidden><td colspan="7"><div id="pt-mcS"></div>${renderOrderBreakdown(storeBreakdown, START)}</td></tr>`);
+    + `<tr class="cdet" id="pt-cdetS" hidden><td colspan="7"><div id="pt-mcS"></div>${renderOrderBreakdown(storeBreakdown, START, "pt-obS")}</td></tr>`);
   const tbl2 = `<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>`
     + `<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>`
     + `<th class="r" title="Те же 14 дней до старта">01-14.10</th><th>Статус</th></tr></thead><tbody>${rows2.join("")}</tbody></table></div>`;

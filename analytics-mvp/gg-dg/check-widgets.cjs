@@ -38,9 +38,9 @@ test('lead reasons retain known operational labels and never publish arbitrary c
  assert.equal(leadReason({STATUS_ID:'3'}),'Не заполнена');assert.equal(leadReason({STATUS_ID:'1'}),'СПАМ');assert.equal(leadReason({STATUS_ID:'NEW',[reason]:'test'}),null);
  const fields=Object.fromEntries(DG_REASON_FIELDS.map(f=>[f,{type:'string'}]));assert.doesNotThrow(()=>assertLeadReasonFields(fields));assert.throws(()=>assertLeadReasonFields({}),/unavailable/);fields[reason].type='enumeration';assert.throws(()=>assertLeadReasonFields(fields),/changed/);
 });
-test('requested sections are absent from rendered DOM, and speed/reasons precede deal funnel',()=>{
+test('requested sections are absent from rendered DOM',()=>{
  const h=dashboard().render();for(const title of ['Команда - план-факт','Выполнение плана','Динамика отдела','Динамика заявок','Качество разметки','Дисциплина данных','Сделки для исправления по отделу','Передача в производство','Отдел продаж: передачи и потенциал','Со сделанным предложением - под контроль'])assert.ok(!h.includes(title),title);
- assert.ok(!h.includes('<h2>Менеджеры</h2>'));assert.ok(h.indexOf('Скорость по этапам')<h.indexOf('Воронка прохождения сделок'));assert.ok(h.indexOf('Причины отказов в сделках')<h.indexOf('Воронка прохождения сделок'));assert.equal((h.match(/<h2>/g)||[]).length,3);
+ assert.ok(!h.includes('<h2>Менеджеры</h2>'));assert.ok(!h.includes('Скорость по этапам'));assert.ok(!h.includes('Причины отказов в сделках'));assert.equal((h.match(/<h2>/g)||[]).length,3);
 });
 test('distribution defaults to all creation-cohort deals, preserves every category, and separates count/amount',()=>{
  const f=fixture(),seed=f.deals[0];f.deals=Array.from({length:12},(_,i)=>({...seed,id:String(20+i),assort:'Category '+i,budget:i===0?null:100}));const d=dashboard(sync(f));
@@ -54,7 +54,25 @@ test('sales distributions preserve GG prepayment event, amount and date-basis fi
 test('lead selection and reason drilldown reconcile with related deals across dates',()=>{
  const f=fixture();Object.assign(f.leads[0],{budget:750,currency:'RUB',updated:'2026-10-25',reason:null});f.leads.push({...f.leads[0],id:'11',statusCode:'JUNK',status:'Некачественный лид',reason:'Тест'});f.leads.push({...f.leads[1],id:'12',reason:'Некачественный лид'});f.deals[0].created='2026-09-20';const d=dashboard(sync(f));
  assert.equal(d.data.deals[0].leadId,'10');assert.equal(d.data.leads[0].currency,'RUB');assert.equal(d.data.leads[0].updated,'2026-10-25');
- d.run("S.dgDetail={kind:'leads',stage:'Сделки'}");assert.equal(d.run('dgLeadRows().length'),1);assert.ok(d.run('dgLeadDetails()').includes('/crm/deal/details/20/'));
+ d.run("S.dgDetail={kind:'leads',stage:'Сделки'}");assert.equal(d.run('dgLeadRows().length'),1);assert.ok(d.run('dgLeadDetails()').includes('dg-record-id'));assert.ok(!d.run('dgLeadDetails()').includes('/crm/'));
  d.run("S.dgDetail={kind:'leads',stage:'Отказ'}");assert.equal(d.run('dgLeadRows().length'),2);d.run("S.dgReason='Тест'");const h=d.run('dgLeadDetails()');assert.ok(h.includes('data-dg-lead-row="11"'));assert.ok(!h.includes('data-dg-lead-row="12"'));assert.ok(h.includes('50,0%'));
  d.run("S.dgReason='';S.dgSearch='12'");assert.ok(d.run('dgLeadDetails()').includes('data-dg-lead-row="12"'));assert.ok(!d.run('dgLeadDetails()').includes('data-dg-lead-row="11"'));
+});
+
+test('partner view defaults, vertical funnel and outcome order preserve facts without outgoing links',()=>{
+ assert.ok(build(fixture(),template,builder,hook).html.includes('<button data-am="prepay" class="on">предоплата</button>'));
+ const d=dashboard();assert.equal(d.run('S.amtMode'),'prepay');const h=d.render();
+ assert.equal((h.match(/data-cross-count=/g)||[]).length,3);assert.ok(h.includes('data-cross-count="1"'));assert.ok(h.indexOf('>В работе</div></div>')<h.indexOf('>Выиграно</div></div>'));
+ assert.ok(h.includes('dg-dist-controls'));assert.ok(!/<a\b/i.test(h));assert.equal(d.data.b24Portal,'');
+ const safe=d.run(`dgSafeMarkup('<a href="https://example.com" data-tip="<b>hint</b>">ID ↗</a><a href="#sec1">Local</a>')`);assert.equal(safe,'<span data-tip="<b>hint</b>">ID</span><a href="#sec1">Local</a>');
+});
+test('zero comparison is a labelled placeholder; previous windows match selected duration',()=>{
+ const d=dashboard();assert.match(d.run('trendChip(10,0)'),/data-tip=.*0%/);assert.match(d.run('trendChip(10,5)'),/100,0%/);
+ for(const [start,end,prevStart,prevEnd] of [['2026-10-20','2026-10-26','2026-10-13','2026-10-19'],['2026-09-27','2026-10-26','2026-08-28','2026-09-26'],['2026-10-10','2026-10-12','2026-10-07','2026-10-09']]){d.run(`S.start='${start}';S.end='${end}'`);assert.equal(JSON.stringify(d.run('prevWin()')),JSON.stringify([prevStart,prevEnd]));}
+});
+test('calendar counts first production/shipping/completion events and keeps WIP separate',()=>{
+ const f=fixture();Object.assign(f.deals[0],{won:true,stageCode:'C49:WON',stage:'Сделка успешна',closed:'2026-10-08',prepayAmt:500,hist:[['C49:PREPAYMENT_INVOIC','2026-09-20'],['C49:EXECUTING','2026-10-03'],['C49:FINAL_INVOICE','2026-10-11'],['C49:FINAL_INVOICE','2026-10-04'],['C49:2','2026-10-06'],['C49:WON','2026-10-08']]});const d=dashboard(f);d.run("S.gran='day';S.calUnit='count'");const h=d.render();
+ for(const [row,day] of [['production','04'],['shipping','06'],['completed','08']])assert.ok(h.includes(`data-calcell="${row}|2026-10-${day}"`),row);
+ assert.ok(!h.includes('data-calcell="production|2026-10-11"'));for(const row of ['kp','dec','long'])assert.ok(!h.includes(`data-calcell="${row}|`));assert.ok(h.includes('В работе (на конец)'));
+ d.run("S.start='2026-10-09';S.end='2026-10-31'");assert.ok(!d.render().includes('data-calcell="completed|'));
 });

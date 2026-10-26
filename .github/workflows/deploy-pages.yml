@@ -708,21 +708,15 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
-      # GG&DG: scoped, read-only live CRM snapshot; no customer contacts or titles.
-      - name: Build GG&DG source dashboard (/gg&dg/)
-        env:
-          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+      # DG is served behind its own login on the VPS; Pages contains no DG records.
+      - name: Verify DG and publish data-free handoff
         run: |
           set -euo pipefail
           GG_REFERENCE_ROOT=/tmp/rop/analytics-mvp node --test analytics-mvp/gg-dg/check-widgets.cjs
-          node analytics-mvp/gg-dg/collect-widgets.cjs /tmp/rop/analytics-mvp /tmp/gg-dg-collector.mjs
-          B24_CONC=2 node /tmp/gg-dg-collector.mjs
-          node analytics-mvp/gg-dg/build-widgets.cjs /tmp/gg-dg-widgets.json /tmp/rop/analytics-mvp "_site/gg&dg"
+          node analytics-mvp/gg-dg/build-redirect.cjs _site
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
-
-

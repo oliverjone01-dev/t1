@@ -18,21 +18,23 @@ function build(raw,template,builder,hook,now=Date.now()){
   const r=structuredClone(raw),names=new Set([...r.deals,...r.leads].map(x=>x.mgr));
   // The upstream builder publishes no customer titles; also keep task text inside CRM.
   r.deals.forEach(d=>{delete d.title;d.taskSubj=d.taskSubj?'Запланированное дело':null;});r.leads.forEach(l=>delete l.title);
-  r.managerPhotos=Object.fromEntries(Object.entries(r.managerPhotos||{}).filter(([n])=>names.has(n)));
+  r.managerPhotos={};
   r.firedManagers=(r.firedManagers||[]).filter(n=>names.has(n));
-  const tpl=adaptTemplate(template,hook+'\n'+fs.readFileSync(path.join(__dirname,'sales-explorer.js'),'utf8'));
+  const tpl=adaptTemplate(template,hook+'\n'+fs.readFileSync(path.join(__dirname,'sales-explorer.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'partner-view.js'),'utf8'));
   let code=builder.replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');
   code=code.replace('const keepRec = (r: any) => !EXCLUDE_MGR.has(r.mgr) && r.dir !== "glass-memory";','const keepRec = (r: any) => true;');
   code=code.replace('const dd = deals.map((d: any) => d.created).filter(Boolean).sort();','const dd = [...deals,...leads].map((d: any) => d.created).filter(Boolean).sort();');
   code=code.replace('id: d.id, mgr: d.mgr, stage: d.stage,','id: d.id, leadId: d.leadId || null, currency:d.currency, mgr: d.mgr, stage: d.stage,');
   code=code.replace('id: l.id, mgr: l.mgr, status: l.status,','id: l.id, reason:l.reason??null, budget:l.budget??null, currency:l.currency??null, updated:l.updated??null, statusCode:l.statusCode, mgr: l.mgr, status: l.status,');
   code=code.replace(/planUrl: `[^`]+`,/,'planUrl: "",').replace(/planCsv: `[^`]+`,/,'planCsv: "",');
+  code=code.replace(/b24Portal: [^\n]+,/,'b24Portal: "",');
   code=code.replace('JSON.stringify(DATA)','JSON.stringify(DATA).replace(/</g,"\\\\u003c")');
   const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(raw.generated_at));let html;
   vm.runInNewContext(stripTypeScriptTypes(code,{mode:'strip'}),{process:{env:{ROP_TODAY:day}},console:{log(){}},maskDeep:x=>x,readFileSync:p=>{if(p==='rop/data/rop.json')return JSON.stringify(r);if(p==='rop/rop-command.template.html')return tpl;throw Error('DG has no plan');},writeFileSync:(p,v)=>html=v},{timeout:10000});
   if(!html||html.includes('"placeholder":true')||html.includes('docs.google.com/spreadsheets/d/14jm7'))throw Error('Invalid GG&DG bundle');
   const marker='const DATA=',a=html.indexOf(marker)+marker.length,b=html.indexOf(';\n',a),data=JSON.parse(html.slice(a,b));
   if(data.leads.length!==raw.leads.length||data.deals.length!==raw.deals.length||data.plan!==null||data.planCsv||data.planUrl)throw Error('GG builder altered source scope/plan');
+  if(data.b24Portal||Object.keys(data.managerPhotos||{}).length||/https?:\/\/[^\s"'<>]*bitrix24\./i.test(html)||/B24_WEBHOOK_URL|api\.telegram\.org|OPENAI_API_KEY|\/rest\/\d+\/[a-z0-9]+/i.test(html))throw Error('Private endpoint in partner bundle');
   return {html,data,manifest:{templateSha256:crypto.createHash('sha256').update(template).digest('hex'),generatedAt:data.generatedAt,leads:data.leads.length,deals:data.deals.length,scope:SOURCE_ID,plan:null}};
 }
 if(require.main===module){const [rawPath,ggRoot,out]=process.argv.slice(2);if(!out)throw Error('Usage: build-widgets.cjs <snapshot.json> <GG analytics root> <output>');const raw=JSON.parse(fs.readFileSync(rawPath,'utf8')),template=fs.readFileSync(path.join(ggRoot,'rop/rop-command.template.html'),'utf8'),builder=fs.readFileSync(path.join(ggRoot,'src/scripts/b24/build-rop.ts'),'utf8'),hook=fs.readFileSync(path.join(__dirname,'no-plan.js'),'utf8');const result=build(raw,template,builder,hook);fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'index.html'),result.html);fs.writeFileSync(path.join(out,'v.txt'),result.data.bakedAt);fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(result.manifest));console.log(JSON.stringify(result.manifest));}

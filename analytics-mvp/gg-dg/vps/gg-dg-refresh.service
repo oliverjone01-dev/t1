@@ -1,0 +1,29 @@
+[Unit]
+Description=Domglass scoped dashboard refresh
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=gg-dg
+Group=gg-dg
+SupplementaryGroups=www-data
+EnvironmentFile=/etc/gg-dg/bitrix.env
+ExecStart=/usr/bin/python3 /srv/gg/dg/code/current/vps/refresh.py
+WorkingDirectory=/srv/gg/dg/state
+UMask=0027
+TimeoutStartSec=600
+MemoryMax=512M
+CPUQuota=50%
+Nice=10
+TasksMax=32
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/gg/dg/state /srv/gg/dg-www
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+

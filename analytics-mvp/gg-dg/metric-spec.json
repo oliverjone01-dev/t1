@@ -25,19 +25,8 @@
   "plan": "Absent. Requested plan gauges, department dynamics and team plan/fact are removed. Remaining calendar/health widgets show facts and no-plan notes; no GG targets are imported.",
   "production": "GG transfer event and SP1086 link/quantity fields, restricted to eligible deal IDs. Zero linked items is known empty, not unavailable. No sales/production assumed when missing.",
   "manager": "Current assigned managers from DG data, including inactive owners. System/non-sales accounts stay in totals/unallocated rows. Manager cards filter the same DG page; no link to all-source personal dashboards.",
-  "privacy": "No credentials, client titles, contacts, task subjects or free-text comments. Refusal enum retained; comment-only reason marked Указана в CRM. CRM IDs, staff names and aggregate operational metrics remain. Lead reasons only use the explicit observed label dictionary described in drilldown. API keys and raw CRM snapshots never enter the release.",
-  "freshness": "Read on existing Pages deployment, with source timestamp and build timestamp. >24h input fails, as do count, identity, scope and pagination mismatches. Browser retains reference freshness indication and update polling.",
-  "initialProbe": {
-    "at": "2026-10-26T09:02:39.620Z",
-    "leads": 45,
-    "deals": 7,
-    "openDeals": 6,
-    "openRUB": 513111,
-    "won": 0,
-    "prepaymentEvents": 0,
-    "deal101709RUB": 218500,
-    "deal102033RUB": 294611
-  },
+  "privacy": "No credentials, client titles, contacts, task subjects or free-text comments. Refusal enum retained; comment-only reason marked Указана в CRM. CRM IDs, staff names and aggregate operational metrics remain. Lead reasons only use the explicit observed label dictionary described in drilldown. API keys and raw CRM snapshots never enter the release. Partner HTML has no CRM or internal dashboard links, photos, webhook URLs or credentials. IDs remain plain text.",
+  "freshness": "Independent VPS refresh every 15 minutes. Private raw snapshot; atomic publication retains last successful release on failure. Input older than 24 hours fails validation. Source and build timestamps remain visible.",
   "limitations": "Live CRM and GG snapshot share a source family. No external financial reconciliation. Unsupported future currency/category fails publication explicitly; parent source changes must satisfy adapter contracts. No DG sales plan exists.",
   "distribution": {
     "default": "Deals, count; FD creation cohort with current global filters, every status.",
@@ -47,7 +36,7 @@
   },
   "drilldown": {
     "leads": "Funnel stage or refusal status opens the same FL cohort; optional reason filter and text search. Shows ID, owner, dates, status, main reason, amount/currency, source/direction and linked DG deals from all dates.",
-    "deals": "A distribution category opens the same selected deals/sales subset. IDs link to CRM; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
+    "deals": "A distribution category opens the same selected deals/sales subset. IDs are plain text; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
     "reasonFields": [
       "UF_CRM_1730742511284",
       "UF_CRM_1782316574481",
@@ -73,19 +62,32 @@
       "Отдел продаж: передачи и потенциал",
       "Дисциплина данных",
       "Сделки для исправления по отделу",
-      "Со сделанным предложением - под контроль"
+      "Со сделанным предложением - под контроль",
+      "Скорость по этапам",
+      "Причины отказов в сделках"
     ],
-    "order": "Lead funnel/reasons, stage speed + deal refusal reasons, then deal funnel."
+    "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values."
   },
-  "revisionProbe": {
-    "at": "2026-10-26T10:51:45.886Z",
-    "leads": 48,
-    "deals": 7,
-    "refusedLeads": 41,
-    "convertedLeads": 5,
-    "inWorkLeads": 2,
-    "openDeals": 6,
-    "openRUB": 513111,
-    "sales": 0
-  }
+  "calendar": {
+    "cohort": "Eligible DG deals with an offer-stage history entry. Later rows do not invent offers for skipped stages.",
+    "rows": [
+      "in",
+      "wip",
+      "vyhod",
+      "win",
+      "loss",
+      "production",
+      "shipping",
+      "completed"
+    ],
+    "events": {
+      "production": "First C49:FINAL_INVOICE entry",
+      "shipping": "First C49:2 entry",
+      "completed": "First C49:WON entry, or closed date only for won deal if history is absent"
+    },
+    "wip": "Open offer cohort at bucket end, not a sum of events. Rows can overlap across lifecycle stages.",
+    "money": "Selected global amount mode; prepayment by default."
+  },
+  "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
+  "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. GitHub Pages is a data-free redirect."
 }

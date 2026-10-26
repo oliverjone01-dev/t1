@@ -26,13 +26,17 @@ function adapt(source,mask){
   `);
   s=once(s,'const leadRows = await listAll("crm.lead.list", { select: leadSelect, filter: { ...dateFilter } });','const leadRows = SC.leads;');
   s=once(s,'}).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));','});');
-  s=once(s,'category: Number(DEAL_CATEGORY),','category: Number(d.CATEGORY_ID), sourceId: d.SOURCE_ID || null, leadId: d.LEAD_ID ? String(d.LEAD_ID) : null, currency: d.CURRENCY_ID || "RUB",');
+  s=once(s,'category: Number(DEAL_CATEGORY),','category: Number(d.CATEGORY_ID), sourceId: d.SOURCE_ID || null, leadId: d.LEAD_ID ? String(d.LEAD_ID) : null, currency: d.CURRENCY_ID || null,');
   s=once(s,'const dealSelect = ["ID", "TITLE", "CATEGORY_ID",','const dealSelect = ["ID", "TITLE", "CURRENCY_ID", "CATEGORY_ID",');
   s=once(s,'title: l.TITLE || "",','title: l.TITLE || "", sourceId: l.SOURCE_ID,');
   // Empty custom amounts remain unknown; GG rendering uses its existing display rules.
   s=once(s,'if (UF_PREPAY) console.log(', 'if (!UF_PREPAY) throw Error("CRM prepayment field unavailable");\n  if (UF_PREPAY) console.log(');
   s=once(s,'budget: Number(d.OPPORTUNITY) || 0,','budget: d.OPPORTUNITY == null || d.OPPORTUNITY === "" ? null : Number(d.OPPORTUNITY),');
+  s=once(s,'const moneyNum = (v: any): number => { const n = parseFloat(String(v ?? "").split("|")[0]); return isNaN(n) ? 0 : n; };',`const moneyNum = (v: any): number => { if(v==null||v==='')return 0;const parts=String(v).split('|');if(parts.length>2||(parts[1]&&parts[1]!=='RUB'))throw Error('Unsupported prepayment currency');const n=Number(parts[0]);if(!Number.isFinite(n)||n<0)throw Error('Invalid prepayment amount');return n; };`);
   s=once(s,'reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",','reason: reasonMap[String(d[UF.reason])] || (String(d[UF.reasonComment] ?? "").trim() ? "Указана в CRM" : "не указана"),');
+  s=once(s,'const j = await call("crm.item.productrow.list", { filter: { "=ownerId": r.id, "=ownerType": OWNER_T } });\n      const prs: any[] = (j.result && j.result.productRows) || [];',`const prs: any[] = await strictList('crm.item.productrow.list',{filter:{'=ownerId':r.id,'=ownerType':OWNER_T}},{idField:'id',itemsPath:'productRows'});
+      if(prs.some(p=>String(p.ownerId)!==String(r.id)))throw Error('Foreign product row');`);
+  s=once(s,'} catch { /* карточка без товарных строк */ }','} catch(e) { throw e; }');
   // Timeline pagination is mandatory: do not silently truncate at the first 50 comments.
   s=once(s,'const r = await call("crm.timeline.comment.list", {','const r = {result: await strictList("crm.timeline.comment.list", {');
   s=once(s,'filter: { ENTITY_ID: dl.id, ENTITY_TYPE: "deal" }, order: { CREATED: "ASC" },\n      });','filter: { ENTITY_ID: dl.id, ENTITY_TYPE: "deal" }, order: { CREATED: "ASC" },\n      })};');
@@ -51,9 +55,10 @@ async function strictList(method,params,opts={}){
   let rows=[],start=0,total=null;const id=opts.idField||'ID';
   for(let page=0;page<1000;page++){
     const j=await call(method,{...params,order:params.order||{[id]:'ASC'},start});
-    const batch=opts.itemsPath?j.result?.items:j.result;
+    const batch=opts.itemsPath?j.result?.[typeof opts.itemsPath==='string'?opts.itemsPath:'items']:j.result;
     if(!Array.isArray(batch))throw Error(method+': invalid list');
     const t=j.total??j.result?.total;if(total===null&&t!=null)total=Number(t);
+    if(batch.some(r=>r[id]==null||!/^\d+$/.test(String(r[id]))))throw Error(method+': missing/invalid ID');
     rows.push(...batch);const next=j.next??j.result?.next;
     if(next==null){if(total!==null&&total!==rows.length)throw Error(method+': incomplete pages');if(new Set(rows.map(r=>String(r[id]))).size!==rows.length)throw Error(method+': duplicate IDs');return rows;}
     if(!batch.length||Number(next)<=start)throw Error(method+': broken pagination');start=Number(next);

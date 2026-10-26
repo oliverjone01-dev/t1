@@ -7,6 +7,8 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   s=once(s,'const notForeign=x=>!GM_OWNED.has(x.mgr);','const notForeign=x=>true; // All rows are already source-scoped before publication.');
   s=s.replace(/^const PLAN_MGRS=\[.*?\];$/m,'const PLAN_MGRS=DATA.opUsers||[];');
   s=once(s,'planRev:4000000','planRev:null');
+  s=section(s,'bkey',x=>x.replaceAll('.getDay()', '.getUTCDay()').replaceAll('.getDate()', '.getUTCDate()').replaceAll('.setDate(', '.setUTCDate('));
+  s=section(s,'setPeriod',x=>x.replaceAll('.getDate()', '.getUTCDate()').replaceAll('.setDate(', '.setUTCDate(').replace('new Date(ly,lm,0).getUTCDate()','new Date(Date.UTC(ly,lm,0)).getUTCDate()'));
   s=s.replaceAll("'_vchk'","'_ggdg_vchk'");
   s=once(s,'+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts','+B_kpi+dgPlanGauges(m,cr1)+G(B_dynRev,B_cvFunnel)+B_donuts');
   s=once(s,'+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)','+B_leadStrip+dgTeamPlan(_teamMetrics,teamMetric,_fmtFor)+G(B_dynLeads,B_quality)');
@@ -28,11 +30,15 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
     x=x.replace('`${fmt(target)} / ${fmt(fact)}`','`— / ${fmt(fact)}`');
     x=x.replace("stat('% плана',pctPlan==null?'—':pct(pctPlan),pctC(pctPlan))","stat('% плана','—','var(--ink-3)')");
     x=x.replace('Открыть дашборд →','Показать данные ДГ →');
+    x=x.replace("otk>fact*4?'#F8717A':'var(--ink-2)'","'var(--ink-2)'");
+    x=x.replace(/info\('Личный дашборд каждого менеджера ОП:[^']*'\)/,"info('Показатели менеджеров только по ДГ за выбранный период. Карточка включает фильтр по менеджеру на этой странице. План ДГ не задан; рейтинг сравнивает фактические показатели по выбранной метрике.')");
+    x=x.replace('клик по карточке - личный дашборд','клик по карточке - фильтр ДГ');
     return x;
   });
   // Use only DG manager selection in blocks which originally had department-wide scope.
   s=s.replaceAll("const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);","const dirOk=d=>(!S.fMgr||d.mgr===S.fMgr)&&(!S.fDir||d.dir===S.fDir)&&notForeign(d);");
   s=section(s,'healthBlock',x=>{
+    x=x.replace(/let lensC,lensT;[\s\S]*?(?=  const lensBadge)/,"const lensC='var(--ink-3)',lensT='Выбранное окно: '+pDays+' дн. Последующие закрытия открытых сделок могут изменить конверсию. Статистика длительности цикла ДГ пока не задана.';\n");
     x=x.replace('const SUCPLAN=0.35,','const SUCPLAN=null,');
     x=x.replace(/const qc=[^\n]+;/,'const qc="var(--ink-3)";').replace(/const qt=[^\n]+;/,'const qt="План ДГ не задан";').replace(/const qr=[^\n]+;/,'const qr="Показаны фактический поток и доли исходов. Плановое соотношение успехов и отказов для ДГ не установлено.";');
     x=x.replace(/`<line x1="\$\{planX\}"[^\n]*?`\+\n/,'');

@@ -7,7 +7,7 @@ Dashboard for CRM source **Заявка с ДГ** (`UC_NQ3QUI`), published at `/
 Requires Node 22 and existing `B24_WEBHOOK_URL` secret. The collector only invokes read methods. It fetches every page, validates counts, joins deals by `LEAD_ID`, and deduplicates deal IDs. Source identity is checked against the live CRM dictionary before collecting.
 
 ```sh
-node --test analytics-mvp/gg-dg/metrics.test.cjs
+node --test analytics-mvp/gg-dg/check-metrics.cjs
 node analytics-mvp/gg-dg/fetch.cjs /tmp/gg-dg-snapshot.json
 node analytics-mvp/gg-dg/build.cjs /tmp/gg-dg-snapshot.json '_site/gg&dg'
 ```

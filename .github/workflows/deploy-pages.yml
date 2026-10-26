@@ -714,7 +714,7 @@ jobs:
           B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
         run: |
           set -euo pipefail
-          node --test analytics-mvp/gg-dg/metrics.test.cjs
+          node --test analytics-mvp/gg-dg/check-metrics.cjs
           node analytics-mvp/gg-dg/fetch.cjs /tmp/gg-dg-snapshot.json
           node analytics-mvp/gg-dg/build.cjs /tmp/gg-dg-snapshot.json "_site/gg&dg"
 

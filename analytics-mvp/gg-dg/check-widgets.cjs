@@ -189,3 +189,9 @@ test('an open snapshot reads its own communication history after the server refr
  assert.equal(d.run("dgCommCache.get('D20').generatedAt"),f.generated_at);assert.equal(d.run("dgCommCache.get('D20').events.filter(e=>e.id==='act#888').length"),1);assert.ok(!d.run("dgCommCache.has('D999')"));
  assert.ok(d.run("dgCommunicationTable('D20')").includes('same snapshot &lt;/script&gt;'));
 });
+
+test('calendar budget default stays independent of global prepayment and switches fields explicitly',()=>{
+ const f=fixture();f.deals[0].prepayAmt=500;const d=dashboard(f);d.run("S.calUnit='money';S.amtMode='prepay'");assert.equal(d.run('S.dgCalAmount'),'budget');
+ const expression="dgCalendarLine(DG_CAL_ROWS.find(r=>r.id==='deals'),dgCalendarKeys())";
+ assert.ok(d.run(expression+".includes(fmtK(218500))"));d.run("S.dgCalAmount='prepay'");assert.ok(d.run(expression+".includes(fmtK(500))"));assert.ok(!d.run(expression+".includes(fmtK(218500))"));assert.equal(d.run('S.amtMode'),'prepay');
+});

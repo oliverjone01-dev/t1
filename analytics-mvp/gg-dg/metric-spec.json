@@ -1,0 +1,14 @@
+{
+  "id": "gg-dg-source-dashboard-v1",
+  "authorization": "User requested a dashboard like GGR, limited to DG leads and deals, specified source Заявка с ДГ, example lead 54999 and GitHub path gg&dg. Existing ROP semantics retained; no new revenue, payment or period conversion definitions introduced.",
+  "source": {"portal": "glassmemory.bitrix24.ru", "id": "UC_NQ3QUI", "name": "Заявка с ДГ"},
+  "population": {"leads": "SOURCE_ID = UC_NQ3QUI, all available history and directions", "deals": "SOURCE_ID = UC_NQ3QUI OR LEAD_ID in eligible leads; unique deal ID; all categories; linked-only attribution labeled"},
+  "period": "Inclusive calendar dates in Europe/Moscow; internally equivalent to [from 00:00, dayAfterTo 00:00). Each entity filtered by its own creation date. Current day explicitly partial.",
+  "conversion": "Current converted status of selected creation-date lead cohort / all leads of same cohort; no fixed maturation window; denominator and n shown. Not deals created during period / leads during period.",
+  "money": "CRM OPPORTUNITY grouped by CURRENCY_ID for currently open deals created in selected period. This is pipeline, not paid revenue. Missing amount is null, not zero; explicit CRM zero shown as zero. No inferred payments, returns, gross/net accounting or forecasts.",
+  "manager": "Current assigned user ID, separately for each lead and deal. Retain inactive owners. No whole-department plan or communications metrics.",
+  "freshness": "Collector reads CRM on existing Pages deployment. Timestamp shows source collection time. >24h visibly stale; failed collector fails deployment before publication; no partial output.",
+  "privacy": "Allowlisted operational fields only; exclude client names, titles, phone, email, address, comments, messages, task subjects and credentials.",
+  "probe": {"at": "2026-10-26T07:56:00Z", "lead54999": {"source": "UC_NQ3QUI", "created": "2026-10-26T09:54:00+03:00", "status": "NEW"}, "deal101709": {"lead": "54089", "amount": 218500}, "deal102033": {"lead": "54207", "amount": 294611}, "leadCount": 44, "directDealCount": 7},
+  "verificationLimit": "Live CRM read and older ROP snapshot are same source family. No external financial reconciliation claimed or needed for a CRM count/pipeline view. Lead 54999 is the user-provided example. Other numeric semantics are inherited from the requested reference."
+}

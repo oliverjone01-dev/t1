@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="dark light">
+  <title>GG&DG · Лиды и сделки Домгласс</title>
+  <link rel="stylesheet" href="./style.css">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('gg-dg-theme')||'dark'}catch{}</script>
+  <script src="./metrics.js" defer></script><script src="./app.js" defer></script>
+</head>
+<body>
+<aside class="rail">
+  <a class="wordmark" href="#overview" aria-label="GG&DG, обзор"><span class="mark">GG<span>&</span>DG</span><span class="brand-sub">ПАРТНЁРСКИЙ КАНАЛ</span></a>
+  <div class="rail-label">ПРОДАЖИ</div>
+  <nav aria-label="Разделы дашборда"><a class="active" href="#overview"><span aria-hidden="true">◫</span> Обзор канала</a><a href="#qualification"><span aria-hidden="true">◎</span> Лиды и воронка</a><a href="#managers"><span aria-hidden="true">▥</span> Менеджеры</a><a href="#registry"><span aria-hidden="true">☷</span> Все записи</a></nav>
+  <div class="rail-bottom"><span class="rail-label">ИСТОЧНИК В CRM</span><strong>Заявка с ДГ</strong><span>Домгласс → GENGLASS</span><a href="../rop/">Открыть РОП ↗</a></div>
+</aside>
+<main>
+  <header class="page-head" id="overview">
+    <div><div class="eyebrow">GENGROUP <span>/</span> ПРОДАЖИ <span>/</span> ДОМГЛАСС</div><h1>GG<span>&</span>DG <small>Лиды и сделки</small></h1><p class="subtitle">Результаты партнёрского канала Домгласс</p></div>
+    <div class="head-actions"><span class="source-chip"><i></i> Заявка с ДГ</span><button id="theme" class="icon-button" aria-label="Переключить светлую и тёмную тему" title="Переключить тему">◐</button></div>
+  </header>
+  <section class="filterbar" aria-label="Фильтры">
+    <div class="periods" role="group" aria-label="Быстрый период"><button data-period="7">7 дней</button><button data-period="30">30 дней</button><button data-period="month">Этот месяц</button><button data-period="all" class="selected">Всё время</button></div>
+    <div class="date-fields"><label>С <input id="from" type="date" aria-label="Дата начала"></label><span>—</span><label>По <input id="to" type="date" aria-label="Дата окончания"></label></div>
+    <select id="manager" aria-label="Ответственный менеджер"><option value="">Все менеджеры</option></select><button id="reset" class="quiet-button">Сбросить</button>
+  </section>
+  <div class="context-line"><span id="period-note">Данные загружаются…</span><button id="refresh" class="text-button">↻ Обновить страницу</button></div>
+  <div id="notice" class="notice" role="status" hidden></div><div id="error" class="error" role="alert" hidden></div>
+  <div id="dashboard" aria-busy="true">
+    <section class="kpis" id="kpis" aria-label="Основные показатели"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></section>
+    <section class="panel trend-panel"><div class="panel-head"><div><div class="eyebrow">ДИНАМИКА КАНАЛА</div><h2>Поступление лидов и сделок</h2></div><div class="legend"><span><i class="lead-dot"></i> Лиды</span><span><i class="deal-dot"></i> Сделки</span></div></div><p class="panel-note">По дате создания каждой записи в CRM</p><div id="trend" class="trend" aria-label="Динамика лидов и сделок"></div></section>
+    <div class="two-cols" id="qualification">
+      <section class="panel"><div class="panel-head"><div><div class="eyebrow">ЛИДЫ</div><h2>Результат квалификации</h2></div><span class="count-label" id="lead-total"></span></div><div id="qualification-chart"></div><p class="panel-note bottom-note">Текущие статусы лидов, созданных в выбранном периоде. Нажмите на статус, чтобы открыть список.</p></section>
+      <section class="panel"><div class="panel-head"><div><div class="eyebrow">СДЕЛКИ</div><h2>Текущие стадии</h2></div><span class="count-label" id="deal-total"></span></div><div id="stages"></div><p class="panel-note bottom-note">Распределение сделок по текущим стадиям</p></section>
+    </div>
+    <section class="panel" id="managers"><div class="panel-head"><div><div class="eyebrow">КОМАНДА</div><h2>Результаты по менеджерам</h2></div><span class="panel-note">Текущий ответственный в CRM</span></div><div class="table-scroll"><table><thead><tr><th>Менеджер</th><th class="numeric">Лиды</th><th class="numeric">Конвертированы</th><th class="numeric">Конверсия</th><th class="numeric">Сделки</th><th class="numeric">В работе</th><th class="numeric">Объём в работе</th></tr></thead><tbody id="manager-rows"></tbody></table></div></section>
+    <section class="panel registry" id="registry"><div class="panel-head"><div><div class="eyebrow">ДЕТАЛИЗАЦИЯ</div><h2>Лиды и сделки</h2></div><button id="export" class="outlined-button">↓ Выгрузить CSV</button></div><div class="registry-controls"><div class="tabs" role="tablist" aria-label="Тип записей"><button role="tab" id="tab-leads" aria-controls="records" aria-selected="true" data-tab="leads">Лиды <span id="tab-leads-count">—</span></button><button role="tab" id="tab-deals" aria-controls="records" aria-selected="false" data-tab="deals">Сделки <span id="tab-deals-count">—</span></button></div><div class="registry-search"><select id="status" aria-label="Статус записи"><option value="">Все статусы</option></select><input id="search" type="search" placeholder="ID, менеджер или стадия" aria-label="Поиск по ID, менеджеру или стадии"></div></div><div class="table-scroll" id="records" role="tabpanel" aria-labelledby="tab-leads"><table><thead id="records-head"></thead><tbody id="records-body"></tbody></table></div><div class="registry-footer"><span id="records-count"></span><div><button id="prev" class="quiet-button" aria-label="Предыдущая страница">←</button><span id="page-label"></span><button id="next" class="quiet-button" aria-label="Следующая страница">→</button></div></div></section>
+    <details class="method"><summary>Как считаются показатели</summary><div><p><strong>Источник:</strong> лиды «Заявка с ДГ» и сделки с этим источником либо с прямой связью с таким лидом. Одна сделка учитывается один раз. Сделки, включённые по связи с лидом, отмечены в списке.</p><p><strong>Период:</strong> даты создания лидов и сделок; московское время. Конверсия — доля лидов выбранного периода, которые сейчас имеют успешный статус конвертации. Рядом указаны числитель и знаменатель. У свежих лидов результат ещё может измениться.</p><p><strong>Объём в работе:</strong> сумма поля «Сумма» у открытых сделок выбранного периода, отдельно по валютам. Это потенциальный объём, а не полученная выручка. Пропущенные суммы обозначаются отдельно; явный ноль в CRM отображается как ноль.</p><p><strong>Обновление:</strong> новый снимок CRM собирается при каждой публикации общего сайта GitHub Pages. Кнопка «Обновить страницу» загружает последний опубликованный снимок. Снимок старше суток получает предупреждение.</p><p>Лиды и сделки — разные сущности: число конвертированных лидов может отличаться от числа сделок. Фильтр менеджера применяется по текущему ответственному отдельно к каждому типу записей.</p></div></details>
+  </div>
+  <footer><span>GG&DG <span class="footer-sep">/</span> Источник: Битрикс24</span><span id="freshness">Проверяем дату снимка…</span></footer>
+</main>
+<dialog id="detail"><div class="dialog-head"><div><div class="eyebrow">КАРТОЧКА CRM</div><h2 id="detail-title"></h2></div><button id="close-detail" class="icon-button" aria-label="Закрыть карточку">×</button></div><div id="detail-body"></div></dialog>
+</body></html>

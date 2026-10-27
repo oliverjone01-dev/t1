@@ -9,7 +9,7 @@ function dgSafeMarkup(html){
 }
 function dgVerticalConversion(leads,qualified,sales,cr1,cr2){
   const values=[leads,qualified,sales],labels=['Заявки','Квалифицированные лиды','Продажи'],max=Math.max(...values,1);
-  return `<div class="dg-cross-layout"><div class="dg-cross-vertical">${values.map((value,i)=>`<div class="dg-cross-stage" data-cross-count="${value}"><span>${labels[i]}</span><div class="dg-cross-bar" style="width:${Math.max(14,100*value/max)}%;background:${i?'#2E9E74':'#3DAEC2'}"><b>${fmt(value)}</b></div>${i<2?`<small>${i?'CR2':'CR1'} · ${pct(i?cr2:cr1)}</small>`:''}</div>`).join('')}</div><div class="dg-cross-total">Сквозная заявка → продажа<b>${pct(leads?sales/leads:0)}</b></div></div>`;
+  return `<div class="dg-cross-layout"><div class="dg-cross-vertical">${values.map((value,i)=>`<div class="dg-cross-stage" data-cross-count="${value}"><span>${labels[i]}</span><div class="dg-cross-bar" style="width:${Math.max(14,100*value/max)}%;background:${i?'#2E9E74':'#3DAEC2'}"><b>${fmt(value)}</b></div>${i<2?`<small>${i?'CR2':'CR1'} · ${pct(i?cr2:cr1)}</small>`:''}</div>`).join('')}</div><div class="dg-cross-total"><span>Сквозная конверсия ОП</span><span class="dg-cross-caption">Заявка → продажа</span><b>${pct(leads?sales/leads:0)}</b></div></div>`;
 }
 function dgFirstStageDate(d,code){return (d.hist||[]).filter(h=>h[0]===code&&h[1]).map(h=>h[1]).sort()[0]||null;}
 updBadge=()=>{const el=document.getElementById('nextUpd');if(el)el.textContent='↻ обновление на сервере каждые 15 минут'+(S.end===DATA.to?' · МСК · текущий день не завершён':'');};

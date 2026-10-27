@@ -34,13 +34,16 @@ function adapt(source,mask){
   s=s.slice(0,start)+SCOPED_LIST+s.slice(end);
   s=once(s,'const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });',`
   if(sourceName['${SOURCE_ID}']!=='${SOURCE_NAME}')throw Error('DG source dictionary changed');
-  SC.leads=await strictList('crm.lead.list',{select:['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS],filter:{SOURCE_ID:'${SOURCE_ID}'}});
-  SC.mail=await dgMailCohort(SC.leads,call);SC.leads=SC.mail.leads;const excludedMailLeads=new Set(SC.mail.excluded);
+  const dgLeadSelect=['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS];
+  const sourceLeads=await strictList('crm.lead.list',{select:dgLeadSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const direct=await strictList('crm.deal.list',{select:dealSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
+  const candidates=await dgLeadCandidates(sourceLeads,direct,ids=>scopedChunks('crm.lead.list',{select:dgLeadSelect},'@ID',ids));
+  SC.mail=await dgMailCohort(candidates.leads,call);SC.leads=SC.mail.leads;const excludedMailLeads=new Set(SC.mail.excluded);
   const linked=await scopedChunks('crm.deal.list',{select:dealSelect},'@LEAD_ID',SC.leads.map(x=>x.ID));
   const leadIDs=new Set(SC.leads.map(x=>String(x.ID)));
   const dealRows=[...new Map([...direct,...linked].filter(d=>!excludedMailLeads.has(String(d.LEAD_ID))).map(d=>[String(d.ID),d])).values()];
-  if(SC.leads.some(l=>l.SOURCE_ID!=='${SOURCE_ID}')||dealRows.some(d=>d.SOURCE_ID!=='${SOURCE_ID}'&&!leadIDs.has(String(d.LEAD_ID))))throw Error('Foreign CRM record');
+  SC.linkedLeadProof=SC.leads.filter(l=>l.SOURCE_ID!=='${SOURCE_ID}').map(l=>({leadId:String(l.ID),dealIds:candidates.parentDeals[String(l.ID)]||[]}));
+  if(SC.linkedLeadProof.some(p=>!p.dealIds.length||p.dealIds.some(id=>!dealRows.some(d=>String(d.ID)===id&&d.SOURCE_ID==='${SOURCE_ID}'&&String(d.LEAD_ID)===p.leadId)))||dealRows.some(d=>d.SOURCE_ID!=='${SOURCE_ID}'&&!leadIDs.has(String(d.LEAD_ID))))throw Error('Foreign CRM record');
   SC.deals=dealRows;
   `);
   s=once(s,'const leadRows = await listAll("crm.lead.list", { select: leadSelect, filter: { ...dateFilter } });','const leadRows = SC.leads;');
@@ -64,7 +67,7 @@ function adapt(source,mask){
   s=s.replaceAll('mkdirSync("rop/data", { recursive: true });','// Output parent is prepared by the workflow.');
   s=once(s,'writeFileSync(OUT, JSON.stringify(maskDeep(out, MASK_SKIP)));',`const extra=await dgEnrich({leads:SC.leads,deals:SC.deals,call,names:mgrName,reasonFields:DG_REASON_FIELDS});
   out.calendar=extra.calendar;out.communications=extra.communications;
-  out.scope={sourceId:'${SOURCE_ID}',sourceName:'${SOURCE_NAME}',leadIds:SC.leads.map(x=>String(x.ID)),dealIds:SC.deals.map(x=>String(x.ID)),collection:'GG collector with source-scoped pagination'};
+  out.scope={sourceId:'${SOURCE_ID}',sourceName:'${SOURCE_NAME}',leadIds:SC.leads.map(x=>String(x.ID)),dealIds:SC.deals.map(x=>String(x.ID)),linkedLeadProof:SC.linkedLeadProof,collection:'GG collector with source-scoped pagination'};
   out.scope.mailPolicy={domain:'domglass.ru',direction:'incoming',before:SC.mail.before,excluded:SC.mail.excluded.length,confirmedLeadIds:SC.leads.map(x=>String(x.ID))};
   const text=JSON.stringify(maskDeep(out,MASK_SKIP));
   if(process.env.GG_DG_STDOUT==='1')process.stdout.write(text);else writeFileSync(OUT,text);`);

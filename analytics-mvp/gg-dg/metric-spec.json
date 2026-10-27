@@ -69,7 +69,7 @@
     ],
     "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values.",
     "header": "No refresh-status badge, section navigation or migration-period button. Freshness timestamp, filters and ordinary period/date controls stay.",
-    "filters": "Five full-width filter sections distribute over available drawer height, with icons and plain explanations. Header/footer stay visible and middle section scrolls on short screens. Bottom help link is exactly https://t.me/yanchoglov, user-authorized, new tab with noopener noreferrer and included in focus loop."
+    "filters": "Four distributed full-width sections: date basis, revenue recognition, amount field and granularity. Direction removed; initial direction scope resets to all eligible DG records. Footer help link/animation/scroll/focus unchanged."
   },
   "calendar": {
     "population": "All current source-eligible DG leads/deals, irrespective of their creation date when counting later stage events.",
@@ -142,16 +142,26 @@
     "authorization": "27.10.2026 user requests lead/deal refusal fields, left horizontal reason chart with top10/30/50, right collapsible table with20 rows per page and no horizontal scrolling.",
     "population": "Exactly the union of calendar leadLost and lost rows under current period and global filters. Calendar first-failure history semantics are retained, including an event whose current record may later have reopened. Lead and deal are distinct records, never deduplicated into customers.",
     "reason": "Detailed sanitized lead reason when available, otherwise record reason or missing marker. Group labels normalize whitespace/case only; no invented categories. Top N limits bars only, never table population.",
-    "fields": "Separate columns for typed record ID, responsible, creation date, first-refusal date, latest indexed event date MSK, stage, reason, client type, assortment, originating lead. Desktop is single-line with complete cell text in title; no data removal. Current record button navigates internally to its calendar/history. Originating lead labels stay typed plain text.",
-    "pagination": "Superseded by user27.10: full-width compact table below the reason chart, maximum10 visible desktop data rows (30px each plus60px sticky header); every filtered record remains reachable by internal vertical scroll. No20-row pagination. Per-column text/date filters and ascending/descending sort apply to the same source population as the chart. Narrow layouts retain column controls and stacked records.",
+    "fields": "Separate columns for typed record ID, responsible, creation date, first-refusal date, latest indexed event date MSK, stage, reason, client type, assortment, originating lead. Desktop is single-line with complete cell text in title; no data removal. All record IDs and originating-lead labels are typed plain text without links or navigation.",
+    "pagination": "Superseded by user27.10: full-width compact table below the reason chart, maximum10 visible desktop data rows (30px each plus60px sticky header); every filtered record remains reachable by internal vertical scroll. No20-row pagination. Per-column multi-select/date-range filters and ascending/descending sort apply to the same source population as the chart. Narrow layouts retain column controls and stacked records.",
     "timezone": "Europe/Moscow for first failure, activity and communication dates, including events across UTC midnight.",
-    "duplicate": "Scoped read of the user-selected duplicate confirmed no original-lead reference field or URL. Never infer/hardcode a target ID. Show missing original ID explicitly; no CRM modification or CRM link."
+    "duplicate": "Scoped read of the user-selected duplicate confirmed no original-lead reference field or URL. Never infer/hardcode a target ID. Show missing original ID explicitly; no CRM modification or CRM link.",
+    "filters": "Column headers retain sorting. Non-date filters open searchable faceted multi-select lists, with apply/reset and counts ignoring their own current filter. Date columns use an independent two-month calendar with exact-day double click, inclusive from/to range and highlighted selection/hover preview. Only the refusal table/reason chart are filtered, never the global dashboard dates."
   },
   "kpiCharts": {
     "population": "Reuse native flt/mtr/soldSet/lostSet for every clipped interval under the current manager/source/client/direction/date-basis/revenue/amount filters. Card formulas remain unchanged.",
     "comparison": "Previous dates are each current interval shifted back by periodLen days: equal-length disjoint aligned windows, with both exact date ranges in tooltips. Each metric is independently aggregated, never an average of ratios.",
     "nulls": "CR1 with no leads, CR2 with no deals, and check with no sales are unobserved/null points with gaps and No base text, not fake zero. Count/amount known zeros remain zeros. Current future-only buckets have null metrics.",
     "stock": "Historical open-set membership uses latest typed stage semantic P at bucket end (MSK). Planned DATE_CLOSED on currently open records never closes a historical stock. Fallback only with no history uses creation and actual terminal flag/close date. Money uses current budgets, explicitly labelled estimate; current endpoint uses current open flags. No claim of historical budget revisions.",
-    "interaction": "Solid current and dashed previous on common scale. Native tooltip plus CSS hover vertical dashed guide and points for each observed trace. Calendar uses same point/guide and removes crosshair cursor. No network/model calls."
+    "interaction": "Solid current and dashed previous on common scale. Native tooltip plus CSS hover vertical dashed guide and points for each observed trace. Calendar uses same point/guide and removes crosshair cursor. No network/model calls.",
+    "tooltipPresentation": "Separate visually bounded current/previous blocks, each with explicit date-range label and explicit quantity/conversion/money label. Open-budget points use a snapshot end date rather than an interval sum, with explicit distinction from current card total. Numbers/formulas/date alignment unchanged. Observed stock dates are capped at DATA.to; future-only buckets retain no observations. Historical dates and numeric series remain unchanged.",
+    "axis": "Always-visible zero baseline in every KPI/calendar mini line chart; KPI current start/end date labels below. Shared scale and hover points/vertical dashed guides retained."
+  },
+  "communicationPresentation": {
+    "entity": "Separate typed entity column from actual event bindings; a shared lead/deal event remains one event in the complete chain. Per-record entity filter never changes the source snapshot.",
+    "order": "Exact source timestamp ascending by default, including visible seconds in MSK. Only equal timestamps use lead-stage, deal-stage, then other-event tie order, with stable ID fallback. Reverse mode reverses the full ordering.",
+    "text": "Display-only whitespace compression: CRLF to LF, repeated horizontal whitespace to one space, at most one blank paragraph line. No truncation or source mutation.",
+    "viewport": "Independent reader up to 520px / 65vh desktop, 420px / 65vh mobile. Outer table scroll caps expand only while a reader is open.",
+    "fullReader": "Long messages offer a top-positioned Read in full action. Native modal dialog shows the complete escaped message/transcript in one independently scrolling region, with MSK time and typed bindings; close/Escape restores focus. No fetch or new source data."
   }
 }

@@ -1,0 +1,49 @@
+id: ozon-problems
+version: 1
+status: approved
+owner: Иван
+approved_at: '2026-10-27'
+approval: 'Да, эти правила подходят - ответ на вопрос о датах, когорте отмен и gross-суммах в текущем чате'
+decision: Еженедельный разбор конкретных отправлений с менеджерами
+timezone: Europe/Moscow
+interval: '[from 00:00, to+1day 00:00)'
+default_period: previous Monday-Sunday
+partial_period: mark
+entity: posting (не товарная штука и не родительский order)
+ratio:
+  numerator: cancelled FBS-family postings created in selected period
+  denominator: all FBS-family postings created in the same selected period
+  observation: last successful API snapshot, cohort may mature later
+cancellations_returns:
+  mode: gross
+  cancellation_value: сумма цен товаров отправления; не потерянная прибыль и не возврат денег
+  return_date_basis: logistic_return_date; заявки возврата и денежные рефанды не смешиваются
+date_field:
+  cancellations: created_at/in_process_at converted to Moscow
+  fees: accrual date
+  returns: logistic return date
+  delivery_loss: delivery_orders.d_ship
+  shipment_delay: error_at from official rating/index/fbs/posting/list; count of registered SELLER_DELAY, denominator and actual-handover rate unavailable
+  delivery_shift: observed change date between successful API snapshots
+  rating: exact source date; end-of-period value, never summed
+empty_value: null; zero only for a successfully covered period or explicit source zero
+source:
+  postings: /v4/posting/fbs/list
+  fees: /v1/finance/accrual/by-day + /v1/finance/accrual/types
+  returns: /v1/returns/list (contract probe required)
+  rating: /v1/rating/index/fbs/info matches cabinet day keys and values; generic /rating/history has different day attribution and is excluded
+  delivery: existing delivery_orders.ndjson; no writes to logistics spreadsheet
+invariants:
+  - No recipient names, addresses, phones, API keys or raw cabinet JSON in public files
+  - FBS-family includes unknown FBS/rFBS subtype; no forced rFBS classification
+  - FlexiblePayments and broad orders.other are not defect penalties
+  - Unknown timestamps do not turn into inferred actual handover or zero delays
+  - Delivery rescheduling and late-delivery metrics remain null until promise and actual date semantics are confirmed; daily raw-date observations retained
+  - Preserve earlier history; replace only successful window; failed probe does not erase data
+reconciliation:
+  independent_document: not provided; diagnostic operational source, not accounting reconciliation
+golden_rows:
+  - {date: '2026-10-17', charge_rub: 478, source: cabinet rating_defects_2026-10-27.json}
+  - {date: '2026-10-20', charge_rub: 5215.5, source: cabinet rating_defects_2026-10-27.json}
+  - {date: '2026-10-21', charge_rub: 6700.38, source: cabinet rating_defects_2026-10-27.json}
+  - {date: '2026-10-27', defect_index: 0.09053498, source: cabinet rating_defects_2026-10-27.json}

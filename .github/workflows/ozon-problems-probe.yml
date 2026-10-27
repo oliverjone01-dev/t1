@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - analytics-mvp/src/scripts/ozon/problems-probe.ts
+      - analytics-mvp/src/scripts/ozon/problems-collect.ts
       - .github/workflows/ozon-problems-probe.yml
 permissions:
   contents: read
@@ -33,4 +34,15 @@ jobs:
         with:
           name: problems-probe
           path: analytics-mvp/probe-output/problems-probe.json
+          retention-days: 3
+      - name: Collect sanitized Problems data into a temporary artifact
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+          PROBLEMS_OUT_DIR: probe-output/data
+        run: node --import tsx src/scripts/ozon/problems-collect.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: problems-normalized
+          path: analytics-mvp/probe-output/data/
           retention-days: 3

@@ -449,12 +449,12 @@ export class OzonSeller {
   // читает moneyOf. Fail-closed: ответ без списка отправлений или без has_next (переименованное
   // поле - прежний контракт молча отдал бы 0 строк или одну страницу) и курсор без сдвига при
   // has_next - ошибка с формой ответа, а не тихий недобор (ФЕНИКС #492 P1, P2).
-  private async listPostings(scheme: "FBO" | "FBS", since: string, to: string, financial: boolean): Promise<any[]> {
+  private async listPostings(scheme: "FBO" | "FBS", since: string, to: string, financial: boolean, analytics = false): Promise<any[]> {
     const path = scheme === "FBO" ? "/v3/posting/fbo/list" : "/v4/posting/fbs/list";
     const out: any[] = [];
     let cursor = "";
     for (let page = 0; page < POSTING_PAGE_CAP; page++) {
-      const d = await this.post<any>(path, { cursor, filter: { since, to }, limit: POSTING_PAGE, sort_dir: "asc", translit: false, with: { financial_data: financial } });
+      const d = await this.post<any>(path, { cursor, filter: { since, to }, limit: POSTING_PAGE, sort_dir: "asc", translit: false, with: { financial_data: financial, ...(analytics ? {analytics_data:true} : {}) } });
       const arr: unknown = d?.postings ?? d?.result?.postings ?? d?.result;
       const hasNextRaw = d?.has_next ?? d?.result?.has_next;
       if (!Array.isArray(arr) || typeof hasNextRaw !== "boolean") {
@@ -468,6 +468,37 @@ export class OzonSeller {
       cursor = next;
     }
     throw new Error(`OZON ${path}: больше ${POSTING_PAGE_CAP} страниц по ${POSTING_PAGE} - окно ${since}..${to} слишком велико`);
+  }
+
+  // Problems uses Moscow boundaries, raw cancellation and promised delivery fields.
+  async problemPostings(from:string,to:string):Promise<any[]> {
+    return this.listPostings('FBS',from+'T00:00:00+03:00',to+'T23:59:59.999+03:00',false,true);
+  }
+  async problemReturns(from:string,to:string):Promise<any[]> {
+    const out:any[]=[],seen=new Set<string>();let last_id:any=0;
+    for(let page=0;page<500;page++){
+      const d=await this.post<any>('/v1/returns/list',{filter:{logistic_return_date:{time_from:from+'T00:00:00+03:00',time_to:to+'T23:59:59.999+03:00'}},limit:500,last_id});
+      const arr=d.returns??d.result?.returns,more=d.has_next??d.result?.has_next;
+      if(!Array.isArray(arr)||typeof more!=='boolean')throw new Error('Problems returns contract');
+      out.push(...arr);if(!more)return out;
+      const next=d.last_id??d.result?.last_id??arr.at(-1)?.id;
+      if(!arr.length||next==null||String(next)===String(last_id)||seen.has(String(next)))throw new Error('Problems returns pagination stalled');
+      seen.add(String(next));last_id=next;
+    }
+    throw new Error('Problems returns page limit');
+  }
+  async problemRatingIndex():Promise<any>{return this.post('/v1/rating/index/fbs/info',{});}
+  async problemRatingSummary():Promise<any>{return this.post('/v1/rating/summary',{});}
+  async problemRatingPostings(from:string,to:string):Promise<any[]>{
+    const out:any[]=[],seen=new Set<string>();let cursor='';
+    for(let page=0;page<500;page++){
+      const d=await this.post<any>('/v1/rating/index/fbs/posting/list',{filter:{date_from:from+'T00:00:00+03:00',date_to:to+'T23:59:59.999+03:00'},limit:100,cursor});
+      if(!Array.isArray(d.errors)||typeof d.has_next!=='boolean')throw new Error('Rating postings contract');
+      out.push(...d.errors);if(!d.has_next)return out;
+      if(!d.errors.length||!d.cursor||seen.has(d.cursor)||d.cursor===cursor)throw new Error('Rating postings pagination stalled');
+      cursor=d.cursor;seen.add(cursor);
+    }
+    throw new Error('Rating postings page limit');
   }
 
   // Возвраты за период (/v1/returns/list). Нужны, чтобы вычесть выручку возвращённых заказов из блока

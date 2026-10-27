@@ -1782,6 +1782,9 @@ function aggFromDaily(from,to){
   return {dateFrom:from,dateTo:to,totals:totals,top_spend:top_spend,all:all,burners:burners,by_line:by_line,daily:true};
 }
 function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
+// Одна подпись кампании для таблицы и юнит-экономики: offer из метаданных, иначе справочник/SKU.
+function campaignArticle(c){var sk=campSku(c);return c.off||(sk&&(SKU_MAP[sk]||sk))||'';}
+function campaignArticleHtml(c){var art=campaignArticle(c);return art?' <span class="campaign-art" style="color:var(--ink-3);font-weight:400">'+String(art).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>':'';}
 // Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
 function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
@@ -1833,7 +1836,7 @@ function renderTop(){var a=lastA;if(!a)return;
     var ri=repInfo(c.id);var rep=ri?ri.rows:[];var loaded=ri!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
     var cart=cartOf(c.id); // добавления в корзину из отчёта продвижения (per-SKU -> кампания)
     var st='<td class="r">'+(c.vw==null?'—':fmtRu(c.vw))+'</td><td class="r">'+(c.cl==null?'—':fmtRu(c.cl))+'</td><td class="r" title="рекламные добавления в корзину из отчёта продвижения; «—» если по кампании отчёт ещё не собран (или CPO)">'+(cart==null?'—':fmtRu(cart))+'</td><td class="r">'+(c.ctr==null?'—':(c.ctr+'%'))+'</td><td class="r">'+(c.cpc==null?'—':fmtRu(c.cpc))+'</td>';
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td>'+st+'</tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+campaignArticleHtml(c)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td>'+st+'</tr>';
     var sub='';
     if(loaded&&rep.length){
       var _osp=0,_oom=0,_oso=0;rep.forEach(function(s){_osp+=s.sp||0;_oom+=s.om||0;_oso+=s.sold||0;});
@@ -1922,7 +1925,7 @@ function renderUecon(a){
     var sku=campSku(c);if(!sku)return;
     var isAct=(c.status==='активна');if((isAct&&!showA)||(!isAct&&!showI))return; // фильтр статуса
     total++;
-    var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
+    var art=campaignArticle(c);var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
     // Считаем только кампанию с выручкой и заказами за период, ставкой сборов SKU за период и с/с. Без выручки -
     // весь расход в минус и в «резать» (ФЕНИКС B7: не в «в плюс»); остальное - «нет данных», без подстановок.
     e=e||{};var why=ueWhy(om,ordC,e.com,e.cogsRub,_stale);

@@ -55,3 +55,7 @@
 Communication rows show an explicit typed entity column and exact source seconds in MSK. Entity tabs isolate the lead or deal while the full chain keeps shared events deduplicated. Equal timestamps use a lifecycle tie-break without altering different source times. Display whitespace is compressed, the reading viewport is taller, and source history remains intact. Observed stock tooltip dates stop at the snapshot coverage date.
 
 Long messages now open in a native full-message reader with one vertical scroll. Refusal IDs are plain text. Column filters use searchable multi-select options; date filters have an independent highlighted range calendar with exact-day double click. Column sorting and the ten-row viewport remain.
+
+### Compact date calendar
+
+Show one month instead of two in refusal-column date filters. Reduce width and spacing; retain range selection across month navigation, highlighted dates and exact-day double click.

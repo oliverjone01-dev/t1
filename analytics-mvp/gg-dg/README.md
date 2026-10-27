@@ -67,3 +67,5 @@ Tooltip clarity: current/comparison blocks explicitly separate date range from t
 Communication rows show an explicit typed entity column and exact source seconds in MSK. Entity tabs isolate the lead or deal while the full chain keeps shared events deduplicated. Equal timestamps use a lifecycle tie-break without altering different source times. Display whitespace is compressed, the reading viewport is taller, and source history remains intact. Observed stock tooltip dates stop at the snapshot coverage date.
 
 Long messages now open in a native full-message reader with one vertical scroll. Refusal IDs are plain text. Column filters use searchable multi-select options; date filters have an independent highlighted range calendar with exact-day double click. Column sorting and the ten-row viewport remain.
+
+Date column calendars now show one compact month (340px maximum width). Previous/next month navigation preserves the pending start/end range and its highlight; exact-day double click is unchanged.

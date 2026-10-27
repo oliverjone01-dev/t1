@@ -1,0 +1,115 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "competitors-cabinet-transfer-20261027",
+  "timestamp": "2026-10-27T16:09:56.977910+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/competitors/cabinet-page.ts",
+  "artifact_class": "dashboard",
+  "iteration": 1,
+  "anchor": "8.1 dialogs-registry after rework - higher by 0.3: transfer proved against raw source and accepted prototype across 169 SKUs; fixed snapshot captions prevent a higher score.",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "Fixed historical labels need updating before adding later snapshots; no automatic freshness claim in this transfer.",
+    "daysInStock meaning and market totals remain reported source interpretation/manual capture; no external independent reconciliation."
+  ],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent raw CSV parse: 5066 fields / 149 observed target rows and 36000 fields / 1000 catalog rows equal snapshot; 6/6 raw SHA-256 matches; manual market totals and rank found in КАБИНЕТ_КОНКУРЕНТЫ_ручки.md:38,42. This proves transfer, not independent financial reconciliation."
+    },
+    {
+      "id": "B2",
+      "result": "N/A",
+      "evidence": "Fixed historical 7/28-day windows only, no month selector or new formula. Both windows checked for all 169 own SKUs in 1395 DOM/value comparisons. Closed/current month arithmetic is not claimed."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "1000 unique catalog SKU; 29 unique own:competitor pairs; 133 snapshot keys per period. category filter checked for all 7 options; model-level unknowns retained."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "node /tmp/feniks-cabinet-probe.cjs: 1395 comparisons of approved HTML and built page across category KPI/scatter/models/signals and 169 products/history/pace, 0 runtime errors; typographic em dash normalization only."
+    },
+    {
+      "id": "B5",
+      "result": "PARTIAL",
+      "evidence": "Historical captions contain 32/~750, 198 sellers, 571.88m, 93/56 and 1 date. They match present raw evidence; not a reusable daily update renderer. Current request explicitly transfers prototype; dates are visible and fixed snapshot validated."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Built local pages inspected after current build on 2026-10-27; updateDate=2026-10-26 displayed separately from collection 27.10. Duplicate update creates no invented next-day point. Live site verification remains publishing agent responsibility."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Snapshot contains no credential/local user path/email matches. Exported data equals accepted snapshot; signals explicitly hypotheses; unobserved card remains null. Invalid private path/unsafe link/NaN/date/mapping fail builder tests; both pages contain only their own source JSON."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Fixed historical labels need updating before adding later snapshots; no automatic freshness claim in this transfer.",
+      "evidence": "analytics-mvp/katya/competitors/cabinet/template.html:33,35,44,60,63; cabinet-page.ts validates update date 2026-10-26.",
+      "checkpoint": "risk_24_dependencies",
+      "weight": -0.15
+    },
+    {
+      "gap": "daysInStock meaning and market totals remain reported source interpretation/manual capture; no external independent reconciliation.",
+      "evidence": "template.html:14 explains ambiguous field and excludes it from stock decisions; snapshot.market.kind says manual capture; raw source note lines38,42.",
+      "checkpoint": "accuracy_4_glossary_terminology",
+      "weight": -0.25
+    }
+  ],
+  "sources_of_truth": [
+    "/Users/gengroup/Documents/ozon/konkurenty/raw/cab_2026-10-27.psv",
+    "/Users/gengroup/Documents/ozon/konkurenty/raw/what_to_sell_2026-10-26.psv",
+    "/Users/gengroup/Documents/ozon/konkurenty/КАБИНЕТ_КОНКУРЕНТЫ_ручки.md",
+    "/Users/gengroup/Documents/Codex/outputs/ozon-competitor-decisions-2026-10-27/template.html",
+    "knowledge/semantic/metrics/ozon-competitors-cabinet.yaml"
+  ]
+}

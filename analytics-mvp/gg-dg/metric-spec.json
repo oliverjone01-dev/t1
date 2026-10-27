@@ -69,7 +69,7 @@
     ],
     "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values.",
     "header": "No refresh-status badge, section navigation or migration-period button. Freshness timestamp, filters and ordinary period/date controls stay.",
-    "filters": "Right-aligned date presets/custom dates followed by Filters. Filters opens a420px right drawer, full viewport height, with260ms slide/backdrop transition, independent vertical scrolling, Escape/backdrop/close controls, focus containment and return, body scroll lock and reduced-motion support. Existing filter state/calculations remain."
+    "filters": "Five full-width filter sections distribute over available drawer height, with icons and plain explanations. Header/footer stay visible and middle section scrolls on short screens. Bottom help link is exactly https://t.me/yanchoglov, user-authorized, new tab with noopener noreferrer and included in focus loop."
   },
   "calendar": {
     "population": "All current source-eligible DG leads/deals, irrespective of their creation date when counting later stage events.",
@@ -142,8 +142,16 @@
     "authorization": "27.10.2026 user requests lead/deal refusal fields, left horizontal reason chart with top10/30/50, right collapsible table with20 rows per page and no horizontal scrolling.",
     "population": "Exactly the union of calendar leadLost and lost rows under current period and global filters. Calendar first-failure history semantics are retained, including an event whose current record may later have reopened. Lead and deal are distinct records, never deduplicated into customers.",
     "reason": "Detailed sanitized lead reason when available, otherwise record reason or missing marker. Group labels normalize whitespace/case only; no invented categories. Top N limits bars only, never table population.",
-    "fields": "Typed ID, responsible, creation date, first-refusal date, latest loaded event activity date, stage at first refusal when available, reason, client type, assortment, originating lead for a deal. Lead client/product fields come only from eligible linked deals, otherwise dash. Activity uses the loaded event index (deal index includes eligible parent lead history); no inferred CRM modification date.",
-    "pagination": "20 rows maximum per page, all remaining records accessible through previous/next. Whole table can collapse independently of the chart. Responsive stacked records on narrow screens; fixed-layout wrapped desktop table without horizontal scrolling.",
-    "timezone": "Europe/Moscow for first failure, activity and communication dates, including events across UTC midnight."
+    "fields": "Separate columns for typed record ID, responsible, creation date, first-refusal date, latest indexed event date MSK, stage, reason, client type, assortment, originating lead. Desktop is single-line with complete cell text in title; no data removal. Current record button navigates internally to its calendar/history. Originating lead labels stay typed plain text.",
+    "pagination": "Superseded by user27.10: full-width compact table below the reason chart, maximum10 visible desktop data rows (30px each plus60px sticky header); every filtered record remains reachable by internal vertical scroll. No20-row pagination. Per-column text/date filters and ascending/descending sort apply to the same source population as the chart. Narrow layouts retain column controls and stacked records.",
+    "timezone": "Europe/Moscow for first failure, activity and communication dates, including events across UTC midnight.",
+    "duplicate": "Scoped read of the user-selected duplicate confirmed no original-lead reference field or URL. Never infer/hardcode a target ID. Show missing original ID explicitly; no CRM modification or CRM link."
+  },
+  "kpiCharts": {
+    "population": "Reuse native flt/mtr/soldSet/lostSet for every clipped interval under the current manager/source/client/direction/date-basis/revenue/amount filters. Card formulas remain unchanged.",
+    "comparison": "Previous dates are each current interval shifted back by periodLen days: equal-length disjoint aligned windows, with both exact date ranges in tooltips. Each metric is independently aggregated, never an average of ratios.",
+    "nulls": "CR1 with no leads, CR2 with no deals, and check with no sales are unobserved/null points with gaps and No base text, not fake zero. Count/amount known zeros remain zeros. Current future-only buckets have null metrics.",
+    "stock": "Historical open-set membership uses latest typed stage semantic P at bucket end (MSK). Planned DATE_CLOSED on currently open records never closes a historical stock. Fallback only with no history uses creation and actual terminal flag/close date. Money uses current budgets, explicitly labelled estimate; current endpoint uses current open flags. No claim of historical budget revisions.",
+    "interaction": "Solid current and dashed previous on common scale. Native tooltip plus CSS hover vertical dashed guide and points for each observed trace. Calendar uses same point/guide and removes crosshair cursor. No network/model calls."
   }
 }

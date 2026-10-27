@@ -125,6 +125,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
     x=x.replace(/info\('Пилюля срока под этапом:[^']*'\)/,"info('Накопительная воронка: сделка на позднем этапе учитывается и на предыдущих. Поэтому число показывает достижение этапа или более позднего, а не обязательный отдельный визит на каждый этап. Например, из 8 сделок 2 дошли до КП: конверсия в КП от предыдущего этапа — 25%, если на нём 8 сделок. Оставшиеся могут быть ещё в работе: снижение числа само по себе не означает отказ. Срок под этапом — медиана времени прохождения; цвет выделяет длительные сроки.')");
     return x.replace('<div class="card-sub">${subTxt}</div>','<div class="card-sub dg-pipeline-description"><p>${subTxt}</p><p>${explanation} ${saleExplanation}</p></div>');
   });
+  s=section(s,'kstrip',x=>x.replace('${foot}</div>','${foot}${dgKpiGraphFor(x)}</div>'));
   return s;
 }
 module.exports={adaptTemplate};

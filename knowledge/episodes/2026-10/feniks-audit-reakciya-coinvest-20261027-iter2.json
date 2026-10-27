@@ -1,0 +1,114 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "reakciya-coinvest-history-20261027",
+  "timestamp": "2026-10-27T18:10:04.806797+03:00",
+  "deliverable_ref": "git:807ad648",
+  "artifact_class": "dashboard",
+  "iteration": 2,
+  "anchor": "8.9 annotate after rework: lower by0.5;61targetedtests and faultprobes pass, sourcehistory restored, existing page limitations remain explicitly scoped.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [],
+  "evidence_ledger": [
+    {
+      "gap": "Closed: empty source accepted",
+      "evidence": "Independent full build.py against empty gap and sentinel output: exit1 at No usable daily coinvest history; old output byte-identical.",
+      "checkpoint": "risk_23_crisis_scenarios"
+    },
+    {
+      "gap": "Closed: warnDays lost",
+      "evidence": "Independent50SKU/20zero fixture: bridge retains warn_days[2026-10-26] and20zeros. VM executes actualUIwarning snippet: shown only when date insideperiod.",
+      "checkpoint": "risk_22_p9_hard_rules"
+    }
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "3raw27Oct price rows joined by id to snapshot article; independent formula52.31% equals gap_daily. Noncoinvest fields and series unchanged;885 archived effect cells equal."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "12Python tests independently passed: archive cutoff;7calendar days; gap; current end rejected; future excluded. Current29/30days,04Oct null across5groups."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "49shared-reader TypeScript tests independently passed; same-day correction/manual exclusions verified by12Python tests."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Local generated JSON vs baseline:526feed rows; all noncoinvest effect cells equal, before19Sep daily unchanged; source seriesOf preservesnull and path resets atnull."
+    },
+    {
+      "id": "B5",
+      "result": "PARTIAL",
+      "evidence": "New freshness derives fromobservations/MoscowNOW. Existing alert TODAY=2026-09-15 and older wording unchanged and explicitly scopedout."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Independent fullbuilder emptyinput exit1, sentineloutput unchanged;12Python tests include absent,empty,allOA/allno_site,archiveonly,futureonly failures. until27Oct/partial true;29of30dates."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Sourcewarnings now survivebridge/JSON. ActualUIwarning code executed underVM forinclusive/exclusiveperiod; uncertainzeros labelled andretained. No raw monetaryprice fields introduced."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "rework_tz": "",
+  "confidence": 0.97,
+  "sources_of_truth": [
+    "knowledge/semantic/probes/reakciya-coinvest-history-20261027.md",
+    "/Users/gengroup/Documents/ozon/data-cabinet/prices_raw_2026-10-27.psv",
+    "analytics-mvp/src/scripts/gap-daily.ts",
+    "/Users/gengroup/Documents/Codex/outputs/reakciya-coinvest-2026-10-27/baseline.json"
+  ],
+  "p9_triggers_fired": [
+    "Dashboard derived numeric history",
+    "Source replacement and missing data"
+  ],
+  "primary_gap": ""
+}

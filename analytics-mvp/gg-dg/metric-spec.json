@@ -68,7 +68,8 @@
       "Причины отказов в сделках"
     ],
     "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values.",
-    "header": "No refresh-status badge, section navigation or migration-period button. Freshness timestamp, filters and ordinary period/date controls stay."
+    "header": "No refresh-status badge, section navigation or migration-period button. Freshness timestamp, filters and ordinary period/date controls stay.",
+    "filters": "Right-aligned date presets/custom dates followed by Filters. Filters opens a420px right drawer, full viewport height, with260ms slide/backdrop transition, independent vertical scrolling, Escape/backdrop/close controls, focus containment and return, body scroll lock and reduced-motion support. Existing filter state/calculations remain."
   },
   "calendar": {
     "population": "All current source-eligible DG leads/deals, irrespective of their creation date when counting later stage events.",
@@ -96,7 +97,9 @@
     "refusalColumn": "Separate current CRM refusal reason column for refused leads and deals. Lead detail uses observed reason fields; deal reason uses the existing reason-comment field, then enum fallback. Decode, redact and contact-mask before publication; escape when rendered.",
     "navigation": "One GG-style heat-calendar matrix: all existing stages are rows in the left column, dates across the same rows, totals on the right. No side navigation or tabs. Stage label expands responsible rows inline; record and communication tables need separate clicks. Each nested table scrolls independently and is indented.",
     "amount": "Independent calendar amount field: budget by default, with an explicit budget/prepayment switch in money mode. Deals use existing budget or prepayAmt; leads keep their own CRM opportunity. Existing RUB/missing-value rules and all row/date/stock cohorts are unchanged. Global default prepayment remains unchanged.",
-    "detailPlacement": "Selected manager detail is inserted immediately after that manager heat row and before the next manager, without repeated stage heading or manager summary. Stage-cell totals appear under the stage row; record history remains directly after its record. Existing stage/responsible/record scopes, date buckets and amount choices are unchanged."
+    "detailPlacement": "Selected manager detail is inserted immediately after that manager heat row and before the next manager, without repeated stage heading or manager summary. Stage-cell totals appear under the stage row; record history remains directly after its record. Existing stage/responsible/record scopes, date buckets and amount choices are unchanged.",
+    "sparkHover": "Each transparent point hit region uses the existing native dashboard tooltip: actual clipped bucket date range, stage/responsible label, record count, and selected amount in money mode. Values and count come from the exact heat-cell series; no interpolation or invented samples. Calendar rows use tighter spacing.",
+    "sparkMissingMoney": "Tooltip explicitly distinguishes unknown/partial sums from genuine known zero and counts records missing an amount."
   },
   "comparison": "Previous adjacent interval has the same inclusive number of days as selected period. If previous metric is zero/absent, neutral 0% placeholder with tooltip. Otherwise (current-previous)/abs(previous).",
   "access": "Dedicated DG Basic Auth on TLS /gg-dg/ only. No common API, no legacy fallback. Code and raw data live outside shared www/current. Both former GitHub Pages routes are removed (404), without redirects.",
@@ -134,5 +137,13 @@
     },
     "linkedParentPolicy": "Fetch missing parents only by exact IDs present in direct DG category49 deal LEAD_ID. Require complete/unique scoped responses and the same incoming sender validation as ordinary DG leads. Builder proves admitted source-DG deal -> exact parent ID -> confirmed incoming sender; unverifiable or foreign candidates never enter the snapshot.",
     "authorizedReconciliation": "Expected for the reviewed current records:12leads =7converted +4refused +1open;7relateddeals. This is a verification case, not a fixed production count or a universal one-deal-per-lead invariant."
+  },
+  "refusals": {
+    "authorization": "27.10.2026 user requests lead/deal refusal fields, left horizontal reason chart with top10/30/50, right collapsible table with20 rows per page and no horizontal scrolling.",
+    "population": "Exactly the union of calendar leadLost and lost rows under current period and global filters. Calendar first-failure history semantics are retained, including an event whose current record may later have reopened. Lead and deal are distinct records, never deduplicated into customers.",
+    "reason": "Detailed sanitized lead reason when available, otherwise record reason or missing marker. Group labels normalize whitespace/case only; no invented categories. Top N limits bars only, never table population.",
+    "fields": "Typed ID, responsible, creation date, first-refusal date, latest loaded event activity date, stage at first refusal when available, reason, client type, assortment, originating lead for a deal. Lead client/product fields come only from eligible linked deals, otherwise dash. Activity uses the loaded event index (deal index includes eligible parent lead history); no inferred CRM modification date.",
+    "pagination": "20 rows maximum per page, all remaining records accessible through previous/next. Whole table can collapse independently of the chart. Responsive stacked records on narrow screens; fixed-layout wrapped desktop table without horizontal scrolling.",
+    "timezone": "Europe/Moscow for first failure, activity and communication dates, including events across UTC midnight."
   }
 }

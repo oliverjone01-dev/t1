@@ -295,7 +295,7 @@ render();
  const nextMonth=end=>{const [y,m]=end.split('-').map(Number);return new Date(Date.UTC(y,m,1)).toISOString().slice(0,7);};
  const monthDays=month=>{const [y,m]=month.split('-').map(Number);return new Date(Date.UTC(y,m,0)).getUTCDate();};
  function calculate(v){const revenue=Math.max(0,v.goal||0),carried=Math.max(0,v.carried||0),newRevenue=Math.max(0,revenue-carried),q=(v.qual||0)/100,c=(v.conv||0)/100,a=v.check||0,cpl=v.cpl||0,prod=(v.transfer||0)/100;
-  const possible=q>0&&c>0&&a>0,won=newRevenue===0?0:possible?Math.ceil(newRevenue/a):null,deals=won==null?null:Math.ceil(won/c),leads=deals==null?null:Math.ceil(deals/q),budget=leads==null||cpl<=0?null:Math.ceil(leads*cpl*100)/100;
+  const possible=q>0&&c>0&&a>0,won=newRevenue===0?0:possible?Math.ceil(newRevenue/a):null,deals=won==null?null:won===0?0:Math.ceil(won/c),leads=deals==null?null:deals===0?0:Math.ceil(deals/q),budget=leads==null?null:leads===0?0:cpl<=0?null:Math.ceil(leads*cpl*100)/100;
   const forecastReady=v.budget!=null&&cpl>0,fl=forecastReady?Math.floor(v.budget/cpl+1e-9):null,fd=fl==null?null:Math.floor(fl*q),fw=fd==null?null:Math.floor(fd*c),fr=fw==null?null:fw*a+carried;
   return{leads,deals,won,prod:won==null?null:Math.floor(won*prod),budget,forecastLeads:fl,forecastDeals:fd,forecastWon:fw,forecastProd:fw==null?null:Math.floor(fw*prod),forecastRevenue:fr,achievement:fr==null||revenue===0?null:fr/revenue*100};
  }

@@ -1,5 +1,6 @@
 // Calendar counts and the Dialog table hierarchy share the same eligible DG records.
 S.dgCalAmount='budget';S.dgCalPick=null;S.dgCalGroup='leads';S.dgCalExpanded=new Set();S.dgCalManagers=new Set();S.dgCalRecords=new Set();S.dgCommChannel='all';S.dgCommAsc=true;
+S.dgCalDealsOpen=false;
 const dgCommCache=new Map();
 // Keep records and communications in the same authenticated snapshot, even across server refreshes.
 const dgBakedEvents=new Map((DATA.communicationEvents||[]).map(event=>[event.id,event]));
@@ -17,6 +18,11 @@ const DG_CAL_ROWS=[
  {id:'completed',label:'Успех',kind:'deal',code:'C49:WON'},
  {id:'lost',label:'Отказ сделок',kind:'deal',mode:'lost'}
 ];
+const DG_CAL_DEAL_STAGES=['wip','kp','prepay','production','shipping'];
+function dgCalendarSparkline(values,color,label){
+ const max=Math.max(1,...values),points=values.map((v,i)=>`${values.length===1?50:2+i*96/(values.length-1)},${24-v/max*22}`).join(' '),description=label+' · '+(S.calUnit==='money'?'₽':'записей')+': '+values.map(v=>fmt(v)).join(' → ');
+ return `<svg class="dg-heat-spark" viewBox="0 0 100 26" role="img" aria-label="${esc(description)}"><title>${esc(description)}</title>${values.length===1?`<circle cx="50" cy="${24-values[0]/max*22}" r="2" fill="${color}"/>`:`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>`}</svg>`;
+}
 function dgMSKDay(at){return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));}
 function dgCalendarDateTime(at){return at&&Number.isFinite(Date.parse(at))?new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(at)):'не загружено';}
 function dgCalendarKeys(){const keys=[];for(let day=S.start;day<=S.end;){const k=bkey(day,S.gran);if(!keys.includes(k))keys.push(k);const date=new Date(day+'T00:00:00Z');date.setUTCDate(date.getUTCDate()+1);day=date.toISOString().slice(0,10);}return keys;}
@@ -63,19 +69,20 @@ function dgCalendarLine(row,keys,manager=null){
  const series=keys.map(k=>({key:k,rows:pick(k)})),values=series.map(x=>value(x.rows)),max=Math.max(1,...values),nonzero=values.filter(v=>v>0),min=nonzero.length?Math.min(...nonzero):0,lo=min>0&&min/max>=.5?min*.92:0,fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
  const cells=series.map(({key,rows})=>{const v=value(rows),t=max>lo?(v-lo)/(max-lo):0,alpha=.93-Math.min(1,Math.max(0,t))*.75,bg=rows.length?color+Math.round(alpha*255).toString(16).padStart(2,'0'):'var(--bg-base)',selected=S.dgCalPick?.row===row.id&&S.dgCalPick?.bucket===key&&(S.dgCalPick?.manager??null)===manager;
  return `<button class="dg-heat-cell" ${rows.length?`data-dg-calcell="${row.id}|${key}"${manager!==null?` data-dg-calmanager="${esc(manager)}"`:''}`:'disabled'} style="background:${bg};color:${rows.length?dgCalendarHeatInk(color,t):'transparent'};font-size:${manager===null?fs:fs-1}px;${selected?'box-shadow:inset 0 0 0 2px #22D3EE':''}" aria-label="${esc(row.label+' · '+blabel(key,S.gran)+' · '+show(rows))}" data-tip="${esc(row.label+' · '+blabel(key,S.gran)+' · '+rows.length+' записей'+(money?' · '+show(rows)+' ₽':''))}">${rows.length?show(rows):''}</button>`;}).join('');
- const total=pick(null),open=S.dgCalExpanded.has(row.id),selected=S.dgCalPick?.row===row.id&&(S.dgCalPick?.manager??null)===manager;
+ const total=pick(null),open=row.id==='deals'?S.dgCalDealsOpen:S.dgCalExpanded.has(row.id),selected=S.dgCalPick?.row===row.id&&(S.dgCalPick?.manager??null)===manager;
  const label=manager===null?`<button style="border-left:2px solid ${color}" class="dg-heat-label" data-dg-calrow="${row.id}" aria-expanded="${open}"><span class="dg-heat-arrow">${open?'▾':'▸'}</span> ${esc(row.label)}${row.mode!=='stock'?` <b style="color:${color}">${show(total)}</b>`:''}</button>`:`<button class="dg-heat-label dg-heat-manager" data-dg-calopen="${row.id}" data-dg-calmanager="${esc(manager)}" aria-expanded="${selected}"><span class="dg-heat-arrow">${selected?'▾':'▸'}</span> ${esc(manager)}</button>`;
- return `<div class="chrow dg-heat-row ${manager!==null?'dg-heat-sub':''}">${label}<div class="dg-heat-cells">${cells}</div><button class="dg-heat-total" data-dg-calopen="${row.id}"${manager!==null?` data-dg-calmanager="${esc(manager)}"`:''} style="color:${color}" data-tip="${row.mode==='stock'?'Открытый остаток, не сумма столбцов':'Итог за выбранный период'}">${show(total)}</button></div>`;
+ return `<div class="chrow dg-heat-row ${manager!==null?'dg-heat-sub':''}" data-dg-heatrow="${row.id}">${label}<div class="dg-heat-cells">${cells}</div><button class="dg-heat-total" data-dg-calopen="${row.id}"${manager!==null?` data-dg-calmanager="${esc(manager)}"`:''} style="color:${color}" data-tip="${row.mode==='stock'?'Открытый остаток, не сумма столбцов':'Итог за выбранный период'}">${show(total)}</button>${dgCalendarSparkline(values,color,row.label+(manager?' · '+manager:''))}</div>`;
 }
 function dgCalendarBlock(){
  const keys=dgCalendarKeys(),money=S.calUnit==='money',step=Math.max(1,Math.ceil(keys.length/12));
- const head=`<div class="dg-heat-head"><div class="dg-heat-spacer"></div><div class="dg-heat-cells">${keys.map((k,i)=>`<div>${keys.length<=16||i%step===0||i===keys.length-1?blabel(k,S.gran):''}</div>`).join('')}</div><div class="dg-heat-sigma">Σ ${money?'₽':'зап.'}</div></div>`;
- const body=DG_CAL_ROWS.map(row=>{let h=dgCalendarLine(row,keys);
+ const head=`<div class="dg-heat-head"><div class="dg-heat-spacer"></div><div class="dg-heat-cells">${keys.map((k,i)=>`<div>${keys.length<=16||i%step===0||i===keys.length-1?blabel(k,S.gran):''}</div>`).join('')}</div><div class="dg-heat-sigma">Σ ${money?'₽':'зап.'}</div><div class="dg-heat-spark-heading">Динамика</div></div>`;
+ const draw=row=>{let h=dgCalendarLine(row,keys);
   const picked=S.dgCalPick?.row===row.id;
   if(picked&&!S.dgCalPick.manager)h+=dgCalendarDetail(row);
   if(S.dgCalExpanded.has(row.id)){const names=[...new Set([...(dgCalendarRows(row).map(x=>x.record.mgr||'Не распределено')),...keys.flatMap(k=>dgCalendarRows(row,k).map(x=>x.record.mgr||'Не распределено'))])].sort((a,b)=>a.localeCompare(b,'ru'));h+=names.map(m=>dgCalendarLine(row,keys,m)+(picked&&S.dgCalPick.manager===m?dgCalendarDetail(row):'')).join('');}
   return h;
- }).join('');
+ };
+ const body=DG_CAL_ROWS.filter(row=>!DG_CAL_DEAL_STAGES.includes(row.id)).map(row=>draw(row)+(row.id==='deals'&&S.dgCalDealsOpen?`<div class="dg-deal-stages">${DG_CAL_DEAL_STAGES.map(id=>draw(DG_CAL_ROWS.find(r=>r.id===id))).join('')}</div>`:'')).join('');
  const coverage=DATA.communicationCoverage,cache=coverage?.cache,cacheNote=cache?.status==='available'?'Диалоги: '+dgCalendarDateTime(cache.generatedAt):'Дополнение из «Диалогов» недоступно';
  return `<section class="card dg-calendar dg-calendar-gg" id="dg-calendar"><div class="card-h"><div><div class="card-title">Календарь лидов и сделок</div><div class="card-sub">Этап → ответственный → лид или сделка → коммуникации</div></div><div class="dg-calendar-controls">${money?`<div class="seg" aria-label="Поле суммы календаря"><button data-dg-calamount="budget" class="${S.dgCalAmount!=='prepay'?'on':''}">Бюджет</button><button data-dg-calamount="prepay" class="${S.dgCalAmount==='prepay'?'on':''}">Предоплата</button></div>`:''}<div class="seg"><button data-dg-calunit="count" class="${!money?'on':''}">Количество</button><button data-dg-calunit="money" class="${money?'on':''}">Сумма</button></div></div></div><div class="card-sub dg-heat-freshness">CRM: ${dgCalendarDateTime(coverage?.generatedAt)} · ${cacheNote}</div><div class="dg-calendar-workspace"><div id="dg-calendar-panel" class="scroll dg-heat-scroll"><div class="dg-heat-calendar" style="--dg-total:${money?108:84}px">${head}${body}</div></div></div></section>`;
 }
@@ -121,7 +128,7 @@ function dgCalendarRerender(){render();for(const key of S.dgCalRecords)dgLoadCom
 document.addEventListener('click',e=>{
  const group=e.target.closest('[data-dg-calgroup]');if(group&&DG_CAL_GROUPS.some(g=>g.id===group.dataset.dgCalgroup)){S.dgCalGroup=group.dataset.dgCalgroup;S.dgCalPick=null;S.dgCalExpanded.clear();S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();document.getElementById('dg-tab-'+S.dgCalGroup)?.focus();return;}
  const row=e.target.closest('[data-dg-calrow]'),cell=e.target.closest('[data-dg-calcell]'),open=e.target.closest('[data-dg-calopen]');
- if(row){const id=row.dataset.dgCalrow;if(S.dgCalExpanded.has(id)){S.dgCalExpanded.delete(id);if(S.dgCalPick?.row===id)S.dgCalPick=null;}else S.dgCalExpanded.add(id);S.dgCalRecords.clear();dgCalendarRerender();return;}
+ if(row){const id=row.dataset.dgCalrow;if(id==='deals'){S.dgCalDealsOpen=!S.dgCalDealsOpen;if(!S.dgCalDealsOpen){for(const stage of DG_CAL_DEAL_STAGES)S.dgCalExpanded.delete(stage);if(DG_CAL_DEAL_STAGES.includes(S.dgCalPick?.row))S.dgCalPick=null;}S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}if(S.dgCalExpanded.has(id)){S.dgCalExpanded.delete(id);if(S.dgCalPick?.row===id)S.dgCalPick=null;}else S.dgCalExpanded.add(id);S.dgCalRecords.clear();dgCalendarRerender();return;}
  if(cell||open){const target=cell||open,[id,bucket]=cell?cell.dataset.dgCalcell.split('|'):[open.dataset.dgCalopen,null],manager=target.dataset.dgCalmanager||null;S.dgCalPick=S.dgCalPick?.row===id&&S.dgCalPick?.bucket===bucket&&(S.dgCalPick?.manager??null)===manager?null:{row:id,bucket,manager,reason:''};S.dgCalManagers.clear();S.dgCalRecords.clear();S.dgCommChannel='all';dgCalendarRerender();return;}
  const amount=e.target.closest('[data-dg-calamount]');if(amount){S.dgCalAmount=amount.dataset.dgCalamount;dgCalendarRerender();return;}
  const unit=e.target.closest('[data-dg-calunit]');if(unit){S.calUnit=unit.dataset.dgCalunit;dgCalendarRerender();return;}

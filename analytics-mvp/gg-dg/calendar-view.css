@@ -43,3 +43,6 @@
 .dg-calendar .t3>tbody>tr.dg-technical .badge{color:#A78BFA;border-color:#A78BFA55}
 
 .dg-cross-caption{display:block;margin-top:3px}
+.dg-calendar .dg-heat-spark,.dg-heat-spark-heading{width:100px;flex:0 0 100px;box-sizing:border-box}.dg-calendar .dg-heat-spark{height:26px;padding-left:8px}.dg-heat-spark-heading{text-align:center;font-size:8.5px;color:var(--ink-4)}
+.dg-calendar .dg-heat-scroll,.dg-calendar .dg-heat-calendar{min-width:860px}
+.dg-deal-stages{margin-left:18px;width:calc(100% - 18px)}.dg-calendar .dg-deal-stages .dg-heat-label{width:162px;flex-basis:162px}

@@ -22,12 +22,11 @@ function dgDistributionBlock(){
     const positive=groups.filter(g=>g.value>0),data=positive.map((g,i)=>[esc(g.name),g.value,PAL[i%PAL.length]]);
     let svg=donut(data,money?fmtK(total):fmt(total),money?'₽':(sales?'продаж':'сделок'),money);
     if(total===0)svg=svg.replace(/(<svg[^>]*>)/,'$1<circle class="dg-empty-ring" cx="100" cy="100" r="65" fill="none" stroke="#3F4855" stroke-width="30"/>');
-    let i=0;svg=svg.replace(/<path /g,()=>{const g=positive[i++];return `<path data-dg-field="${field}" data-dg-value="${esc(g.name)}" `;});
-    const legend=groups.map(g=>`<li><button data-dg-field="${field}" data-dg-value="${esc(g.name)}">${esc(g.name)}</button><span>${money?dgMoney(g.value,'RUB'):fmt(g.value)} <small style="color:var(--ink-3)">· ${pct(total?g.value/total:0)}</small></span></li>`).join('');
+    const legend=groups.map(g=>`<li><span>${esc(g.name)}</span><span>${money?dgMoney(g.value,'RUB'):fmt(g.value)} <small style="color:var(--ink-3)">· ${pct(total?g.value/total:0)}</small></span></li>`).join('');
     const empty=!rows.length?(sales?'Нет продаж за выбранный период':'Нет сделок за выбранный период'):money&&total===0?'Нет суммы по выбранным записям':'';
-    return `<div class="card" data-dg-distribution="${field}"><div class="card-sub" style="font-weight:600;color:var(--ink-2);text-align:center;margin-bottom:6px">${title}</div><div style="text-align:center">${svg}</div><ul class="dg-breakdown">${legend}</ul><div class="dg-dist-note">${empty||'Нажмите на сегмент или категорию для списка сделок'}${missing?' · без суммы: '+fmt(missing):''}</div></div>`;
+    return `<div class="card" data-dg-distribution="${field}"><div class="card-sub" style="font-weight:600;color:var(--ink-2);text-align:center;margin-bottom:6px">${title}</div><div style="text-align:center">${svg}</div><ul class="dg-breakdown">${legend}</ul>${empty||missing?`<div class="dg-dist-note">${empty}${missing?(empty?' · ':'')+'без суммы: '+fmt(missing):''}</div>`:''}</div>`;
   }).join('');
-  return `<section class="dg-dist" aria-label="Распределение сделок и продаж"><div class="card-h"><div><div class="card-title">Распределение ${sales?'продаж':'сделок'}</div><div class="card-sub">${basis} · ${valueBasis} · ${rows.length} записей${sales?' · '+(S.revMode==='prepay'?'от предоплаты':'по успешному завершению'):''}</div></div><div class="dg-dist-controls">${modes}${units}</div></div><div class="grid3">${cards}</div>${dgDealDetails()}</section>`;
+  return `<section class="dg-dist" aria-label="Распределение сделок и продаж"><div class="card-h"><div><div class="card-title">Распределение ${sales?'продаж':'сделок'}</div><div class="card-sub">${basis} · ${valueBasis} · ${rows.length} записей${sales?' · '+(S.revMode==='prepay'?'от предоплаты':'по успешному завершению'):''}</div></div><div class="dg-dist-controls">${modes}${units}</div></div><div class="grid3">${cards}</div></section>`;
 }
 function dgLeadRows(){
   const selection=S.dgDetail;if(!selection||selection.kind!=='leads')return [];
@@ -66,7 +65,6 @@ document.addEventListener('click',e=>{
   if(mode||unit){if(mode)S.dgDistMode=mode.dataset.dgMode;if(unit)S.dgDistUnit=unit.dataset.dgUnit;S.dgDetail=null;S.dgSearch='';S.dgReason='';render();return;}
   const lead=e.target.closest('[data-dg-lead]'),status=e.target.closest('[data-dg-leadstatus]');
   if(lead||status){S.dgDetail={kind:'leads',stage:lead?.dataset.dgLead,status:status?.dataset.dgLeadstatus};S.dgSearch='';S.dgReason='';dgReveal('dg-lead-details');return;}
-  const segment=e.target.closest('[data-dg-field]');if(segment){S.dgDetail={kind:'deals',field:segment.dataset.dgField,value:segment.dataset.dgValue};S.dgSearch='';S.dgReason='';dgReveal('dg-deal-details');return;}
   const reason=e.target.closest('[data-dg-reason]');if(reason){S.dgReason=reason.dataset.dgReason;S.dgSearch='';dgReveal('dg-lead-details');return;}
   const sort=e.target.closest('[data-dg-sort]');if(sort){const key=sort.dataset.dgSort;S.dgAsc=S.dgSort===key?!S.dgAsc:true;S.dgSort=key;render();return;}
   if(e.target.closest('[data-dg-close]')){S.dgDetail=null;S.dgSearch='';S.dgReason='';render();}

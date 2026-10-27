@@ -1,5 +1,5 @@
 {
-  "id": "gg-dg-source-dashboard-v5-domglass-mail-heat-calendar",
+  "id": "gg-dg-source-dashboard-v6-confirmed-related-leads",
   "authorization": "User requests every GG widget reproduced for DG, published at gg&dg on GitHub. Explicit reply: План ДГ пока не задан. Existing GG metric definitions are inherited, never GG targets. Follow-up: remove requested plan, dynamics, manager, production, data-discipline and offer-control widgets; swap speed/loss widgets before deal funnel; add deal/sales switch, zero rings and lead/deal reason tables.",
   "source": {
     "portal": "glassmemory.bitrix24.ru",
@@ -8,8 +8,8 @@
     "exampleLead": "54999"
   },
   "population": {
-    "leads": "Exact SOURCE_ID UC_NQ3QUI AND at least one incoming email activity bound to the lead with actual From mailbox domain exactly domglass.ru. All dates. Outgoing replies do not qualify. Display-name addresses and text signatures are not sender proof.",
-    "deals": "Direct DG source or link to a qualifying lead; any deal linked to an explicitly rejected source-DG lead is excluded.",
+    "leads": "Candidate set is exact SOURCE_ID UC_NQ3QUI leads plus the explicitly referenced parent leads of direct source-DG category49 deals. Every candidate must still have an actual bound incoming From mailbox domain exactly domglass.ru. No contact/company expansion. Original CRM lead source is preserved. Non-DG-source leads require private admitted direct-deal and sender proofs checked again by the builder.",
+    "deals": "Direct DG source or link to a qualifying lead; any deal linked to an explicitly sender-rejected candidate lead is excluded.",
     "enrichment": "Stage history, direct lead/deal activities and linked production items only. Shared contact/company communication cannot be attributed to DG and is excluded."
   },
   "reference": {
@@ -35,7 +35,7 @@
     "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments."
   },
   "drilldown": {
-    "leads": "Lead funnel opens the same FL creation cohort; refusal chart stays nonclickable. Calendar expands current manager, record and full communication history; refusals have a separate reason column without summary chips.",
+    "leads": "Lead funnel and refusal chart are static, with no click handlers or standalone table below the funnel. Lead details remain in the calendar by responsible and record. Distribution category drilldowns are unchanged.",
     "deals": "A distribution category opens the same selected deals/sales subset. IDs are plain text; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
     "reasonFields": [
       "UF_CRM_1730742511284",
@@ -117,9 +117,10 @@
     "technicalPresentation": "Non-communication events use muted text and purple channel badges; real calls/email/messages/SMS retain their existing text styling. All row backgrounds remain neutral; classification does not alter counts or filtering."
   },
   "mailCohort": {
-    "authorization": "26.10.2026 user: вот от домглас оставляем только",
+    "authorization": "26.10.2026 user: вот от домглас оставляем только; 27.10.2026 explicit user choice: include confirmed parent leads linked to DG deals even when their own CRM source is Other. CRM records stay unchanged.",
     "evidence": "EMAIL_META.from of incoming TYPE_ID4/DIRECTION1 activities. Positive email bindings explicitly checked. No incoming evidence excludes the lead; missing API metadata/failure aborts publication rather than producing zero.",
-    "probe": {
+    "initialSourceProbe": {
+      "observedAt": "2026-10-26",
       "before": 50,
       "retained": 10,
       "excludedByDomain": {
@@ -128,6 +129,8 @@
         "21vekug.ru": 1,
         "urbitec-fm.ru": 1
       }
-    }
+    },
+    "linkedParentPolicy": "Fetch missing parents only by exact IDs present in direct DG category49 deal LEAD_ID. Require complete/unique scoped responses and the same incoming sender validation as ordinary DG leads. Builder proves admitted source-DG deal -> exact parent ID -> confirmed incoming sender; unverifiable or foreign candidates never enter the snapshot.",
+    "authorizedReconciliation": "Expected for the reviewed current records:12leads =7converted +4refused +1open;7relateddeals. This is a verification case, not a fixed production count or a universal one-deal-per-lead invariant."
   }
 }

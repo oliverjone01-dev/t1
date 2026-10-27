@@ -205,3 +205,20 @@ test('Outlook styles are removed without dropping the customer request in fresh 
  assert.ok(fresh.body.includes(request));assert.ok(!fresh.body.includes('VML'));assert.ok(!fresh.body.includes('MsoNormal'));assert.ok(!fresh.body.includes('not email text'));
  const ordinary=dgCleanEvent({src:'act#903',ts:Date.now(),type:'Письмо',body:'Описание .shape и пример {размер:1200} — часть запроса.'},['L10']);assert.ok(ordinary.body.includes('.shape'));assert.ok(ordinary.body.includes('{размер:1200}'));
 });
+
+test('related lead candidates come only from direct DG deals and still require incoming Domglass mail',async()=>{
+ const {dgLeadCandidates,dgMailCohort}=require('./mail-cohort.cjs'),source=[{ID:'10',SOURCE_ID:'UC_NQ3QUI'}],direct=[{ID:'20',SOURCE_ID:'UC_NQ3QUI',CATEGORY_ID:49,LEAD_ID:'11'},{ID:'21',SOURCE_ID:'UC_NQ3QUI',CATEGORY_ID:49,LEAD_ID:'12'}];
+ const candidates=await dgLeadCandidates(source,direct,async ids=>{assert.deepEqual(ids,['11','12']);return ids.map(ID=>({ID,SOURCE_ID:'OTHER'}));});
+ assert.deepEqual(candidates.leads.map(l=>l.ID),['10','11','12']);assert.deepEqual(candidates.parentDeals['11'],['20']);
+ const activities=candidates.leads.map((l,i)=>({ID:String(i+1),OWNER_TYPE_ID:1,OWNER_ID:l.ID,TYPE_ID:4,DIRECTION:1,SETTINGS:{EMAIL_META:{from:l.ID==='12'?'notice@elsewhere.test':'person@domglass.ru'}}}));
+ const result=await dgMailCohort(candidates.leads,async(method,p)=>method==='crm.activity.list'?{result:activities,total:3}:{result:[{entityTypeId:1,entityId:activities.find(a=>a.ID===String(p.activityId)).OWNER_ID}]},{throttleMs:0});assert.deepEqual(result.leads.map(l=>l.ID),['10','11']);assert.deepEqual(result.excluded,['12']);
+ await assert.rejects(dgLeadCandidates(source,direct,async()=>[{ID:'11',SOURCE_ID:'OTHER'},{ID:'99',SOURCE_ID:'OTHER'}]),/Missing\/foreign/);
+ await assert.rejects(dgLeadCandidates(source,[{...direct[0],SOURCE_ID:'OTHER'}],async()=>[]),/direct DG/);
+ await assert.rejects(dgLeadCandidates(source,[{...direct[0],CATEGORY_ID:21}],async()=>[]),/direct DG/);
+ assert.equal((await dgLeadCandidates(source,[],async()=>{throw Error('global query');})).leads.length,1);
+});
+
+test('a non-DG-source lead requires admitted direct-deal and exact sender proofs',()=>{
+ const f=fixture();f.leads.push({...f.leads[0],id:'11',sourceId:'OTHER'});f.deals[0].leadId='11';f.deals[0].sourceId='UC_NQ3QUI';sync(f);f.scope.linkedLeadProof=[{leadId:'11',dealIds:['20']}];f.scope.mailPolicy={domain:'domglass.ru',direction:'incoming',confirmedLeadIds:['10','11']};assert.equal(validateRaw(f),true);assert.equal(build(f,template,builder,hook).data.leads.length,2);
+ for(const mutate of [r=>r.scope.linkedLeadProof=[],r=>r.deals[0].sourceId='OTHER',r=>r.deals[0].leadId='10',r=>r.scope.linkedLeadProof[0].dealIds=['999'],r=>r.scope.mailPolicy.confirmedLeadIds=['10'],r=>r.scope.mailPolicy.domain='elsewhere.test',r=>r.scope.linkedLeadProof.push(r.scope.linkedLeadProof[0])]){const bad=structuredClone(f);mutate(bad);assert.throws(()=>validateRaw(bad));}
+});

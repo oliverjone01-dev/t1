@@ -25,6 +25,16 @@ function dgMailDomains(value){
  }
  return [...new Set(domains)];
 }
+async function dgLeadCandidates(sourceLeads,directDeals,fetchParents){
+ const source='UC_NQ3QUI',positive=id=>/^[1-9]\d*$/.test(String(id||''));
+ if(sourceLeads.some(l=>!positive(l.ID)||l.SOURCE_ID!==source)||new Set(sourceLeads.map(l=>String(l.ID))).size!==sourceLeads.length)throw Error('Invalid DG source leads');
+ if(directDeals.some(d=>!positive(d.ID)||d.SOURCE_ID!==source||Number(d.CATEGORY_ID)!==49))throw Error('Invalid direct DG deal');
+ const known=new Set(sourceLeads.map(l=>String(l.ID))),parents=new Map();
+ for(const d of directDeals){if(d.LEAD_ID==null||String(d.LEAD_ID)==='0'||d.LEAD_ID==='')continue;if(!positive(d.LEAD_ID))throw Error('Invalid DG parent lead');const id=String(d.LEAD_ID);if(!parents.has(id))parents.set(id,[]);parents.get(id).push(String(d.ID));}
+ const missing=[...parents.keys()].filter(id=>!known.has(id)),extra=missing.length?await fetchParents(missing):[];
+ if(!Array.isArray(extra)||extra.length!==missing.length||new Set(extra.map(l=>String(l.ID))).size!==missing.length||extra.some(l=>!missing.includes(String(l.ID))))throw Error('Missing/foreign DG parent lead');
+ return {leads:[...sourceLeads,...extra],parentDeals:Object.fromEntries(parents)};
+}
 async function dgMailCohort(leads,call,{throttleMs=550}={}){
  const keep=new Set(),known=new Set(leads.map(l=>String(l.ID))),bindings=new Map();let last=0;
  const rpc=async(method,params)=>{const delay=last+throttleMs-Date.now();if(delay>0)await new Promise(r=>setTimeout(r,delay));last=Date.now();const out=await call(method,params);if(out.error)throw Error('DG mail cohort request failed');return out;};
@@ -49,4 +59,4 @@ async function dgMailCohort(leads,call,{throttleMs=550}={}){
  }
  return {leads:leads.filter(l=>keep.has(String(l.ID))),excluded:[...known].filter(id=>!keep.has(id)),before:known.size};
 }
-module.exports={dgMailCohort,dgMailDomains};
+module.exports={dgMailCohort,dgMailDomains,dgLeadCandidates};

@@ -41,3 +41,5 @@
 .dg-calendar .dg-direct-records{margin-left:18px!important;width:calc(100% - 18px)}
 .dg-calendar .t3>tbody>tr.dg-technical>td{color:#8A95A6}
 .dg-calendar .t3>tbody>tr.dg-technical .badge{color:#A78BFA;border-color:#A78BFA55}
+
+.dg-cross-caption{display:block;margin-top:3px}

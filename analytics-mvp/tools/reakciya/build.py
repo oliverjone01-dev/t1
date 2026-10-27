@@ -1,11 +1,14 @@
 import pandas as pd, numpy as np, json, re, os
 import sys,os,glob
+from coinvest_history import load_history, effect_window_ready
 # Запускать из analytics-mvp:  python3 tools/reakciya/build.py
 # Читает сырые выгрузки кабинета из tools/reakciya/data-cabinet/ (в git не хранятся, см. README),
 # пишет срез в data/reakciya.json. Дальше:  npm run reakciya
 ROOT=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-D=os.path.join(ROOT,'tools','reakciya','data-cabinet')+os.sep
-L=os.path.join(ROOT,'data')+os.sep
+D=os.environ.get('REAKCIYA_CABINET_DIR',os.path.join(ROOT,'tools','reakciya','data-cabinet'))+os.sep
+L=os.environ.get('REAKCIYA_DATA_DIR',os.path.join(ROOT,'data'))+os.sep
+OUT_PATH=os.environ.get('REAKCIYA_OUT',L+'reakciya.json')
+NOW=pd.Timestamp.now(tz='Europe/Moscow').normalize().tz_localize(None)
 
 # Имена выгрузок кабинета несут в себе даты среза. Раньше они были зашиты константами,
 # и скрипт молча читал старый файл, даже когда рядом лежал свежий: дата на дашборде
@@ -40,6 +43,9 @@ cap=dict(zip(snap['art'],snap['seller']))
 mc['cap']=mc['art'].map(cap)
 mc['coinv']=(1-mc['mp']/mc['cap'])*100
 co=mc[['art','d','coinv']].dropna()
+# Архив заканчивается 18.09. Далее используем тот же ряд и правила пропусков,
+# что остальные вкладки; цены по карте Ozon в него не входят.
+co,coinv_source=load_history(co,L,NOW)
 
 # события
 ev=pd.read_csv(newest('ads_campaign_history_*.psv'),sep='|')
@@ -170,6 +176,8 @@ for i,r in A.iterrows():
         for k in (1,3,7):
             end=d+pd.Timedelta(days=k)
             if end>DMAX: rec[f'{m}_{k}']=None; continue
+            if m=='coinv' and not effect_window_ready(piv[m],skus,d,k,NOW):
+                rec[f'{m}_{k}']=None; continue
             a0=win(m,skus,d+pd.Timedelta(days=1),end,how)
             sa=(store[m].loc[(store[m].index>=d+pd.Timedelta(days=1))&(store[m].index<=end)]).mean()
             if b0 is None or np.isnan(b0) or a0 is None or np.isnan(a0): rec[f'{m}_{k}']=None; continue
@@ -448,11 +456,19 @@ for _f in sorted(glob.glob(D+'prices_raw_*.psv')):
     _d=os.path.basename(_f)[len('prices_raw_'):-len('.psv')]
     if len(_d)==10: _PU.append(_d)
 _PRICES_UNTIL=max(_PU) if _PU else _DATA_UNTIL
+_COINV_UNTIL=piv['coinv'].dropna(how='all').index.max()
+_COINV_UNTIL=None if pd.isna(_COINV_UNTIL) else _COINV_UNTIL.strftime('%Y-%m-%d')
+coinv_history=dict(until=_COINV_UNTIL,partial=(_COINV_UNTIL==NOW.strftime('%Y-%m-%d')),
+    source='price_history до 18.09; gap_daily с 19.09',excluded=coinv_source['excluded'],
+    coverage={k:{d.strftime('%Y-%m-%d'):int(n) for d,n in
+        piv['coinv'][[s for s in skus if s in piv['coinv'].columns]].count(axis=1).items()}
+        for k,skus in grp.items()})
 _UPDATED=_dt.date.today().isoformat()
 print('Свежесть: data_until',_DATA_UNTIL,'| prices_until',_PRICES_UNTIL,'| updated',_UPDATED)
 if _DATA_UNTIL < (_dt.date.today()-_dt.timedelta(days=7)).isoformat():
     print('  ВНИМАНИЕ: воронка отстаёт больше чем на 7 дней. Свежая выгрузка не доехала?')
 OUT=dict(emet=['coinv','search_views','search_position','pdp_views','ordered_units'],updated=_UPDATED,data_until=_DATA_UNTIL,prices_until=_PRICES_UNTIL,
+  coinv_history=coinv_history,
   feed=feed,alerts=AL,levels_n=LVN,coinv=CO_NOW,tests=tests,daily=DAILY,
   camps=[dict(camp=int(r['camp']),name=r['name'],on=bool(r['on']),bid=(None if pd.isna(r['bid']) else float(r['bid'])),
               wb=(None if pd.isna(r['wbudget']) else float(r['wbudget'])),n=len(r['skus']),
@@ -471,6 +487,8 @@ def clean(o):
     if isinstance(o,(np.floating,)): return None if np.isnan(o) else float(o)
     return o
 OUT=clean(OUT)
-json.dump(OUT,open(L+'reakciya.json','w'),ensure_ascii=False,default=str,allow_nan=False,separators=(',',':'))
-print('JSON записан, размер',os.path.getsize(L+'reakciya.json'),'байт')
+with open(OUT_PATH+'.tmp','w') as f:
+    json.dump(OUT,f,ensure_ascii=False,default=str,allow_nan=False,separators=(',',':'))
+os.replace(OUT_PATH+'.tmp',OUT_PATH)
+print('JSON записан, размер',os.path.getsize(OUT_PATH),'байт; история соинвеста по',_COINV_UNTIL)
 print('лента:',len(feed),'алертов:',len(AL),'тестов:',len(tests))

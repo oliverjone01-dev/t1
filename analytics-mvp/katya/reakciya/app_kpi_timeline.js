@@ -110,7 +110,7 @@ function draw(){
   ${nodata}
   <line x1="${PADL}" y1="${PADT+CH}" x2="${W-PADR}" y2="${PADT+CH}" stroke="var(--border)" stroke-width="1"/>
   ${cpoLines}
-  <path d="${path(co,cy)}" fill="none" stroke="var(--d4)" stroke-width="1.4" stroke-dasharray="4 3" opacity=".85"/>
+  <path data-series="coinv" d="${path(co,cy)}" fill="none" stroke="var(--d4)" stroke-width="1.4" stroke-dasharray="4 3" opacity=".85"/>
   <path d="${path(ser,y)}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
   <text x="4" y="${PADT+8}" fill="var(--accent)" font-size="9.5">${fmt(inv?mn:mx)}</text>
   <text x="4" y="${PADT+CH}" fill="var(--accent)" font-size="9.5">${fmt(inv?mx:mn)}</text>
@@ -140,7 +140,11 @@ function draw(){
  const nd=Object.keys(byDay).length, tot=Object.values(byDay).reduce((s,o)=>s+o.n,0);
  const cpod=Object.values(byDay).filter(o=>o.cpo).length;
  const coCur=agg(scope,'coinv',metWindow()[0],metWindow()[1]);
- note.innerHTML='<b>Что на графике сейчас.</b> Слева по синей шкале '+MNAME[metric]+' по срезу «'+scope+'» ('+(D.levels_n[scope]||0)+' товаров), справа по фиолетовой шкале соинвест медианой по тем же товарам, сейчас '+(coCur==null?'нет данных':coCur.toFixed(1).replace('.',',')+'%')+'. Соинвест это доля скидки от предельной цены, ровно та величина, ради которой мы держим копеечные кампании.<br><br><b>Зачем этот блок.</b> Он отвечает на вопрос «мы что-то делали, и что после этого поехало». За '+periodLabel()+
+ const measured=co.filter(p=>p[1]!=null);
+ const counts=measured.map(p=>D.coinv_history?.coverage?.[scope]?.[p[0]]).filter(n=>n!=null);
+ const coverage=counts.length?' · '+Math.min(...counts)+'–'+Math.max(...counts)+' товаров из '+(D.levels_n[scope]||0):'';
+ legend.appendChild(el('span','lg','Соинвест: '+measured.length+' из '+days.length+' дней'+coverage));
+ note.innerHTML='<b>Что на графике сейчас.</b> Слева по синей шкале '+MNAME[metric]+' по срезу «'+scope+'» ('+(D.levels_n[scope]||0)+' товаров), справа по фиолетовой шкале соинвест медианой по товарам с данными, за период '+(coCur==null?'нет данных':coCur.toFixed(1).replace('.',',')+'%')+'. Соинвест это доля скидки от предельной цены, ровно та величина, ради которой мы держим копеечные кампании.<br><br><b>Зачем этот блок.</b> Он отвечает на вопрос «мы что-то делали, и что после этого поехало». За '+periodLabel()+
   ' было '+plu(tot,['правка','правки','правок'])+' в '+plu(nd,['день','дня','дней'])+
   (cpod?', из них в '+plu(cpod,['день','дня','дней'])+' трогали оплату за заказ':'')+
   '. Ищите глазами связку: столбик снизу и перелом линии сверху через день-два. Если перелом есть, а столбика нет, значит сработало не наше действие, а площадка.';

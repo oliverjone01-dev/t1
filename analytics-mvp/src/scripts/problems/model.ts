@@ -43,6 +43,7 @@ export function validateProblems(d:ProblemData){
  unique(d.postings,r=>r.order);unique(d.events,r=>r.id);unique(d.ratings,r=>r.date);unique(d.summary,r=>r.date+':'+r.rating);
  for(const r of [...d.postings,...d.events,...d.ratings])if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||!Number.isFinite(Date.parse(r.date)))throw new Error('Problems invalid date');
  for(const r of d.ratings)if(r.defect_index!==null&&(!Number.isFinite(r.defect_index)||r.defect_index<0||r.defect_index>1))throw new Error('Problems invalid ratio');
+ if(d.thresholds)for(const r of d.thresholds.rows)if(!(r.begin<r.end)||[r.begin,r.end,r.cancellations,r.shipmentDelay,r.cancellationNonInt].some(v=>!Number.isFinite(v)||v<0))throw new Error('Problems invalid thresholds');
  const walk=(v:any)=>{if(typeof v==='number'&&!Number.isFinite(v))throw new Error('Problems nonfinite');if(v&&typeof v==='object')for(const x of Object.values(v))walk(x);};walk(d);
  return d;
 }

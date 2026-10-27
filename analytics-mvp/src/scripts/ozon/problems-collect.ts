@@ -15,7 +15,9 @@ export function normalizePosting(p:any):Posting{
  if(!p.posting_number||!p.in_process_at||!Array.isArray(p.products))throw new Error('Posting source contract');
  const parts=p.products.map((x:any)=>{const price=rub(x.price),qty=Number(x.quantity);if(!Number.isFinite(qty)||qty<0)throw new Error('Posting quantity');return price===null?null:price*qty;});
  const schema=String(p.delivery_schema??'').toLowerCase();
- const scheme=schema==='rfbs'?'rFBS':schema==='fbs'?'FBS':schema==='fbo'?'FBO':'FBS/rFBS';
+ // Probe: delivery_schema='Fbs' also wraps known self-delivery rFBS. Only confirmed provider values split it.
+ const provider=p.delivery_method;
+ const scheme=schema==='rfbs'||(provider?.tpl_provider_id===-1&&provider?.tpl_provider==='Самостоятельно')?'rFBS':schema==='fbo'?'FBO':provider?.tpl_provider==='Доставка Ozon'?'FBS':'FBS/rFBS';
  const type=String(p.cancellation?.cancellation_type??'').toLowerCase();
  return {order:String(p.posting_number),date:moscowDay(p.in_process_at),status:String(p.status),scheme,sku:p.products.map((x:any)=>String(x.sku)).join(', '),offer:p.products.map((x:any)=>String(x.offer_id??'')).join(', '),amount:parts.some((x:any)=>x===null)?null:Math.round(parts.reduce((s:number,x:number)=>s+x,0)*100)/100,reason:p.cancellation?.cancel_reason||null,initiator:['client','buyer','seller','ozon'].includes(type)?type:null};
 }
@@ -101,4 +103,4 @@ export async function collectProblems(out='data',now=new Date().toISOString()){
  atomicText(join(out,'problems_status.json'),JSON.stringify(state)+'\n');
  console.log('problems complete',posts.length,'postings,',events.length,'events');
 }
-if(process.argv[1]?.endsWith('/problems-collect.ts'))collectProblems(process.env.PROBLEMS_OUT_DIR??'data').catch(e=>{console.error('problems FAILED:',e.message);process.exitCode=1;});
+if(process.argv[1]?.endsWith('/problems-collect.ts'))collectProblems(process.env.PROBLEMS_OUT_DIR??'data').catch(e=>{let message=String(e.message);for(const value of [process.env.OZON_SELLER_API_KEY,process.env.OZON_SELLER_CLIENT_ID])if(value)message=message.split(value).join('***');console.error('problems FAILED:',message);process.exitCode=1;});

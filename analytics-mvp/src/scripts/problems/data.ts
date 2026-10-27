@@ -33,5 +33,6 @@ export function loadProblemData(dir:string,now=new Date().toISOString()):Problem
  coverage.deliveryLoss={days:ledgerDays.length?days(ledgerDays[0],deliveryStatus.through??ledgerDays.at(-1)).filter(d=>!unknownDates.has(d)):[],loaded_at:deliveryStatus.loaded_at??null,note:`Ведомость по ${deliveryStatus.through??ledgerDays.at(-1)??'неизвестной дате'}; ${skipped} строк с неполными полями, ${unmatched} без сопоставления номера`};
  if(skipped)warnings.push(`Доставка: ${skipped} строк с неизвестной стоимостью, оплатой или датой исключены из суммы.`);
  if(deliveryStatus.through&&deliveryStatus.through<moscowDay(now))warnings.push(`Наша доставка загружена по ${deliveryStatus.through}.`);
- return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',null),coverage,warnings});
+ const thresholdDefault=JSON.parse(readFileSync('katya/problems/thresholds-2026-10-27.json','utf8'));
+ return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',thresholdDefault),coverage,warnings});
 }

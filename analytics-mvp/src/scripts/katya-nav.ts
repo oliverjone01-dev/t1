@@ -19,9 +19,8 @@ export const KPAGES: [string, string, string][] = [
   ...(IS_OZON ? [["katya-problems.html", "Проблемы", "problems"] as [string,string,string]] : []),
   ["katya-reakciya.html", "Реакция", "reakciya"],
   ["katya-tests.html", "Тесты", "tests"],
-  // Служебная вкладка: индекс бустинга и его состав. Отдельно от «Тестов» по решению Ивана от
-  // 24.09 - по трём снимкам решения не принимаются, а файл должен лежать на виду.
-  ["katya-boost.html", "Бустинг (служ.)", "boost"],
+  // В Ozon вкладка убрана из меню по решению Ивана от 27.10.
+  ...(!IS_OZON ? [["katya-boost.html", "Бустинг (служ.)", "boost"] as [string,string,string]] : []),
 ];
 
 // Разметка одной кнопки шапки. Держим ровно ту же, что была инлайном в banner().

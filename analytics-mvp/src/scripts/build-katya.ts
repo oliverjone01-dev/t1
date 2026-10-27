@@ -20,6 +20,7 @@ import { splitCpo } from "./cpo-split.js";
 import { cardSpread } from "./cpc-card-spread.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 import { ndLines, ndBad, ndBadNote } from "./nd-lines.js";
+import { AD_CATEGORIES_JS, adCategoryRows } from "./ad-categories.js";
 import { AD_ECON_JS, UE_MATURE_DAYS, UE_STALE_DAYS, packAccrual } from "./ad-econ.js";
 // Битые строки данных - одна строка ::error:: в лог CI в конце сборки (ФЕНИКС iter10 gap 1).
 process.on("exit", () => { if (ndBad.length) console.log(`::error::katya: ${ndBadNote()}`); });
@@ -1751,16 +1752,32 @@ let MKT_SHARE = { sec: "", css: "", js: "", body: "" };
   <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы</div><div class="card-sub">Экономика кампании за выбранный период. Ставка сборов OZON и с/с единицы - средневзвешенно по SKU кампании из реальной атрибуции OZON (веса - выручка/заказы по SKU за период), применяются к полной выручке/заказам кампании (OZON Performance). Где атрибуции по SKU нет (CPO/не собрано) - по основному SKU. «Выручка кампании» - полная выручка РК; «Выручка осн. карт.» - выручка только продвигаемой (основной) карточки за период. С/с произв. - производственная себестоимость (нет данных - «—» / причина в строке). <span id="ue-src"></span></div></div><div style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-2);white-space:nowrap">Статус:<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fa" checked onchange="renderUecon(lastA)"> активные</label><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" id="ue-fi" checked onchange="renderUecon(lastA)"> неактивные</label></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r" title="Расход кампании на рекламу за выбранный период. Источник: OZON Performance.">Расход</th><th class="r" title="Полная выручка кампании за период. Источник: OZON Performance.">Выручка кампании</th><th class="r" title="Выручка только основной (продвигаемой) карточки за период - атрибуция осн. SKU. Нет атрибуции - равна выручке кампании.">Выручка осн. карт.</th><th class="r" title="Заказано штук в рамках кампании за выбранный период (OZON Performance).">Заказано, шт</th><th class="r" title="ДРР = Расход ÷ Выручка кампании × 100.">ДРР</th><th class="r" title="Ср. цена за период = Выручка кампании ÷ заказы.">Ср. цена</th><th class="r" title="Комиссия = Выручка кампании × средневзвешенную ставку сборов OZON.">Комис., ₽</th><th class="r" style="color:var(--ink-3)" title="Средневзвешенная ставка всех сборов OZON по SKU кампании (веса - выручка по SKU). ⚖ - взвешено по атрибуции; иначе - по осн. SKU.">Комис., %</th><th class="r" title="Производственная себестоимость = средневзвешенная с/с единицы × заказы кампании. Нет данных - «—» / причина в строке.">С/с произв., ₽</th><th class="r" title="Прибыль ДО рекламы = Выручка кампании − сборы OZON − себестоимость.">Приб. до рекл., ₽</th><th class="r" title="Прибыль ПОСЛЕ рекламы = Приб. до рекл. − расход на рекламу.">Приб. после рекл., ₽</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40% · клик - разбивка по SKU</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub" id="category-source">все кампании · категория продвигаемого товара</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">Индекс цены - на дату снимка <b>${maxD}</b> (всегда текущий, не историчен). Оборот - за 30 дней: <b>${live.dateFrom || ""} – ${live.dateTo || maxD}</b>.</div></div></div><div id="price"></div></section>
   ${campCss}`;
   const skuMap: Record<string, string> = {};
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
+  // Category lookup covers the full taxonomy, not only products sold in the live 30-day table.
+  // Separate maps preserve existing SKU_MAP labels and every other Marketing calculation.
+  const categorySku: Record<string, string> = {}, categoryOffer: Record<string, string> = {};
+  const offerCategories: Record<string, Set<string>> = {};
+  const rememberCategory = (sk: string, off: string, cat: string) => {
+    if (!cat || cat === "Прочее") return;
+    if (!categorySku[sk]) categorySku[sk] = cat;
+    if (off) (offerCategories[off] ||= new Set()).add(categorySku[sk]!);
+  };
+  for (const [sk, t] of Object.entries(tax)) rememberCategory(sk, t.offer || "", t.category || "");
+  for (const v of live.sku_table) if (v.sku != null) rememberCategory(String(v.sku), v.offer || "", taxOf(String(v.sku)).category || autoTax(v.name || "").category || "");
+  for (const [off, cats] of Object.entries(offerCategories)) if (cats.size === 1) categoryOffer[off] = [...cats][0]!;
+  // Validate campaign uniqueness and expense partition before emitting the page.
+  for (const snapshot of [adsSnap, ...Object.values(adsPeriods)]) if (snapshot && typeof snapshot === "object") adCategoryRows(snapshot as any, categorySku, categoryOffer, skuByCamp);
   const pageJs = `
 const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const UE_MATURE_DAYS=${UE_MATURE_DAYS};const UE_STALE_DAYS=${UE_STALE_DAYS};const ACCR_LAST=${J(ACCR.last)};const ACCR_ROWS=${J(ACCR.rows)};const ACCR_CH=${J(ACCR.ch)};const SKU_COGS_U=${J(SKU_COGS_U)};var ECON={};
 ${AD_ECON_JS}
+${AD_CATEGORIES_JS}
+const CATEGORY_SKU=${J(categorySku)},CATEGORY_OFFER=${J(categoryOffer)};
 const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const ADS_SKU_CAMP=${J(adsSkuByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
 // Per-SKU «Основная карточка» за период из кампании (без снимка RCACHE): SKU кампании + её
 // суммы за выбранное окно (они уже точные из aggFromDaily). Синхронно, без async-загрузки.
@@ -1782,6 +1799,9 @@ function aggFromDaily(from,to){
   return {dateFrom:from,dateTo:to,totals:totals,top_spend:top_spend,all:all,burners:burners,by_line:by_line,daily:true};
 }
 function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
+// Одна подпись кампании для таблицы и юнит-экономики: offer из метаданных, иначе справочник/SKU.
+function campaignArticle(c){var sk=campSku(c);return c.off||(sk&&(SKU_MAP[sk]||sk))||'';}
+function campaignArticleHtml(c){var art=campaignArticle(c);return art?' <span class="campaign-art" style="color:var(--ink-3);font-weight:400">'+String(art).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>':'';}
 // Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
 function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
@@ -1833,7 +1853,7 @@ function renderTop(){var a=lastA;if(!a)return;
     var ri=repInfo(c.id);var rep=ri?ri.rows:[];var loaded=ri!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
     var cart=cartOf(c.id); // добавления в корзину из отчёта продвижения (per-SKU -> кампания)
     var st='<td class="r">'+(c.vw==null?'—':fmtRu(c.vw))+'</td><td class="r">'+(c.cl==null?'—':fmtRu(c.cl))+'</td><td class="r" title="рекламные добавления в корзину из отчёта продвижения; «—» если по кампании отчёт ещё не собран (или CPO)">'+(cart==null?'—':fmtRu(cart))+'</td><td class="r">'+(c.ctr==null?'—':(c.ctr+'%'))+'</td><td class="r">'+(c.cpc==null?'—':fmtRu(c.cpc))+'</td>';
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td>'+st+'</tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+campaignArticleHtml(c)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td>'+st+'</tr>';
     var sub='';
     if(loaded&&rep.length){
       var _osp=0,_oom=0,_oso=0;rep.forEach(function(s){_osp+=s.sp||0;_oom+=s.om||0;_oso+=s.sold||0;});
@@ -1895,16 +1915,22 @@ function paint(a,src){
   document.getElementById('src1').innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') '+badge;
   lastA=a;renderTop();
   renderBurn(a);
-  // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
-  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=campSku(c);var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
-  var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,om:g.om,o:g.o,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
-  document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r">'+fmtRu(l.om)+'</td><td class="r">'+l.o+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
+  renderCategories(a);
   renderUecon(a);
   const tot=PRICE.cheaper+PRICE.even+PRICE.pricier+PRICE.noIdx||1;
   const seg=(n,c,t2)=>'<span title="'+t2+': '+n+'" style="width:'+(100*n/tot)+'%;background:'+c+';display:block;height:100%"></span>';
   document.getElementById('price').innerHTML='<div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--bg-soft)">'+seg(PRICE.cheaper,'#34D399','дешевле рынка')+seg(PRICE.even,'#6AA8FF','вровень')+seg(PRICE.pricier,'#FF5A5F','дороже рынка')+seg(PRICE.noIdx,'#3a3a40','без индекса')+'</div>'+
    '<div class="kt-note"><span style="color:#34D399">дешевле рынка: '+PRICE.cheaper+'</span> · вровень: '+PRICE.even+' · <span style="color:#FF5A5F">дороже: '+PRICE.pricier+'</span> · без индекса: '+PRICE.noIdx+'</div>'+
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r" title="индекс цены к рынку на ${maxD}: <1 дешевле, >1 дороже">Индекс (${maxD})</th><th class="r" title="оборот за 30 дней: ${live.dateFrom || ""}–${live.dateTo || maxD}">Оборот, 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function renderCategories(a){
+  var copy=JSON.parse(JSON.stringify(a));
+  if(typeof cpoRevFix==='function')cpoRevFix(copy,true);
+  var rows=adCategoryRows(copy,CATEGORY_SKU,CATEGORY_OFFER,SKUS_BY_CAMP);
+  var esc=function(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var value=function(v){return v==null?'<span style="color:var(--ink-3)" title="Нет полной выручки или количества за выбранный период">н/д</span>':fmtRu(v);};
+  document.getElementById('category-source').textContent=(a.all?'все кампании':'доступные кампании снимка')+' · категория продвигаемого товара';
+  document.getElementById('lines').innerHTML=rows.map(function(r){return '<tr><td title="Кампании: '+r.ids.join(', ')+'">'+esc(r.cat)+'</td><td class="r">'+value(r.sp)+'</td><td class="r">'+value(r.om)+'</td><td class="r">'+value(r.o)+'</td><td class="r" style="color:'+(r.drr!=null&&r.drr>30?'var(--dn)':'inherit')+'">'+(r.drr==null?'н/д':r.drr+'%')+'</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
 }
 function renderUecon(a){
   // По КАМПАНИИ (не по отдельному SKU): расход/выручка/ДРР всей кампании, эконо-показатели
@@ -1922,7 +1948,7 @@ function renderUecon(a){
     var sku=campSku(c);if(!sku)return;
     var isAct=(c.status==='активна');if((isAct&&!showA)||(!isAct&&!showI))return; // фильтр статуса
     total++;
-    var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
+    var art=campaignArticle(c);var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0,ordC=c.o||0; // артикул = название кампании (оффер промо-SKU)
     // Считаем только кампанию с выручкой и заказами за период, ставкой сборов SKU за период и с/с. Без выручки -
     // весь расход в минус и в «резать» (ФЕНИКС B7: не в «в плюс»); остальное - «нет данных», без подстановок.
     e=e||{};var why=ueWhy(om,ordC,e.com,e.cogsRub,_stale);
@@ -2122,7 +2148,7 @@ var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)},CPO_MISS=${J(
 if(CPO_ERR)CPO_NA='<span style="color:var(--ink-3)" title="Выгрузка «Оплата за заказ» не принята: '+CPO_ERR.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'">н/д</span>';
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
-function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
+function cpoRevFix(a,includeCoveredZero){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
   // Месяц, где заказы выгрузки ещё не пришли в orders_daily (Иван 15.10): выручки «за заказ» за период нет, жёлтая пометка.
   if(CPO_MISS.some(function(m){return m>=String(a.dateFrom).slice(0,7)&&m<=String(a.dateTo).slice(0,7);}))return ' · <span style="color:#E5B567">выручка «Оплата за заказ» за период не показана: не все заказы выгрузки пришли из OZON ('+CPO_MISS_NOTE.replace(/</g,'&lt;')+'), появится после сбора заказов</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
@@ -2130,9 +2156,11 @@ function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};
   r=Math.round(r);var hit=0,isRep=function(c){return String(c.id)===String(CPO_CID);},anyRep=a.all.some(isRep);
   // Выручка выгрузки - на её кампанию (CPO_CID, сборка; ФЕНИКС N5); кампании нет в периоде - на первую CPO.
-  a.all.forEach(function(c){if(!(anyRep?isRep(c):isCPO(c))||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
+  // Категории различают подтверждённый ноль и пропуск; остальные потребители сохраняют прежний режим.
+  var acceptedZero=includeCoveredZero&&r===0&&CPO_WIN.length>0&&nCov===nAll;
+  a.all.forEach(function(c){if(!(anyRep?isRep(c):isCPO(c))||(!r&&!acceptedZero)||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
     var sc=c.sp,exact=false;if(a.daily&&typeof ADS_DAILY!=='undefined'&&ADS_DAILY&&ADS_DAILY.length){sc=0;for(var k=0;k<ADS_DAILY.length;k++){var y=ADS_DAILY[k];if(String(y.id)===String(c.id)&&y.d>=a.dateFrom&&y.d<=a.dateTo&&inCov(y.d))sc+=y.sp;}exact=true;}
-    c.drr=Math.round(sc/r*1000)/10;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
+    c.drr=r?Math.round(sc/r*1000)/10:null;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
     if(a.totals){a.totals.adRevenue+=r;a.totals.drr=a.totals.adRevenue?Math.round(a.totals.spend/a.totals.adRevenue*1000)/10:0;}});
   return hit?' · выручка «Оплата за заказ» - из выгрузки кабинета по заказам за '+(cov.length?cov.map(function(w){return w[0]+'..'+w[1];}).join(', '):d0+'..'+d1):'';}
 `;

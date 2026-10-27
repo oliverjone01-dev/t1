@@ -1,0 +1,22 @@
+import { describe, it, expect } from 'vitest';
+import { adCategoryRows } from './ad-categories.js';
+const c=(id:string,extra:Record<string,unknown>={})=>({id,sp:100,om:500,o:2,instr:'Оплата за клик',...extra});
+const run=(rows:any[])=>adCategoryRows({all:rows},{'known':'Столы'},{'MIRROR':'Зеркала'},{'1':'known'});
+describe('all campaign categories',()=>{
+ it('includes tails beyond top ten and spends partition exactly',()=>{const all=Array.from({length:14},(_,i)=>c(String(i),{sp:i+1,line:'столы'}));const r=adCategoryRows({all,top_spend:all.slice(0,10)},{},{},{});expect(r[0]?.count).toBe(14);expect(r[0]?.sp).toBe(105);});
+ it('full SKU classification beats conflicting campaign metadata',()=>expect(run([c('1',{line:'зеркала'})])[0]?.cat).toBe('Столы'));
+ it('resolves exact offer when snapshot has no SKU',()=>expect(run([c('2',{off:'MIRROR'})])[0]?.cat).toBe('Зеркала'));
+ it('uses explicit category metadata for a new SKU',()=>expect(run([c('3',{skus:['new'],line:'столы'})])[0]?.cat).toBe('Столы'));
+ it('recognizes the explicit metal-mirrors category',()=>expect(run([c('2',{line:'зеркала/металл'})])[0]?.cat).toBe('Зеркала'));
+ it('keeps unknowns separate, without guessing article prefixes',()=>expect(run([c('4',{off:'GGT-unknown',line:'металл'})])[0]?.cat).toBe('Категория не определена'));
+ it('isolates CPO even if it has a SKU',()=>{const r=run([c('1'),c('2',{instr:'Оплата за заказ',skus:['known'],om:0,o:0})]);expect(r.find(x=>x.cat.startsWith('Оплата'))).toMatchObject({sp:100,om:null,o:null,drr:null});expect(r.find(x=>x.cat==='Столы')?.om).toBe(500);});
+ it('partial CPO coverage never claims full-window results',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:500,cpoU:2,cpoPart:{days:4,all:30}})])[0]).toMatchObject({sp:100,om:null,o:null,drr:null}));
+ it('full accepted CPO coverage uses its own units and revenue',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:500,cpoU:2,cpoPart:null})])[0]).toMatchObject({sp:100,om:500,o:2,drr:20}));
+ it('accepted zero CPO window preserves zero orders and revenue',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:0,cpoU:0,cpoPart:null})])[0]).toMatchObject({sp:100,om:0,o:0,drr:null}));
+ it('zero CPC sales stay zero and zero-denominator DRR is unknown',()=>expect(run([c('1',{om:0,o:0})])[0]).toMatchObject({sp:100,om:0,o:0,drr:null}));
+ it('unknown revenue propagates without erasing known spend or units',()=>expect(run([c('1'),c('2',{skus:['known'],om:null,o:1})])[0]).toMatchObject({sp:200,om:null,o:3,drr:null}));
+ it('missing spend is not silently zero',()=>expect(run([c('1',{sp:null})])[0]).toMatchObject({sp:null,drr:null}));
+ it('does not mutate campaign objects',()=>{const rows=[c('1'),c('2',{off:'MIRROR'})];const before=JSON.stringify(rows);run(rows);expect(JSON.stringify(rows)).toBe(before);});
+ it('rejects duplicated IDs and handles empty windows',()=>{expect(()=>run([c('1'),c('1')])).toThrow(/duplicated/);expect(run([])).toEqual([]);});
+ it('does not replace explicitly empty all with a stale top ten',()=>expect(adCategoryRows({all:[],top_spend:[c('1')]},{},{},{})).toEqual([]));
+});

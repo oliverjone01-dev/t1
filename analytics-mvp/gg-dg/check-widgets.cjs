@@ -266,3 +266,40 @@ test('a non-DG-source lead requires admitted direct-deal and exact sender proofs
  const f=fixture();f.leads.push({...f.leads[0],id:'11',sourceId:'OTHER'});f.deals[0].leadId='11';f.deals[0].sourceId='UC_NQ3QUI';sync(f);f.scope.linkedLeadProof=[{leadId:'11',dealIds:['20']}];f.scope.mailPolicy={domain:'domglass.ru',direction:'incoming',confirmedLeadIds:['10','11']};assert.equal(validateRaw(f),true);assert.equal(build(f,template,builder,hook).data.leads.length,2);
  for(const mutate of [r=>r.scope.linkedLeadProof=[],r=>r.deals[0].sourceId='OTHER',r=>r.deals[0].leadId='10',r=>r.scope.linkedLeadProof[0].dealIds=['999'],r=>r.scope.mailPolicy.confirmedLeadIds=['10'],r=>r.scope.mailPolicy.domain='elsewhere.test',r=>r.scope.linkedLeadProof.push(r.scope.linkedLeadProof[0])]){const bad=structuredClone(f);mutate(bad);assert.throws(()=>validateRaw(bad));}
 });
+
+test('communication ordering preserves exact seconds and resolves identical timestamps by lifecycle',()=>{
+ const d=dashboard();d.run("globalThis.p={events:[{id:'a',ts:54,type:'Дело',entities:['D20']},{id:'d',ts:54,type:'Стадия',entities:['D20']},{id:'l',ts:55,type:'Стадия',entities:['L10']},{id:'m',ts:56,type:'Письмо',entities:['L10','D20']}]}");
+ assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'d,a,l,m');
+ d.run("p.events[2].ts=54");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'l,d,a,m');
+ d.run("S.dgCommAsc=false");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'m,a,d,l');
+ d.run("S.dgCommEntities={D20:'L10'}");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'m,l');
+ assert.equal(d.run("p.events.length"),4);assert.equal(d.run("p.events[0].ts"),54);
+});
+test('communication reader separates typed bindings and only compresses display whitespace',()=>{
+ const d=dashboard(),body='  Запрос   КП\r\n \n\n\n  Душевые\tперегородки  ';
+ assert.equal(d.run('dgCommunicationText('+JSON.stringify(body)+')'),'Запрос КП\n\nДушевые перегородки');
+ const event={id:'shared',ts:Date.parse('2026-10-20T08:33:54Z'),type:'Письмо',entities:['L10','D20'],title:'<Запрос>',body,who:'Клиент',dir:'входящее',origin:'crm'};
+ d.run('dgCommCache.set("D20",'+JSON.stringify({events:[event]})+')');const h=d.run("dgCommunicationTable('D20')");
+ assert.ok(h.includes('<th>Сущность</th>'));assert.ok(h.includes('<span>Лид 10</span><span>Сделка 20</span>'));assert.ok(h.includes('11:33:54'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(h.includes('Вся цепочка'));
+ assert.equal(d.run("dgCommCache.get('D20').events[0].body"),body);assert.ok(!/<a\b/i.test(h));
+});
+test('stock tooltip never labels an observed value with a future snapshot date',()=>{
+ const d=dashboard();d.run("DATA.to='2026-10-27'");
+ const tip=(from,to)=>d.run('dgKpiTooltip({k:"В работе сейчас"},"openM","money",'+JSON.stringify({from,to,previousFrom:'2026-09-26',previousTo:'2026-10-02'})+',"100 ₽","0 ₽","#22D3EE")');
+ assert.ok(tip('2026-10-26','2026-11-01').includes('27.10.2026'));assert.ok(!tip('2026-10-26','2026-11-01').includes('01.11.2026'));
+ assert.ok(tip('2026-11-02','2026-11-08').includes('Нет наблюдений'));assert.ok(tip('2026-10-12','2026-10-18').includes('18.10.2026'));
+});
+
+test('faceted exact multi-select filters agree with rows, counts and reason chart',()=>{
+ const f=fixture();f.leads=Array.from({length:3},(_,i)=>({...f.leads[0],id:String(100+i),statusCode:'JUNK',status:'Некачественный лид',reason:i===2?'Нет услуги':'Дорого',mgr:i===1?'Второй':'Первый'}));f.deals[0].leadId='100';sync(f);f.calendar={version:1,deal:[],lead:f.leads.map((l,i)=>({id:String(i),key:'L'+l.id,at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}))};const d=dashboard(f);
+ d.run("S.dgLossFilters={reason:{values:['Дорого']},manager:{values:['Первый']}}");assert.equal(d.run('dgRefusalView().length'),1);assert.equal(d.run("dgLossOptions('reason').map(x=>x.join(':')).join('|')"),'Дорого:1|Нет услуги:1');assert.equal(d.run('dgRefusalGroups(dgRefusalView())[0].count'),1);
+ d.run("S.dgLossFilters.reason={values:[]}");assert.equal(d.run('dgRefusalView().length'),0);d.run('S.dgLossFilters={}');assert.equal(d.run('dgRefusalView().length'),3);
+ const h=d.run('dgRefusalBlock()'),body=h.match(/<tbody>([\s\S]*?)<\/tbody>/)[1];assert.ok(!/<(?:a|button)\b/i.test(body));assert.ok(h.includes('data-dg-loss-filter="stage"'));
+});
+test('column date bounds are inclusive, reject missing dates, and calendars handle leap/year boundaries',()=>{
+ const d=dashboard();assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-14'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),true);assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-16'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),true);assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-17'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),false);assert.equal(d.run("dgLossMatches({raw:{},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),false);
+ assert.equal(d.run("dgLossShiftMonth('2026-12',1)"),'2027-01');assert.equal(d.run("dgLossShiftMonth('2026-01',-1)"),'2025-12');assert.equal((d.run("dgLossMonth('2028-02')").match(/data-dg-loss-day=/g)||[]).length,29);assert.equal((d.run("dgLossMonth('2026-02')").match(/data-dg-loss-day=/g)||[]).length,28);
+});
+test('full message reader retains the final text and escapes markup without changing the event',()=>{
+ const d=dashboard(),event={title:'<Запрос>',body:'Начало\n\n'+('Подробности '.repeat(500))+'\n\nКОНЕЦ <script>bad()</script>',entities:['L10'],type:'Письмо'};d.run('globalThis.readerEvent='+JSON.stringify(event));const h=d.run('dgMessageMarkup(readerEvent)');assert.ok(h.includes('КОНЕЦ &lt;script&gt;bad()&lt;/script&gt;'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(!h.includes('<script>'));assert.equal(d.run('readerEvent.body'),event.body);
+});

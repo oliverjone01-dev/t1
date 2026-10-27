@@ -47,3 +47,11 @@
 
 - 27.10.2026: фильтры распределены по площади панели, добавлены иконки и пояснения, внизу ссылка «Нужна помощь» на Telegram пользователя. Основные метрики получили графики текущего/предыдущего равного периода с точками, пунктиром и точными датами.
 - Таблица отказов на всю ширину под диаграммой: отдельные даты, компактные строки,10видимых строк и вертикальная прокрутка, фильтр/сортировка каждого столбца. Переходы по ID ведут только к истории внутри ДГ. Исходный ID дубля не выдумывается.
+
+- 27.10.2026: подсказки разделены на блоки с явными подписями дат и значений; остаток в работе — на дату снимка. Во всех мини-графиках видимая нулевая ось, в KPI подписаны крайние даты. Направление удалено из фильтров; расчёты не менялись.
+
+### Communication chronology and ownership
+
+Communication rows show an explicit typed entity column and exact source seconds in MSK. Entity tabs isolate the lead or deal while the full chain keeps shared events deduplicated. Equal timestamps use a lifecycle tie-break without altering different source times. Display whitespace is compressed, the reading viewport is taller, and source history remains intact. Observed stock tooltip dates stop at the snapshot coverage date.
+
+Long messages now open in a native full-message reader with one vertical scroll. Refusal IDs are plain text. Column filters use searchable multi-select options; date filters have an independent highlighted range calendar with exact-day double click. Column sorting and the ten-row viewport remain.

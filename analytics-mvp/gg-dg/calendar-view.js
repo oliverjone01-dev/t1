@@ -11,27 +11,81 @@ function dgRefusalGroups(rows){
 }
 const DG_LOSS_COLUMNS=[['record','Лид / сделка'],['manager','Ответственный'],['created','Создана'],['refused','Отказ'],['activity','Активность'],['stage','Стадия отказа'],['reason','Причина отказа'],['client','Тип клиента'],['assort','Ассортимент'],['lead','Исходный лид']];
 S.dgLossFilters={};S.dgLossSort='refused';S.dgLossAsc=false;
-function dgRefusalView(){
+function dgRefusalView(ignoreField=null){
  const rows=dgRefusalRows().map(x=>{const d=x.record,lead=x.key[0]==='L',related=lead?DATA.deals.filter(a=>String(a.leadId)===String(d.id)):[d],values=field=>[...new Set(related.map(a=>a[field]).filter(Boolean))].join(', ')||'—',ix=DATA.communicationIndex?.[x.key],last=(ix?.ids||[]).reduce((at,id)=>Math.max(at,dgBakedEvents.get(id)?.ts||0),0),history=dgHistory(d,lead?'lead':'deal').find(e=>e.semantic==='F'),stage=history?dgBakedEvents.get('stage#'+x.key+':'+history.id)?.body:null,activity=last?dgMSKDay(last):d.lastTouch||'',duplicate=lead&&(/^дубл/iu.test(d.status||'')||/^дубл/iu.test(x.reason));
   const raw={created:d.created,refused:x.at,activity},cells={record:(lead?'Лид ':'Сделка ')+d.id,manager:d.mgr||'Не распределено',created:dgDate(d.created),refused:dgDate(x.at),activity:dgDate(activity),stage:stage||d.status||d.stage||'—',reason:x.reason+(duplicate?' · ID исходного лида не указан':''),client:values('client'),assort:values('assort'),lead:!lead&&d.leadId?'Лид '+d.leadId:'—'};
   return {...x,cells,raw};
- }).filter(x=>DG_LOSS_COLUMNS.every(([key])=>{const q=String(S.dgLossFilters[key]||'').trim().toLocaleLowerCase('ru');return !q||String(x.cells[key]||'').toLocaleLowerCase('ru').includes(q)||String(x.raw[key]||'').includes(q);}));
+ }).filter(x=>DG_LOSS_COLUMNS.every(([key])=>key===ignoreField||dgLossMatches(x,key,S.dgLossFilters[key])));
  return rows.sort((a,b)=>{const key=S.dgLossSort;let result=key==='record'?Number(a.record.id)-Number(b.record.id):String(a.raw[key]??a.cells[key]??'').localeCompare(String(b.raw[key]??b.cells[key]??''),'ru',{numeric:true});return result*(S.dgLossAsc?1:-1)||a.key.localeCompare(b.key);});
 }
+const DG_LOSS_DATE_KEYS=['created','refused','activity'];
+function dgLossMatches(row,key,filter){
+ if(!filter)return true;
+ if(Array.isArray(filter.values))return filter.values.includes(row.cells[key]);
+ if(typeof filter==='object'&&DG_LOSS_DATE_KEYS.includes(key)){const value=String(row.raw[key]||'').slice(0,10);return (!filter.from&&!filter.to)||!!value&&(!filter.from||value>=filter.from)&&(!filter.to||value<=filter.to);}
+ const q=String(filter).trim().toLocaleLowerCase('ru');return !q||String(row.cells[key]||'').toLocaleLowerCase('ru').includes(q)||String(row.raw[key]||'').includes(q);
+}
+function dgLossFilterLabel(key){const filter=S.dgLossFilters[key];if(!filter)return DG_LOSS_DATE_KEYS.includes(key)?'Дата…':'Все ▾';if(filter.values)return 'Выбрано: '+filter.values.length;return filter.from===filter.to?dgDate(filter.from):dgDate(filter.from).slice(0,5)+' – '+dgDate(filter.to).slice(0,5);}
+function dgLossOptions(key){const counts=new Map();for(const row of dgRefusalView(key))counts.set(row.cells[key],(counts.get(row.cells[key])||0)+1);for(const value of S.dgLossFilters[key]?.values||[])if(!counts.has(value))counts.set(value,0);return [...counts].sort((a,b)=>a[0].localeCompare(b[0],'ru',{numeric:true}));}
+function dgLossShiftMonth(month,by){const [y,m]=month.split('-').map(Number),date=new Date(Date.UTC(y,m-1+by,1));return date.toISOString().slice(0,7);}
+function dgLossMonth(month){
+ const [y,m]=month.split('-').map(Number),first=new Date(Date.UTC(y,m-1,1)),offset=(first.getUTCDay()+6)%7,last=new Date(Date.UTC(y,m,0)).getUTCDate(),name=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric',timeZone:'UTC'}).format(first);
+ return `<section><h4>${esc(name)}</h4><div class="dg-loss-days">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x=>'<small>'+x+'</small>').join('')}${'<span></span>'.repeat(offset)}${Array.from({length:last},(_,i)=>{const day=month+'-'+String(i+1).padStart(2,'0');return '<button data-dg-loss-day="'+day+'" aria-label="'+dgDate(day)+'">'+(i+1)+'</button>';}).join('')}</div></section>`;
+}
+function dgPaintLossDates(){
+ const p=document.getElementById('dg-loss-filter-pop'),menu=S.dgLossMenu;if(!p||!menu?.date)return;
+ const end=menu.to||menu.hover||menu.from,low=menu.from&&end?(menu.from<end?menu.from:end):'',high=menu.from&&end?(menu.from>end?menu.from:end):'';
+ for(const node of p.querySelectorAll('[data-dg-loss-day]')){const day=node.dataset.dgLossDay;node.classList.toggle('in-range',!!low&&day>=low&&day<=high);node.classList.toggle('endpoint',day===menu.from||day===menu.to);node.setAttribute('aria-pressed',String(!!low&&day>=low&&day<=high));}
+ p.querySelector('[data-dg-loss-from]').value=menu.from;p.querySelector('[data-dg-loss-to]').value=menu.to;p.querySelector('[data-dg-loss-apply]').disabled=!menu.from||!menu.to;
+}
+function dgCloseLossFilter(){const p=document.getElementById('dg-loss-filter-pop');if(p?.matches(':popover-open'))p.hidePopover();}
+function dgApplyLossFilter(reset=false){
+ const menu=S.dgLossMenu;if(!menu)return;
+ if(reset)delete S.dgLossFilters[menu.key];else if(menu.date){if(!menu.from||!menu.to)return;S.dgLossFilters[menu.key]={from:menu.from,to:menu.to};}else{const values=[...menu.selected];if(values.length===menu.options.length&&menu.options.every(([value])=>menu.selected.has(value)))delete S.dgLossFilters[menu.key];else S.dgLossFilters[menu.key]={values};}
+ dgCloseLossFilter();dgCalendarRerender();document.getElementById('dg-loss-filter-'+menu.key)?.focus({preventScroll:true});
+}
+function dgOpenLossFilter(key,opener){
+ const column=DG_LOSS_COLUMNS.find(x=>x[0]===key);if(!column)return;
+ dgCloseLossFilter();const filter=S.dgLossFilters[key],date=DG_LOSS_DATE_KEYS.includes(key),options=date?[]:dgLossOptions(key);
+ S.dgLossMenu={key,date,options,selected:new Set(filter?.values||options.map(([value])=>value)),from:filter?.from||'',to:filter?.to||'',month:(filter?.from||S.start||DATA.to).slice(0,7),opener};
+ const menu=S.dgLossMenu;let p=document.getElementById('dg-loss-filter-pop');if(!p){p=document.createElement('div');p.id='dg-loss-filter-pop';p.setAttribute('popover','auto');p.setAttribute('role','dialog');document.body.append(p);p.addEventListener('toggle',e=>{if(e.newState==='closed'&&S.dgLossMenu?.opener?.isConnected&&(p.contains(document.activeElement)||document.activeElement===document.body))S.dgLossMenu.opener.focus({preventScroll:true});});}
+ p.className='dg-loss-filter-pop'+(date?' dg-loss-date-pop':'');p.setAttribute('aria-label','Фильтр: '+column[1]);
+ const content=date?`<p>Выберите начало и конец. Двойной клик по дню — точная дата.</p><div class="dg-loss-date-inputs"><label>От<input type="date" data-dg-loss-from aria-label="Дата от" value="${menu.from}"></label><label>До<input type="date" data-dg-loss-to aria-label="Дата до" value="${menu.to}"></label></div><div class="dg-loss-month-nav"><button data-dg-loss-month="-1" aria-label="Предыдущий месяц">‹</button><button data-dg-loss-month="1" aria-label="Следующий месяц">›</button></div><div class="dg-loss-months">${dgLossMonth(menu.month)}${dgLossMonth(dgLossShiftMonth(menu.month,1))}</div>`:`<input type="search" data-dg-loss-search placeholder="Быстрый поиск" aria-label="Поиск значений"><div class="dg-loss-choice-tools"><button data-dg-loss-select="all">Выбрать все</button><button data-dg-loss-select="none">Снять все</button></div><div class="dg-loss-options">${options.map(([value,count])=>`<label data-dg-loss-choice><input type="checkbox" data-dg-loss-option value="${esc(value)}" ${menu.selected.has(value)?'checked':''}><span>${esc(value)}</span><small>${count}</small></label>`).join('')||'<p>Доступных значений нет</p>'}</div>`;
+ p.innerHTML=`<header><strong>${esc(column[1])}</strong><button data-dg-loss-close aria-label="Закрыть фильтр">×</button></header>${content}<footer><button data-dg-loss-reset>Сбросить</button><button data-dg-loss-apply>Применить</button></footer>`;p.showPopover();if(date)dgPaintLossDates();
+ const r=opener.getBoundingClientRect(),box=p.getBoundingClientRect();p.style.left=Math.max(12,Math.min(window.innerWidth-box.width-12,r.left))+'px';p.style.top=Math.max(12,Math.min(window.innerHeight-box.height-12,r.bottom+6))+'px';p.querySelector(date?'[data-dg-loss-from]':'[data-dg-loss-search]').focus({preventScroll:true});
+}
+document.addEventListener('click',e=>{
+ const trigger=e.target.closest('[data-dg-loss-filter]');if(trigger){dgOpenLossFilter(trigger.dataset.dgLossFilter,trigger);return;}
+ if(e.target.closest('[data-dg-loss-close]')){dgCloseLossFilter();return;}
+ if(e.target.closest('[data-dg-loss-reset]')){dgApplyLossFilter(true);return;}
+ if(e.target.closest('[data-dg-loss-apply]')){dgApplyLossFilter();return;}
+ const menu=S.dgLossMenu;if(!menu)return;
+ const select=e.target.closest('[data-dg-loss-select]');if(select){menu.selected=new Set(select.dataset.dgLossSelect==='all'?menu.options.map(([value])=>value):[]);for(const node of document.querySelectorAll('#dg-loss-filter-pop [data-dg-loss-option]'))node.checked=menu.selected.has(node.value);return;}
+ const nav=e.target.closest('[data-dg-loss-month]');if(nav){menu.month=dgLossShiftMonth(menu.month,Number(nav.dataset.dgLossMonth));document.querySelector('#dg-loss-filter-pop .dg-loss-months').innerHTML=dgLossMonth(menu.month)+dgLossMonth(dgLossShiftMonth(menu.month,1));dgPaintLossDates();return;}
+ const day=e.target.closest('[data-dg-loss-day]');if(day){const value=day.dataset.dgLossDay;if(!menu.from||menu.to){menu.from=value;menu.to='';}else{menu.to=value;if(menu.to<menu.from)[menu.from,menu.to]=[menu.to,menu.from];}menu.hover='';dgPaintLossDates();}
+});
+document.addEventListener('dblclick',e=>{const day=e.target.closest('[data-dg-loss-day]');if(!day||!S.dgLossMenu?.date)return;S.dgLossMenu.from=S.dgLossMenu.to=day.dataset.dgLossDay;dgApplyLossFilter();});
+document.addEventListener('input',e=>{if(!e.target.matches('[data-dg-loss-search]'))return;const q=e.target.value.trim().toLocaleLowerCase('ru').replace(/ё/g,'е');for(const label of document.querySelectorAll('#dg-loss-filter-pop [data-dg-loss-choice]'))label.hidden=!label.querySelector('span').textContent.toLocaleLowerCase('ru').replace(/ё/g,'е').includes(q);});
+document.addEventListener('change',e=>{
+ const menu=S.dgLossMenu;if(!menu)return;
+ if(e.target.matches('[data-dg-loss-option]')){if(e.target.checked)menu.selected.add(e.target.value);else menu.selected.delete(e.target.value);}
+ if(e.target.matches('[data-dg-loss-from],[data-dg-loss-to]')){menu.from=document.querySelector('#dg-loss-filter-pop [data-dg-loss-from]').value;menu.to=document.querySelector('#dg-loss-filter-pop [data-dg-loss-to]').value;if(menu.from&&menu.to&&menu.to<menu.from)[menu.from,menu.to]=[menu.to,menu.from];menu.hover='';dgPaintLossDates();}
+});
+document.addEventListener('pointerover',e=>{const day=e.target.closest('[data-dg-loss-day]'),menu=S.dgLossMenu;if(day&&menu?.date&&menu.from&&!menu.to){menu.hover=day.dataset.dgLossDay;dgPaintLossDates();}});
+
 function dgRefusalBlock(){
  const rows=dgRefusalView(),groups=dgRefusalGroups(rows),shown=groups.slice(0,S.dgLossTop),max=Math.max(1,...groups.map(g=>g.count));
  const kinds=`<div class="seg" aria-label="Вид отказных записей">${[['all','Все'],['lead','Лиды'],['deal','Сделки']].map(([id,label])=>`<button data-dg-loss-kind="${id}" class="${S.dgLossKind===id?'on':''}">${label}</button>`).join('')}</div>`;
  const bars=shown.map(g=>`<div class="dg-loss-bar" aria-label="${esc(g.name+' · '+g.count)}"><span title="${esc(g.name)}">${esc(g.name)}</span><div class="dg-loss-track"><i style="width:${g.count/max*100}%"></i></div><b>${fmt(g.count)}</b></div>`).join('');
- const headers=DG_LOSS_COLUMNS.map(([key,label])=>`<th aria-sort="${S.dgLossSort===key?(S.dgLossAsc?'ascending':'descending'):'none'}"><button data-dg-loss-sort="${key}">${label}${S.dgLossSort===key?(S.dgLossAsc?' ↑':' ↓'):''}</button><input type="search" id="dg-loss-filter-${key}" data-dg-loss-filter="${key}" aria-label="Фильтр: ${label}" placeholder="Фильтр" value="${esc(S.dgLossFilters[key]||'')}"></th>`).join('');
- const body=rows.map(x=>'<tr>'+DG_LOSS_COLUMNS.map(([key,label])=>`<td data-label="${label}"><div title="${esc(x.cells[key])}">${key==='record'?`<button class="dg-loss-open" data-dg-loss-open="${x.key}">${esc(x.cells[key])}</button>`:esc(x.cells[key])}</div></td>`).join('')+'</tr>').join('');
+ const headers=DG_LOSS_COLUMNS.map(([key,label])=>`<th aria-sort="${S.dgLossSort===key?(S.dgLossAsc?'ascending':'descending'):'none'}"><button data-dg-loss-sort="${key}">${label}${S.dgLossSort===key?(S.dgLossAsc?' ↑':' ↓'):''}</button><button class="dg-loss-filter-button" id="dg-loss-filter-${key}" data-dg-loss-filter="${key}" aria-label="Фильтр: ${label}" aria-haspopup="dialog" title="${esc(dgLossFilterLabel(key))}">${esc(dgLossFilterLabel(key))}</button></th>`).join('');
+ const body=rows.map(x=>'<tr>'+DG_LOSS_COLUMNS.map(([key,label])=>`<td data-label="${label}"><div title="${esc(x.cells[key])}">${esc(x.cells[key])}</div></td>`).join('')+'</tr>').join('');
  return `<section class="dg-refusals-grid dg-refusals-wide" id="dg-refusals"><div class="card"><div class="card-title">Причины отказов</div><div class="card-sub">По дате первого отказа в выбранном периоде · лиды и сделки считаются отдельно</div><div class="dg-loss-controls">${kinds}<div class="seg" aria-label="Число причин">${[10,30,50].map(n=>`<button data-dg-loss-top="${n}" class="${S.dgLossTop===n?'on':''}">Топ ${n}</button>`).join('')}</div></div><div class="dg-loss-chart">${bars||'<div class="card-sub">По текущим фильтрам отказов нет</div>'}</div><div class="card-sub">${rows.length} записей · ${groups.length} причин · показано ${shown.length}</div></div><div class="card"><button class="dg-loss-heading" data-dg-loss-toggle aria-expanded="${S.dgLossOpen}">${S.dgLossOpen?'▾':'▸'} Отказные лиды и сделки · ${rows.length}</button>${S.dgLossOpen?`<div class="card-sub">Сортировка — по заголовку, фильтр — под каждым столбцом. Активность — последнее событие истории. Тип клиента и ассортимент лида — по связанным сделкам.</div><div class="dg-loss-table-scroll"><table class="dg-refusal-table"><thead><tr>${headers}</tr></thead><tbody>${body||'<tr><td colspan="10">По текущим фильтрам записей нет</td></tr>'}</tbody></table></div><div class="dg-loss-pagination">${rows.length} записей · до 10 строк на экране, остальные — прокруткой</div>`:''}</div></section>`;
 }
 document.addEventListener('click',e=>{
- const kind=e.target.closest('[data-dg-loss-kind]'),top=e.target.closest('[data-dg-loss-top]'),sort=e.target.closest('[data-dg-loss-sort]'),toggle=e.target.closest('[data-dg-loss-toggle]'),open=e.target.closest('[data-dg-loss-open]');
- if(open){const x=dgRefusalRows().find(x=>x.key===open.dataset.dgLossOpen);if(!x)return;const row=x.key[0]==='L'?'leadLost':'lost';S.dgCalExpanded.add(row);S.dgCalPick={row,bucket:null,manager:x.record.mgr||'Не распределено',reason:''};S.dgCalRecords.clear();S.dgCalRecords.add(x.key);dgCalendarRerender();document.getElementById('dg-comm-'+x.key)?.scrollIntoView({behavior:'smooth',block:'center'});return;}
+ const kind=e.target.closest('[data-dg-loss-kind]'),top=e.target.closest('[data-dg-loss-top]'),sort=e.target.closest('[data-dg-loss-sort]'),toggle=e.target.closest('[data-dg-loss-toggle]');
  if(kind)S.dgLossKind=kind.dataset.dgLossKind;else if(top)S.dgLossTop=Number(top.dataset.dgLossTop);else if(sort){S.dgLossAsc=S.dgLossSort===sort.dataset.dgLossSort?!S.dgLossAsc:true;S.dgLossSort=sort.dataset.dgLossSort;}else if(toggle)S.dgLossOpen=!S.dgLossOpen;else return;dgCalendarRerender();
 });
-document.addEventListener('input',e=>{const input=e.target.closest('[data-dg-loss-filter]');if(!input)return;const key=input.dataset.dgLossFilter,start=input.selectionStart;S.dgLossFilters[key]=input.value;dgCalendarRerender();const next=document.getElementById('dg-loss-filter-'+key);next?.focus({preventScroll:true});next?.setSelectionRange(start,start);});
+
 
 // Keep records and communications in the same authenticated snapshot, even across server refreshes.
 const dgBakedEvents=new Map((DATA.communicationEvents||[]).map(event=>[event.id,event]));
@@ -53,7 +107,7 @@ const DG_CAL_DEAL_STAGES=['wip','kp','prepay','production','shipping'];
 function dgCalendarSparkline(values,color,label,keys=[],counts=[],missing=[]){
  const max=Math.max(1,...values),points=values.map((v,i)=>`${values.length===1?50:2+i*96/(values.length-1)},${24-v/max*22}`).join(' '),description=label+' · '+(S.calUnit==='money'?'₽':'записей')+': '+values.map((v,i)=>fmt(v)+(S.calUnit==='money'&&missing[i]?'*':'')).join(' → ');
  const hits=keys.map((key,i)=>{const [from,to]=dgBucketRange(key),date=dgDate(from)+(from!==to?' — '+dgDate(to):''),x=j=>values.length===1?50:2+j*96/(values.length-1),left=i?(x(i-1)+x(i))/2:0,right=i===keys.length-1?100:(x(i)+x(i+1))/2,rows=[['Дата',date],['Количество',fmt(counts[i]??0)]];if(S.calUnit==='money'){const unknown=missing[i]||0;rows.push([unknown?'Известная сумма':'Сумма',unknown&&unknown===counts[i]?'Не указана':fmt(values[i])+' ₽']);if(unknown)rows.push(['Записей без суммы',fmt(unknown)+' из '+fmt(counts[i])]);}return `<g class="dg-hover-column"><g class="dg-hover-mark"><line x1="${x(i)}" x2="${x(i)}" y1="0" y2="26" stroke="${color}" stroke-dasharray="2 2"/><circle cx="${x(i)}" cy="${24-values[i]/max*22}" r="2.2" fill="${color}" stroke="var(--bg-card)" stroke-width="1"/></g><rect class="dg-spark-hit" x="${left}" y="0" width="${right-left}" height="26" fill="transparent" data-tip="${esc(dt(esc(label),rows))}"/></g>`;}).join('');
- return `<svg class="dg-heat-spark" viewBox="0 0 100 26" role="img" aria-label="${esc(description)}">${values.length===1?`<circle cx="50" cy="${24-values[0]/max*22}" r="2" fill="${color}"/>`:`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>`}${hits}</svg>`;
+ return `<svg class="dg-heat-spark" viewBox="0 0 100 26" role="img" aria-label="${esc(description)}"><line class="dg-chart-axis" x1="2" x2="98" y1="24" y2="24"/>${values.length===1?`<circle cx="50" cy="${24-values[0]/max*22}" r="2" fill="${color}"/>`:`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>`}${hits}</svg>`;
 }
 function dgMSKDay(at){return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));}
 function dgCalendarDateTime(at){return at&&Number.isFinite(Date.parse(at))?new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(at)):'не загружено';}
@@ -138,18 +192,33 @@ function dgCalendarRecordTable(rows,row){
   return `<tr class="drow" data-dg-calrecord="${x.key}" tabindex="0" role="button" aria-expanded="${open}"><td>${open?'▾':'▸'} <span class="kind">${row.kind==='lead'?'Лид':'Сделка'}</span> <b>${esc(d.id)}</b></td><td>${esc(d.status||d.stage||'—')}</td>${refusal?'<td class="dg-refusal-reason">'+esc(DATA.calendar?.leadReasonDetails?.[x.key]||x.reason||'Не заполнена')+'</td>':''}<td>${dgDate(d.created)}</td><td>${dgDate(x.at)}</td><td>${dgMoney(d.budget,d.currency)}</td><td>${row.kind==='deal'?dgMoney(d.prepayAmt,d.currency):'—'}</td><td>${dgDate(ix?.lastAt?dgMSKDay(ix.lastAt):null)}</td><td>${ix?.commIds?.length??'—'} комм.<small>${ix?.openTasks??'—'} открытых дел</small></td></tr>${open?`<tr class="subrow2"><td colspan="${refusal?9:8}"><div id="dg-comm-${x.key}" class="dg-comm-host">${dgCommCache.has(x.key)?dgCommunicationTable(x.key):'Загружаю историю…'}</div></td></tr>`:''}`;
  }).join('')}</tbody></table></div>`;
 }
+// Keep source timestamps and bindings intact; only identical timestamps get a lifecycle tie-break.
+function dgCommunicationText(value){return String(value??'').replace(/\r\n?/g,'\n').replace(/[^\S\n]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
+function dgCommunicationEntity(key){return (key[0]==='L'?'Лид ':'Сделка ')+key.slice(1);}
+function dgMessageText(event){return event.speakers?.length?event.speakers.map(s=>s.role+': '+dgCommunicationText(s.text)).join('\n\n'):dgCommunicationText(event.body);}
+function dgMessageMarkup(event){return `${event.title?'<strong>'+esc(dgCommunicationText(event.title))+'</strong>\n\n':''}${event.roleGuess?'Роли определены по тексту и требуют проверки.\n\n':''}${event.undiar?'Надёжного разделения говорящих нет.\n\n':''}${esc(dgMessageText(event)||'Текст события в CRM не заполнен')}`;}
+let dgMessageOpener=null;
+function dgOpenMessage(key,id,opener){
+ const event=dgCommCache.get(key)?.events?.find(e=>e.id===id);if(!event)return;
+ let dialog=document.getElementById('dg-message-reader');if(!dialog){dialog=document.createElement('dialog');dialog.id='dg-message-reader';dialog.className='dg-message-dialog';dialog.setAttribute('aria-labelledby','dg-message-title');document.body.append(dialog);dialog.addEventListener('close',()=>{if(dgMessageOpener?.isConnected)dgMessageOpener.focus({preventScroll:true});});dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))dialog.close();});}
+ dgMessageOpener=opener;dialog.innerHTML=`<div class="dg-message-shell"><header><div><h3 id="dg-message-title">Сообщение полностью</h3><small>${esc(event.entities.map(dgCommunicationEntity).join(' · '))} · ${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'medium'}).format(new Date(event.ts))} МСК</small></div><form method="dialog"><button aria-label="Закрыть сообщение" autofocus>×</button></form></header><div class="dg-message-content" tabindex="0">${dgMessageMarkup(event)}</div></div>`;dialog.showModal();
+}
+function dgCommunicationEvents(payload,key){
+ const selected=S.dgCommEntities?.[key]||'all',rank=e=>e.type==='Стадия'?(e.entities.every(k=>k[0]==='L')?0:1):2;
+ return payload.events.filter(e=>selected==='all'||e.entities.includes(selected)).sort((a,b)=>(a.ts-b.ts||rank(a)-rank(b)||String(a.id).localeCompare(String(b.id),'en',{numeric:true}))*(S.dgCommAsc?1:-1));
+}
 function dgCommunicationTable(key){
  const payload=dgCommCache.get(key);if(!payload)return 'Загружаю историю…';if(payload.error)return '<div class="dg-comm-error">Историю сейчас не удалось загрузить. <button data-dg-commretry="'+key+'">Повторить</button></div>';
- const types=[...new Set(payload.events.map(e=>e.type))],selected=S.dgCommChannel;
- const filters=`<div class="dg-comm-filters"><button data-dg-commchannel="all">Все · ${payload.events.length}</button>${types.map(t=>`<button data-dg-commchannel="${esc(t)}" class="${selected===t?'on':''}">${esc(t)} · ${payload.events.filter(e=>e.type===t).length}</button>`).join('')}</div>`;
- const rows=payload.events.slice().sort((a,b)=>(a.ts-b.ts)*(S.dgCommAsc?1:-1)).map(e=>{
-  const speakerNote=e.roleGuess?'<small>Роли определены по тексту и требуют проверки.</small>':'';const diarNote=e.undiar?'<small>Надёжного разделения говорящих нет.</small>':'';const speakers=e.speakers?.length?e.speakers.map(s=>`<div class="trln"><b>${esc(s.role)}:</b> ${esc(s.text)}</div>`).join(''):esc(e.body);
-  const actual=e.entities.map(k=>k[0]==='L'?'лид '+k.slice(1):'сделка '+k.slice(1)).join(' · ');
+ const selected=S.dgCommEntities?.[key]||'all',entities=[...new Set(payload.events.flatMap(e=>e.entities))].sort((a,b)=>a[0]===b[0]?a.localeCompare(b,'en',{numeric:true}):a[0]==='L'?-1:1);
+ const filters=entities.length>1?`<div class="dg-comm-filters" aria-label="Сущность в истории">${['all',...entities].map(k=>`<button data-dg-commkey="${esc(key)}" data-dg-commentity="${esc(k)}" class="${selected===k?'on':''}" aria-pressed="${selected===k}">${k==='all'?'Вся цепочка':esc(dgCommunicationEntity(k))}</button>`).join('')}</div>`:'';
+ const rows=dgCommunicationEvents(payload,key).map(e=>{
+  const speakerNote=e.roleGuess?'<small>Роли определены по тексту и требуют проверки.</small>':'';const diarNote=e.undiar?'<small>Надёжного разделения говорящих нет.</small>':'';const speakers=e.speakers?.length?e.speakers.map(s=>`<div class="trln"><b>${esc(s.role)}:</b> ${esc(dgCommunicationText(s.text))}</div>`).join(''):esc(dgCommunicationText(e.body));
+  const actual=e.entities.map(k=>'<span>'+esc(dgCommunicationEntity(k))+'</span>').join('');
   const technical=!/^(Письмо|Звонок|SMS|Мессенджер ОЛ|Сообщение)/.test(e.type||'');
   const channelLabel=e.type==='Комментарий-заметка'?'Комментарий':e.type;
-  return `<tr class="erow2${technical?' dg-technical':''}"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(e.ts))}<small>${esc(actual)}</small></td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(channelLabel)}</span></td><td class="ebody">${e.title?'<b>'+esc(e.title)+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
+  return `<tr class="erow2${technical?' dg-technical':''}"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'medium'}).format(new Date(e.ts))}</td><td class="dg-event-entity">${actual}</td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(channelLabel)}</span></td><td class="ebody">${dgMessageText(e).length>260?'<button class="dg-read-message" data-dg-message-key="'+esc(key)+'" data-dg-message="'+esc(e.id)+'">Читать полностью</button>':''}${e.title?'<b>'+esc(dgCommunicationText(e.title))+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
  }).join('');
- return `<button data-dg-commsort>${S.dgCommAsc?'Сначала старые':'Сначала новые'} ↕</button><div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="5">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
+ return `${filters}<button data-dg-commsort>${S.dgCommAsc?'Сначала старые':'Сначала новые'} ↕</button><div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время · МСК</th><th>Сущность</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="6">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
 }
 async function dgLoadCommunication(key){
  if(!/^[LD]\d+$/.test(key)||!DATA.communicationIndex?.[key])return;
@@ -158,6 +227,7 @@ async function dgLoadCommunication(key){
 }
 function dgCalendarRerender(){render();for(const key of S.dgCalRecords)dgLoadCommunication(key);}
 document.addEventListener('click',e=>{
+ const message=e.target.closest('[data-dg-message]');if(message){dgOpenMessage(message.dataset.dgMessageKey,message.dataset.dgMessage,message);return;}
  const group=e.target.closest('[data-dg-calgroup]');if(group&&DG_CAL_GROUPS.some(g=>g.id===group.dataset.dgCalgroup)){S.dgCalGroup=group.dataset.dgCalgroup;S.dgCalPick=null;S.dgCalExpanded.clear();S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();document.getElementById('dg-tab-'+S.dgCalGroup)?.focus();return;}
  const row=e.target.closest('[data-dg-calrow]'),cell=e.target.closest('[data-dg-calcell]'),open=e.target.closest('[data-dg-calopen]');
  if(row){const id=row.dataset.dgCalrow;if(id==='deals'){S.dgCalDealsOpen=!S.dgCalDealsOpen;if(!S.dgCalDealsOpen){for(const stage of DG_CAL_DEAL_STAGES)S.dgCalExpanded.delete(stage);if(DG_CAL_DEAL_STAGES.includes(S.dgCalPick?.row))S.dgCalPick=null;}S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}if(S.dgCalExpanded.has(id)){S.dgCalExpanded.delete(id);if(S.dgCalPick?.row===id)S.dgCalPick=null;}else S.dgCalExpanded.add(id);S.dgCalRecords.clear();dgCalendarRerender();return;}
@@ -167,7 +237,7 @@ document.addEventListener('click',e=>{
  const reason=e.target.closest('[data-dg-calreason]');if(reason){S.dgCalPick.reason=reason.dataset.dgCalreason;S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}
  const manager=e.target.closest('[data-dg-calmgr]');if(manager){const key=manager.dataset.dgCalmgr;if(S.dgCalManagers.has(key))S.dgCalManagers.delete(key);else S.dgCalManagers.add(key);dgCalendarRerender();return;}
  const record=e.target.closest('[data-dg-calrecord]');if(record){const key=record.dataset.dgCalrecord;if(S.dgCalRecords.has(key))S.dgCalRecords.delete(key);else S.dgCalRecords.add(key);S.dgCommChannel='all';dgCalendarRerender();return;}
- const channel=e.target.closest('[data-dg-commchannel]');if(channel){S.dgCommChannel=channel.dataset.dgCommchannel;for(const key of S.dgCalRecords){const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);}return;}
+ const entity=e.target.closest('[data-dg-commentity]');if(entity){const key=entity.dataset.dgCommkey,value=entity.dataset.dgCommentity,payload=dgCommCache.get(key);if(!payload||!['all',...payload.events.flatMap(e=>e.entities)].includes(value))return;(S.dgCommEntities??={})[key]=value;const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);return;}
  if(e.target.closest('[data-dg-commsort]')){S.dgCommAsc=!S.dgCommAsc;for(const key of S.dgCalRecords){const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);}return;}
  const retry=e.target.closest('[data-dg-commretry]');if(retry){dgCommCache.delete(retry.dataset.dgCommretry);dgLoadCommunication(retry.dataset.dgCommretry);}
 });

@@ -93,7 +93,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   if(assemblyStart<0||assemblyEnd<0)throw Error('Missing dashboard assembly');
   s=s.slice(0,assemblyStart)+`  h=B_migWarn+divider(1,'Компания','показатели ДГ и сравнение с прошлым периодом')+B_kpi+B_cvFunnel+dgDistributionBlock()
     +divider(2,'Отдел продаж','от входящих лидов до исходов сделок')+B_leadStrip+B_leadFunnelPair+B_truba+dgCalendarBlock()
-    +divider(3,'Со сделанным предложением','пайплайн и исходы офферов')+offerAnalytics()+offerReasonsBlock();
+    +divider(3,'Со сделанным предложением','пайплайн и исходы офферов')+offerAnalytics()+dgRefusalBlock();
 `+s.slice(assemblyEnd);
   s=once(s,"document.getElementById('root').innerHTML=h;","document.getElementById('root').innerHTML=dgSafeMarkup(h);");
   s=s.replace(/wireDyn\(D,L\);wireCv\(L,D\);wireLoad\(\);wireMoneyDyn\([^\n]+?;wirePrepProd\(\);wireDQ\(\);/,'wireCv(L,D);');
@@ -111,6 +111,20 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   s=section(s,'offerAnalytics',x=>x.replace('${donuts}${segDyn}','${donuts}').replaceAll('data-ocseg=','data-dg-static-segment=').replace('cursor:pointer;padding:2px 4px','padding:2px 4px').replaceAll('клик по сегменту - конверсия в динамике','доли открытых сделок').replace(' · клик по сегменту - конверсия и сделки',''));
   s=s.replaceAll('Компания','Лиды от Домгласс').replaceAll('Отдел продаж','Работа отдела продаж');
   s=s.replace(/<span id="nextUpd"[^>]*><\/span>/,'').replace(/<nav class="anchornav"[^>]*>[\s\S]*?<\/nav>/,'').replace(",['mig','После переезда']",'');
+  const drawerStart=s.indexOf("  const _ft=document.getElementById('filtToggle')"),drawerEnd=s.indexOf("  const _ds=document.getElementById('dateSeg');",drawerStart);
+  if(drawerStart<0||drawerEnd<0)throw Error('Missing filter wiring contract');
+  s=s.slice(0,drawerStart)+'  dgInitFilterDrawer();\n'+s.slice(drawerEnd);
+  s=section(s,'funnelChart',x=>{
+    const start=x.indexOf('  const subTxt='),end=x.indexOf('  return ',start);
+    if(start<0||end<0)throw Error('Missing pipeline description contract');
+    x=x.slice(0,start)+`  const subTxt=(mode==='created'?'Выбраны сделки, созданные в указанный период.':'Выбраны сделки, которые были открыты хотя бы часть указанного периода, включая новые.')+' Число над этапом — сколько сделок дошли до него или дальше. Это не остаток сделок на этапе.';
+  const explanation='Проценты между этапами — доля сделок, дошедших до следующего этапа, от числа на предыдущем. Под этапом — сумма бюджетов этих сделок и медианное время на этапе.';
+  const saleExplanation=prepay?'Продажа учитывается с этапа предоплаты.':'Продажа учитывается при успешном завершении сделки.';
+`+x.slice(end);
+    x=x.replace('Воронка прохождения сделок (труба)','Прохождение сделок по этапам').replace("['Формируется предложение','C49:PREPARATION']","['Формирование ТЗ','C49:PREPARATION']").replaceAll("['Предложение отправлено','C49:PREPAYMENT_INVOIC']","['КП отправлено','C49:PREPAYMENT_INVOIC']").replaceAll("['Формируется предложение','C49:PREPARATION']","['Формирование ТЗ','C49:PREPARATION']").replace("['Отвалилось',","['Не дошли дальше',");
+    x=x.replace(/info\('Пилюля срока под этапом:[^']*'\)/,"info('Накопительная воронка: сделка на позднем этапе учитывается и на предыдущих. Поэтому число показывает достижение этапа или более позднего, а не обязательный отдельный визит на каждый этап. Например, из 8 сделок 2 дошли до КП: конверсия в КП от предыдущего этапа — 25%, если на нём 8 сделок. Оставшиеся могут быть ещё в работе: снижение числа само по себе не означает отказ. Срок под этапом — медиана времени прохождения; цвет выделяет длительные сроки.')");
+    return x.replace('<div class="card-sub">${subTxt}</div>','<div class="card-sub dg-pipeline-description"><p>${subTxt}</p><p>${explanation} ${saleExplanation}</p></div>');
+  });
   return s;
 }
 module.exports={adaptTemplate};

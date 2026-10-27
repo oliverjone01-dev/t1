@@ -37,3 +37,7 @@
 .dg-calendar .feedscroll .t3>tbody>tr,.dg-calendar .feedscroll .t3>tbody>tr:hover{background:transparent}.dg-calendar .feedscroll .t3>tbody>tr>td,.dg-calendar .feedscroll .t3>tbody>tr:hover>td{background:var(--bg-card)}
 
 .dg-calendar-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+
+.dg-calendar .dg-direct-records{margin-left:18px!important;width:calc(100% - 18px)}
+.dg-calendar .t3>tbody>tr.dg-technical>td{color:#8A95A6}
+.dg-calendar .t3>tbody>tr.dg-technical .badge{color:#A78BFA;border-color:#A78BFA55}

@@ -71,8 +71,10 @@ function dgCalendarBlock(){
  const keys=dgCalendarKeys(),money=S.calUnit==='money',step=Math.max(1,Math.ceil(keys.length/12));
  const head=`<div class="dg-heat-head"><div class="dg-heat-spacer"></div><div class="dg-heat-cells">${keys.map((k,i)=>`<div>${keys.length<=16||i%step===0||i===keys.length-1?blabel(k,S.gran):''}</div>`).join('')}</div><div class="dg-heat-sigma">Σ ${money?'₽':'зап.'}</div></div>`;
  const body=DG_CAL_ROWS.map(row=>{let h=dgCalendarLine(row,keys);
-  if(S.dgCalExpanded.has(row.id)){const names=[...new Set([...(dgCalendarRows(row).map(x=>x.record.mgr||'Не распределено')),...keys.flatMap(k=>dgCalendarRows(row,k).map(x=>x.record.mgr||'Не распределено'))])].sort((a,b)=>a.localeCompare(b,'ru'));h+=names.map(m=>dgCalendarLine(row,keys,m)).join('');}
-  if(S.dgCalPick?.row===row.id)h+=dgCalendarDetail(row);return h;
+  const picked=S.dgCalPick?.row===row.id;
+  if(picked&&!S.dgCalPick.manager)h+=dgCalendarDetail(row);
+  if(S.dgCalExpanded.has(row.id)){const names=[...new Set([...(dgCalendarRows(row).map(x=>x.record.mgr||'Не распределено')),...keys.flatMap(k=>dgCalendarRows(row,k).map(x=>x.record.mgr||'Не распределено'))])].sort((a,b)=>a.localeCompare(b,'ru'));h+=names.map(m=>dgCalendarLine(row,keys,m)+(picked&&S.dgCalPick.manager===m?dgCalendarDetail(row):'')).join('');}
+  return h;
  }).join('');
  const coverage=DATA.communicationCoverage,cache=coverage?.cache,cacheNote=cache?.status==='available'?'Диалоги: '+dgCalendarDateTime(cache.generatedAt):'Дополнение из «Диалогов» недоступно';
  return `<section class="card dg-calendar dg-calendar-gg" id="dg-calendar"><div class="card-h"><div><div class="card-title">Календарь лидов и сделок</div><div class="card-sub">Этап → ответственный → лид или сделка → коммуникации</div></div><div class="dg-calendar-controls">${money?`<div class="seg" aria-label="Поле суммы календаря"><button data-dg-calamount="budget" class="${S.dgCalAmount!=='prepay'?'on':''}">Бюджет</button><button data-dg-calamount="prepay" class="${S.dgCalAmount==='prepay'?'on':''}">Предоплата</button></div>`:''}<div class="seg"><button data-dg-calunit="count" class="${!money?'on':''}">Количество</button><button data-dg-calunit="money" class="${money?'on':''}">Сумма</button></div></div></div><div class="card-sub dg-heat-freshness">CRM: ${dgCalendarDateTime(coverage?.generatedAt)} · ${cacheNote}</div><div class="dg-calendar-workspace"><div id="dg-calendar-panel" class="scroll dg-heat-scroll"><div class="dg-heat-calendar" style="--dg-total:${money?108:84}px">${head}${body}</div></div></div></section>`;
@@ -82,6 +84,7 @@ function dgCalendarDetail(row){
  const bucket=S.dgCalPick?.bucket,rows=dgCalendarRows(row,bucket).filter(x=>!S.dgCalPick?.manager||(x.record.mgr||'Не распределено')===S.dgCalPick.manager);
  let filtered=rows;const reason=S.dgCalPick?.reason;
  if(reason)filtered=rows.filter(x=>x.reason===reason);
+ if(S.dgCalPick?.manager)return `<div class="dg-calendar-drill dg-direct-records">${dgCalendarRecordTable(filtered,row)}</div>`;
  const managers=[...new Set(filtered.map(x=>x.record.mgr||'Не распределено'))].sort((a,b)=>a.localeCompare(b,'ru'));
  const html=managers.map(manager=>{
   const records=filtered.filter(x=>(x.record.mgr||'Не распределено')===manager),s=dgCalendarSummary(records),open=S.dgCalManagers.has(manager);
@@ -103,7 +106,8 @@ function dgCommunicationTable(key){
  const rows=payload.events.slice().sort((a,b)=>(a.ts-b.ts)*(S.dgCommAsc?1:-1)).map(e=>{
   const speakerNote=e.roleGuess?'<small>Роли определены по тексту и требуют проверки.</small>':'';const diarNote=e.undiar?'<small>Надёжного разделения говорящих нет.</small>':'';const speakers=e.speakers?.length?e.speakers.map(s=>`<div class="trln"><b>${esc(s.role)}:</b> ${esc(s.text)}</div>`).join(''):esc(e.body);
   const actual=e.entities.map(k=>k[0]==='L'?'лид '+k.slice(1):'сделка '+k.slice(1)).join(' · ');
-  return `<tr class="erow2"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(e.ts))}<small>${esc(actual)}</small></td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(e.type)}</span></td><td class="ebody">${e.title?'<b>'+esc(e.title)+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
+  const technical=!/^(Письмо|Звонок|SMS|Мессенджер ОЛ|Сообщение)/.test(e.type||'');
+  return `<tr class="erow2${technical?' dg-technical':''}"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(e.ts))}<small>${esc(actual)}</small></td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(e.type)}</span></td><td class="ebody">${e.title?'<b>'+esc(e.title)+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
  }).join('');
  return `<button data-dg-commsort>${S.dgCommAsc?'Сначала старые':'Сначала новые'} ↕</button><div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="5">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
 }

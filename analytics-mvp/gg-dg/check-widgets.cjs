@@ -195,3 +195,13 @@ test('calendar budget default stays independent of global prepayment and switche
  const expression="dgCalendarLine(DG_CAL_ROWS.find(r=>r.id==='deals'),dgCalendarKeys())";
  assert.ok(d.run(expression+".includes(fmtK(218500))"));d.run("S.dgCalAmount='prepay'");assert.ok(d.run(expression+".includes(fmtK(500))"));assert.ok(!d.run(expression+".includes(fmtK(218500))"));assert.equal(d.run('S.amtMode'),'prepay');
 });
+
+test('Outlook styles are removed without dropping the customer request in fresh or archived email',()=>{
+ const normal=require('./dialog-normalize.cjs')({},Date.now()),{dgCleanEvent}=require('./communications.cjs');
+ const css=['v\\:* {behavior:url(#default#VML);}','o\\:* {behavior:url(#default#VML);}','w\\:* {behavior:url(#default#VML);}','.shape {behavior:url(#default#VML);}'].join('\n');
+ const request='Просьба рассчитать стеклянную перегородку. Размер 1200 × 2000. Срок 15 дней.';
+ const archived=dgCleanEvent({src:'act#901',ts:Date.now(),type:'Письмо',body:css+'\n\n'+request},['L10']);assert.equal(archived.body,request);
+ const fresh=normal.activity({ID:'902',TYPE_ID:'4',DIRECTION:'1',SUBJECT:'Запрос',CREATED:new Date().toISOString(),DESCRIPTION:'<style>'+css+' p.MsoNormal {color:red}</style><script>not email text</script><p>'+request+'</p>'},'Менеджер');
+ assert.ok(fresh.body.includes(request));assert.ok(!fresh.body.includes('VML'));assert.ok(!fresh.body.includes('MsoNormal'));assert.ok(!fresh.body.includes('not email text'));
+ const ordinary=dgCleanEvent({src:'act#903',ts:Date.now(),type:'Письмо',body:'Описание .shape и пример {размер:1200} — часть запроса.'},['L10']);assert.ok(ordinary.body.includes('.shape'));assert.ok(ordinary.body.includes('{размер:1200}'));
+});

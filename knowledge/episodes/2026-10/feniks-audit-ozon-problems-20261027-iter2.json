@@ -1,0 +1,115 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-problems-20261027-iter2",
+  "timestamp": "2026-10-27T17:14:09.191141+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/problems/page.ts",
+  "artifact_class": "dashboard",
+  "iteration": 2,
+  "anchor": "8.1 dialogs-registry after rework - higher by0.3: raw source checks plus destructive-update and currency integration probes now pass; missing delivery facts remain explicitly unknown.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "Actual handover percentage, customer-promise shifts and late delivery are unknown until verified source semantics exist; no false zero is shown.",
+    "Thresholds are a dated 27.10 snapshot and full posting floor is fixed at06.02.2026; later source/API changes require maintenance."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Actual handover percentage, customer-promise shifts and late delivery are unknown until verified source semantics exist; no false zero is shown.",
+      "evidence": "161 active observations: client_begin/end null; collector stores daily observations, shift/lateDelivery coverage empty. Page shows н/д, explanatory coverage notes.",
+      "checkpoint": "actionability_10_milestone",
+      "weight": -0.25
+    },
+    {
+      "gap": "Thresholds are a dated 27.10 snapshot and full posting floor is fixed at06.02.2026; later source/API changes require maintenance.",
+      "evidence": "katya/problems/thresholds-2026-10-27.json; problems-collect.ts problemPostings(2026-02-06,today); alert shows threshold date.",
+      "checkpoint": "risk_24_dependencies",
+      "weight": -0.15
+    }
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "110 independent source/aggregation checks: specialized rating15dates;14617.71RUB;21defect charges+18delay events;5return samples; sampled daily penalties; four periods reconciled to source rows. Same-family consistency only."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "2026-09 whole month:46/308 cancellations,3096678gross,8231.71fine. 01-15Oct28/177,1539893gross,15462.68fine. 01-27Oct51/403,3169876gross,36662.93fine.19-25Oct11/126,642705gross,17457.49fine. /tmp/feniks-problems-source-check.ts."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Source4003unique postings,132unique events (50fine43return21defect18delay); validateProblems rejects duplicate keys; pagination tests exercise repeated cursor and HTTP403."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Independent rerun: mixed100/null cancellations and returns visibly label incomplete totals; null defect index stays н/д in alert/card/week and contributes0 coverage; 38 target tests PASS."
+    },
+    {
+      "id": "B5",
+      "result": "PARTIAL",
+      "evidence": "Threshold10 derives from dated cabin source; full-history posting floor06Feb2026 is fixed. Future updates may need windowing; not a current blocker."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Final real artifact run40516772998 read independently:4003 rows,1820FBS/1987rFBS/196unknown; known self-delivery posting41775708-0531-1 correctly rFBS. Local current code rendered for probes; postdeploy live check remains publishing agent."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Four regressions fixed. Separate integration mock collectProblems: USDindex and disappearance of saved fine both reject before any writes; prior file byte-preserved. Signed correction on same key still allowed. Public normalized outputs have0PII/token/local-path matches."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "rework_tz": "",
+  "confidence": 0.95,
+  "sources_of_truth": [
+    "/Users/gengroup/Downloads/2026-10-27-ozon-problemy-tz.md",
+    "knowledge/semantic/metrics/ozon-problems.yaml",
+    "/Users/gengroup/Documents/Codex/outputs/ozon-problems-2026-10-27/probe3/problems-probe.json",
+    "/Users/gengroup/Documents/Codex/outputs/ozon-problems-2026-10-27/collected-final",
+    "analytics-mvp/src/scripts/ozon/collector-integrity.ts"
+  ]
+}

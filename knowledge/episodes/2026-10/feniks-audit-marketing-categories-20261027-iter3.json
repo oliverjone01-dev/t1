@@ -1,0 +1,123 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "marketing-categories-20261027-iter3",
+  "timestamp": "2026-10-27T11:10:20.920120+00:00",
+  "deliverable_ref": "715d18c2 / audited_hash 471a3a0a1079b6d1; PR523 categories repair",
+  "iteration": 3,
+  "artifact_class": "dashboard",
+  "checkpoints": {
+    "accuracy_1_scope_check": 2,
+    "accuracy_2_scope_check": 2,
+    "accuracy_3_scope_check": 2,
+    "accuracy_4_scope_check": 2,
+    "accuracy_5_scope_check": 1,
+    "actionability_1_scope_check": 2,
+    "actionability_2_scope_check": 1,
+    "actionability_3_scope_check": 2,
+    "actionability_4_scope_check": 2,
+    "actionability_5_scope_check": 1,
+    "insight_1_scope_check": 2,
+    "insight_2_scope_check": 2,
+    "insight_3_scope_check": 2,
+    "insight_4_scope_check": 1,
+    "insight_5_scope_check": 1,
+    "brand_1_scope_check": 2,
+    "brand_2_scope_check": 2,
+    "brand_3_scope_check": 1,
+    "brand_4_scope_check": 2,
+    "brand_5_scope_check": 1,
+    "risk_1_scope_check": 2,
+    "risk_2_scope_check": 2,
+    "risk_3_scope_check": 2,
+    "risk_4_scope_check": 1,
+    "risk_5_scope_check": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 8,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [],
+  "rework_tz": "",
+  "confidence": 0.98,
+  "p9_triggers_fired": [
+    "review_request",
+    "dashboard_source_and_amounts"
+  ],
+  "anchor": "8.40 source-preserving dashboard repair band. The iteration2 blocker is fixed in the shared helper opt-in path, with real source→HTML and explicit guard probes. Financial source accuracy outside this patch is not newly asserted.",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Final 715d18c2 diff read, hash independently 471a3a0a1079b6d1. category consumer alone calls cpoRevFix(copy,true); previous consumers keep default."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "765 independent iteration2 checks remain applicable: classifier/maps unchanged, all campaigns assigned once, raw expense partition across 5 windows."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "59 independent focused iteration3 checks. Real accepted full-window 06.09 CPO zero renders revenue0/units0/DRRnull; real positive 05.09 correct."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Iteration2 full taxonomy and precedence probes unchanged; exact offer and explicit metadata fallback verified; no prefix guessing."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Zero missing/empty/partial/outside coverage, CPO_ERR and missing-month guards all produce unknown; positive full window retained; 27.09–26.10 remains partial unknown."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Four real windows: KPI/burn/unit-econ/price and normalized campaign DOM byte-equal baseline. Default helper data and return strings equal baseline across 6 adversarial cases. Renderer input unchanged."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No new API data, no allocation/proportional CPO split, no original consumer formula changes; new flag is opt-in, zero denominator null. Frozen hash independently checked."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Iteration2 blocker closed",
+      "evidence": "audit-categories-iter3.cjs/json: real 06.09 lifecycle and known-zero/unknown guard boundaries, 59 checks PASS."
+    },
+    {
+      "gap": "Classification/partition",
+      "evidence": "audit-categories-iter2.cjs/probes.json: 765 PASS on unchanged category maps/aggregator. That report RETURN only concerned the now-fixed consumer zero path."
+    },
+    {
+      "gap": "Validation limits",
+      "evidence": "No new full unrelated CI run, live collection, or complete financial reconciliation. Browser UI checked by author, auditor used independent JSDOM."
+    }
+  ],
+  "primary_gap": "",
+  "audience": "Ivan / PR523 reviewer",
+  "sources_of_truth": [
+    "review-spec.md",
+    "knowledge/semantic/metrics/ozon-ad-categories.yaml",
+    "analytics-mvp/src/scripts/ad-categories.ts",
+    "analytics-mvp/src/scripts/build-katya.ts",
+    "analytics-mvp/data/sku_taxonomy.json",
+    "before/katya-marketing.html",
+    "after/katya-marketing.html",
+    "audit-categories-iter2-probes.json",
+    "audit-categories-iter3.cjs",
+    "audit-categories-iter3-probes.json"
+  ]
+}

@@ -13,11 +13,13 @@ function dgMaskContacts(text){
  });
 }
 function dgSafeText(value){let text=String(value??'');const named={amp:'&',quot:'"',apos:"'",lt:'<',gt:'>',nbsp:' ',laquo:'«',raquo:'»',ldquo:'“',rdquo:'”',lsquo:'‘',rsquo:'’',ndash:'–',mdash:'—',hellip:'…',copy:'©',reg:'®'};let stable=false;for(let i=0;i<64;i++){const decoded=text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,(whole,key)=>{if(key[0]!=='#')return named[key.toLowerCase()]??whole;const n=key[1].toLowerCase()==='x'?parseInt(key.slice(2),16):Number(key.slice(1));return n>0&&n<=0x10FFFF&&!(n>=0xD800&&n<=0xDFFF)?String.fromCodePoint(n):'�';});if(decoded===text){stable=true;break;}text=decoded;}if(!stable)throw Error('DG text entity nesting limit');text=text.replace(/(?:https?:\/\/|www\.)[^\s<>"\]\[]+/gi,'[ссылка скрыта]').replace(/\S*bitrix24\.\S*|\/rest\/\d+\/[a-z0-9]+\/?/gi,'[адрес CRM скрыт]').replace(/sk-(?:proj-)?[A-Za-z0-9_-]{16,}|\d{6,}:[A-Za-z0-9_-]{20,}/g,'[секрет скрыт]').replace(/B24_WEBHOOK_URL|OPENAI_API_KEY|api\.telegram\.org/gi,'[служебное поле скрыто]');return dgMaskContacts(text);}
+function dgCleanMailText(text){return text.replace(/(?:^|\n)[ \t]*(?:[vow]\\?:\*|\.shape)[ \t]*\{\s*behavior\s*:\s*url\s*\(\s*#default#VML\s*\)\s*;?\s*\}[ \t]*;?[ \t]*(?=\n|$)/gim,'').replace(/\n{3,}/g,'\n\n').trim();}
 function dgCleanEvent(event,entities){
  const ts=Number(event.ts)||Date.parse(event.raw||event.dt||'');if(!Number.isFinite(ts))throw Error('Invalid communication time');
  if(!event.src||!entities.length)throw Error('Unbound communication');
  const clean={id:String(event.src),ts,dt:new Date(ts).toISOString(),entities:[...new Set(entities)],type:dgSafeText(event.type||'Событие CRM'),dir:['входящее','исходящее'].includes(event.dir)?event.dir:'-',who:dgSafeText(event.who||'CRM'),title:dgSafeText(event.title),body:dgSafeText(event.body),status:dgSafeText(event.status),due:event.due||null,dur:dgSafeText(event.dur),refId:/^\d+$/.test(String(event.refId))?String(event.refId):null,guess:!!event.guess,roleGuess:!!event.roleGuess};
  clean.origin=['crm','dialog','history'].includes(event.origin)?event.origin:'crm';
+ if(clean.type==='Письмо')clean.body=dgCleanMailText(clean.body);
  clean.undiar=!!event.undiar;clean.due=Number.isFinite(Date.parse(event.due||''))?new Date(event.due).toISOString():null;
  if(Array.isArray(event.speakers))clean.speakers=event.speakers.map(s=>({role:dgSafeText(s.role||s.label),text:dgSafeText(s.text)}));
  return clean;

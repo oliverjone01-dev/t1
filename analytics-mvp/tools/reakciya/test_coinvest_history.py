@@ -65,6 +65,24 @@ class CoinvestHistoryTest(unittest.TestCase):
     def test_absent_source_fails_instead_of_claiming_fresh_history(self):
         with self.assertRaises(subprocess.CalledProcessError): self.load()
 
+    def test_empty_or_unusable_modern_history_fails(self):
+        for rows in ([], [self.row('2026-10-27', 0, no_site=True)],
+                     [{**self.row('2026-10-27'), 'oa_used': True}],
+                     [self.row('2026-09-18')], [self.row('2026-10-28')]):
+            with self.subTest(rows=rows):
+                self.write(rows)
+                with self.assertRaises(ValueError): self.load()
+
+    def test_partial_zero_day_warning_survives_bridge(self):
+        rows = []
+        for i in range(50):
+            rows.extend([{**self.row('2026-10-25', 50), 'art': str(i)},
+                         {**self.row('2026-10-26', 0 if i < 20 else 50), 'art': str(i)}])
+        self.write(rows)
+        history, source = load_history(self.legacy, self.data, self.now)
+        self.assertEqual(source['warn_days'], ['2026-10-26'])
+        self.assertEqual(len(history[(history.d==pd.Timestamp('2026-10-26')) & (history.coinv==0)]), 20)
+
     def test_windows_require_exact_calendar_days(self):
         start = self.now - pd.Timedelta(days=7)
         end = self.now - pd.Timedelta(days=1)

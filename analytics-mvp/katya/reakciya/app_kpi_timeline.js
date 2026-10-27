@@ -144,6 +144,8 @@ function draw(){
  const counts=measured.map(p=>D.coinv_history?.coverage?.[scope]?.[p[0]]).filter(n=>n!=null);
  const coverage=counts.length?' · '+Math.min(...counts)+'–'+Math.max(...counts)+' товаров из '+(D.levels_n[scope]||0):'';
  legend.appendChild(el('span','lg','Соинвест: '+measured.length+' из '+days.length+' дней'+coverage));
+ const warnDays=(D.coinv_history?.warn_days||[]).filter(d=>d>=from&&d<=to);
+ if(warnDays.length) legend.appendChild(el('span','lg','Проверьте цены: много нулевых скидок '+warnDays.map(dmy).join(', ')));
  note.innerHTML='<b>Что на графике сейчас.</b> Слева по синей шкале '+MNAME[metric]+' по срезу «'+scope+'» ('+(D.levels_n[scope]||0)+' товаров), справа по фиолетовой шкале соинвест медианой по товарам с данными, за период '+(coCur==null?'нет данных':coCur.toFixed(1).replace('.',',')+'%')+'. Соинвест это доля скидки от предельной цены, ровно та величина, ради которой мы держим копеечные кампании.<br><br><b>Зачем этот блок.</b> Он отвечает на вопрос «мы что-то делали, и что после этого поехало». За '+periodLabel()+
   ' было '+plu(tot,['правка','правки','правок'])+' в '+plu(nd,['день','дня','дней'])+
   (cpod?', из них в '+plu(cpod,['день','дня','дней'])+' трогали оплату за заказ':'')+

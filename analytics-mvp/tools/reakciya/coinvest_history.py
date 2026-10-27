@@ -20,6 +20,8 @@ def load_history(legacy, data_dir, now):
     recent = recent.rename(columns={'date': 'd', 'gap_pct': 'coinv'})
     recent['d'] = pd.to_datetime(recent['d'])
     recent = recent[(recent['d'] >= CUTOVER) & (recent['d'] <= now)]
+    if recent.empty:
+        raise ValueError('No usable daily coinvest history since 2026-09-19')
     history = pd.concat([legacy[legacy['d'] < CUTOVER], recent[['art', 'd', 'coinv']]],
                         ignore_index=True).sort_values(['d', 'art'])
     if history.duplicated(['art', 'd']).any():

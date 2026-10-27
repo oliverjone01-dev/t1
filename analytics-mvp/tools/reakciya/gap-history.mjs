@@ -19,4 +19,4 @@ for (const row of source.rows) {
 }
 process.stdout.write(JSON.stringify({ rows: source.rows,
   excluded: { no_site: source.noSite, with_card: source.withOa },
-  system_days: source.systemDays, manual: source.manual }));
+  system_days: source.systemDays, warn_days: source.warnDays, manual: source.manual }));

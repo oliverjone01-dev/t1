@@ -460,6 +460,7 @@ _COINV_UNTIL=piv['coinv'].dropna(how='all').index.max()
 _COINV_UNTIL=None if pd.isna(_COINV_UNTIL) else _COINV_UNTIL.strftime('%Y-%m-%d')
 coinv_history=dict(until=_COINV_UNTIL,partial=(_COINV_UNTIL==NOW.strftime('%Y-%m-%d')),
     source='price_history до 18.09; gap_daily с 19.09',excluded=coinv_source['excluded'],
+    warn_days=coinv_source['warn_days'],system_days=coinv_source['system_days'],
     coverage={k:{d.strftime('%Y-%m-%d'):int(n) for d,n in
         piv['coinv'][[s for s in skus if s in piv['coinv'].columns]].count(axis=1).items()}
         for k,skus in grp.items()})

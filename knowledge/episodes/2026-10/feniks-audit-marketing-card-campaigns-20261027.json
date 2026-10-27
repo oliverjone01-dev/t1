@@ -1,0 +1,123 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "marketing-card-campaigns-20261027",
+  "timestamp": "2026-10-27T09:48:13.843445+00:00",
+  "deliverable_ref": "commit:7f65610fe244618acb6a1d04a6bdaf34e2fe4317; audited_hash=8857782d2e546b6a",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry after rework - выше на0.30: полная паритетная проверка строк/периодов/повторных CPO render, неизменность прочих блоков и функций доказаны. Ниже8.9annotate: это аудит переноса, не независимая финансовая сверка.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 6,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "CI PR#520 завершён1273PASS/3FAIL: дваCPC(1vs0,735>15),одинYM(20075vs0). Независимо подтверждено:10транзитивных source blobs иdata/fixtures идентичныbasec3773b65,изменённыйbuild-katya не импортируется этими suites;UI-перенос не причина.",
+    "Проверено сохранение прежних метрик,а не независимая финансовая истинностьCPC/CPO. Публикация в рамках аудита не выполнялась."
+  ],
+  "rework_tz": "",
+  "confidence": 0.96,
+  "p9_triggers_fired": [
+    "dashboard campaign transfer",
+    "existing CPC/CPO monetary metrics"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Baseline c3773b65 и новый build используют неизменённые data/data-ym/fixtures. cardSub иcpoRevFix побайтово одинаковы; перенос не вводит новый числовой источник/формулу."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Сентябрь целиком,10-20сентября и1-26октября:55/30/75кампаний;все раскрытия равны старой вкладке. Дополнительно2020-01-01..03 и2026-12-01..02 пусты без старых строк/пометок."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Одна таблица top; повторный renderTop4раза на каждом из5окон не меняет строки/lastA/другие KPI. CPO-коррекция не накапливается. Старый URL сохранён,13шапок скрывают вкладку."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "157 независимых DOM/invariant checks PASS: initialrender,все кампании/раскрытия,4фильтра статуса,5окон;прочие kpis/burn/lines/uecon/uecon-kpi/price равны старому Маркетингу."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Нет новых числовых литералов в формулах. Общая строка функций используется обеими страницами; маркетинг клонирует lastA только для campaignrender и восстанавливаетfinally."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Commit/worktree hash8857782d2e546b6a самостоятельно совпал. Исходники/данные заморожены;51targetedunit независимоPASS. YMвыход не содержитCPO/CPC-OZONвставки,источник promoYm сохранён."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Пустые окна не заполняются старыми данными; CPO/неполнота/unknown labels соответствуют прежней вкладке. Изолированнаякопия не меняет общий рекламный снимок и прочие маркетинговые денежные показатели."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "CI PR#520 завершён1273PASS/3FAIL: дваCPC(1vs0,735>15),одинYM(20075vs0). Независимо подтверждено:10транзитивных source blobs иdata/fixtures идентичныbasec3773b65,изменённыйbuild-katya не импортируется этими suites;UI-перенос не причина.",
+      "evidence": "СтатусCI сообщён автором; audit-marketing-ci.py независимо сравнил10dependency blobs сbasec3773b65 и отсутствиеdata/fixture diff,исходнаяYMсумма20075 подтверждена. Прямой baseline-прогон автор прикладывает отдельно. Авторский direct baseline log просмотрен:78PASS/3FAIL,те же1vs0/735>15/20075vs0.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Проверено сохранение прежних метрик,а не независимая финансовая истинностьCPC/CPO. Публикация в рамках аудита не выполнялась.",
+      "evidence": "Scope:точныйперенос cardSub/cpoRevFix и DOM,51targetedunit,157DOM/invariant checks;новая финансоваясверка не заявляется.",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "git c3773b65:analytics-mvp/src/scripts/build-katya.ts",
+    "outputs/marketing-card-campaigns-2026-10-27/before/katya-reklama-kartochki.html",
+    "outputs/marketing-card-campaigns-2026-10-27/before/katya-marketing.html",
+    "outputs/marketing-card-campaigns-2026-10-27/after/katya-marketing.html",
+    "/Users/gengroup/Documents/Codex/outputs/marketing-card-campaigns-2026-10-27/audit-source-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/marketing-card-campaigns-2026-10-27/audit-dom-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/marketing-card-campaigns-2026-10-27/audit-marketing-ci-result.json",
+    "/Users/gengroup/Documents/Codex/outputs/marketing-card-campaigns-2026-10-27/base-ci-check/baseline-ci.log"
+  ],
+  "audience": "Иван; существующий внутренний KATYA dashboard"
+}

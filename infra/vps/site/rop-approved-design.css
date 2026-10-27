@@ -248,3 +248,20 @@ table thead{position:sticky!important;top:0!important;z-index:12;background:var(
  .gg-revenue-ring svg{max-width:180px!important;margin:auto}
  .gg-revenue-category{grid-template-columns:8px minmax(0,1fr) auto}
 }
+/* Saved, editable next-period scenarios. */
+.gg-plan-scenario{position:fixed;inset:0;margin:auto;width:min(1040px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--border);border-radius:14px;background:var(--bg-card);color:var(--ink);font:13px/1.5 'Golos Text',sans-serif;overflow:auto;box-sizing:border-box}
+.gg-plan-scenario::backdrop{background:#0009}
+.gg-plan-scenario-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.gg-plan-scenario h2{margin:0;font-size:20px}.gg-plan-scenario h3{font-size:14px;margin:0 0 12px}.gg-plan-scenario p{margin:6px 0 14px;color:var(--ink-3);font-size:11px}
+.gg-plan-scenario-body{padding:24px}.gg-plan-scenario section{margin:20px 0}.gg-plan-scenario-selection{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr);gap:14px}
+.gg-plan-scenario label{display:flex;flex-direction:column;gap:6px;color:var(--ink-2);font-size:11px;min-width:0}
+.gg-plan-scenario :is(input:not([type=range]),select){box-sizing:border-box;width:100%;min-width:0;padding:9px 10px;border:1px solid var(--border);border-radius:7px;background:var(--bg-elevated);color:var(--ink);font:inherit;font-size:13px}
+.gg-plan-scenario :is(button,input,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gg-plan-baseline-values,.gg-plan-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.gg-plan-baseline-values>div,.gg-plan-results>div{padding:12px;border:1px solid var(--border);border-radius:8px;min-width:0}
+.gg-plan-baseline-values span,.gg-plan-results span{display:block;font-size:10px;color:var(--ink-3);margin-bottom:6px}.gg-plan-baseline-values b,.gg-plan-results b{font-size:15px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.gg-plan-budget-label{margin-top:14px;max-width:360px}.gg-plan-presets{display:flex;flex-wrap:wrap;gap:8px}.gg-plan-presets button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.gg-plan-scenario-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.gg-plan-scenario input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin:4px 0}
+.gg-plan-achievement{font-size:14px;font-weight:600;padding:14px;border-radius:8px;margin-top:14px;background:linear-gradient(to right,var(--accent-soft) var(--scenario-progress,0%),var(--bg-elevated) var(--scenario-progress,0%))}
+.gg-plan-scenario-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.gg-plan-scenario .dbtn{padding:9px 12px;border:1px solid var(--border);border-radius:7px;background:var(--bg-elevated);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}#gg-plan-save{border-color:var(--accent);color:var(--accent)}
+@media(max-width:650px){.gg-plan-scenario{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.gg-plan-scenario-body,.gg-plan-scenario-head{padding:16px}.gg-plan-scenario-selection,.gg-plan-scenario-fields{grid-template-columns:minmax(0,1fr)}.gg-plan-baseline-values,.gg-plan-results{grid-template-columns:repeat(2,minmax(0,1fr))}.gg-plan-scenario h2{font-size:17px}}
+.gg-plan-baseline-values small{display:block;margin-top:5px;font-size:10px;color:var(--ink-3)}

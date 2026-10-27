@@ -15,11 +15,15 @@
 
  const advanced=byId('advFilters');if(advanced)[...advanced.children].filter(el=>!el.classList.contains('advf-hd')).forEach(el=>byId('gg-settings-slot').appendChild(el));
  const direction=byId('dirSel');if(direction){const block=direction.closest('.ctl')||direction.parentElement;byId('gg-direction-slot').append(block);}
- const granularity=byId('gran')?.parentElement;if(granularity)byId('gg-gran-slot').appendChild(granularity);
+ const nativeGran=byId('gran'),granularity=nativeGran?.parentElement;
+ let grouping;
+ const syncGrouping=()=>{if(grouping)grouping.value=nativeGran.querySelector('button.on')?.dataset.g||'week';};
+ if(granularity){byId('gg-gran-slot').appendChild(granularity);granularity.querySelector('.ctl-lbl')?.remove();nativeGran.classList.add('gg-native-gran');nativeGran.setAttribute('aria-hidden','true');grouping=document.createElement('select');grouping.id='gg-time-grouping';grouping.setAttribute('aria-label','Группировка по времени');[['day','По дням'],['week','По неделям'],['month','По месяцам']].forEach(([value,label])=>grouping.add(new Option(label,value)));grouping.onchange=()=>nativeGran.querySelector('button[data-g="'+grouping.value+'"]')?.click();granularity.append(grouping);syncGrouping();}
  selectOptions('gg-manager','mgr','Все менеджеры');selectOptions('gg-source','source','Все источники');selectOptions('gg-client','client','Все типы клиентов');
  const escape=value=>String(value).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
  const originalRender=render;
  function uiSync(){
+  syncGrouping();
   document.querySelectorAll('#root .kpi-strip').forEach(strip=>{const cards=[...strip.children];if(cards.length<2)return;const top=Math.ceil(cards.length/2),bottom=cards.length-top;strip.style.setProperty('--gg-kpi-grid',top*bottom);cards.forEach((card,index)=>card.style.gridColumn='span '+(index<top?bottom:top));});
   selectOptions('gg-manager','mgr','Все менеджеры');byId('gg-manager').value=S.fMgr;byId('gg-source').value=S.fSrc;byId('gg-client').value=S.fCli;
   if(byId('dateBtnTxt'))byId('dateBtnTxt').textContent=S.start.split('-').reverse().join('.')+' — '+S.end.split('-').reverse().join('.');

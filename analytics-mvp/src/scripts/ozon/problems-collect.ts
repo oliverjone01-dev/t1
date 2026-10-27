@@ -48,7 +48,7 @@ export function fineEvents(raw:any[],types:any[],date:string):Event[]{
 }
 export function defectEvents(raw:any[],postings:Posting[]):Event[]{
  const map=new Map(postings.map(p=>[p.order,p]));return raw.flatMap(r=>{
-  if(!r.posting_number||!r.error_at||typeof r.charge_price!=='number'||!Number.isFinite(r.charge_price))throw new Error('Defect posting contract');
+  if(!r.posting_number||!r.error_at||typeof r.charge_price!=='number'||!Number.isFinite(r.charge_price)||r.charge_price_currency_code!=='RUB')throw new Error('Defect posting contract/currency');
   const base={date:moscowDay(r.error_at),order:r.posting_number,offer:map.get(r.posting_number)?.offer??'',scheme:r.delivery_schema,source:'Seller API · расчёт индекса ошибок'},key=r.posting_number+':'+r.error_at+':'+r.posting_error_type;
   const out:Event[]=[{...base,id:'defect:'+key,kind:'defectCharge',reason:r.posting_error_type==='SELLER_DELAY'?'Просрочка продавца по данным Ozon':'Ошибка Ozon: '+r.posting_error_type,amount:r.charge_price}];
   if(r.posting_error_type==='SELLER_DELAY')out.push({...base,id:'delay:'+key,kind:'lateShip',reason:'Ozon зарегистрировал SELLER_DELAY; дата регистрации ошибки',amount:null});
@@ -57,6 +57,9 @@ export function defectEvents(raw:any[],postings:Posting[]):Event[]{
 }
 export function replaceEvents(old:Event[],fresh:Event[],kinds:string[],from:string,to:string){
  validateRows(fresh,r=>r.id);if(fresh.some(r=>r.date<from||r.date>to))throw new Error('Events outside requested interval');
+ const keys=new Set(fresh.map(r=>r.id));
+ const missing=old.filter(r=>kinds.includes(r.kind)&&r.date>=from&&r.date<=to&&!keys.has(r.id));
+ if(missing.length)throw new Error('Saved problem events disappeared: '+missing.length+'; prior data preserved');
  return old.filter(r=>!kinds.includes(r.kind)||r.date<from||r.date>to).concat(fresh).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
 }
 export async function collectProblems(out='data',now=new Date().toISOString()){
@@ -74,7 +77,7 @@ export async function collectProblems(out='data',now=new Date().toISOString()){
  const oldIds=new Set(posts.map(p=>p.order));if(oldPosts.some(p=>!oldIds.has(p.order)))throw new Error('Posting disappeared from full source');
  state.postings={days:days('2026-02-06',to),loaded_at:now,note:'FBS/rFBS · дата создания по Москве; текущий статус когорты'};
  const index=await seller.problemRatingIndex(),ratingSummary=await seller.problemRatingSummary();
- if(!Array.isArray(index.defects)||!Array.isArray(ratingSummary.groups))throw new Error('Rating contract');
+ if(!Array.isArray(index.defects)||!Array.isArray(ratingSummary.groups)||index.currency_code!=='RUB')throw new Error('Rating contract/currency');
  const rating=index.defects.map((r:any)=>({date:r.date,defect_index:r.index_by_date,charge_rub:r.processing_costs_sum_by_date,level:null,window_start:index.period_from,window_end:index.period_to,snap:today,ts:now}));
  for(const r of rating)if(typeof r.defect_index!=='number'||r.defect_index<0||r.defect_index>1||!Number.isFinite(r.charge_rub))throw new Error('Rating values');
  if(Math.abs(rating.reduce((s:number,r:any)=>s+r.charge_rub,0)-index.processing_costs_sum)>.011)throw new Error('Rating source sum');

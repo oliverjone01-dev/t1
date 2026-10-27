@@ -1,0 +1,132 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-problems-20261027-iter1",
+  "timestamp": "2026-10-27T17:06:05.886210+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/problems/page.ts",
+  "artifact_class": "dashboard",
+  "iteration": 1,
+  "anchor": "6.7 dialogs-registry return - slightly higher: API provenance and period math verified, but missing values are misrepresented and update can erase prior nonzero evidence.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 0,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 0,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 7,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 6,
+    "risk_awareness": 6
+  },
+  "weighted_total": 7.15,
+  "verdict": "return",
+  "gaps": [
+    "P1: repeated successful-empty response deletes previously saved monetary events and makes the covered day look zero.",
+    "P1: incomplete monetary sums are presented as complete DATA even though unknownAmount is positive.",
+    "P1: null defect index renders zero and misleading safety margin.",
+    "P2: defect charges do not check currency, unlike fine/return money."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "P1: repeated successful-empty response deletes previously saved monetary events and makes the covered day look zero.",
+      "evidence": "problems-collect.ts replaceEvents: replaceEvents([{id:old-penalty,date:2026-10-20,kind:fine,amount:100}],[],[fine],2026-10-20,2026-10-20) => []; collector marks fineDays complete. Repro /tmp/feniks-problems-probes.ts. Existing collector-integrity.replaceSlice rejects this case.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.3
+    },
+    {
+      "gap": "P1: incomplete monetary sums are presented as complete DATA even though unknownAmount is positive.",
+      "evidence": "Two cancelled/returned rows amount100 and null render total100 ₽ and DATA7/7 with no partial-amount marker. model calculates unknownAmount; client KPI and weekly sums ignore it. Repro /tmp/feniks-problems-probes.ts.",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -0.25
+    },
+    {
+      "gap": "P1: null defect index renders zero and misleading safety margin.",
+      "evidence": "validateProblems accepts defect_index=null; alert and card evaluate null*100 =>0%, margin10pp; weekly cell uses same coercion. ratingCoverage counts null row. Repro /tmp/feniks-problems-probes.ts.",
+      "checkpoint": "brand_20_tone_audience",
+      "weight": -0.3
+    },
+    {
+      "gap": "P2: defect charges do not check currency, unlike fine/return money.",
+      "evidence": "defectEvents with charge_price100,charge_price_currency_codeUSD produces amount100 without error, displayed as RUB. problemRatingIndex.currency_code similarly unchecked. Real probe currency fields are RUB.",
+      "checkpoint": "risk_22_p9_hard_rules",
+      "weight": -0.15
+    }
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "110 independent source/aggregation checks: specialized rating15dates;14617.71RUB;21defect charges+18delay events;5return samples; sampled daily penalties; four periods reconciled to source rows. Same-family consistency only."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "2026-09 whole month:46/308 cancellations,3096678gross,8231.71fine. 01-15Oct28/177,1539893gross,15462.68fine. 01-27Oct51/403,3169876gross,36662.93fine.19-25Oct11/126,642705gross,17457.49fine. /tmp/feniks-problems-source-check.ts."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Source4003unique postings,132unique events (50fine43return21defect18delay); validateProblems rejects duplicate keys; pagination tests exercise repeated cursor and HTTP403."
+    },
+    {
+      "id": "B4",
+      "result": "FAIL",
+      "evidence": "Totals with missing amounts have no visible partial marker; null rating becomes0 on cards while chart correctly breaks."
+    },
+    {
+      "id": "B5",
+      "result": "PARTIAL",
+      "evidence": "Threshold10 derives from dated cabin source; full-history posting floor06Feb2026 is fixed. Future updates may need windowing; not a current blocker."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Full collected artifact before provider classifier fix; source row amounts audited, current classifier separately tested. Final artifact recollection and live-page visual verification pending parent."
+    },
+    {
+      "id": "B7",
+      "result": "FAIL",
+      "evidence": "Null metric published as factual zero; valid-empty source may erase saved fines. Sanitized public rows have no customer/address/phone payload; HTML escaping and CSV safety are present."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "100 ₽ with DATA7/7 conceals an unknown second amount; label known subtotal and unknown count.",
+      "Unknown defect index becomes0% with10pp headroom; preserve н/д."
+    ]
+  },
+  "rework_tz": "Protect nonzero saved event keys against unexplained disappearance (allow explicit same-key corrections); show unknownAmount in KPI and weekly sums; preserve null rating in all surfaces and coverage; enforce RUB in defect/index amounts. Add adversarial regression cases and rerun targeted tests on new hash.",
+  "confidence": 0.96,
+  "sources_of_truth": [
+    "/Users/gengroup/Downloads/2026-10-27-ozon-problemy-tz.md",
+    "knowledge/semantic/metrics/ozon-problems.yaml",
+    "/Users/gengroup/Documents/Codex/outputs/ozon-problems-2026-10-27/probe3/problems-probe.json",
+    "/Users/gengroup/Documents/Codex/outputs/ozon-problems-2026-10-27/collected",
+    "analytics-mvp/src/scripts/ozon/collector-integrity.ts"
+  ]
+}

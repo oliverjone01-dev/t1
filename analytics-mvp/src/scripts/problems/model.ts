@@ -32,10 +32,11 @@ export function summarize(data:ProblemData,from:string,to:string){
  const rating=data.ratings.filter(r=>inside(r.date)).sort((a,b)=>a.date.localeCompare(b.date)).at(-1)??null;
  const summaryDates=data.summary.filter(r=>r.date<=to).map(r=>r.date).sort(),summaryDate=summaryDates.at(-1);
  const summary=data.summary.filter(r=>r.date===summaryDate);
- const ratingRows=data.ratings.filter(r=>inside(r.date)),ratingCoverage=ds.filter(d=>ratingRows.some(r=>r.date===d)).length;
+ const ratingRows=data.ratings.filter(r=>inside(r.date)),ratingCoverage=ds.filter(d=>ratingRows.some(r=>r.date===d&&r.defect_index!==null)).length;
  const cancellationCoverage=cover('postings'), knownCancelled=cancelled.filter(p=>p.amount!==null);
  const cancellation={count:cancelled.length||cancellationCoverage.full?cancelled.length:null,base:posts.length,rate:posts.length?cancelled.length/posts.length:null,sum:knownCancelled.length?Math.round(knownCancelled.reduce((s,p)=>s+p.amount!,0)*100)/100:cancellationCoverage.full&&cancelled.length===0?0:null,coverage:cancellationCoverage,unknownAmount:cancelled.length-knownCancelled.length};
- const table=[...cancelled.map(p=>({id:'cancel:'+p.order,date:p.date,kind:'cancel',order:p.order,offer:p.offer,scheme:p.scheme,reason:[p.initiator,p.reason].filter(Boolean).join(' · ')||'Причина ещё не загружена',amount:p.amount,source:'Seller API · когорта создания'})),...events].sort((a,b)=>b.date.localeCompare(a.date)||a.id.localeCompare(b.id));
+ const initiators:Record<string,string>={seller:'Мы',client:'Покупатель',buyer:'Покупатель',ozon:'Ozon'};
+ const table=[...cancelled.map(p=>({id:'cancel:'+p.order,date:p.date,kind:'cancel',order:p.order,offer:p.offer,scheme:p.scheme,reason:[initiators[p.initiator??''],p.reason].filter(Boolean).join(' · ')||'Причина ещё не загружена',amount:p.amount,source:'Seller API · когорта создания'})),...events].sort((a,b)=>b.date.localeCompare(a.date)||a.id.localeCompare(b.id));
  return {dates:ds,cancellation,reasons,metrics,table,rating,ratingRows,ratingCoverage,summary,summaryDate,partial:to>=moscowDay(data.now)};
 }
 export function validateProblems(d:ProblemData){

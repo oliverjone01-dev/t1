@@ -1925,7 +1925,7 @@ function paint(a,src){
 }
 function renderCategories(a){
   var copy=JSON.parse(JSON.stringify(a));
-  if(typeof cpoRevFix==='function')cpoRevFix(copy);
+  if(typeof cpoRevFix==='function')cpoRevFix(copy,true);
   var rows=adCategoryRows(copy,CATEGORY_SKU,CATEGORY_OFFER,SKUS_BY_CAMP);
   var esc=function(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var value=function(v){return v==null?'<span style="color:var(--ink-3)" title="Нет полной выручки или количества за выбранный период">н/д</span>':fmtRu(v);};
@@ -2148,7 +2148,7 @@ var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)},CPO_MISS=${J(
 if(CPO_ERR)CPO_NA='<span style="color:var(--ink-3)" title="Выгрузка «Оплата за заказ» не принята: '+CPO_ERR.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'">н/д</span>';
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
-function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
+function cpoRevFix(a,includeCoveredZero){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
   // Месяц, где заказы выгрузки ещё не пришли в orders_daily (Иван 15.10): выручки «за заказ» за период нет, жёлтая пометка.
   if(CPO_MISS.some(function(m){return m>=String(a.dateFrom).slice(0,7)&&m<=String(a.dateTo).slice(0,7);}))return ' · <span style="color:#E5B567">выручка «Оплата за заказ» за период не показана: не все заказы выгрузки пришли из OZON ('+CPO_MISS_NOTE.replace(/</g,'&lt;')+'), появится после сбора заказов</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
@@ -2156,9 +2156,11 @@ function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};
   r=Math.round(r);var hit=0,isRep=function(c){return String(c.id)===String(CPO_CID);},anyRep=a.all.some(isRep);
   // Выручка выгрузки - на её кампанию (CPO_CID, сборка; ФЕНИКС N5); кампании нет в периоде - на первую CPO.
-  a.all.forEach(function(c){if(!(anyRep?isRep(c):isCPO(c))||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
+  // Категории различают подтверждённый ноль и пропуск; остальные потребители сохраняют прежний режим.
+  var acceptedZero=includeCoveredZero&&r===0&&CPO_WIN.length>0&&nCov===nAll;
+  a.all.forEach(function(c){if(!(anyRep?isRep(c):isCPO(c))||(!r&&!acceptedZero)||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
     var sc=c.sp,exact=false;if(a.daily&&typeof ADS_DAILY!=='undefined'&&ADS_DAILY&&ADS_DAILY.length){sc=0;for(var k=0;k<ADS_DAILY.length;k++){var y=ADS_DAILY[k];if(String(y.id)===String(c.id)&&y.d>=a.dateFrom&&y.d<=a.dateTo&&inCov(y.d))sc+=y.sp;}exact=true;}
-    c.drr=Math.round(sc/r*1000)/10;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
+    c.drr=r?Math.round(sc/r*1000)/10:null;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
     if(a.totals){a.totals.adRevenue+=r;a.totals.drr=a.totals.adRevenue?Math.round(a.totals.spend/a.totals.adRevenue*1000)/10:0;}});
   return hit?' · выручка «Оплата за заказ» - из выгрузки кабинета по заказам за '+(cov.length?cov.map(function(w){return w[0]+'..'+w[1];}).join(', '):d0+'..'+d1):'';}
 `;

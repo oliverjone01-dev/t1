@@ -12,6 +12,7 @@ describe('all campaign categories',()=>{
  it('isolates CPO even if it has a SKU',()=>{const r=run([c('1'),c('2',{instr:'Оплата за заказ',skus:['known'],om:0,o:0})]);expect(r.find(x=>x.cat.startsWith('Оплата'))).toMatchObject({sp:100,om:null,o:null,drr:null});expect(r.find(x=>x.cat==='Столы')?.om).toBe(500);});
  it('partial CPO coverage never claims full-window results',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:500,cpoU:2,cpoPart:{days:4,all:30}})])[0]).toMatchObject({sp:100,om:null,o:null,drr:null}));
  it('full accepted CPO coverage uses its own units and revenue',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:500,cpoU:2,cpoPart:null})])[0]).toMatchObject({sp:100,om:500,o:2,drr:20}));
+ it('accepted zero CPO window preserves zero orders and revenue',()=>expect(run([c('2',{instr:'Оплата за заказ',cpoRev:0,cpoU:0,cpoPart:null})])[0]).toMatchObject({sp:100,om:0,o:0,drr:null}));
  it('zero CPC sales stay zero and zero-denominator DRR is unknown',()=>expect(run([c('1',{om:0,o:0})])[0]).toMatchObject({sp:100,om:0,o:0,drr:null}));
  it('unknown revenue propagates without erasing known spend or units',()=>expect(run([c('1'),c('2',{skus:['known'],om:null,o:1})])[0]).toMatchObject({sp:200,om:null,o:3,drr:null}));
  it('missing spend is not silently zero',()=>expect(run([c('1',{sp:null})])[0]).toMatchObject({sp:null,drr:null}));

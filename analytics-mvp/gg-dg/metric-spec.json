@@ -91,12 +91,12 @@
       "lost": "First F semantic deal history event"
     },
     "eventPolicy": "First lifetime entry only; repeat entries do not inflate counts. History completeness/current-stage consistency required before publication. Different stage rows are not additive.",
-    "money": "Lead: known RUB opportunity, missing/foreign currency flagged. Deal: selected amount field. Manager table budget labelled separately.",
+    "money": "Lead and deal: known RUB budget, missing values flagged. Global prepayment selection does not affect calendar money.",
     "manager": "Current responsible manager, not historical owner.",
-    "presentation": "Initially five top-level calendar rows: leads, lead refusals, deals, success and deal refusal. Deals expand to indented forming-TZ, KP, prepayment, production and shipping stages; then responsible, record and communications. Right mini-charts use exactly the same bucket values, filters, count/money and budget/prepayment basis as each displayed heat row, including responsible rows. Stock remains stock, never a summed flow.",
+    "presentation": "Initially five top-level calendar rows: leads, lead refusals, deals, success and deal refusal. Deals expand to indented forming-TZ, KP, prepayment, production and shipping stages; then responsible, record and communications. Right mini-charts use exactly the same bucket values, filters, count/money and budget basis as each displayed heat row, including responsible rows. Stock remains stock, never a summed flow.",
     "refusalColumn": "Separate current CRM refusal reason column for refused leads and deals. Lead detail uses observed reason fields; deal reason uses the existing reason-comment field, then enum fallback. Decode, redact and contact-mask before publication; escape when rendered.",
     "navigation": "One GG-style heat-calendar matrix: all existing stages are rows in the left column, dates across the same rows, totals on the right. No side navigation or tabs. Stage label expands responsible rows inline; record and communication tables need separate clicks. Each nested table scrolls independently and is indented.",
-    "amount": "Independent calendar amount field: budget by default, with an explicit budget/prepayment switch in money mode. Deals use existing budget or prepayAmt; leads keep their own CRM opportunity. Existing RUB/missing-value rules and all row/date/stock cohorts are unchanged. Global default prepayment remains unchanged.",
+    "amount": "Calendar uses budget only. The field selector is removed; disclosure mode Managers/Deals replaces it. Row/date/stock cohorts and global filters remain unchanged.",
     "detailPlacement": "Selected manager detail is inserted immediately after that manager heat row and before the next manager, without repeated stage heading or manager summary. Stage-cell totals appear under the stage row; record history remains directly after its record. Existing stage/responsible/record scopes, date buckets and amount choices are unchanged.",
     "sparkHover": "Each transparent point hit region uses the existing native dashboard tooltip: actual clipped bucket date range, stage/responsible label, record count, and selected amount in money mode. Values and count come from the exact heat-cell series; no interpolation or invented samples. Calendar rows use tighter spacing.",
     "sparkMissingMoney": "Tooltip explicitly distinguishes unknown/partial sums from genuine known zero and counts records missing an amount."
@@ -164,5 +164,9 @@
     "viewport": "Independent reader up to 520px / 65vh desktop, 420px / 65vh mobile. Outer table scroll caps expand only while a reader is open.",
     "fullInline": "Entire available message/transcript is displayed inline in the independently scrolling communication table. No Read in full action or separate modal; escaping, paragraph normalization and uncertainty notes retained.",
     "customerIdentity": "Recognized inbound communications publish who=Клиент instead of a sender/contact display name. Outbound employee names, technical actors, actual direction, uncertain-side notes and source timestamps remain unchanged."
+  },
+  "calendarPresentation": {
+    "disclosure": "Managers default: stage -> manager -> lead/deal -> communications. Deals: stage -> record table -> communications, skipping manager grouping while retaining an explicit responsible column. Stage/root-deal nesting and count/money population remain unchanged; switching mode preserves stage/date context and collapses record communications.",
+    "amount": "Calendar sum always uses RUB budgets, independent of the global prepayment setting. Budget/prepayment field selector removed; manager/deal disclosure selector is always available."
   }
 }

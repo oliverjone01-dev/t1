@@ -65,3 +65,7 @@ Show one month instead of two in refusal-column date filters. Reduce width and s
 Remove the whole-chain/lead/deal selector and Read in full action/modal. Always render complete deduplicated history and full available text inline; retain chronological sorting, typed entity column and independent scrolling.
 
 Remove the communication sort toggle; keep fixed oldest-first ordering. Normalize incoming customer display names to Клиент at the publication boundary, including existing source snapshots. Employee and technical identities are preserved.
+
+### Calendar disclosure level
+
+Replace the budget/prepayment control with Менеджеры / Сделки. Direct mode opens records under the stage without manager grouping; retain a responsible column, chronological communications and the original stage/date populations. Sum uses budget.

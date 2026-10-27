@@ -193,7 +193,7 @@ test('mail cohort fails on missing sender metadata instead of dropping valid DG 
 
 test('GG calendar uses heat cells and inline manager rows while keeping the event table compact',()=>{
  const d=dashboard();d.run("S.dgCalGroup='deals';S.dgCalExpanded.add('deals')");const h=d.run('dgCalendarBlock()');assert.match(h,/dg-heat-row/);assert.match(h,/dg-heat-manager/);assert.match(h,/data-dg-calmanager=/);assert.ok(!h.includes('dg-cal-table'));
- d.run('dgCommCache.set("D20",'+JSON.stringify({events:[{ts:Date.now(),entities:['D20'],type:'Письмо',who:'Client',body:'body'}]})+')');const feed=d.run('dgCommunicationTable("D20")');assert.ok(!feed.includes('dg-comm-title'));assert.ok(!feed.includes('dg-comm-filters'));assert.ok(feed.includes('Сначала старые'));
+ d.run('dgCommCache.set("D20",'+JSON.stringify({events:[{ts:Date.now(),entities:['D20'],type:'Письмо',who:'Client',body:'body'}]})+')');const feed=d.run('dgCommunicationTable("D20")');assert.ok(!feed.includes('dg-comm-title'));assert.ok(!feed.includes('dg-comm-filters'));assert.ok(!feed.includes('data-dg-commsort'));
  const {dgSafeText}=require('./communications.cjs');assert.equal(dgSafeText('ООО &laquo;ДомГласс&raquo;'),'ООО «ДомГласс»');assert.equal(dgSafeText('&amp;laquo;test&amp;raquo;'),'«test»');assert.ok(!dgSafeText('https&#58;&#47;&#47;example.com/rest/1/test/').includes('https'));
 });
 
@@ -271,8 +271,8 @@ test('communication ordering preserves exact seconds and resolves identical time
  const d=dashboard();d.run("globalThis.p={events:[{id:'a',ts:54,type:'Дело',entities:['D20']},{id:'d',ts:54,type:'Стадия',entities:['D20']},{id:'l',ts:55,type:'Стадия',entities:['L10']},{id:'m',ts:56,type:'Письмо',entities:['L10','D20']}]}");
  assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'d,a,l,m');
  d.run("p.events[2].ts=54");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'l,d,a,m');
- d.run("S.dgCommAsc=false");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'m,a,d,l');
- d.run("S.dgCommEntities={D20:'L10'}");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'m,l');
+ d.run("S.dgCommAsc=false");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'l,d,a,m');
+ d.run("S.dgCommEntities={D20:'L10'}");assert.equal(d.run("dgCommunicationEvents(p,'D20').map(e=>e.id).join(',')"),'l,d,a,m');
  assert.equal(d.run("p.events.length"),4);assert.equal(d.run("p.events[0].ts"),54);
 });
 test('communication reader separates typed bindings and only compresses display whitespace',()=>{
@@ -280,7 +280,7 @@ test('communication reader separates typed bindings and only compresses display 
  assert.equal(d.run('dgCommunicationText('+JSON.stringify(body)+')'),'Запрос КП\n\nДушевые перегородки');
  const event={id:'shared',ts:Date.parse('2026-10-20T08:33:54Z'),type:'Письмо',entities:['L10','D20'],title:'<Запрос>',body,who:'Клиент',dir:'входящее',origin:'crm'};
  d.run('dgCommCache.set("D20",'+JSON.stringify({events:[event]})+')');const h=d.run("dgCommunicationTable('D20')");
- assert.ok(h.includes('<th>Сущность</th>'));assert.ok(h.includes('<span>Лид 10</span><span>Сделка 20</span>'));assert.ok(h.includes('11:33:54'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(h.includes('Вся цепочка'));
+ assert.ok(h.includes('<th>Сущность</th>'));assert.ok(h.includes('<span>Лид 10</span><span>Сделка 20</span>'));assert.ok(h.includes('11:33:54'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(!h.includes('Вся цепочка'));assert.ok(!h.includes('data-dg-commentity'));assert.ok(!h.includes('Читать полностью'));
  assert.equal(d.run("dgCommCache.get('D20').events[0].body"),body);assert.ok(!/<a\b/i.test(h));
 });
 test('stock tooltip never labels an observed value with a future snapshot date',()=>{
@@ -300,6 +300,11 @@ test('column date bounds are inclusive, reject missing dates, and calendars hand
  const d=dashboard();assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-14'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),true);assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-16'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),true);assert.equal(d.run("dgLossMatches({raw:{created:'2026-10-17'},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),false);assert.equal(d.run("dgLossMatches({raw:{},cells:{}},'created',{from:'2026-10-14',to:'2026-10-16'})"),false);
  assert.equal(d.run("dgLossShiftMonth('2026-12',1)"),'2027-01');assert.equal(d.run("dgLossShiftMonth('2026-01',-1)"),'2025-12');assert.equal((d.run("dgLossMonth('2028-02')").match(/data-dg-loss-day=/g)||[]).length,29);assert.equal((d.run("dgLossMonth('2026-02')").match(/data-dg-loss-day=/g)||[]).length,28);
 });
-test('full message reader retains the final text and escapes markup without changing the event',()=>{
- const d=dashboard(),event={title:'<Запрос>',body:'Начало\n\n'+('Подробности '.repeat(500))+'\n\nКОНЕЦ <script>bad()</script>',entities:['L10'],type:'Письмо'};d.run('globalThis.readerEvent='+JSON.stringify(event));const h=d.run('dgMessageMarkup(readerEvent)');assert.ok(h.includes('КОНЕЦ &lt;script&gt;bad()&lt;/script&gt;'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(!h.includes('<script>'));assert.equal(d.run('readerEvent.body'),event.body);
+test('inline communication retains the final text and escapes markup without changing the event',()=>{
+ const d=dashboard(),event={id:'long',ts:Date.parse('2026-10-20T08:00:00Z'),title:'<Запрос>',body:'Начало\n\n'+('Подробности '.repeat(500))+'\n\nКОНЕЦ <script>bad()</script>',entities:['L10'],type:'Письмо'};d.run('globalThis.readerEvent='+JSON.stringify(event));d.run("dgCommCache.set('L10',{events:[readerEvent]})");const h=d.run("dgCommunicationTable('L10')");assert.ok(h.includes('КОНЕЦ &lt;script&gt;bad()&lt;/script&gt;'));assert.ok(h.includes('&lt;Запрос&gt;'));assert.ok(!h.includes('<script>'));assert.equal(d.run('readerEvent.body'),event.body);
+});
+
+test('incoming customer identity is only a role in all published payloads',()=>{
+ const {dgCleanEvent}=require('./communications.cjs');for(const type of ['Письмо','Звонок','SMS','Мессенджер ОЛ','Сообщение WhatsApp']){const e={src:'a',ts:Date.parse('2026-10-20T08:00:00Z'),type,dir:'входящее',who:'PRIVATE CONTACT',body:'Запрос'};assert.equal(dgCleanEvent(e,['L10']).who,'Клиент');assert.equal(e.who,'PRIVATE CONTACT');assert.equal(dgCleanEvent({...e,dir:'исходящее',who:'Сотрудник'},['L10']).who,'Сотрудник');assert.equal(dgCleanEvent({...e,type:'Стадия',who:'CRM'},['L10']).who,'CRM');}
+ const f=fixture();f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#role',ts:Date.parse('2026-10-20T08:00:00Z'),entities:['L10'],type:'Сообщение WhatsApp',dir:'входящее',who:'PRIVATE CONTACT',body:'Запрос'}]};const d=dashboard(f);assert.ok(d.data.communicationEvents.every(e=>e.who!=='PRIVATE CONTACT'));assert.ok(d.run("dgCommunicationTable('L10')").includes('Клиент'));
 });

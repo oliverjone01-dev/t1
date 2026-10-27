@@ -239,3 +239,12 @@ table thead{position:sticky!important;top:0!important;z-index:12;background:var(
 
 /* Ring hit testing is handled by the shared legend link rather than full dashed circle strokes. */
 .gg-revenue-composition .gg-composition-arc{pointer-events:none}
+/* Composition adapts to the card width, including the pinned-sidebar state. */
+.card:has(.gg-revenue-composition){container-type:inline-size}
+.gg-revenue-composition{grid-template-columns:minmax(120px,40%) minmax(0,1fr)}
+.gg-revenue-category>span{overflow-wrap:normal;word-break:normal}
+@container (max-width:340px){
+ .gg-revenue-composition{grid-template-columns:minmax(0,1fr);gap:18px;min-height:0}
+ .gg-revenue-ring svg{max-width:180px!important;margin:auto}
+ .gg-revenue-category{grid-template-columns:8px minmax(0,1fr) auto}
+}

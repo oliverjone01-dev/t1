@@ -1,0 +1,32 @@
+id: ozon-competitors-cabinet
+version: 1
+status: approved-prototype-transfer
+approval:
+  owner: Иван
+  date: 2026-10-27
+  instruction: "вливай прототип на лист конкуренты, только сделай переключатель MPSTATS и кабинет"
+scope: Historical cabinet prototype, unchanged formulas; separate source document under Competitors.
+source: analytics-mvp/data/competitors/cabinet-2026-10-27.json
+update_date: "2026-10-26T02:25:11"
+collected_date: "2026-10-27"
+timezone: Europe/Moscow
+periods:
+  monthly: {from: "2026-09-28", through: "2026-10-25", days: 28}
+  weekly: {from: "2026-10-19", through: "2026-10-25", days: 7}
+orders: Raw soldCount and soldSum ordered totals; not net receipts or profit.
+prices: Raw buyer average/minimum prices over same period, not current or separate Ozon Card prices.
+nulls: Missing prices/CR remain null; zero orders only recorded successful absence; missing card 1604806784 remains unknown.
+market_population: Market totals/rank apply only to dining tables; 1000 product sample is a separate population.
+category_filter: Seven category3 values from own seller export; missing watched variants inherit single verified category of approved model.
+history: Same updateDate is one point; changes of rolling totals are not daily orders.
+aggregation: No MPSTATS/cabinet aggregation; unique SKU per own population, explicit 29 pairs.
+references:
+  - "Raw cabinet files and hashes in snapshot.manifest"
+  - "User-reviewed prototype outputs/ozon-competitor-decisions-2026-10-27"
+  - "Manual category totals in КАБИНЕТ_КОНКУРЕНТЫ_ручки.md sections 3-4"
+golden_rows:
+  - {sku: "5426756030", window: 28, avgPrice: 48423.63, soldCount: 27, pdpToCartConversion: 4.32, drr: 8.46}
+  - {sku: "3812066727", window: 28, avgPrice: 37864.615, soldCount: 40, pdpToCartConversion: 6.56, drr: 4.8}
+  - {sku: "5426756030", window: 7, soldCount: 11}
+  - {sku: "1604806784", window: 28, soldCount: null}
+verification: Snapshot equals approved prototype JSON; tests protect source segregation, seven category filters, unknown vs zero and exact raw values. No claim of independent financial reconciliation.

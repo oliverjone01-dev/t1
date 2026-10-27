@@ -1,44 +1,51 @@
 {
- "dateFrom": "2026-09-10",
- "dateTo": "2026-10-09",
- "generated_at": "2026-10-10T12:35:23.085Z",
+ "dateFrom": "2026-09-27",
+ "dateTo": "2026-10-26",
+ "generated_at": "2026-10-27T12:16:01.618Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 1760,
-  "ad_visits_30d": 5026,
-  "yd_visits_30d": 4455,
-  "ad_leads_30d": 97
+  "direct_clicks_30d": 2191,
+  "ad_visits_30d": 6463,
+  "yd_visits_30d": 4964,
+  "ad_leads_30d": 93
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4311,
-   "users": 3673,
-   "leads": 95,
-   "contacts": 93
+   "visits": 4795,
+   "users": 4146,
+   "leads": 91,
+   "contacts": 83
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 560,
-   "users": 301,
+   "visits": 1490,
+   "users": 599,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 144,
-   "users": 143,
-   "leads": 2,
+   "visits": 169,
+   "users": 127,
+   "leads": 1,
    "contacts": 0
   },
   {
    "engine": "Instagram",
-   "visits": 11,
+   "visits": 8,
    "users": 8,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "engine": "VK",
+   "visits": 1,
+   "users": 1,
    "leads": 0,
    "contacts": 0
   }
@@ -46,63 +53,57 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2873,
-   "leads": 58,
-   "contacts": 57
+   "visits": 2995,
+   "leads": 51,
+   "contacts": 42
   },
   {
    "utm": "genglass",
-   "visits": 526,
+   "visits": 1456,
    "leads": 0,
    "contacts": 0
-  },
-  {
-   "utm": "peregorodki_712877525",
-   "visits": 421,
-   "leads": 6,
-   "contacts": 5
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 378,
-   "leads": 11,
-   "contacts": 9
+   "visits": 468,
+   "leads": 12,
+   "contacts": 15
   },
   {
-   "utm": "peregorodki_712877517",
-   "visits": 330,
-   "leads": 9,
-   "contacts": 12
-  },
-  {
-   "utm": "peregorodki_712877513",
-   "visits": 160,
-   "leads": 6,
-   "contacts": 5
-  },
-  {
-   "utm": "peregorodki_713496953",
-   "visits": 148,
-   "leads": 3,
-   "contacts": 1
-  },
-  {
-   "utm": "organization",
-   "visits": 89,
-   "leads": 6,
-   "contacts": 3
+   "utm": "peregorodki_712877525",
+   "visits": 408,
+   "leads": 10,
+   "contacts": 8
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 54,
-   "leads": 0,
-   "contacts": 0
+   "visits": 403,
+   "leads": 1,
+   "contacts": 1
   },
   {
-   "utm": "obedennyj_razdvizhnoj_stol_quatris",
-   "visits": 7,
-   "leads": 3,
-   "contacts": 0
+   "utm": "peregorodki_712877517",
+   "visits": 257,
+   "leads": 6,
+   "contacts": 6
+  },
+  {
+   "utm": "peregorodki_712877513",
+   "visits": 158,
+   "leads": 5,
+   "contacts": 3
+  },
+  {
+   "utm": "peregorodki_713496953",
+   "visits": 125,
+   "leads": 2,
+   "contacts": 3
+  },
+  {
+   "utm": "organization",
+   "visits": 69,
+   "leads": 6,
+   "contacts": 3
   },
   {
    "utm": "_bbr_mirors",
@@ -111,49 +112,67 @@
    "contacts": 0
   },
   {
-   "utm": "keramogranit_steklo_ili_mdf",
+   "utm": "razdelit'_komnatu_bez_sten_i_remonta",
    "visits": 4,
    "leads": 0,
    "contacts": 0
   },
   {
+   "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "mirors",
-   "visits": 3,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "Главная_интерьерная выставка страны ",
-   "visits": 3,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "Встречайте_gentris",
    "visits": 2,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "alyuminij_ili_stal",
+   "utm": "populyarnye_modeli_zerkal_2026",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "stacionarnye_peregorodki",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "test",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "chernyj_belyj_ili_cvetnoj_profil",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "kuhonnyj_ostrov_vyhodit",
+   "utm": "cvetnye_steklyannye_peregorodki",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "mebel_po_vashemu_proektu",
+   "utm": "kak_vybrat_zerkalo",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "name_704736563",
+   "utm": "kakie_byvayut_mezhkomnatnye_peregorodki",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "loft_peregorodki_v_kvartire",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -165,13 +184,61 @@
    "contacts": 0
   },
   {
+   "utm": "name_705494663",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_706370721",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "name_706983545",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
+   "utm": "name_tk_707098549",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "obedennyj_razdvizhnoj_stol_quatris",
+   "visits": 1,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodka_raspashnaya_genglass",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_710747853",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_v_inter'ere",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "primer_zonirovaniya_prostranstva",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "primerte_peregorodku_do_pokupki",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -195,19 +262,13 @@
    "contacts": 0
   },
   {
-   "utm": "sale",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "stol",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "tm_campaign=reklama_na_transporte",
+   "utm": "zerkala_na_shtange",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -219,7 +280,7 @@
    "contacts": 0
   },
   {
-   "utm": "zhurnalnye_stoliki_mozhno_kombinirovat_drug_s_drugom",
+   "utm": "zerkalo_v_rame_ili_bez_ramy",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -234,72 +295,64 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 5026,
-   "users": 4079,
-   "bounce": 20.53322722,
-   "leads": 97,
-   "contacts": 93
-  },
-  {
-   "source": "Search engine traffic",
-   "visits": 3525,
-   "users": 2661,
-   "bounce": 16.34042553,
-   "leads": 149,
-   "contacts": 115
+   "visits": 6463,
+   "users": 4866,
+   "bounce": 18.19588426,
+   "leads": 93,
+   "contacts": 83
   },
   {
    "source": "Link traffic",
-   "visits": 3138,
-   "users": 2940,
-   "bounce": 1.49776928,
-   "leads": 14,
-   "contacts": 16
+   "visits": 4649,
+   "users": 4527,
+   "bounce": 0.75285008,
+   "leads": 18,
+   "contacts": 23
+  },
+  {
+   "source": "Search engine traffic",
+   "visits": 3709,
+   "users": 2891,
+   "bounce": 17.79455379,
+   "leads": 136,
+   "contacts": 130
   },
   {
    "source": "Direct traffic",
-   "visits": 1955,
-   "users": 1726,
-   "bounce": 16.11253197,
-   "leads": 54,
-   "contacts": 33
+   "visits": 2556,
+   "users": 2172,
+   "bounce": 15.41471049,
+   "leads": 59,
+   "contacts": 41
   },
   {
    "source": "Internal traffic",
-   "visits": 338,
-   "users": 244,
-   "bounce": 25.73964497,
+   "visits": 628,
+   "users": 341,
+   "bounce": 19.26751592,
    "leads": 11,
-   "contacts": 9
-  },
-  {
-   "source": "Messenger traffic",
-   "visits": 56,
-   "users": 7,
-   "bounce": 7.14285714,
-   "leads": 2,
-   "contacts": 2
+   "contacts": 6
   },
   {
    "source": "Social network traffic",
-   "visits": 26,
-   "users": 19,
-   "bounce": 23.07692308,
-   "leads": 1,
-   "contacts": 0
-  },
-  {
-   "source": "Mailing traffic",
-   "visits": 6,
-   "users": 5,
-   "bounce": 16.66666667,
+   "visits": 27,
+   "users": 23,
+   "bounce": 44.44444444,
    "leads": 0,
    "contacts": 0
   },
   {
+   "source": "Messenger traffic",
+   "visits": 22,
+   "users": 6,
+   "bounce": 4.54545455,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
    "source": "Recommendation system traffic",
-   "visits": 1,
-   "users": 1,
+   "visits": 2,
+   "users": 2,
    "bounce": 0,
    "leads": 0,
    "contacts": 0

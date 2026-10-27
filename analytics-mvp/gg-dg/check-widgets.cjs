@@ -15,23 +15,42 @@ test('refusal graph and table share first-refusal scope and keep lead/deal recor
  d.run("S.dgLossKind='lead'");assert.equal(d.run('dgRefusalRows()[0].key'),'L10');d.run("S.dgLossKind='deal'");assert.equal(d.run('dgRefusalRows()[0].key'),'D20');
  d.run("S.dgLossKind='all';S.start='2026-10-16';S.end='2026-10-31'");assert.equal(d.run('dgRefusalRows().length'),0);
 });
-test('refusal pagination preserves all records while top N limits only reason bars',()=>{
+test('refusal scrolling retains all records and column filters/sorts agree with reason bars',()=>{
  const f=fixture();f.leads=Array.from({length:45},(_,i)=>({...f.leads[0],id:String(100+i),statusCode:'JUNK',status:'Некачественный лид',reason:'Причина '+i}));f.counts.leads=45;f.scope.leadIds=f.leads.map(l=>l.id);f.deals[0].leadId='100';f.calendar={version:1,deal:[],lead:f.leads.map((l,i)=>({id:String(i+1),key:'L'+l.id,at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}))};
- const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");const bodies=[];
- for(let page=0;page<3;page++){d.run('S.dgLossPage='+page);const h=d.run('dgRefusalBlock()'),body=h.match(/<tbody>([\s\S]*?)<\/tbody>/)[1];bodies.push(body);assert.equal((body.match(/<tr>/g)||[]).length,page===2?5:20);}assert.equal(new Set(bodies.flatMap(h=>[...h.matchAll(/Лид (\d+)/g)].map(m=>m[1]))).size,45);
- for(const [top,n]of [[10,10],[30,30],[50,45]]){d.run('S.dgLossTop='+top);assert.equal((d.run('dgRefusalBlock()').match(/class="dg-loss-bar"/g)||[]).length,n);assert.equal(d.run('dgRefusalRows().length'),45);}
+ const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");
+ assert.equal((d.run('dgRefusalBlock()').match(/<tbody>([\s\S]*?)<\/tbody>/)[1].match(/<tr>/g)||[]).length,45);
+ for(const [top,n]of [[10,10],[30,30],[50,45]]){d.run('S.dgLossTop='+top);assert.equal((d.run('dgRefusalBlock()').match(/class="dg-loss-bar"/g)||[]).length,n);assert.equal(d.run('dgRefusalView().length'),45);}
+ d.run("S.dgLossFilters.reason='Причина 1'");assert.equal(d.run('dgRefusalView().length'),11);assert.equal(d.run('dgRefusalGroups(dgRefusalView()).reduce((a,g)=>a+g.count,0)'),11);
+ d.run("S.dgLossFilters={};S.dgLossSort='record';S.dgLossAsc=true");assert.equal(d.run('dgRefusalView()[0].record.id'),'100');d.run('S.dgLossAsc=false');assert.equal(d.run('dgRefusalView()[0].record.id'),'144');
+
 });
 test('refusal activity uses Moscow midnight and blank details retain the known reason',()=>{
  const f=fixture();Object.assign(f.leads[0],{statusCode:'JUNK',status:'Некачественный лид',reason:'Дорого'});f.calendar={version:1,leadReasonDetails:{L10:'   '},lead:[{id:'1',key:'L10',at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[]};f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#1',ts:Date.parse('2026-10-10T22:30:00Z'),entities:['L10'],type:'Письмо',dir:'входящее',who:'Клиент',body:'Request'}]};
- const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");assert.equal(d.run('dgRefusalRows()[0].reason'),'Дорого');assert.match(d.run('dgRefusalBlock()'),/Активность<\/small>11\.10\.2026/);
+ const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");assert.equal(d.run('dgRefusalRows()[0].reason'),'Дорого');assert.equal(d.run('dgRefusalView()[0].cells.activity'),'11.10.2026');
  assert.match(d.run('dgCalendarRecordTable(dgCalendarRows(DG_CAL_ROWS[0]),DG_CAL_ROWS[0])'),/<td>11\.10\.2026<\/td>/);
  f.leads[0].reason='   ';assert.equal(dashboard(f).run('dgRefusalRows()[0].reason'),'Не заполнена');
+});
+test('missing duplicate-origin hint belongs only to a duplicate lead, not its related deal',()=>{
+ const f=fixture();Object.assign(f.leads[0],{statusCode:'JUNK',status:'Некачественный лид',reason:'Дубль'});Object.assign(f.deals[0],{lost:true,closed:'2026-10-12',reason:'Дубль',stageCode:'C49:LOSE'});f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[{id:'2',key:'D20',at:Date.parse('2026-10-12T12:00:00+03:00'),code:'C49:LOSE',semantic:'F'}]};const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");
+ assert.match(d.run("dgRefusalView().find(x=>x.key==='L10').cells.reason"),/ID исходного лида не указан/);assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.reason"),'Дубль');assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.lead"),'Лид 10');
 });
 test('mini-chart tooltips distinguish missing, partial and genuine zero money',()=>{
  const d=dashboard();d.run("S.calUnit='money';S.start='2026-10-01';S.end='2026-10-31';S.gran='day'");
  const missing=d.run("dgCalendarSparkline([0],'#22D3EE','Лиды',['2026-10-10'],[1],[1])");assert.match(missing,/Не указана/);assert.match(missing,/Записей без суммы/);assert.ok(!missing.includes('0 ₽'));
  const partial=d.run("dgCalendarSparkline([500],'#22D3EE','Лиды',['2026-10-10'],[2],[1])");assert.match(partial,/Известная сумма/);assert.match(partial,/500 ₽/);assert.match(partial,/1 из 2/);
  const zero=d.run("dgCalendarSparkline([0],'#22D3EE','Лиды',['2026-10-10'],[1],[0])");assert.match(zero,/0 ₽/);assert.ok(!zero.includes('без суммы'));
+});
+test('KPI comparisons partition the selected and previous equal windows using native cash/cohort semantics',()=>{
+ const f=fixture();f.leads.push({...f.leads[0],id:'11',created:'2026-09-23',statusCode:'JUNK',status:'Некачественный лид'});f.scope.leadIds.push('11');f.counts.leads=2;
+ Object.assign(f.deals[0],{prepayAmt:400,closed:'2026-10-04',stageCode:'C49:EXECUTING',hist:[['C49:NEW','2026-10-02'],['C49:EXECUTING','2026-10-08']]});f.deals.push({...f.deals[0],id:'21',leadId:'11',created:'2026-09-23',closed:'2026-09-24',won:true,stageCode:'C49:WON',budget:1000,prepayAmt:300,hist:[['C49:NEW','2026-09-23'],['C49:EXECUTING','2026-09-23'],['C49:WON','2026-09-24']]});f.scope.dealIds.push('21');f.counts.deals=2;
+ const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-10';S.gran='week';S.revMode='prepay';S.amtMode='prepay';S.dateBasis='outcome'");
+ assert.equal(d.run('dgKpiSeries().intervals.length'),2);assert.equal(d.run('dgKpiSeries().intervals[0].previousFrom'),'2026-09-21');assert.equal(d.run('dgKpiSeries().intervals[1].previousTo'),'2026-09-30');
+ assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.rev,0)'),400);assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.previous.rev,0)'),300);
+ assert.equal(d.run('dgKpiSeries().intervals[0].current.won'),0);assert.equal(d.run('dgKpiSeries().intervals[0].current.cr2'),1);assert.equal(d.run('dgKpiSeries().intervals[1].current.cr1'),null);assert.equal(d.run('dgKpiSeries().intervals[0].current.check'),null);
+ assert.equal(d.run("dgOpenBudgetAt('2026-10-05')"),218500);assert.equal(d.run("dgOpenBudgetAt('2026-09-25')"),0);
+ d.run("S.amtMode='budget'");assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.rev,0)'),218500);
+ d.run("S.amtMode='prepay';S.dateBasis='created'");assert.equal(d.run('dgKpiSeries().intervals[0].current.won'),1);assert.equal(d.run('dgKpiSeries().intervals[1].current.won'),0);
+ d.run("S.revMode='won'");assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.won,0)'),0);assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.previous.won,0)'),1);
 });
 test('all pages, nested item lists, totals and unique IDs are checked',async()=>{let starts=[];const h=helpers(async(m,p)=>{starts.push(p.start);return p.start===0?{result:{items:[{id:1}]},next:1,total:2}:{result:{items:[{id:2}]},total:2};});assert.equal((await h.strictList('x',{}, {itemsPath:true,idField:'id'})).length,2);assert.deepEqual(starts,[0,1]);await assert.rejects(helpers(async()=>({result:[{ID:1}],total:2})).strictList('x',{}),/incomplete/);await assert.rejects(helpers(async()=>({result:[{ID:1},{ID:1}],total:2})).strictList('x',{}),/duplicate/);});
 test('empty scopes never become global queries, and foreign rows are rejected',async()=>{let calls=0;const h=helpers(async()=>{calls++;return {result:[{ID:1,OWNER_ID:999}]};});assert.equal((await h.scopedChunks('x',{},'@OWNER_ID',[])).length,0);assert.equal(calls,0);await assert.rejects(h.scopedChunks('x',{},'@OWNER_ID',[20]),/foreign scoped row/);});

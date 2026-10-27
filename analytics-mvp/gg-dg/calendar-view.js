@@ -1,5 +1,5 @@
 // Calendar counts and the Dialog table hierarchy share the same eligible DG records.
-S.dgCalAmount='budget';S.dgCalPick=null;S.dgCalGroup='leads';S.dgCalExpanded=new Set();S.dgCalManagers=new Set();S.dgCalRecords=new Set();S.dgCommChannel='all';S.dgCommAsc=true;
+S.dgCalAmount='budget';S.dgCalPick=null;S.dgCalGroup='leads';S.dgCalExpanded=new Set();S.dgCalManagers=new Set();S.dgCalRecords=new Set();S.dgCommChannel='all';
 S.dgCalDealsOpen=false;
 const dgCommCache=new Map();
 S.dgLossKind='all';S.dgLossTop=10;S.dgLossPage=0;S.dgLossOpen=true;
@@ -195,30 +195,20 @@ function dgCalendarRecordTable(rows,row){
 // Keep source timestamps and bindings intact; only identical timestamps get a lifecycle tie-break.
 function dgCommunicationText(value){return String(value??'').replace(/\r\n?/g,'\n').replace(/[^\S\n]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
 function dgCommunicationEntity(key){return (key[0]==='L'?'Лид ':'Сделка ')+key.slice(1);}
-function dgMessageText(event){return event.speakers?.length?event.speakers.map(s=>s.role+': '+dgCommunicationText(s.text)).join('\n\n'):dgCommunicationText(event.body);}
-function dgMessageMarkup(event){return `${event.title?'<strong>'+esc(dgCommunicationText(event.title))+'</strong>\n\n':''}${event.roleGuess?'Роли определены по тексту и требуют проверки.\n\n':''}${event.undiar?'Надёжного разделения говорящих нет.\n\n':''}${esc(dgMessageText(event)||'Текст события в CRM не заполнен')}`;}
-let dgMessageOpener=null;
-function dgOpenMessage(key,id,opener){
- const event=dgCommCache.get(key)?.events?.find(e=>e.id===id);if(!event)return;
- let dialog=document.getElementById('dg-message-reader');if(!dialog){dialog=document.createElement('dialog');dialog.id='dg-message-reader';dialog.className='dg-message-dialog';dialog.setAttribute('aria-labelledby','dg-message-title');document.body.append(dialog);dialog.addEventListener('close',()=>{if(dgMessageOpener?.isConnected)dgMessageOpener.focus({preventScroll:true});});dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))dialog.close();});}
- dgMessageOpener=opener;dialog.innerHTML=`<div class="dg-message-shell"><header><div><h3 id="dg-message-title">Сообщение полностью</h3><small>${esc(event.entities.map(dgCommunicationEntity).join(' · '))} · ${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'medium'}).format(new Date(event.ts))} МСК</small></div><form method="dialog"><button aria-label="Закрыть сообщение" autofocus>×</button></form></header><div class="dg-message-content" tabindex="0">${dgMessageMarkup(event)}</div></div>`;dialog.showModal();
-}
 function dgCommunicationEvents(payload,key){
- const selected=S.dgCommEntities?.[key]||'all',rank=e=>e.type==='Стадия'?(e.entities.every(k=>k[0]==='L')?0:1):2;
- return payload.events.filter(e=>selected==='all'||e.entities.includes(selected)).sort((a,b)=>(a.ts-b.ts||rank(a)-rank(b)||String(a.id).localeCompare(String(b.id),'en',{numeric:true}))*(S.dgCommAsc?1:-1));
+ const rank=e=>e.type==='Стадия'?(e.entities.every(k=>k[0]==='L')?0:1):2;
+ return payload.events.slice().sort((a,b)=>(a.ts-b.ts||rank(a)-rank(b)||String(a.id).localeCompare(String(b.id),'en',{numeric:true})));
 }
 function dgCommunicationTable(key){
  const payload=dgCommCache.get(key);if(!payload)return 'Загружаю историю…';if(payload.error)return '<div class="dg-comm-error">Историю сейчас не удалось загрузить. <button data-dg-commretry="'+key+'">Повторить</button></div>';
- const selected=S.dgCommEntities?.[key]||'all',entities=[...new Set(payload.events.flatMap(e=>e.entities))].sort((a,b)=>a[0]===b[0]?a.localeCompare(b,'en',{numeric:true}):a[0]==='L'?-1:1);
- const filters=entities.length>1?`<div class="dg-comm-filters" aria-label="Сущность в истории">${['all',...entities].map(k=>`<button data-dg-commkey="${esc(key)}" data-dg-commentity="${esc(k)}" class="${selected===k?'on':''}" aria-pressed="${selected===k}">${k==='all'?'Вся цепочка':esc(dgCommunicationEntity(k))}</button>`).join('')}</div>`:'';
  const rows=dgCommunicationEvents(payload,key).map(e=>{
   const speakerNote=e.roleGuess?'<small>Роли определены по тексту и требуют проверки.</small>':'';const diarNote=e.undiar?'<small>Надёжного разделения говорящих нет.</small>':'';const speakers=e.speakers?.length?e.speakers.map(s=>`<div class="trln"><b>${esc(s.role)}:</b> ${esc(dgCommunicationText(s.text))}</div>`).join(''):esc(dgCommunicationText(e.body));
   const actual=e.entities.map(k=>'<span>'+esc(dgCommunicationEntity(k))+'</span>').join('');
   const technical=!/^(Письмо|Звонок|SMS|Мессенджер ОЛ|Сообщение)/.test(e.type||'');
   const channelLabel=e.type==='Комментарий-заметка'?'Комментарий':e.type;
-  return `<tr class="erow2${technical?' dg-technical':''}"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'medium'}).format(new Date(e.ts))}</td><td class="dg-event-entity">${actual}</td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(channelLabel)}</span></td><td class="ebody">${dgMessageText(e).length>260?'<button class="dg-read-message" data-dg-message-key="'+esc(key)+'" data-dg-message="'+esc(e.id)+'">Читать полностью</button>':''}${e.title?'<b>'+esc(dgCommunicationText(e.title))+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
+  return `<tr class="erow2${technical?' dg-technical':''}"><td class="etime">${new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'medium'}).format(new Date(e.ts))}</td><td class="dg-event-entity">${actual}</td><td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${esc(e.who)}<small>${esc(e.dir)}${e.guess?' · сторона определена по тексту':''}</small></td><td><span class="badge">${esc(channelLabel)}</span></td><td class="ebody">${e.title?'<b>'+esc(dgCommunicationText(e.title))+'</b><br>':''}${speakerNote}${diarNote}${speakers||'Текст события в CRM не заполнен'}${e.dur?'<small>Длительность: '+esc(e.dur)+'</small>':''}</td><td>${esc(e.status||'—')}<small>${e.origin==='dialog'?'Архив Диалогов':e.type==='Стадия'?'История CRM':'CRM'}</small>${e.due?'<small>Срок: '+dgDate(e.due)+'</small>':''}</td></tr>`;
  }).join('');
- return `${filters}<button data-dg-commsort>${S.dgCommAsc?'Сначала старые':'Сначала новые'} ↕</button><div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время · МСК</th><th>Сущность</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="6">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
+ return `<div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время · МСК</th><th>Сущность</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="6">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
 }
 async function dgLoadCommunication(key){
  if(!/^[LD]\d+$/.test(key)||!DATA.communicationIndex?.[key])return;
@@ -227,7 +217,6 @@ async function dgLoadCommunication(key){
 }
 function dgCalendarRerender(){render();for(const key of S.dgCalRecords)dgLoadCommunication(key);}
 document.addEventListener('click',e=>{
- const message=e.target.closest('[data-dg-message]');if(message){dgOpenMessage(message.dataset.dgMessageKey,message.dataset.dgMessage,message);return;}
  const group=e.target.closest('[data-dg-calgroup]');if(group&&DG_CAL_GROUPS.some(g=>g.id===group.dataset.dgCalgroup)){S.dgCalGroup=group.dataset.dgCalgroup;S.dgCalPick=null;S.dgCalExpanded.clear();S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();document.getElementById('dg-tab-'+S.dgCalGroup)?.focus();return;}
  const row=e.target.closest('[data-dg-calrow]'),cell=e.target.closest('[data-dg-calcell]'),open=e.target.closest('[data-dg-calopen]');
  if(row){const id=row.dataset.dgCalrow;if(id==='deals'){S.dgCalDealsOpen=!S.dgCalDealsOpen;if(!S.dgCalDealsOpen){for(const stage of DG_CAL_DEAL_STAGES)S.dgCalExpanded.delete(stage);if(DG_CAL_DEAL_STAGES.includes(S.dgCalPick?.row))S.dgCalPick=null;}S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}if(S.dgCalExpanded.has(id)){S.dgCalExpanded.delete(id);if(S.dgCalPick?.row===id)S.dgCalPick=null;}else S.dgCalExpanded.add(id);S.dgCalRecords.clear();dgCalendarRerender();return;}
@@ -237,8 +226,6 @@ document.addEventListener('click',e=>{
  const reason=e.target.closest('[data-dg-calreason]');if(reason){S.dgCalPick.reason=reason.dataset.dgCalreason;S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}
  const manager=e.target.closest('[data-dg-calmgr]');if(manager){const key=manager.dataset.dgCalmgr;if(S.dgCalManagers.has(key))S.dgCalManagers.delete(key);else S.dgCalManagers.add(key);dgCalendarRerender();return;}
  const record=e.target.closest('[data-dg-calrecord]');if(record){const key=record.dataset.dgCalrecord;if(S.dgCalRecords.has(key))S.dgCalRecords.delete(key);else S.dgCalRecords.add(key);S.dgCommChannel='all';dgCalendarRerender();return;}
- const entity=e.target.closest('[data-dg-commentity]');if(entity){const key=entity.dataset.dgCommkey,value=entity.dataset.dgCommentity,payload=dgCommCache.get(key);if(!payload||!['all',...payload.events.flatMap(e=>e.entities)].includes(value))return;(S.dgCommEntities??={})[key]=value;const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);return;}
- if(e.target.closest('[data-dg-commsort]')){S.dgCommAsc=!S.dgCommAsc;for(const key of S.dgCalRecords){const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);}return;}
  const retry=e.target.closest('[data-dg-commretry]');if(retry){dgCommCache.delete(retry.dataset.dgCommretry);dgLoadCommunication(retry.dataset.dgCommretry);}
 });
 document.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target.matches('[data-dg-calrecord]')){e.preventDefault();e.target.click();}});

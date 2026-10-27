@@ -19,6 +19,8 @@ function dgCleanEvent(event,entities){
  if(!event.src||!entities.length)throw Error('Unbound communication');
  const clean={id:String(event.src),ts,dt:new Date(ts).toISOString(),entities:[...new Set(entities)],type:dgSafeText(event.type||'Событие CRM'),dir:['входящее','исходящее'].includes(event.dir)?event.dir:'-',who:dgSafeText(event.who||'CRM'),title:dgSafeText(event.title),body:dgSafeText(event.body),status:dgSafeText(event.status),due:event.due||null,dur:dgSafeText(event.dur),refId:/^\d+$/.test(String(event.refId))?String(event.refId):null,guess:!!event.guess,roleGuess:!!event.roleGuess};
  clean.origin=['crm','dialog','history'].includes(event.origin)?event.origin:'crm';
+ // Partner-facing customer identity is a role, never the sender/contact display name.
+ if(dgRealCommunication(clean.type)&&clean.dir==='входящее')clean.who='Клиент';
  if(clean.type==='Письмо')clean.body=dgCleanMailText(clean.body);
  clean.undiar=!!event.undiar;clean.due=Number.isFinite(Date.parse(event.due||''))?new Date(event.due).toISOString():null;
  if(Array.isArray(event.speakers))clean.speakers=event.speakers.map(s=>({role:dgSafeText(s.role||s.label),text:dgSafeText(s.text)}));

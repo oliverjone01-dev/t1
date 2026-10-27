@@ -158,10 +158,11 @@
     "axis": "Always-visible zero baseline in every KPI/calendar mini line chart; KPI current start/end date labels below. Shared scale and hover points/vertical dashed guides retained."
   },
   "communicationPresentation": {
-    "entity": "Separate typed entity column from actual event bindings; a shared lead/deal event remains one event in the complete chain. Per-record entity filter never changes the source snapshot.",
-    "order": "Exact source timestamp ascending by default, including visible seconds in MSK. Only equal timestamps use lead-stage, deal-stage, then other-event tie order, with stable ID fallback. Reverse mode reverses the full ordering.",
+    "entity": "Separate typed entity column from actual event bindings. Always show the complete deduplicated history without lead/deal filter controls; stale selection state cannot hide events.",
+    "order": "Fixed ascending exact source timestamp order, visible seconds in MSK. Equal timestamps use lead-stage, deal-stage, then other-event tie order with stable ID fallback. No sort control or entity filter.",
     "text": "Display-only whitespace compression: CRLF to LF, repeated horizontal whitespace to one space, at most one blank paragraph line. No truncation or source mutation.",
     "viewport": "Independent reader up to 520px / 65vh desktop, 420px / 65vh mobile. Outer table scroll caps expand only while a reader is open.",
-    "fullReader": "Long messages offer a top-positioned Read in full action. Native modal dialog shows the complete escaped message/transcript in one independently scrolling region, with MSK time and typed bindings; close/Escape restores focus. No fetch or new source data."
+    "fullInline": "Entire available message/transcript is displayed inline in the independently scrolling communication table. No Read in full action or separate modal; escaping, paragraph normalization and uncertainty notes retained.",
+    "customerIdentity": "Recognized inbound communications publish who=Клиент instead of a sender/contact display name. Outbound employee names, technical actors, actual direction, uncertain-side notes and source timestamps remain unchanged."
   }
 }

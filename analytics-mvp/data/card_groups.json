@@ -1,7 +1,7 @@
 {
   "generated_note": "карта объединённых карточек из Seller API (34 карточек, 509 товаров)",
   "source": "seller-api-model_info",
-  "imported_at": "2026-10-26",
+  "imported_at": "2026-10-27",
   "groups": [
     {
       "model": "карточка 4681610246",
@@ -297,7 +297,7 @@
     {
       "model": "карточка 4755783651",
       "main": "4755783651",
-      "declared": 9,
+      "declared": 0,
       "skus": [
         {
           "sku": "3564841549",

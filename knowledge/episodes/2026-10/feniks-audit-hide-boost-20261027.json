@@ -1,0 +1,77 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "hide-boost-20261027",
+  "timestamp": "2026-10-27T17:32:33.478574+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/katya-nav.ts",
+  "artifact_class": "content",
+  "iteration": 1,
+  "anchor": "8.9 annotate after rework - lower by0.5: narrow navigation change, exact platform comparisons pass; no redesign claimed.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [],
+  "evidence_ledger": [],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "N/A",
+      "evidence": "No figures/source/formula changes; one navigation file."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Runtime transpilation of baseline/current KPAGES under IS_OZON=true/false: OZON equals baseline minus boost; YM byte-equivalent list.11links each. Problems remains onlyOZON."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No data exports changed. Source grep shows boost link only in central navigation and its own unchanged page builder."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "rework_tz": "",
+  "confidence": 0.99,
+  "sources_of_truth": [
+    "User request: убрать лист Бустинг",
+    "analytics-mvp/src/paths.ts",
+    "git:04a620c2^:analytics-mvp/src/scripts/katya-nav.ts"
+  ]
+}

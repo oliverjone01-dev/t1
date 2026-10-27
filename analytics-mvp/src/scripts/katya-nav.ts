@@ -2,6 +2,7 @@
 // Вынесен из build-katya.ts, чтобы страницы, которые собираются отдельным скриптом
 // (build-reakciya.ts), не расходились с шапкой основных семи вкладок.
 // Формат: [файл, подпись, ключ активной вкладки].
+import {IS_OZON} from '../paths.js';
 export const KPAGES: [string, string, string][] = [
   ["katya-command.html", "Командный центр", "command"],
   ["katya.html", "Обзор", "obzor"],
@@ -15,6 +16,7 @@ export const KPAGES: [string, string, string][] = [
   // «Реклама по карточкам» временно скрыта до доработки (Иван 27.10).
   // Разбивка кампаний по карточкам перенесена на «Маркетинг»; сама страница сохранена.
   ["katya-competitors.html", "Конкуренты", "competitors"],
+  ...(IS_OZON ? [["katya-problems.html", "Проблемы", "problems"] as [string,string,string]] : []),
   ["katya-reakciya.html", "Реакция", "reakciya"],
   ["katya-tests.html", "Тесты", "tests"],
   // Служебная вкладка: индекс бустинга и его состав. Отдельно от «Тестов» по решению Ивана от

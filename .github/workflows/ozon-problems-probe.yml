@@ -1,0 +1,48 @@
+name: OZON Problems source probe (read only)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - analytics-mvp/src/scripts/ozon/problems-probe.ts
+      - analytics-mvp/src/scripts/ozon/problems-collect.ts
+      - .github/workflows/ozon-problems-probe.yml
+permissions:
+  contents: read
+concurrency:
+  group: ozon-data
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Read contracts with no writes to Ozon or repository data
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+        run: node --import tsx src/scripts/ozon/problems-probe.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: problems-probe
+          path: analytics-mvp/probe-output/problems-probe.json
+          retention-days: 3
+      - name: Collect sanitized Problems data into a temporary artifact
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+          PROBLEMS_OUT_DIR: probe-output/data
+        run: node --import tsx src/scripts/ozon/problems-collect.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: problems-normalized
+          path: analytics-mvp/probe-output/data/
+          retention-days: 3

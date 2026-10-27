@@ -1,0 +1,45 @@
+name: OZON Problems daily data
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['orders backfill (аналитика по заказам)']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: ozon-data
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Daily source collection
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+        run: node --import tsx src/scripts/ozon/problems-collect.ts
+      - name: Commit only normalized Problems rows
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/problems_postings.ndjson data/problems_events.ndjson data/problems_delivery_observations.ndjson data/problems_status.json data/rating_daily.ndjson data/rating_summary.ndjson
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: refresh Ozon Problems daily sources'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1

@@ -9,6 +9,8 @@ import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { loadMatchedSnapshot } from "./competitors/matched-data.js";
 import { cabinetCompetitorPage } from "./competitors/cabinet-page.js";
+import {loadProblemData} from './problems/data.js';
+import {problemsPage} from './problems/page.js';
 import { matchedCompetitorPage } from "./competitors/matched-page.js";
 import { healthHtml } from "./ozon/source-health.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
@@ -5700,6 +5702,7 @@ if (IS_OZON) {
   writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
   const cabinetSnapshot = JSON.parse(readFileSync(dp("competitors/cabinet-2026-10-27.json"), "utf8"));
   writeFileSync(op("katya-competitors-cabinet.html"), cabinetCompetitorPage(cabinetSnapshot));
+  writeFileSync(op('katya-problems.html'),problemsPage(loadProblemData(dp(''))));
 } else {
 // ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.
 // Решение Ивана: проставить облачными/демо-данными только тут, чтобы увидеть вёрстку,

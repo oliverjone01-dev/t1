@@ -71,3 +71,5 @@ Long messages remain complete inline in the scrolling communication table. Refus
 Date column calendars now show one compact month (340px maximum width). Previous/next month navigation preserves the pending start/end range and its highlight; exact-day double click is unchanged.
 
 Communication controls are omitted: no entity selector, sorting toggle or full-reader action. Entire history is chronological, entire message stays inline, and recognized incoming customer senders are labelled only Клиент in the published data and UI.
+
+Calendar disclosure now offers Менеджеры / Сделки alongside count/sum. Direct record mode removes the manager grouping level and adds a responsible column; records and communications stay collapsed until requested. Calendar money is fixed to RUB budgets; the budget/prepayment selector is removed.

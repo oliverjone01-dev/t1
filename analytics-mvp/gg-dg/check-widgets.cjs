@@ -234,10 +234,10 @@ test('an open snapshot reads its own communication history after the server refr
  assert.ok(d.run("dgCommunicationTable('D20')").includes('same snapshot &lt;/script&gt;'));
 });
 
-test('calendar budget default stays independent of global prepayment and switches fields explicitly',()=>{
- const f=fixture();f.deals[0].prepayAmt=500;const d=dashboard(f);d.run("S.calUnit='money';S.amtMode='prepay'");assert.equal(d.run('S.dgCalAmount'),'budget');
+test('calendar amount stays budget-based independently of global prepayment or stale state',()=>{
+ const f=fixture();f.deals[0].prepayAmt=500;const d=dashboard(f);d.run("S.calUnit='money';S.amtMode='prepay'");assert.equal(d.run('S.dgCalView'),'managers');
  const expression="dgCalendarLine(DG_CAL_ROWS.find(r=>r.id==='deals'),dgCalendarKeys())";
- assert.ok(d.run(expression+".includes(fmtK(218500))"));d.run("S.dgCalAmount='prepay'");assert.ok(d.run(expression+".includes(fmtK(500))"));assert.ok(!d.run(expression+".includes(fmtK(218500))"));assert.equal(d.run('S.amtMode'),'prepay');
+ assert.ok(d.run(expression+".includes(fmtK(218500))"));d.run("S.dgCalAmount='prepay'");assert.ok(d.run(expression+".includes(fmtK(218500))"));assert.ok(!d.run('dgCalendarBlock()').includes('data-dg-calamount'));assert.equal(d.run('S.amtMode'),'prepay');
 });
 
 test('Outlook styles are removed without dropping the customer request in fresh or archived email',()=>{
@@ -307,4 +307,10 @@ test('inline communication retains the final text and escapes markup without cha
 test('incoming customer identity is only a role in all published payloads',()=>{
  const {dgCleanEvent}=require('./communications.cjs');for(const type of ['Письмо','Звонок','SMS','Мессенджер ОЛ','Сообщение WhatsApp']){const e={src:'a',ts:Date.parse('2026-10-20T08:00:00Z'),type,dir:'входящее',who:'PRIVATE CONTACT',body:'Запрос'};assert.equal(dgCleanEvent(e,['L10']).who,'Клиент');assert.equal(e.who,'PRIVATE CONTACT');assert.equal(dgCleanEvent({...e,dir:'исходящее',who:'Сотрудник'},['L10']).who,'Сотрудник');assert.equal(dgCleanEvent({...e,type:'Стадия',who:'CRM'},['L10']).who,'CRM');}
  const f=fixture();f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#role',ts:Date.parse('2026-10-20T08:00:00Z'),entities:['L10'],type:'Сообщение WhatsApp',dir:'входящее',who:'PRIVATE CONTACT',body:'Запрос'}]};const d=dashboard(f);assert.ok(d.data.communicationEvents.every(e=>e.who!=='PRIVATE CONTACT'));assert.ok(d.run("dgCommunicationTable('L10')").includes('Клиент'));
+});
+
+test('calendar switches between manager and direct record levels without changing populations',()=>{
+ const d=dashboard();d.run("S.dgCalDealsOpen=true;S.dgCalExpanded.add('kp')");const before=d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')");const managers=d.run('dgCalendarBlock()');assert.ok(managers.includes('dg-heat-manager'));assert.ok(managers.includes('data-dg-calview="deals"'));assert.ok(!managers.includes('data-dg-calamount'));
+ d.run("S.dgCalView='deals'");const direct=d.run('dgCalendarBlock()');assert.ok(!direct.includes('dg-heat-manager'));assert.ok(direct.includes('data-dg-calrecord="D20"'));assert.ok(direct.includes('<th>Ответственный</th>'));assert.ok(!direct.includes('Таблица ответственных'));assert.ok(!direct.includes('dg-comm-host'));assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')"),before);
+ d.run("S.dgCalRecords.add('D20')");const open=d.run('dgCalendarBlock()');assert.ok(open.includes('colspan="9"'));assert.ok(open.includes('dg-comm-host'));d.run("S.dgCalView='managers';S.dgCalRecords.clear()");assert.ok(d.run('dgCalendarBlock()').includes('dg-heat-manager'));
 });

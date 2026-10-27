@@ -32,11 +32,12 @@
     "default": "Deals, count; FD creation cohort with current global filters, every status.",
     "sales": "Original GG soldSet: selected prepayment/won mode and creation/outcome dates.",
     "money": "Deals use opportunity; sales use selected opportunity/prepayment amount. Missing opportunity is counted separately. RUB only.",
-    "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments."
+    "invariants": "All categories retained; sum of category counts equals selected records, sum of monetary categories equals selected known amounts. Zero totals show gray rings, never fake segments.",
+    "interaction": "All three distribution diagrams and their legends are static. No segment or category click opens a table; Deals/Sales and Count/Amount controls remain. Detailed records stay in the calendar."
   },
   "drilldown": {
-    "leads": "Lead funnel and refusal chart are static, with no click handlers or standalone table below the funnel. Lead details remain in the calendar by responsible and record. Distribution category drilldowns are unchanged.",
-    "deals": "A distribution category opens the same selected deals/sales subset. IDs are plain text; includes owner, dates, stage, loss reason, budget/prepayment, originating lead, source/client/product and touch/task dates.",
+    "leads": "Lead funnel and refusal chart are static, with no click handlers or standalone table below the funnel. Lead details remain in the calendar by responsible and record. Distribution diagrams are static too.",
+    "deals": "Distribution diagrams never open a table. Detailed owner/date/stage/reason/budget/prepayment and communication information is available only through calendar levels. Record IDs stay plain text.",
     "reasonFields": [
       "UF_CRM_1730742511284",
       "UF_CRM_1782316574481",
@@ -66,7 +67,8 @@
       "Скорость по этапам",
       "Причины отказов в сделках"
     ],
-    "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values."
+    "order": "Lead funnel and reasons, then deal funnel. Main cross-conversion is vertical with unchanged lead/qualified/sales values.",
+    "header": "No refresh-status badge, section navigation or migration-period button. Freshness timestamp, filters and ordinary period/date controls stay."
   },
   "calendar": {
     "population": "All current source-eligible DG leads/deals, irrespective of their creation date when counting later stage events.",
@@ -90,7 +92,7 @@
     "eventPolicy": "First lifetime entry only; repeat entries do not inflate counts. History completeness/current-stage consistency required before publication. Different stage rows are not additive.",
     "money": "Lead: known RUB opportunity, missing/foreign currency flagged. Deal: selected amount field. Manager table budget labelled separately.",
     "manager": "Current responsible manager, not historical owner.",
-    "presentation": "GG ROP compact heat cells, column alignment, blank zeros, inverse intensity and colored stage markers. All ten existing stage rows remain in one matrix with inline disclosure. Each responsible/record/communication table owns its bounded scroll viewport and sticky headings; successive levels are indented. No extra summary/reason toolbar or final-stock caption. Count/date/stock formulas unchanged.",
+    "presentation": "Initially five top-level calendar rows: leads, lead refusals, deals, success and deal refusal. Deals expand to indented forming-TZ, KP, prepayment, production and shipping stages; then responsible, record and communications. Right mini-charts use exactly the same bucket values, filters, count/money and budget/prepayment basis as each displayed heat row, including responsible rows. Stock remains stock, never a summed flow.",
     "refusalColumn": "Separate current CRM refusal reason column for refused leads and deals. Lead detail uses observed reason fields; deal reason uses the existing reason-comment field, then enum fallback. Decode, redact and contact-mask before publication; escape when rendered.",
     "navigation": "One GG-style heat-calendar matrix: all existing stages are rows in the left column, dates across the same rows, totals on the right. No side navigation or tabs. Stage label expands responsible rows inline; record and communication tables need separate clicks. Each nested table scrolls independently and is indented.",
     "amount": "Independent calendar amount field: budget by default, with an explicit budget/prepayment switch in money mode. Deals use existing budget or prepayAmt; leads keep their own CRM opportunity. Existing RUB/missing-value rules and all row/date/stock cohorts are unchanged. Global default prepayment remains unchanged.",

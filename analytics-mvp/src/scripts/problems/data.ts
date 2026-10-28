@@ -21,6 +21,18 @@ export function loadProblemData(dir:string,now=new Date().toISOString()):Problem
  const norm=(s:string)=>s.replace(/\s+/g,' ').trim();
  const unknown=new Set<string>((state.events??[]).filter((e:any)=>e.paid_cents===null||e.ship_cents===null).map((e:any)=>norm(e.order)));
  const ledger=rows('delivery_orders.ndjson'),unknownDates=new Set<string>();
+ const deliveryIssues:string[]=[];
+ const missingCost=deliveryStatus.missing_cost??0,undated=deliveryStatus.undated_rows??0,unseen=deliveryStatus.retained_unseen_events??0;
+ const missingPaid=deliveryStatus.missing_customer_paid??0;
+ if(missingCost)deliveryIssues.push(`${missingCost} без стоимости`);
+ if(missingPaid)deliveryIssues.push(`${missingPaid} без оплаты покупателя`);
+ if(undated)deliveryIssues.push(`${undated} без даты`);
+ if(unseen)deliveryIssues.push(`${unseen} прежних рейсов не найдены в источнике`);
+ const missingKeys=state.missing_keys??[],unseenKeys=state.unseen_keys??[];
+ for(const key of [...missingKeys,...unseenKeys])if(key[1])unknownDates.add(key[1]);
+ // An undated row cannot be assigned to a safe day. Also fail partial if the
+ // status reports more missing records than the state can date explicitly.
+ const uncertain=undated>0||missingCost>missingKeys.length||unseen>unseenKeys.length;
  let skipped=0,unmatched=0;
  ledger.forEach((r,i)=>{
   if(!r.d_ship||typeof r.ship!=='number'||typeof r.deliv!=='number'||unknown.has(norm(r.order))){skipped++;if(r.d_ship)unknownDates.add(r.d_ship);return;}
@@ -30,9 +42,10 @@ export function loadProblemData(dir:string,now=new Date().toISOString()):Problem
   for(const [order,a]of matched.byPosting){const p=postings.find(x=>x.order===order);events.push({id:'delivery:'+i+':'+order,date:r.d_ship,kind:'deliveryLoss',order,offer:p?.offer??'',scheme:'rFBS',reason:`Стоимость отправки ${a.ship.toFixed(2)} ₽; оплата покупателя ${a.deliv.toFixed(2)} ₽`,amount:Math.round((a.ship-a.deliv)*100)/100,source:'Ведомость доставки'});}
  });
  const ledgerDays=ledger.map(r=>r.d_ship).filter(Boolean).sort();
- coverage.deliveryLoss={days:ledgerDays.length?days(ledgerDays[0],deliveryStatus.through??ledgerDays.at(-1)).filter(d=>!unknownDates.has(d)):[],loaded_at:deliveryStatus.loaded_at??null,note:`Ведомость по ${deliveryStatus.through??ledgerDays.at(-1)??'неизвестной дате'}; ${skipped} строк с неполными полями, ${unmatched} без сопоставления номера`};
+ coverage.deliveryLoss={days:ledgerDays.length?days(ledgerDays[0],deliveryStatus.through??ledgerDays.at(-1)).filter(d=>!unknownDates.has(d)):[],loaded_at:deliveryStatus.loaded_at??null,...(uncertain?{incomplete_since:deliveryStatus.from??'2026-10-05'}:{}),note:`Ведомость по ${deliveryStatus.through??ledgerDays.at(-1)??'неизвестной дате'}; ${skipped} строк с неполными полями, ${unmatched} без сопоставления номера${deliveryIssues.length?'; '+deliveryIssues.join(', '):''}`};
+ if(deliveryIssues.length)warnings.push('Ведомость доставки неполная: '+deliveryIssues.join('; ')+'.');
  if(skipped)warnings.push(`Доставка: ${skipped} строк с неизвестной стоимостью, оплатой или датой исключены из суммы.`);
  if(deliveryStatus.through&&deliveryStatus.through<moscowDay(now))warnings.push(`Наша доставка загружена по ${deliveryStatus.through}.`);
  const thresholdDefault=JSON.parse(readFileSync('katya/problems/thresholds-2026-10-27.json','utf8'));
- return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',thresholdDefault),coverage,warnings});
+ return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',thresholdDefault),coverage,warnings,fbsTariff:json('fbs_tariff.json',null),deliverySource:{through:deliveryStatus.through??null,loaded_at:deliveryStatus.loaded_at??null,corrected_prices:deliveryStatus.corrected_prices??0,issues:deliveryIssues}});
 }

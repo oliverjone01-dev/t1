@@ -1,0 +1,126 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "problems-shipping-control-20261028",
+  "timestamp": "2026-10-28T09:26:10.628606+00:00",
+  "deliverable_ref": "knowledge/episodes/2026-10/feniks-audit-problems-shipping-control-iter2.md",
+  "artifact_class": "dashboard",
+  "iteration": 2,
+  "anchor": "8.1 dialogs-registry after repair: 8.4 here because source money and three surfaces independently reconcile, known missing dates and undated uncertainty are now explicit. Below8.9 annotate because browser pixels and final live publish are unverified.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "gaps": [
+    "Nonblocking: final browser pixel layout and post-merge live publication are not verified; local file URL policy blocked browser display.",
+    "Nonblocking: tariff money is calculated from confirmed cabinet rate and posting price, not independently matched to financial accrual; source UI and spec disclose scope."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Nonblocking: final browser pixel layout and post-merge live publication are not verified; local file URL policy blocked browser display.",
+      "evidence": "Selfcheck deployment steps2-5 remain pending explicit merge; semantic HTML/jsdom tests pass but no browser pixel inspection.",
+      "checkpoint": "actionability_10_milestone",
+      "weight": -1
+    },
+    {
+      "gap": "Nonblocking: tariff money is calculated from confirmed cabinet rate and posting price, not independently matched to financial accrual; source UI and spec disclose scope.",
+      "evidence": "knowledge/semantic/metrics/ozon-fbs-tariff.yaml actual.interpretation; UI: Изменение комиссии по подтверждённой ставке. Source-only reconciliation is deliberate diagnostic scope.",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    }
+  ],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent Decimal recalculation from raw cabinet PSV: 180 observed, 24 confirmed, discount10936.31, surcharge5598.74, net-5337.57 RUB. No financial accrual claim."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "September closed:0 rows/null; October18-22:91 rows/23 facts/9724.67 discount/5598.74 surcharge; October1-28:180/24/10936.31/5598.74. Raw Python vs model vs jsdom agree."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "180 unique posting keys. Duplicate source rejected. Full delivery replay unique correction replaces one event; repeat idempotent; ambiguous groups/partial replay rejected."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Real rebuilt HTML source strip and warnings show1 missing cost,1 buyer payment,2 undated. 22Oct coverage n0,total1,fullfalse. 23Oct partial due undated; baseline04Oct full."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "New monetary totals all derived; ladder rates explicitly source contract/user input and only source step rows. No hardcoded180/24/10936 totals in UI."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Fresh generated HTML and source date28Oct verified semantically. Pixel/browser layout not verified due local URL policy; no workaround."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Missing source uncertainty propagated to published HTML. Missing costs do not produce known-zero days; undated rows mark >=05Oct partial. Existing malformed tariff monetary proof rejected. No guessed financial rates exported."
+    },
+    {
+      "id": "A1",
+      "result": "N/A",
+      "evidence": "No approval/security gate altered. Installer is exact anchored text patch, not permission enforcement."
+    },
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Installer exercised against temporary copy of real publisher: exact patch, backup original, idempotence and bash -n pass; real publisher untouched."
+    }
+  ],
+  "sources_of_truth": [
+    "/Users/gengroup/Documents/ozon/data-cabinet/fbs_tariff_2026-10-28.psv",
+    "/Users/gengroup/Documents/Codex/outputs/problems-preview-data/delivery_sheet_state.json",
+    "knowledge/semantic/metrics/ozon-fbs-tariff.yaml",
+    "knowledge/semantic/metrics/ozon-delivery-sheet.yaml",
+    "knowledge/os/analytics-dod.md",
+    "/Users/gengroup/Documents/ozon/deploy/run.sh"
+  ]
+}

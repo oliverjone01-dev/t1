@@ -1,0 +1,43 @@
+id: ozon-fbs-tariff
+version: 1
+status: approved
+owner: Иван
+approved_at: '2026-10-28'
+approval: 'добавляй, что нужно; расширенный съём и тарифная лесенка переданы пользователем в этом чате'
+decision: Разбор скидок и наценок FBS, очередь ожидающих передачи
+source: 'cabinet /api/posting-service/seller-ui/fbs/posting/list; fbs_tariff_YYYY-MM-DD.psv'
+timezone: Europe/Moscow
+entity: posting; not quantity and not parent order
+cohort: created in selected interval, Moscow; only postings observed by cabinet harvest
+interval: '[from 00:00, to+1day 00:00)'
+coverage: source is a rolling recent-order window; not the complete historical shop population
+actual:
+  kind: fact_type; discount, commission, no_discount; empty means unknown
+  rate: fact_rate is a fraction; convert to basis points
+  basis: price is already the total posting amount; never multiply by qty again
+  amount: signed price * fact_rate, round half-up to kopecks per posting
+  sign: discount negative, surcharge positive
+  interpretation: calculated tariff effect from confirmed source rate; not independent financial accrual
+  missing: null; known no_discount is zero
+  denominator: confirmed facts only; never all FBS or all missing facts
+  reconciliation: 24 confirmed postings; discount 10936.31 RUB; surcharge 5598.74 RUB; net -5337.57 RUB on 2026-10-28
+queue:
+  population: latest snapshot only, awaiting_packaging or awaiting_deliver; independent of historical filter
+  times: exact source cutoff and step1..4_deadline; Moscow
+  current_rate: cur_rate is percentage points, not a fraction; not actual financial effect
+  ladder: 'source-provided steps: -3pp, -2pp, standard, +1pp, then +2pp; only rows with all four deadlines'
+  applicability: do not infer warehouse or tariff eligibility from elapsed hours; absent steps remain unknown
+history:
+  key: posting number
+  retention: retain rows when they leave the rolling source window
+  disappearing_fact: preserve last confirmed fact with its observation date and original monetary basis
+  newer_fact: replaces prior fact; latest fact date retained
+  old_source_mutation: fail closed; cannot silently replace newer rows
+invariants:
+  - No actual rate inferred from elapsed hours; raw confirmed rates can differ from such an inference
+  - No monetary estimate of lost discount on orders whose eligibility is unknown
+  - 156 without final rate includes cancelled, delivered and in-transit; not 156 still delivering
+  - User-reported 74 daily-assembly / 106 bulky cohort not reproduced from missing warehouse metadata; not presented as a computed metric
+  - Never add tariff effect to finance commission or penalties; separate block
+  - Exact timestamps from dated snapshot; no live countdown from stale data
+  - No names, contacts, addresses, warehouse credentials or raw API JSON in public data

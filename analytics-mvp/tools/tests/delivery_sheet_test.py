@@ -130,11 +130,44 @@ class DeliverySheetTests(unittest.TestCase):
         extra = list(map(json.loads, out[sheet.FILES[3]].splitlines()))[-1]
         self.assertEqual((primary["ship"], extra["ship"], status["ship"]), (1000, 190, 1190))
 
-    def test_changed_price_is_not_an_extra_trip(self):
+    def test_full_unique_price_correction_replaces_primary_without_extra(self):
+        out, _ = self.prepare(csv_text(row()))
+        state = json.loads(out["delivery_sheet_state.json"])
+        fixed, status = self.prepare(csv_text(row(ship="6000")), data=out, state=state)
+        self.assertEqual(status["events"], 1)
+        self.assertEqual(status["ship"], 6000)
+        self.assertEqual(status["corrected_prices"], 1)
+        self.assertEqual(status["retained_unseen_events"], 0)
+        self.assertEqual(json.loads(fixed[sheet.FILES[0]].splitlines()[-1])["ship"], 6000)
+        self.assertEqual(out[sheet.FILES[3]], fixed[sheet.FILES[3]])
+        again, status = self.prepare(csv_text(row(ship="6000")), data=fixed, state=json.loads(fixed["delivery_sheet_state.json"]))
+        self.assertEqual(status["corrected_prices"], 0)
+        for file in sheet.FILES:
+            self.assertEqual(fixed[file], again[file])
+        self.assertEqual(len(json.loads(again["delivery_sheet_state.json"])["price_corrections"]), 1)
+
+    def test_price_correction_requires_full_replay_and_matching_identity(self):
         out, _ = self.prepare(csv_text(row()))
         state = json.loads(out["delivery_sheet_state.json"])
         with self.assertRaisesRegex(ValueError, "changed price"):
-            self.prepare(csv_text(row(ship="6000")), data=out, state=state)
+            sheet.prepare(out, state, csv_text(row(ship="6000")), None, NOW, LOCATIONS)
+        for changed in (row(ship="6000", paid="0"), row(ship="6000", **{"3": "GGT-OTHER"})):
+            with self.assertRaisesRegex(ValueError, "changed price"):
+                self.prepare(csv_text(changed), data=out, state=state)
+        with self.assertRaisesRegex(ValueError, "changed price"):
+            self.prepare(csv_text(row(ship="6000")), csv_text(row(ship="6100")), data=out, state=state)
+
+    def test_price_correction_keeps_other_dates_and_extra_trip_identity(self):
+        out, _ = self.prepare(csv_text(row(ship="1000"), row(date="8 октября", ship="190", paid="0")))
+        fixed, status = self.prepare(csv_text(row(ship="1000"), row(date="8 октября", ship="290", paid="0")), data=out, state=json.loads(out["delivery_sheet_state.json"]))
+        self.assertEqual(status["ship"], 1290)
+        self.assertEqual(status["events"], 2)
+        self.assertEqual(out[sheet.FILES[0]], fixed[sheet.FILES[0]])
+        self.assertEqual(json.loads(fixed[sheet.FILES[3]].splitlines()[-1])["ship"], 290)
+        # Two old same-day trips cannot be collapsed to one corrected price.
+        out, _ = self.prepare(csv_text(row(ship="1000"), row(ship="190", paid="0")))
+        with self.assertRaisesRegex(ValueError, "changed price"):
+            self.prepare(csv_text(row(ship="1200")), data=out, state=json.loads(out["delivery_sheet_state.json"]))
 
     def test_product_duplicates_merge_and_cent_splits_are_conserved(self):
         out, status = self.prepare(csv_text(row(ship="100,01", **{"3": "GGT-01\nGGT-02"}), row(ship="100,01", **{"3": "GGT-03"})))

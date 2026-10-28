@@ -1,6 +1,6 @@
 id: ozon-delivery-sheet
 title: Автоматическое чтение нашей доставки из Google-ведомости
-version: 1
+version: 2
 status: approved
 owner: Иван
 approved_at: "2026-10-21"
@@ -50,3 +50,11 @@ invariants:
   - "Пустой счёт не ноль; число пропусков показано независимо от свежести чтения"
   - "Повторный запуск не удваивает расходы; все ответы проверены до первой записи"
   - "В выходах только номер заказа, артикул, суммы, даты и безопасный город; телефоны и улицы не публикуются"
+price_correction_v2:
+  approved_at: '2026-10-28'
+  approval: 'User asked to fix delivery data stuck at 22.10; authorized mapping updates from 05.10 remain in force'
+  prerequisite: full active+archive replay
+  identity: one old and one new event for same order and shipping date; identical arts, comment codes and customer payment
+  action: replace old cost, rekey persisted primary identity, append dated correction audit
+  safeguards: multiple same-day trips or changed identity remain blocked; changed date not auto-corrected; positive-to-zero blocked
+  preserved: pre-05.10 history byte for byte; unseen shipments retained and warned; additional trips remain separate

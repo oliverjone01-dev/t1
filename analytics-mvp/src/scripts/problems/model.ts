@@ -1,8 +1,8 @@
 export type Posting={order:string;date:string;status:string;scheme:string;offer:string;sku:string;amount:number|null;reason:string|null;initiator:string|null};
 export type Kind='fine'|'return'|'deliveryLoss'|'lateShip'|'shift'|'lateDelivery'|'defectCharge';
 export type Event={id:string;date:string;kind:Kind;order:string|null;offer:string;scheme:string;reason:string;amount:number|null;qty?:number|null;days?:number|null;source:string};
-export type Coverage={days:string[];loaded_at:string|null;note:string};
-export type ProblemData={now:string;postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[]};
+export type Coverage={days:string[];loaded_at:string|null;note:string;incomplete_since?:string};
+export type ProblemData={now:string;postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[];fbsTariff?:FbsTariff|null;deliverySource?:{through:string|null;loaded_at:string|null;corrected_prices:number;issues?:string[]}};
 
 export function shift(date:string,n:number){return new Date(Date.parse(date+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);}
 export function days(from:string,to:string){
@@ -25,7 +25,7 @@ export function summarize(data:ProblemData,from:string,to:string){
  const ds=days(from,to), inside=(d:string)=>d>=from&&d<=to;
  const posts=data.postings.filter(p=>inside(p.date)&&p.scheme!=='FBO'),cancelled=posts.filter(p=>p.status==='cancelled');
  const events=data.events.filter(e=>inside(e.date));
- const cover=(name:string)=>{const c=data.coverage[name],n=ds.filter(d=>c?.days.includes(d)).length;return {n,total:ds.length,full:!!ds.length&&n===ds.length,note:c?.note??'Источник ещё не загружен'};};
+ const cover=(name:string)=>{const c=data.coverage[name],n=ds.filter(d=>c?.days.includes(d)).length;return {n,total:ds.length,full:!!ds.length&&n===ds.length&&!(c?.incomplete_since&&to>=c.incomplete_since),note:c?.note??'Источник ещё не загружен'};};
  const kinds=['fine','return','deliveryLoss','lateShip','shift','lateDelivery','defectCharge'] as Kind[];
  const metrics=Object.fromEntries(kinds.map(k=>{const rows=events.filter(e=>e.kind===k),c=cover(k),known=rows.filter(r=>r.amount!==null);return [k,{count:rows.length||c.full?rows.length:null,units:k==='return'?(rows.length?rows.reduce((s,r)=>s+(r.qty??0),0):c.full?0:null):null,sum:known.length?Math.round(known.reduce((s,r)=>s+r.amount!,0)*100)/100:c.full&&rows.length===0?0:null,unknownAmount:rows.length-known.length,rows,coverage:c}];}));
  const reasons:Record<string,number>={};for(const p of cancelled){const label=p.initiator==='seller'?'Мы':p.initiator==='client'||p.initiator==='buyer'?'Покупатель':p.initiator==='ozon'?'Ozon':'Не указан';reasons[label]=(reasons[label]??0)+1;}
@@ -40,11 +40,43 @@ export function summarize(data:ProblemData,from:string,to:string){
  return {dates:ds,cancellation,reasons,metrics,table,rating,ratingRows,ratingCoverage,summary,summaryDate,partial:to>=moscowDay(data.now)};
 }
 export function validateProblems(d:ProblemData){
+ if(d.fbsTariff)validateTariffs(d.fbsTariff);
  const unique=(rows:any[],key:(r:any)=>string)=>{const seen=new Set<string>();for(const r of rows){const k=key(r);if(!k||seen.has(k))throw new Error('Problems duplicate/empty key '+k);seen.add(k);}};
  unique(d.postings,r=>r.order);unique(d.events,r=>r.id);unique(d.ratings,r=>r.date);unique(d.summary,r=>r.date+':'+r.rating);
  for(const r of [...d.postings,...d.events,...d.ratings])if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||!Number.isFinite(Date.parse(r.date)))throw new Error('Problems invalid date');
  for(const r of d.ratings)if(r.defect_index!==null&&(!Number.isFinite(r.defect_index)||r.defect_index<0||r.defect_index>1))throw new Error('Problems invalid ratio');
  if(d.thresholds)for(const r of d.thresholds.rows)if(!(r.begin<r.end)||[r.begin,r.end,r.cancellations,r.shipmentDelay,r.cancellationNonInt].some(v=>!Number.isFinite(v)||v<0))throw new Error('Problems invalid thresholds');
  const walk=(v:any)=>{if(typeof v==='number'&&!Number.isFinite(v))throw new Error('Problems nonfinite');if(v&&typeof v==='object')for(const x of Object.values(v))walk(x);};walk(d);
+ return d;
+}
+
+export type FbsTariffRow={order:string;status:string;offer:string;qty:number;amount_cents:number;created:string;cutoff:string|null;log_cutoff:string|null;fact_transferred:string|null;delivering_date:string|null;step1_deadline:string|null;step2_deadline:string|null;step3_deadline:string|null;step4_deadline:string|null;fact_type:'discount'|'commission'|'no_discount'|null;rate_bps:number|null;effect_cents:number|null;fact_observed:string|null;fact_amount_cents?:number;current_type:'discount'|'commission'|'no_discount'|null;current_rate_bps:number|null;observed:string};
+export type FbsTariff={version:1;source_date:string;sources:{date:string;sha256:string;rows:number}[];rows:FbsTariffRow[]};
+export function summarizeTariffs(source:FbsTariff|null|undefined,from:string,to:string){
+ const rows=(source?.rows??[]).filter(r=>{const d=moscowDay(r.created);return d>=from&&d<=to;}),confirmed=rows.filter(r=>r.fact_type!==null);
+ const discounts=confirmed.filter(r=>r.fact_type==='discount'),surcharges=confirmed.filter(r=>r.fact_type==='commission'),standard=confirmed.filter(r=>r.fact_type==='no_discount');
+ const sum=(rs:FbsTariffRow[])=>rs.reduce((s,r)=>s+r.effect_cents!,0)/100;
+ const discount=confirmed.length?-sum(discounts):null,surcharge=confirmed.length?sum(surcharges):null;
+ const unknown=rows.filter(r=>r.fact_type===null),unknownStatuses:Record<string,number>={};for(const r of unknown)unknownStatuses[r.status]=(unknownStatuses[r.status]??0)+1;
+ // Operational queue is only the latest actual snapshot, independent of historical cohort filter.
+ const queue=(source?.rows??[]).filter(r=>r.observed===source?.source_date&&['awaiting_packaging','awaiting_deliver'].includes(r.status)).sort((a,b)=>(a.cutoff??'9999').localeCompare(b.cutoff??'9999')||a.order.localeCompare(b.order));
+ return {rows,confirmed,discounts,surcharges,standard,unknown,unknownStatuses,discount,surcharge,net:confirmed.length?sum(confirmed):null,queue};
+}
+export function validateTariffs(d:FbsTariff){
+ if(d.version!==1||!/^\d{4}-\d{2}-\d{2}$/.test(d.source_date))throw new Error('Invalid tariff version/date');
+ const seen=new Set<string>();
+ for(const r of d.rows){
+  if(!r.order||seen.has(r.order))throw new Error('Duplicate tariff posting');seen.add(r.order);
+  for(const n of [r.amount_cents,r.qty])if(!Number.isSafeInteger(n)||n<0)throw new Error('Invalid tariff money/qty');
+  moscowDay(r.created);
+  if(!['discount','commission','no_discount',null].includes(r.fact_type))throw new Error('Invalid tariff type');
+  if(r.fact_type===null){if(r.rate_bps!==null||r.effect_cents!==null)throw new Error('Unknown tariff must stay null');}
+  else {
+   if(r.rate_bps===null||!Number.isInteger(r.rate_bps)||r.rate_bps<0||r.rate_bps>1000||!r.fact_observed)throw new Error('Invalid tariff rate');
+   if(r.fact_type==='no_discount'?r.rate_bps!==0:r.rate_bps===0)throw new Error('Invalid tariff type/rate');
+   const expected=Math.round((r.fact_amount_cents??r.amount_cents)*r.rate_bps/10000)*(r.fact_type==='discount'?-1:1);
+   if(r.effect_cents!==expected)throw new Error('Tariff effect does not reconcile');
+  }
+ }
  return d;
 }

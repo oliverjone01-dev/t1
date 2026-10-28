@@ -77,3 +77,7 @@ Read the named duplicate-link field instead of treating absence of a lead URL as
 ### Simplify partner presentation
 
 Remove all client-type charts, columns, filters and detail labels from DG, retaining assortment and the incoming Клиент actor role. Distribution cards now use two columns; pipeline shows assortment only. Remove the small static estimate caption below open-budget KPI while retaining its explanatory hover tooltip.
+
+## 2026-10-28 — парные сводки предложений
+
+Пайплайн по ассортименту расположен слева, диаграмма причин отказов справа в одной строке. Подробная таблица отказов остаётся ниже на всю ширину; на узком экране сводки переходят в столбец.

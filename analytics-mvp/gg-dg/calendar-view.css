@@ -93,3 +93,6 @@ body{overflow-x:clip}
 /* Paired offer summaries; detailed refusal table retains the full row. */
 .dg-offer-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch;margin-top:14px}.dg-offer-summary>.card{min-width:0;margin-top:0!important}.dg-offer-summary>#dg-refusals{display:contents}.dg-offer-summary>#dg-refusals>.card{min-width:0;margin-top:0}.dg-offer-summary>#dg-refusals>.card:first-child{grid-column:2;grid-row:1}.dg-offer-summary>#dg-refusals>.card:last-child{grid-column:1/-1;grid-row:2}.dg-offer-summary .dg-loss-bar{grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 26px}
 @media(max-width:900px){.dg-offer-summary{grid-template-columns:minmax(0,1fr)}.dg-offer-summary>#dg-refusals>.card:first-child{grid-column:1;grid-row:2}.dg-offer-summary>#dg-refusals>.card:last-child{grid-row:3}}
+
+/* Typed records remain plain text; cool leads and warm deals. */
+.dg-refusal-table .dg-entity-lead{color:#65C9ED}.dg-refusal-table .dg-entity-deal{color:#FFBC75}

@@ -1,0 +1,127 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "problems-shipping-control-20261028",
+  "timestamp": "2026-10-28T09:21:39.830910+00:00",
+  "deliverable_ref": "knowledge/episodes/2026-10/feniks-audit-problems-shipping-control-iter1.md",
+  "artifact_class": "dashboard",
+  "iteration": 1,
+  "anchor": "6.7 dialogs-registry ->8.1 after repair: this artifact at8.0 has verified source totals and dedup but a remaining coverage disclosure defect. Verdict return overrides arithmetic score.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 7
+  },
+  "weighted_total": 8.0,
+  "verdict": "return",
+  "verdict_override_reason": "B7 FAIL: missing source data still displayed as full coverage.",
+  "gaps": [
+    "Problems does not carry missing-cost/undated source rows into warnings and coverage; 22.10 falsely receives full delivery coverage.",
+    "Browser pixels not verified; live publish and installer activation remain future gated steps."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Problems does not carry missing-cost/undated source rows into warnings and coverage; 22.10 falsely receives full delivery coverage.",
+      "evidence": "outputs/problems-preview-data/delivery_sheet_state.json missing_keys=[[78945257-0523-1,2026-10-22]], undated_rows=2; generated HTML model summarize(...,2026-10-22,2026-10-22).metrics.deliveryLoss.coverage={n:1,total:1,full:true}. data.ts:24-35 only examines accepted ledger rows.",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -2
+    },
+    {
+      "gap": "Live publication not yet verified",
+      "evidence": "Installer unactivated; PR merge authorization pending; browser policy prevents local file display. jsdom and production builder verified only.",
+      "checkpoint": "actionability_10_milestone",
+      "weight": -1
+    }
+  ],
+  "rework_tz": "Propagate missing_cost, undated_rows and retained_unseen source limitations to visible delivery freshness/warnings. Exclude known missing-key dates from delivery coverage. Unknown-date/unseen uncertainty must prevent false full coverage. Add regression tests on this source fixture and re-audit new hash.",
+  "confidence": 0.94,
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent Decimal recalculation from raw cabinet PSV: 180 observed, 24 confirmed, discount10936.31, surcharge5598.74, net-5337.57 RUB. No financial accrual claim."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "September closed:0 rows/null; October18-22:91 rows/23 facts/9724.67 discount/5598.74 surcharge; October1-28:180/24/10936.31/5598.74. Raw Python vs model vs jsdom agree."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "180 unique posting keys. Duplicate source rejected. Full delivery replay unique correction replaces one event; repeat idempotent; ambiguous groups/partial replay rejected."
+    },
+    {
+      "id": "B4",
+      "result": "FAIL",
+      "evidence": "Delivery status missing_cost=1 and undated_rows=2 absent from Problems warnings. Missing date2026-10-22 still coverage n1/total1/full:true."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "New monetary totals all derived; ladder rates explicitly source contract/user input and only source step rows. No hardcoded180/24/10936 totals in UI."
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "Fresh generated HTML and source date28Oct verified semantically. Pixel/browser layout not verified due local URL policy; no workaround."
+    },
+    {
+      "id": "B7",
+      "result": "FAIL",
+      "evidence": "Uncertain delivery completeness leaks to published HTML: source missing_keys contains [78945257-0523-1,2026-10-22], summarize deliveryLoss full:true on22Oct."
+    },
+    {
+      "id": "A1",
+      "result": "N/A",
+      "evidence": "No approval/security gate altered. Installer is exact anchored text patch, not permission enforcement."
+    },
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Installer exercised against temporary copy of real publisher: exact patch, backup original, idempotence and bash -n pass; real publisher untouched."
+    }
+  ],
+  "sources_of_truth": [
+    "/Users/gengroup/Documents/ozon/data-cabinet/fbs_tariff_2026-10-28.psv",
+    "/Users/gengroup/Documents/Codex/outputs/problems-preview-data/delivery_sheet_state.json",
+    "knowledge/semantic/metrics/ozon-fbs-tariff.yaml",
+    "knowledge/semantic/metrics/ozon-delivery-sheet.yaml",
+    "knowledge/os/analytics-dod.md",
+    "/Users/gengroup/Documents/ozon/deploy/run.sh"
+  ]
+}

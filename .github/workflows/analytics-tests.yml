@@ -75,6 +75,10 @@ jobs:
       - name: "OZON: Google-ведомость доставки (без сети)"
         run: python3 -B -m unittest discover -s tools/tests -p 'delivery_sheet_test.py' -v
 
+      - name: FBS cabinet tariff importer
+        working-directory: analytics-mvp
+        run: python3 -B -m unittest discover -s tools/tests -p 'fbs_tariff_test.py' -v
+
       - name: "Market: Google-ведомость доставки (без сети)"
         run: python3 -B -m unittest discover -s tools/tests -p 'ym_delivery_sheet_test.py' -v
 

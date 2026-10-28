@@ -177,16 +177,30 @@ def parse_tab(text, tab, through, locations):
     return events, missing, dict(counts), {"zero": zero, "orders": observed}
 
 
-def merge_events(previous, incoming, full):
+def merge_events(previous, incoming, full, corrections=None):
     merged = {event_key(e): e for e in previous}
     old_groups = collections.defaultdict(set)
     old_dates = collections.defaultdict(set)
+    new_groups = collections.defaultdict(set)
+    for key in incoming:
+        new_groups[key[:2]].add(key)
     for key in merged:
         old_groups[key[:2]].add(key)
         old_dates[(key[0], key[2])].add(key)
     for key in incoming:
         if key not in merged and old_groups[key[:2]] - incoming.keys():
-            raise ValueError("changed price or ambiguous trip; full archive/review required")
+            old_keys = old_groups[key[:2]]
+            # A full replay can identify a correction only when both versions
+            # have exactly one trip on this date and the non-price identity agrees.
+            old_key = next(iter(old_keys))
+            old = merged[old_key]
+            new = incoming[key]
+            if (not full or len(old_keys) != 1 or len(new_groups[key[:2]]) != 1
+                    or any(old.get(f) != new.get(f) for f in ("arts", "com", "paid_cents"))):
+                raise ValueError("changed price or ambiguous trip; full archive/review required")
+            del merged[old_key]
+            if corrections is not None:
+                corrections.append({"old": old_key, "new": key})
         if key not in merged and old_dates[(key[0], key[2])] - incoming.keys():
             raise ValueError("changed date or ambiguous trip; full archive/review required")
     # Missing rows can have moved to archive. They are never silently deleted or
@@ -257,10 +271,11 @@ def project(events, baseline_orders, baseline_cities, sold=None, primary_keys=No
 
 
 def fetch_tab(tab):
-    url = f"https://docs.google.com/spreadsheets/d/{SHEET}/gviz/tq?tqx=out:csv&headers=1&gid={TABS[tab]}"
+    urls = [f"https://docs.google.com/spreadsheets/d/{SHEET}/export?format=csv&gid={TABS[tab]}",
+            f"https://docs.google.com/spreadsheets/d/{SHEET}/gviz/tq?tqx=out:csv&headers=1&gid={TABS[tab]}"]
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(url, timeout=45) as response:
+            with urllib.request.urlopen(urls[attempt % 2], timeout=45) as response:
                 if "csv" not in response.headers.get("Content-Type", "").lower():
                     raise ValueError("source is not CSV")
                 raw = response.read(8_000_001)
@@ -310,8 +325,10 @@ def prepare(data, state, active, archive, now, locations=None):
     previous = state.get("events", []) if state else []
     if any((e["order"], e["date"]) in zero and event_key(e) not in incoming for e in previous):
         raise ValueError("accepted positive bill became zero or ambiguous zero trip; review required")
-    events, _ = merge_events(previous, incoming, full)
-    unseen = ({event_key(e) for e in previous} - incoming.keys() if full else
+    corrections = []
+    events, _ = merge_events(previous, incoming, full, corrections)
+    replaced = {tuple(c["old"]) for c in corrections}
+    unseen = ({event_key(e) for e in previous} - incoming.keys() - replaced if full else
               ({tuple(k) for k in state.get("unseen_keys", [])} |
                {event_key(e) for e in previous if e["order"] in observed["orders"]}) - incoming.keys())
     if full and not counts.get("ozon_rows"):
@@ -337,7 +354,12 @@ def prepare(data, state, active, archive, now, locations=None):
             elif not state:
                 raise ValueError("initial target window is not empty; review baseline")
     baseline_orders = [json.loads(x) for x in historical[FILES[0]]]
-    result = project(events, baseline_orders, baseline_cities, primary_keys=state.get("primary_keys", {}) if state else {})
+    primary_keys = dict(state.get("primary_keys", {}) if state else {})
+    for correction in corrections:
+        old, new = correction["old"], correction["new"]
+        if tuple(primary_keys.get(old[0], ())) == old:
+            primary_keys[old[0]] = new
+    result = project(events, baseline_orders, baseline_cities, primary_keys=primary_keys)
     # Historical lines (including old formatting) are retained byte for byte.
     outputs = {}
     old_ids = {r["order"] for r in baseline_orders}
@@ -350,11 +372,13 @@ def prepare(data, state, active, archive, now, locations=None):
                   "archive_loaded_at": stamp if full else state["archive_loaded_at"],
                   "baseline_cities": baseline_cities, "locations": locations, "events": events,
                   "primary_keys": result[5],
+                  "price_corrections": state.get("price_corrections", []) + [dict(c, loaded_at=stamp) for c in corrections] if state else [],
                   "unseen_keys": sorted(unseen),
                   "missing_keys": sorted(missing), "missing_cost": len(missing),
                   "undated_rows": counts.get("undated_rows", 0)}
     status = {"loaded_at": stamp, "through": through, "source": SHEET, "from": START,
               "archive_read": full, "events": len(events), "missing_cost": len(missing),
+              "corrected_prices": len(corrections),
               "missing_customer_paid": sum(e["paid_cents"] is None for e in events),
               "retained_unseen_events": len(unseen), "undated_rows": next_state["undated_rows"],
               "city_unknown": sum(e["city"] == "город не указан" for e in events),

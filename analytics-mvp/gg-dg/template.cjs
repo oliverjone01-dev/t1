@@ -93,7 +93,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   if(assemblyStart<0||assemblyEnd<0)throw Error('Missing dashboard assembly');
   s=s.slice(0,assemblyStart)+`  h=B_migWarn+divider(1,'Компания','показатели ДГ и сравнение с прошлым периодом')+B_kpi+B_cvFunnel+dgDistributionBlock()
     +divider(2,'Отдел продаж','от входящих лидов до исходов сделок')+B_leadStrip+B_leadFunnelPair+B_truba+dgCalendarBlock()
-    +divider(3,'Со сделанным предложением','пайплайн и исходы офферов')+offerAnalytics()+dgRefusalBlock();
+    +divider(3,'Со сделанным предложением','пайплайн и исходы офферов')+'<div class="dg-offer-summary">'+offerAnalytics()+dgRefusalBlock()+'</div>';
 `+s.slice(assemblyEnd);
   s=once(s,"document.getElementById('root').innerHTML=h;","document.getElementById('root').innerHTML=dgSafeMarkup(h);");
   s=s.replace(/wireDyn\(D,L\);wireCv\(L,D\);wireLoad\(\);wireMoneyDyn\([^\n]+?;wirePrepProd\(\);wireDQ\(\);/,'wireCv(L,D);');

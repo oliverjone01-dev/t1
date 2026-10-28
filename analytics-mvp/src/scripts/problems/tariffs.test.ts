@@ -14,7 +14,7 @@ describe('Cabinet FBS tariffs',()=>{
  it('page exposes tariffs separately from fines, queue and delivery freshness',()=>{
   const d:ProblemData={now:'2026-10-28T09:00:00Z',postings:[],events:[],ratings:[],summary:[],thresholds:null,coverage:{postings:{days:[],loaded_at:null,note:''}},warnings:[],fbsTariff:bundle([row(),row({order:'12345678-0003-1',status:'awaiting_deliver',fact_type:null,rate_bps:null,effect_cents:null,current_type:'discount',current_rate_bps:200,step1_deadline:'2026-10-28T02:44:00Z',step2_deadline:'2026-10-28T14:44:00Z',step3_deadline:'2026-10-29T02:44:00Z',step4_deadline:'2026-10-29T14:44:00Z'})]),deliverySource:{through:'2026-10-27',loaded_at:'2026-10-28T09:00:00Z',corrected_prices:14}};
   const dom=new JSDOM(problemsPage(d),{runScripts:'dangerously'});const doc=dom.window.document;
-  (doc.querySelector('#from') as unknown as {value:string}).value='2026-10-01';(doc.querySelector('#to') as unknown as {value:string}).value='2026-10-28';(doc.querySelector('#apply') as unknown as {click:()=>void}).click();
+  (doc.querySelector('#range-from') as unknown as {value:string}).value='2026-10-01';(doc.querySelector('#range-to') as unknown as {value:string}).value='2026-10-28';(doc.querySelector('#range-apply') as unknown as {click:()=>void}).click();
   expect(doc.querySelector('#tariff-summary')?.textContent).toContain('4 254');expect(doc.querySelector('#tariff-summary')?.textContent).toContain('1 / 2');expect(doc.querySelector('#tariff-queue')?.textContent).toContain('05:44');expect(doc.querySelector('#tariff-queue')?.textContent).toContain('−2 п.п.');expect(doc.querySelector('#delivery-source')?.textContent).toContain('2026-10-27');expect(doc.querySelector('#kpis')?.textContent).not.toContain('4 254');dom.window.close();
  });
 });

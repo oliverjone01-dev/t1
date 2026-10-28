@@ -2,7 +2,7 @@ export type Posting={order:string;date:string;status:string;scheme:string;offer:
 export type Kind='fine'|'return'|'deliveryLoss'|'lateShip'|'shift'|'lateDelivery'|'defectCharge';
 export type Event={id:string;date:string;kind:Kind;order:string|null;offer:string;scheme:string;reason:string;amount:number|null;qty?:number|null;days?:number|null;source:string};
 export type Coverage={days:string[];loaded_at:string|null;note:string;incomplete_since?:string};
-export type ProblemData={now:string;postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[];fbsTariff?:FbsTariff|null;fbsEstimateCohort?:FbsEstimateCohort|null;deliveryTimeline?:DeliveryTimeline|null;deliverySource?:{through:string|null;loaded_at:string|null;corrected_prices:number;issues?:string[]}};
+export type ProblemData={now:string;periodBounds?:{from:string;to:string};postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[];fbsTariff?:FbsTariff|null;fbsEstimateCohort?:FbsEstimateCohort|null;deliveryTimeline?:DeliveryTimeline|null;deliverySource?:{through:string|null;loaded_at:string|null;corrected_prices:number;issues?:string[]}};
 
 export function shift(date:string,n:number){return new Date(Date.parse(date+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);}
 export function days(from:string,to:string){

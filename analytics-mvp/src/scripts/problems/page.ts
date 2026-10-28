@@ -9,5 +9,5 @@ export function problemsPage(data:ProblemData){
  return readFileSync('katya/problems/template.html','utf8')
   .replace('__NAV__',KPAGES.map(([h,l,k])=>navButton(h,l,k==='problems')).join(' '))
   .replace('__DATA__',()=>JSON.stringify(data).replace(/</g,'\\u003c'))
-  .replace('__SCRIPT__',()=>model+'\n'+client);
+  .replace('__SCRIPT__',()=>readFileSync(new URL('../dashboard-period.js',import.meta.url),'utf8')+'\n'+model+'\n'+client);
 }

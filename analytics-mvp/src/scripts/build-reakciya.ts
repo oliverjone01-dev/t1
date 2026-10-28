@@ -21,7 +21,9 @@ if (!IS_OZON) {
   process.exit(0);
 }
 
-type Raw = { updated: string; data_until: string; prices_until: string; feed: Array<{ ts: string; sp?: unknown }>; [k: string]: unknown };
+type Raw = { updated: string; data_until: string; prices_until: string;
+  coinv_history?: { until: string | null; partial: boolean };
+  feed: Array<{ ts: string; sp?: unknown }>; [k: string]: unknown };
 const raw = JSON.parse(readFileSync(dp("reakciya.json"), "utf-8")) as Raw;
 
 // Срез из кабинета несёт ещё пару веток, которые вкладка больше не рисует: заготовки тестов,
@@ -37,7 +39,7 @@ if (cpo && typeof cpo === "object") raw.cpo = { steps: cpo.steps || [] };
 const navStrip = `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
     ${KPAGES.map(([h, l, key]) => navButton(h, l, key === "reakciya")).join(" ")}
-    <span style="color:#5d7484;margin-left:8px">кабинет OZON · действия по ${raw.updated} · воронка по ${raw.data_until} · цены по ${raw.prices_until}</span>
+    <span style="color:#5d7484;margin-left:8px">кабинет OZON · действия по ${raw.updated} · воронка по ${raw.data_until} · цены по ${raw.prices_until} · история соинвеста по ${raw.coinv_history?.until || 'н/д'}${raw.coinv_history?.partial ? ' (день не завершён)' : ''}</span>
   </div></div>`;
 
 const appJs = PARTS.map((f) => { const t = part(f); return t.endsWith("\n") ? t : t + "\n"; }).join("");

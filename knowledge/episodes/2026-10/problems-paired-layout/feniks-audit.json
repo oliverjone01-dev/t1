@@ -1,0 +1,103 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "problems-paired-layout-20261028",
+  "timestamp": "2026-10-28T15:04:44.305154+00:00",
+  "deliverable_ref": "codex/problems-paired-layout-20261028; audited_hash=b71c5b9e28130a55",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry-after-rework - higher by0.4: raw to DOM weights, exact remainder drilldown and missing-source mutation independently exercised; below8.9 annotate because source coverage remains bounded and no new cross-family financial reconciliation was attempted.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 7,
+    "brand_fit": 10,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.5,
+  "verdict": "go",
+  "gaps": [],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "p9_triggers_fired": [
+    "operational dashboard display"
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent saved NDJSON reconstruction, outside generated HTML, reproduces3 period cancellation counts/return units/fines. Same model/source/date/finance logic remains. This is operational display checking, not bank/document reconciliation."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Sep1-30 cancellation46/return17/fine positive8570.71; Oct1-15=29/13/15462.68; Oct1-27=53/28/39388.09. Reason bars and paired actor rings agree with raw counts; fine positive/net unchanged."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "4046 unique postings/136 unique events; duplicate injections rejected. Synthetic55 categories withTOP10/30/50 retains total55, remainder45/25/5 and exact drilldown row counts."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Pair order reasons left/initiators right; reason bars weights sum to actor ring total. Widths equal value/max shown including remainder. Click reason preserves row counts. No cancel-chart node. RFBS hidden default; late click opens3, repeat hides, pageshow hides."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "No hardcoded business totals introduced. BarMax computes from shown weights;10/30/50 are controls, CSS numbers are presentation. Fine ring/corrections remain unchanged."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Final preview built from final source, own runtime probe0 errors. Personally inspected paired-cancellations.png and delivery-collapsed.png for unchanged nonempty layout. Final hash independentlyb71c5b9e28130a55."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Found false0 on empty source in new bars, author fixed before GO. Final missing-source and all-null-qty mutations show explicit unavailable/no-positive labels without inline0. Existing export unchanged; no new finance/raw/source mutations."
+    }
+  ],
+  "evidence_ledger": [],
+  "sources_of_truth": [
+    "analytics-mvp/data/orders_daily.ndjson",
+    "analytics-mvp/data/problems_postings.ndjson",
+    "analytics-mvp/data/problems_events.ndjson",
+    "knowledge/semantic/metrics/ozon-problems.yaml",
+    "knowledge/episodes/2026-10/problems-paired-layout/feniks-probe-results.json"
+  ],
+  "audience": "Иван; internal Ozon operations"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "path": "analytics-mvp/katya/problems/template.html",
+    "sha": "6e76fee6b847ac8f5b07deae2515fd397d157d22"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/build-katya.ts",
+    "sha": "bac4a59c8e0cba7e5eac2f6b1c0951ca77477c7e"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/dashboard-period.js",
+    "sha": "5079d5ed68f44c996eb820373b52947fe7ffac5a"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/client.js",
+    "sha": "4ad7be2f90a7c1d4d3f097e2b09120b10a3c5db0"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/data.ts",
+    "sha": "789963b0c44062e904a83b57878d39b8e7a51dd9"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/model.ts",
+    "sha": "8aedbb16c03928d8655e96f808b9d268f09a56e8"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/page.ts",
+    "sha": "5b8041172e3d088795047e85642626b8d6d99543"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/problems.test.ts",
+    "sha": "e9d64ac8586ac54776ace63b442e3dc00998e103"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/tariff-estimates.test.ts",
+    "sha": "e0e99615e25dd45d2b623a3f9a5947bb34e21ef7"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/tariffs.test.ts",
+    "sha": "48e5226a3c7b074afcff293a881124d72b4de254"
+  },
+  {
+    "path": "analytics-mvp/src/scripts/problems/visuals-period.test.ts",
+    "sha": "48510829725280cd758ea72b6ef69e3141b67c3a"
+  },
+  {
+    "path": "knowledge/semantic/metrics/ozon-problems.yaml",
+    "sha": "a884f5276cdee6ec8affe4e472bd8bef9cea86c3"
+  }
+]

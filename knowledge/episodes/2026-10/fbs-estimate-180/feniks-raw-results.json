@@ -1,0 +1,90 @@
+{
+  "2026-09-01/2026-09-30": {
+    "selected": 0,
+    "included": 0,
+    "confirmed": 0,
+    "estimated": 0,
+    "excluded": 0,
+    "waiting": 0,
+    "net": null,
+    "best": null,
+    "gap": null,
+    "clock": null,
+    "actualNet": null,
+    "mismatches": []
+  },
+  "2026-10-18/2026-10-21": {
+    "selected": 26,
+    "included": 25,
+    "confirmed": 20,
+    "estimated": 5,
+    "excluded": 1,
+    "waiting": 0,
+    "net": -1746.84,
+    "best": 29041.38,
+    "gap": 27294.54,
+    "clock": 297.38,
+    "actualNet": -3247.93,
+    "mismatches": [
+      {
+        "order": "37549854-0567-1",
+        "hours": 26.995184825555555,
+        "actual": true,
+        "bps": -200,
+        "amount": 4390000,
+        "effect": -87800,
+        "clock": 0,
+        "best": 131700,
+        "mismatch": true
+      },
+      {
+        "order": "16254522-0193-2",
+        "hours": 24.397163121111113,
+        "actual": true,
+        "bps": -200,
+        "amount": 5831100,
+        "effect": -116622,
+        "clock": 0,
+        "best": 174933,
+        "mismatch": true
+      }
+    ]
+  },
+  "2026-10-01/2026-10-28": {
+    "selected": 74,
+    "included": 68,
+    "confirmed": 24,
+    "estimated": 44,
+    "excluded": 2,
+    "waiting": 4,
+    "net": -8779.43,
+    "best": 86910.39,
+    "gap": 78130.96,
+    "clock": -6735.21,
+    "actualNet": -5337.57,
+    "mismatches": [
+      {
+        "order": "37549854-0567-1",
+        "hours": 26.995184825555555,
+        "actual": true,
+        "bps": -200,
+        "amount": 4390000,
+        "effect": -87800,
+        "clock": 0,
+        "best": 131700,
+        "mismatch": true
+      },
+      {
+        "order": "16254522-0193-2",
+        "hours": 24.397163121111113,
+        "actual": true,
+        "bps": -200,
+        "amount": 5831100,
+        "effect": -116622,
+        "clock": 0,
+        "best": 174933,
+        "mismatch": true
+      }
+    ]
+  }
+}

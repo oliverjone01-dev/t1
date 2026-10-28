@@ -1,0 +1,40 @@
+{
+  "rows": 218,
+  "issues": {
+    "future_actual": 57,
+    "actual_before_ship": 1,
+    "delivered_without_actual": 1,
+    "status_vs_actual": 15,
+    "missing_trip": 18,
+    "unknown_status": 1
+  },
+  "periods": [
+    {
+      "from": "2026-09-01",
+      "to": "2026-09-30",
+      "review": 85,
+      "shiftsUnavailable": true
+    },
+    {
+      "from": "2026-10-01",
+      "to": "2026-10-15",
+      "review": 85,
+      "shiftsUnavailable": true
+    },
+    {
+      "from": "2026-10-01",
+      "to": "2026-10-27",
+      "review": 85,
+      "shiftsUnavailable": true
+    }
+  ],
+  "runtimeErrors": [],
+  "review": 85,
+  "late": 3,
+  "changesNoMatch": {
+    "rows": 0,
+    "title": "Переносы за период · 0 изменений",
+    "note": "По этому поиску переносов не найдено.",
+    "emptyText": ""
+  }
+}

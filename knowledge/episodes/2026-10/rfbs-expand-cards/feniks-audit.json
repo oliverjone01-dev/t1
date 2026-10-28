@@ -1,0 +1,102 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "rfbs-expand-cards-20261028",
+  "timestamp": "2026-10-28T14:44:34.747391+00:00",
+  "deliverable_ref": "codex/rfbs-expand-cards-20261028; PR536; audited_hash=288a853f3e5c8d7b",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry-after-rework - higher by0.4: source populations and exact issue sets reproduced; synthetic search regression found and fixed before GO. Below8.9 annotate: existing data coverage remains bounded by saved snapshot.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 7,
+    "brand_fit": 10,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.5,
+  "verdict": "go",
+  "gaps": [],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "p9_triggers_fired": [
+    "operational dashboard display"
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Saved delivery_timeline.json equals embedded source; independent issue rules reconstruct218 trips,85 unique review trips and57/18/15/1/1/1 category flags. No financial formula changed."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Sep1-30, Oct1-15, Oct1-27: same dated snapshot218 trips/85 review; reschedule history correctly unavailable before28Oct baseline; source/date/model semantics unchanged."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Exact issue-ID set checked for every category in each period. Sets counted per trip to avoid repeated issue flags. Nonexclusive category sum93 versus unique85 explicitly explained."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Cards/list/table/chips agree with independent categories; late3/review85/missing_trip18/future_actual57. Synthetic known shift1 -> unmatched search0; title0 and explicit empty note. Found gap corrected and re-probed."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Changed display counts derive t.review/t.overdue/t.late/t.shifts, not literals. Dated85 in semantic spec is provenance, not the live UI value. Labels escaped."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Final preview includes corrected search note; own runtime probe on final HTML gives0 errors. delivery-review.png personally inspected for unchanged cards/chips layout. Final product hash independently288a853f3e5c8d7b."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No collector/raw/financial source modifications. Existing CSV exports unchanged. Shift count unavailable stays н/д; review explicitly described as data inconsistencies, not lateness. No publication by auditor."
+    }
+  ],
+  "evidence_ledger": [],
+  "sources_of_truth": [
+    "analytics-mvp/data/delivery_timeline.json",
+    "analytics-mvp/src/scripts/problems/model.ts",
+    "knowledge/semantic/metrics/ozon-problems.yaml",
+    "knowledge/episodes/2026-10/rfbs-expand-cards/feniks-probe-results.json"
+  ],
+  "audience": "Иван; internal Ozon operations"
+}

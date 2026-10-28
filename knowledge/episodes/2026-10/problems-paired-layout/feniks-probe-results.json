@@ -1,0 +1,151 @@
+{
+  "sourceRows": {
+    "legacy": 4043,
+    "details": 4009,
+    "mergedUnique": 4046,
+    "events": 136
+  },
+  "periods": [
+    {
+      "from": "2026-09-01",
+      "to": "2026-09-30",
+      "expected": {
+        "cancels": 46,
+        "actors": {
+          "client": 30,
+          "seller": 7,
+          "ozon": 9
+        },
+        "finePositiveCents": 857071,
+        "fineNetCents": 823171,
+        "returnUnits": 17,
+        "returnRows": 17
+      },
+      "actual": {
+        "cancels": 46,
+        "initiators": 46,
+        "finePositiveCents": 857071,
+        "returnUnits": 17,
+        "returnActorUnits": 17
+      },
+      "actorRows": [
+        "Покупатель30 отпр.65,2%",
+        "Ozon9 отпр.19,6%",
+        "Мы7 отпр.15,2%"
+      ],
+      "returnActors": "17товаровНе указан17 шт.100%Групп инициаторов: 1",
+      "emptyCancelled": null,
+      "coverageNote": "ИсточникДнейПоследняя загрузкаОграниченияОтправления30/302026-10-28T11:21:47.561ZFBS/rFBS · дата создания по Москве; текущий статус когортыШтраф30/302026-10-28T11:21:47.561ZТолько подтверждённые Defect-типы; FlexiblePayments не включаетсяВо",
+      "errors": []
+    },
+    {
+      "from": "2026-10-01",
+      "to": "2026-10-15",
+      "expected": {
+        "cancels": 29,
+        "actors": {
+          "ozon": 7,
+          "client": 21,
+          "seller": 1
+        },
+        "finePositiveCents": 1546268,
+        "fineNetCents": 1546268,
+        "returnUnits": 13,
+        "returnRows": 13
+      },
+      "actual": {
+        "cancels": 29,
+        "initiators": 29,
+        "finePositiveCents": 1546268,
+        "returnUnits": 13,
+        "returnActorUnits": 13
+      },
+      "actorRows": [
+        "Покупатель21 отпр.72,4%",
+        "Ozon7 отпр.24,1%",
+        "Мы1 отпр.3,4%"
+      ],
+      "returnActors": "13товаровНе указан13 шт.100%Групп инициаторов: 1",
+      "emptyCancelled": null,
+      "coverageNote": "ИсточникДнейПоследняя загрузкаОграниченияОтправления15/152026-10-28T11:21:47.561ZFBS/rFBS · дата создания по Москве; текущий статус когортыШтраф15/152026-10-28T11:21:47.561ZТолько подтверждённые Defect-типы; FlexiblePayments не включаетсяВо",
+      "errors": []
+    },
+    {
+      "from": "2026-10-01",
+      "to": "2026-10-27",
+      "expected": {
+        "cancels": 53,
+        "actors": {
+          "ozon": 8,
+          "client": 38,
+          "seller": 7
+        },
+        "finePositiveCents": 3938809,
+        "fineNetCents": 3890909,
+        "returnUnits": 28,
+        "returnRows": 28
+      },
+      "actual": {
+        "cancels": 53,
+        "initiators": 53,
+        "finePositiveCents": 3938809,
+        "returnUnits": 28,
+        "returnActorUnits": 28
+      },
+      "actorRows": [
+        "Покупатель38 отпр.71,7%",
+        "Ozon8 отпр.15,1%",
+        "Мы7 отпр.13,2%"
+      ],
+      "returnActors": "28товаровНе указан28 шт.100%Групп инициаторов: 1",
+      "emptyCancelled": null,
+      "coverageNote": "ИсточникДнейПоследняя загрузкаОграниченияОтправления27/272026-10-28T11:21:47.561ZFBS/rFBS · дата создания по Москве; текущий статус когортыШтраф27/272026-10-28T11:21:47.561ZТолько подтверждённые Defect-типы; FlexiblePayments не включаетсяВо",
+      "errors": []
+    }
+  ],
+  "rfbsFilteredCount": 0,
+  "mutationDuplicateRejected": true,
+  "storageUpdate": true,
+  "returnInitiatorFields": 0,
+  "dedup": "PASS",
+  "periodsMatch": "PASS",
+  "syntheticTop": [
+    {
+      "n": 10,
+      "remainder": 45,
+      "rows": 45
+    },
+    {
+      "n": 30,
+      "remainder": 25,
+      "rows": 25
+    },
+    {
+      "n": 50,
+      "remainder": 5,
+      "rows": 5
+    }
+  ],
+  "emptySource": [
+    {
+      "mode": "missing",
+      "kind": "cancel",
+      "text": "Нет подтверждённых данныхПокрытие неполное · Показано 0 из 0 причин"
+    },
+    {
+      "mode": "missing",
+      "kind": "return",
+      "text": "Нет подтверждённых данныхПокрытие неполное · Показано 0 из 0 причин"
+    },
+    {
+      "mode": "unknownQty",
+      "kind": "cancel",
+      "text": "Нет подтверждённых данныхПокрытие неполное · Показано 0 из 0 причин"
+    },
+    {
+      "mode": "unknownQty",
+      "kind": "return",
+      "text": "Нет положительных значений для диаграммыПокрытие неполное · Без количества: 31 записей · Показано 0 из 0 причин"
+    }
+  ]
+}

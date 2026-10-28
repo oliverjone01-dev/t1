@@ -2,7 +2,7 @@ export type Posting={order:string;date:string;status:string;scheme:string;offer:
 export type Kind='fine'|'return'|'deliveryLoss'|'lateShip'|'shift'|'lateDelivery'|'defectCharge';
 export type Event={id:string;date:string;kind:Kind;order:string|null;offer:string;scheme:string;reason:string;amount:number|null;qty?:number|null;days?:number|null;source:string};
 export type Coverage={days:string[];loaded_at:string|null;note:string;incomplete_since?:string};
-export type ProblemData={now:string;postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[];fbsTariff?:FbsTariff|null;deliverySource?:{through:string|null;loaded_at:string|null;corrected_prices:number;issues?:string[]}};
+export type ProblemData={now:string;postings:Posting[];events:Event[];ratings:any[];summary:any[];thresholds:any;coverage:Record<string,Coverage>;warnings:string[];fbsTariff?:FbsTariff|null;deliveryTimeline?:DeliveryTimeline|null;deliverySource?:{through:string|null;loaded_at:string|null;corrected_prices:number;issues?:string[]}};
 
 export function shift(date:string,n:number){return new Date(Date.parse(date+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);}
 export function days(from:string,to:string){
@@ -41,6 +41,7 @@ export function summarize(data:ProblemData,from:string,to:string){
 }
 export function validateProblems(d:ProblemData){
  if(d.fbsTariff)validateTariffs(d.fbsTariff);
+ if(d.deliveryTimeline)validateDeliveryTimeline(d.deliveryTimeline);
  const unique=(rows:any[],key:(r:any)=>string)=>{const seen=new Set<string>();for(const r of rows){const k=key(r);if(!k||seen.has(k))throw new Error('Problems duplicate/empty key '+k);seen.add(k);}};
  unique(d.postings,r=>r.order);unique(d.events,r=>r.id);unique(d.ratings,r=>r.date);unique(d.summary,r=>r.date+':'+r.rating);
  for(const r of [...d.postings,...d.events,...d.ratings])if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||!Number.isFinite(Date.parse(r.date)))throw new Error('Problems invalid date');
@@ -79,4 +80,42 @@ export function validateTariffs(d:FbsTariff){
   }
  }
  return d;
+}
+
+
+export type DeliveryTrip={id:string;order:string;trip:string;arts:string[];status:string;shipped:string|null;planned:string|null;actual:string|null;issues:string[];tab:string;first_seen:string;last_seen:string;missing:boolean};
+export type DeliveryChange={id:string;trip_id:string;order:string;observed_at:string;previous_seen:string;changes:Record<string,[string|null,string|null]>;status:string;conflict:boolean};
+export type DeliveryTimeline={version:1;source_date:string;loaded_at:string;started_at:string;scope_from:string;observed_days:string[];rows:DeliveryTrip[];history:DeliveryChange[]};
+export function validateDeliveryTimeline(s:DeliveryTimeline){
+ const date=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+ if(s.version!==1||!date(s.source_date)||moscowDay(s.loaded_at)!==s.source_date||!Number.isFinite(Date.parse(s.started_at)))throw new Error('Invalid delivery timeline');
+ const keys=new Set<string>();for(const r of s.rows){
+  if(keys.has(r.id)||r.id!==r.order+':'+r.trip||!/^\d+-\d+-\d+$/.test(r.order)||! /^(?:(?:НС|НМ|С|М)\d{2}-\d+)(?:\+(?:НС|НМ|С|М)\d{2}-\d+)*$|^БЕЗ-НОМЕРА$/.test(r.trip))throw new Error('Invalid delivery trip identity');keys.add(r.id);
+  for(const d of [r.planned,r.actual,r.shipped])if(d!==null&&!date(d))throw new Error('Invalid delivery trip date');
+  if(!Number.isFinite(Date.parse(r.last_seen))||r.last_seen>s.loaded_at)throw new Error('Invalid delivery observation');
+ }
+ const ids=new Set<string>();for(const h of s.history){if(ids.has(h.id)||!keys.has(h.trip_id)||!Number.isFinite(Date.parse(h.observed_at))||h.observed_at>s.loaded_at)throw new Error('Invalid delivery history');ids.add(h.id);}
+ return s;
+}
+export function summarizeDeliveryTimeline(s:DeliveryTimeline|null|undefined,from:string,to:string){
+ const terminal=(status:string)=>/отмен|возврат|вернули/i.test(status);
+ const rows=(s?.rows??[]).map(r=>{
+  const issues=[...r.issues],today=s!.source_date,closed=terminal(r.status);
+  const conflict=r.issues.includes('source_conflict'),future=!!r.actual&&r.actual>today,beforeShip=!!r.actual&&!!r.shipped&&r.actual<r.shipped;
+  if(future)issues.push('future_actual');if(beforeShip)issues.push('actual_before_ship');if(r.missing)issues.push('missing');
+  const actual=!future&&!beforeShip&&!conflict&&!r.missing?r.actual:null;
+  if(actual&&r.status==='Создан')issues.push('status_vs_actual');
+  if(r.status==='Доставлен'&&!actual)issues.push('delivered_without_actual');
+  const usable=!closed&&!conflict&&!r.missing;
+  const late=usable&&actual&&r.planned?Math.max(0,Math.round((Date.parse(actual)-Date.parse(r.planned))/86400000)):null;
+  const overdue=usable&&!actual&&r.status!=='Доставлен'&&r.planned&&r.planned<today?Math.round((Date.parse(today)-Date.parse(r.planned))/86400000):null;
+  return {...r,issues,closed,confirmedActual:closed?null:actual,late,overdue};
+ });
+ const history=(s?.history??[]).filter(h=>{const d=moscowDay(h.observed_at);return d>=from&&d<=to;}).sort((a,b)=>b.observed_at.localeCompare(a.observed_at));
+ const shifts=history.filter(h=>h.changes.planned?.[0]&&h.changes.planned?.[1]&&!h.conflict&&!terminal(h.status));
+ const historyAvailable=!!s&&to>=moscowDay(s.started_at);
+ return {rows,history,shifts,shiftCount:historyAvailable?shifts.length:null,
+  overdue:rows.filter(r=>r.overdue!==null),late:rows.filter(r=>r.late!==null&&r.late>0),
+  delivered:rows.filter(r=>r.confirmedActual!==null),review:rows.filter(r=>r.issues.length),
+  excluded:rows.filter(r=>r.closed),stale:s?moscowDay(s.loaded_at)!==s.source_date:false};
 }

@@ -1,0 +1,83 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "rfbs-delivery-timeline",
+  "timestamp": "2026-10-28T10:17:51.799757+00:00",
+  "iteration": 2,
+  "deliverable_ref": "branch codex/rfbs-delivery-timeline; audited worktree b7f35c870436dafe",
+  "artifact_class": "dashboard",
+  "scores": {
+    "accuracy": 8.5,
+    "actionability": 8.5,
+    "insight": 8,
+    "brand_fit": 8.5,
+    "risk_awareness": 8.5
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "confidence": 0.93,
+  "gaps": [],
+  "rework_tz": "",
+  "anchor": "8.1 dialogs-registry after fixes: this delivery ledger is slightly higher because multi-trip identities, missing source rows, source conflicts and privacy probes were reproduced; below 8.9 annotate because original promise and carrier proof are unavailable.",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "sources_of_truth": [
+    "knowledge/semantic/metrics/ozon-rfbs-delivery-timeline.yaml",
+    "Google Sheet active and archive live read, 28.10.2026",
+    "knowledge/semantic/probes/ozon-rfbs-delivery-20261028.md",
+    "knowledge/os/analytics-dod.md"
+  ],
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent read-only Google active+archive fetch and direct date arithmetic: 218 unique trips,147 valid facts,57 future facts,6 terminal rows; late1/7/2days on3orders. Matches source snapshot and model."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Closed September, Oct1-15, current Oct1-28: live baseline shift counts null/null/0, queue218 and late3 intentionally period-independent. Synthetic observed history independently expected1/1/2, model equals."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Initial audit reproduced silent merging of different unnumbered trips. Fixed in b7f35c870436dafe: same-tab and cross-tab differing articles rejected, exact copies dedup; distinct ledger IDs preserved.49Python tests pass."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Direct source arithmetic -> model147 completed/3late -> HTML3late and218table rows. Money model and source unchanged.52ProblemsTS/DOM checks pass."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Counters generated from source/model; grep for source counts/identifiers in template/client found only unrelated CSS hex sequences, no fixed operational totals."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Snapshot28Oct, current source independent read matches; production page rebuilt and checked after final template refresh. No invented pre-baseline history."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Injected private status, phone and note fields stripped; arbitrary contacts/addresses not published. Future facts/conflicts excluded from completion, missing rows not cancellation. Source limitation and unknown history visible."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Closed B3: unnumbered rows with different articles silently merged in initial82edd8daa4dde7e1",
+      "evidence": "collect([row(ledger empty,article GGT-ONE),row(ledger empty,article GGT-TWO)]) originally rows1. Final same-tab/cross-tab probes raise ValueError; exact copies retain rows1.",
+      "checkpoint": "accuracy_1",
+      "weight": 0
+    }
+  ],
+  "p9_triggers_fired": [
+    "Missing values are not zero",
+    "No independent carrier verification",
+    "No reconstructed historical promises"
+  ]
+}

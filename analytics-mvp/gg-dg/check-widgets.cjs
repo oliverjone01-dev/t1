@@ -32,7 +32,7 @@ test('refusal activity uses Moscow midnight and blank details retain the known r
 });
 test('missing duplicate-origin hint belongs only to a duplicate lead, not its related deal',()=>{
  const f=fixture();Object.assign(f.leads[0],{statusCode:'JUNK',status:'Некачественный лид',reason:'Дубль'});Object.assign(f.deals[0],{lost:true,closed:'2026-10-12',reason:'Дубль',stageCode:'C49:LOSE'});f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[{id:'2',key:'D20',at:Date.parse('2026-10-12T12:00:00+03:00'),code:'C49:LOSE',semantic:'F'}]};const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");
- assert.match(d.run("dgRefusalView().find(x=>x.key==='L10').cells.reason"),/ID исходного лида не указан/);assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.reason"),'Дубль');assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.lead"),'Лид 10');
+ assert.match(d.run("dgRefusalView().find(x=>x.key==='L10').cells.reason"),/Ссылка на дубль не загружена/);assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.reason"),'Дубль');assert.equal(d.run("dgRefusalView().find(x=>x.key==='D20').cells.lead"),'Лид 10');
 });
 test('mini-chart tooltips distinguish missing, partial and genuine zero money',()=>{
  const d=dashboard();d.run("S.calUnit='money';S.start='2026-10-01';S.end='2026-10-31';S.gran='day'");
@@ -90,7 +90,7 @@ test('distribution defaults to all creation-cohort deals, preserves every catego
  const f=fixture(),seed=f.deals[0];f.deals=Array.from({length:12},(_,i)=>({...seed,id:String(20+i),assort:'Category '+i,budget:i===0?null:100}));const d=dashboard(sync(f));
  assert.equal(d.run('dgDistributionRows().length'),12);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').length"),12);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.value,0)"),12);
  d.run("S.dgDistUnit='money'");assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.value,0)"),1100);assert.equal(d.run("dgDistributionGroups(dgDistributionRows(),'assort').reduce((s,g)=>s+g.missing,0)"),1);
- d.run("S.dgDistMode='sales'");const h=d.run('dgDistributionBlock()');assert.equal(d.run('dgDistributionRows().length'),0);assert.equal((h.match(/dg-empty-ring/g)||[]).length,3);assert.ok(!h.includes('<path '));assert.ok(h.includes('Нет продаж за выбранный период'));
+ d.run("S.dgDistMode='sales'");const h=d.run('dgDistributionBlock()');assert.equal(d.run('dgDistributionRows().length'),0);assert.equal((h.match(/dg-empty-ring/g)||[]).length,2);assert.ok(!h.includes('<path '));assert.ok(h.includes('Нет продаж за выбранный период'));
 });
 test('sales distributions preserve GG prepayment event, amount and date-basis filters',()=>{
  const f=fixture();Object.assign(f.deals[0],{created:'2026-09-01',stageCode:'C49:EXECUTING',stage:'Предоплата',prepayAmt:400,hist:[['C49:EXECUTING','2026-10-08']]});const d=dashboard(f);d.run("S.dgDistMode='sales';S.dgDistUnit='money';S.amtMode='prepay'");assert.equal(d.run('dgDistributionRows().length'),1);assert.equal(d.run('dgDistributionValue(dgDistributionRows()[0])'),400);d.run("S.dateBasis='created'");assert.equal(d.run('dgDistributionRows().length'),0);
@@ -314,3 +314,16 @@ test('calendar switches between manager and direct record levels without changin
  d.run("S.dgCalView='deals'");const direct=d.run('dgCalendarBlock()');assert.ok(!direct.includes('dg-heat-manager'));assert.ok(direct.includes('data-dg-calrecord="D20"'));assert.ok(direct.includes('<th>Ответственный</th>'));assert.ok(!direct.includes('Таблица ответственных'));assert.ok(!direct.includes('dg-comm-host'));assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')"),before);
  d.run("S.dgCalRecords.add('D20')");const open=d.run('dgCalendarBlock()');assert.ok(open.includes('colspan="9"'));assert.ok(open.includes('dg-comm-host'));d.run("S.dgCalView='managers';S.dgCalRecords.clear()");assert.ok(d.run('dgCalendarBlock()').includes('dg-heat-manager'));
 });
+
+test('duplicate reference field distinguishes lead/deal targets without exposing CRM URLs',()=>{
+ const {DG_DUPLICATE_FIELD:F,leadDuplicate,assertLeadDuplicateField}=require('./collect-widgets.cjs');assertLeadDuplicateField({[F]:{type:'string'}});assert.throws(()=>assertLeadDuplicateField({}));
+ for(const [value,kind,id]of [['https://glassmemory.bitrix24.ru/crm/deal/details/900/','deal','900'],['/crm/lead/show/901/?x=1','lead','901'],['L_902','lead','902'],['D_903','deal','903']]){const r=leadDuplicate({[F]:value});assert.deepEqual(r,{duplicateRef:{kind,id},duplicateLinkState:'valid'});assert.ok(!JSON.stringify(r).includes('http'));}
+ for(const value of ['https://evil.test/crm/deal/details/900/','https://glassmemory.bitrix24.ru.evil.test/crm/lead/details/900/','javascript:alert(1)','900',['/crm/lead/details/901/']])assert.equal(leadDuplicate({[F]:value}).duplicateLinkState,'unrecognized');assert.equal(leadDuplicate({[F]:''}).duplicateLinkState,'empty');assert.equal(leadDuplicate({}).duplicateLinkState,'unknown');
+ const f=fixture();Object.assign(f.leads[0],{statusCode:'2',status:'Дубль',reason:'Дубль',...leadDuplicate({[F]:'/crm/deal/details/900/'})});f.calendar={version:1,lead:[{id:'1',key:'L10',at:Date.parse('2026-10-10T12:00:00+03:00'),code:'2',semantic:'F'}],deal:[]};const d=dashboard(f),r=d.run('dgRefusalView()[0]');assert.equal(r.cells.lead,'Сделка 900');assert.equal(r.cells.reason,'Дубль');assert.ok(!d.run('dgRefusalBlock()').includes('/crm/'));assert.equal(d.data.leads[0].duplicateRef.id,'900');
+});
+
+test('client-type sections and KPI snapshot footnote are absent from partner presentation',()=>{
+ const f=fixture();f.deals[0].client='PRIVATE CLIENT TYPE';const d=dashboard(f),h=d.render();assert.ok(!h.includes('PRIVATE CLIENT TYPE'));assert.ok(!/[Тт]ип[ау]? клиента|по клиенту и изделию/.test(h));assert.ok(!d.run('dgDistributionBlock()').includes('data-dg-distribution="client"'));assert.ok(!d.run('dgRefusalBlock()').includes('data-dg-loss-filter="client"'));assert.equal(d.run('DG_LOSS_COLUMNS.length'),9);assert.ok(!d.run('dgKpiGraphFor({k:"В работе сейчас"})').includes('Оценка снимков; число выше'));assert.ok(d.run('dgKpiGraphFor({k:"В работе сейчас"})').includes('Остаток на указанную дату'));
+});
+
+test('empty refusal table spans all retained columns',()=>{const f=fixture();f.leads=[];f.deals=[];const d=dashboard(sync(f));const h=d.run('dgRefusalBlock()');assert.ok(h.includes('colspan="9"'));assert.ok(!h.includes('$'+'{DG_LOSS_COLUMNS.length}'));});

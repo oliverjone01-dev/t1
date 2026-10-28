@@ -3,6 +3,17 @@
 // mappings remain the reference implementation; every list is paginated and checked.
 const fs=require('node:fs'), path=require('node:path'), {stripTypeScriptTypes}=require('node:module');
 const SOURCE_ID='UC_NQ3QUI', SOURCE_NAME='Заявка с ДГ';
+const DG_DUPLICATE_FIELD='UF_CRM_1782742894264';
+function assertLeadDuplicateField(fields){if(fields[DG_DUPLICATE_FIELD]?.type!=='string')throw Error('DG duplicate reference field unavailable or changed');}
+function leadDuplicate(row){
+ if(!Object.hasOwn(row,DG_DUPLICATE_FIELD))return {duplicateRef:null,duplicateLinkState:'unknown'};
+ const value=row[DG_DUPLICATE_FIELD];if(value==null||value==='')return {duplicateRef:null,duplicateLinkState:'empty'};
+ if(typeof value!=='string')return {duplicateRef:null,duplicateLinkState:'unrecognized'};
+ const text=value.trim();if(!text)return {duplicateRef:null,duplicateLinkState:'empty'};
+ const typed=text.match(/^([LD])_([1-9]\d*)$/);let ref=typed?{kind:typed[1]==='L'?'lead':'deal',id:typed[2]}:null;
+ if(!ref)try{const url=new URL(text,text.startsWith('/crm/')?'https://glassmemory.bitrix24.ru':undefined),match=url.pathname.match(/^\/crm\/(lead|deal)\/(?:details|show)\/([1-9]\d*)\/?$/i);if(url.origin==='https://glassmemory.bitrix24.ru'&&!url.username&&!url.password&&match)ref={kind:match[1].toLowerCase(),id:match[2]};}catch{}
+ return {duplicateRef:ref,duplicateLinkState:ref?'valid':'unrecognized'};
+}
 const DG_REASON_FIELDS=['UF_CRM_1730742511284','UF_CRM_1782316574481','UF_CRM_1785837642607'];
 function assertLeadReasonFields(fields){for(const field of DG_REASON_FIELDS)if(fields[field]?.type!=='string')throw Error('DG lead reason field unavailable or changed: '+field);}
 function leadReason(row){
@@ -22,8 +33,8 @@ function adapt(source,mask){
   const enrichment=fs.readFileSync(path.join(__dirname,'communications.cjs'),'utf8').replace("const createDGNormalizer=require('./dialog-normalize.cjs');",'').replace(/^module\.exports=.*$/m,'');
   const mail=fs.readFileSync(path.join(__dirname,'mail-cohort.cjs'),'utf8').replace(/^module\.exports=.*$/m,'');
   s=normalizer+'\n'+enrichment+'\n'+mail+'\n'+s;
-  s=`const DG_REASON_FIELDS=${JSON.stringify(DG_REASON_FIELDS)};\n${leadReason.toString()}\n${assertLeadReasonFields.toString()}\n`+s;
-  s=once(s,'const leadFields: any = (await call("crm.lead.fields", {})).result || {};','const leadFields: any = (await call("crm.lead.fields", {})).result || {}; assertLeadReasonFields(leadFields);');
+  s=`const DG_DUPLICATE_FIELD=${JSON.stringify(DG_DUPLICATE_FIELD)};\n${leadDuplicate.toString()}\n${assertLeadDuplicateField.toString()}\nconst DG_REASON_FIELDS=${JSON.stringify(DG_REASON_FIELDS)};\n${leadReason.toString()}\n${assertLeadReasonFields.toString()}\n`+s;
+  s=once(s,'const leadFields: any = (await call("crm.lead.fields", {})).result || {};','const leadFields: any = (await call("crm.lead.fields", {})).result || {}; assertLeadReasonFields(leadFields); assertLeadDuplicateField(leadFields);');
   s=once(s,'import { maskDeep } from "../../lib/mask-contacts.mjs";',mask.replace(/^export\s+/gm,''));
   s=once(s,'const OUT = "rop/data/rop.json";','const OUT = process.env.GG_DG_OUTPUT || "/tmp/gg-dg-widgets.json";');
   s=once(s,'const LIGHT = (process.env.ROP_LIGHT || "") === "1";','const LIGHT = false;');
@@ -34,7 +45,7 @@ function adapt(source,mask){
   s=s.slice(0,start)+SCOPED_LIST+s.slice(end);
   s=once(s,'const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });',`
   if(sourceName['${SOURCE_ID}']!=='${SOURCE_NAME}')throw Error('DG source dictionary changed');
-  const dgLeadSelect=['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS];
+  const dgLeadSelect=['ID','TITLE','STATUS_ID','ASSIGNED_BY_ID','OPPORTUNITY','CURRENCY_ID','DATE_CREATE','DATE_MODIFY','DATE_CLOSED','SOURCE_ID',UF_LEAD_DIR,...DG_REASON_FIELDS,DG_DUPLICATE_FIELD];
   const sourceLeads=await strictList('crm.lead.list',{select:dgLeadSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const direct=await strictList('crm.deal.list',{select:dealSelect,filter:{SOURCE_ID:'${SOURCE_ID}'}});
   const candidates=await dgLeadCandidates(sourceLeads,direct,ids=>scopedChunks('crm.lead.list',{select:dgLeadSelect},'@ID',ids));
@@ -51,7 +62,7 @@ function adapt(source,mask){
   s=once(s,'category: Number(DEAL_CATEGORY),','category: Number(d.CATEGORY_ID), sourceId: d.SOURCE_ID || null, leadId: d.LEAD_ID ? String(d.LEAD_ID) : null, currency: d.CURRENCY_ID || null,');
   s=once(s,'const dealSelect = ["ID", "TITLE", "CATEGORY_ID",','const dealSelect = ["ID", "TITLE", "CURRENCY_ID", "CATEGORY_ID",');
   s=once(s,'title: l.TITLE || "",','title: l.TITLE || "", sourceId: l.SOURCE_ID,');
-  s=once(s,'budget: Number(l.OPPORTUNITY) || 0,','budget: l.OPPORTUNITY==null||l.OPPORTUNITY===""?null:Number(l.OPPORTUNITY), currency:l.CURRENCY_ID||null, updated:d10(l.DATE_MODIFY), reason:leadReason(l),');
+  s=once(s,'budget: Number(l.OPPORTUNITY) || 0,','budget: l.OPPORTUNITY==null||l.OPPORTUNITY===""?null:Number(l.OPPORTUNITY), currency:l.CURRENCY_ID||null, updated:d10(l.DATE_MODIFY), reason:leadReason(l), ...leadDuplicate(l),');
   // Empty custom amounts remain unknown; GG rendering uses its existing display rules.
   s=once(s,'if (UF_PREPAY) console.log(', 'if (!UF_PREPAY) throw Error("CRM prepayment field unavailable");\n  if (UF_PREPAY) console.log(');
   s=once(s,'budget: Number(d.OPPORTUNITY) || 0,','budget: d.OPPORTUNITY == null || d.OPPORTUNITY === "" ? null : Number(d.OPPORTUNITY),');
@@ -111,4 +122,4 @@ async function listSharded(method,params,opts={}){
 
 `;
 if(require.main===module){const root=process.argv[2],out=process.argv[3];if(!root||!out)throw Error('Usage: collect-widgets.cjs <GG analytics root> <generated.mjs>');const source=fs.readFileSync(path.join(root,'src/scripts/b24/fetch-rop.ts'),'utf8');const mask=fs.readFileSync(path.join(root,'src/lib/mask-contacts.mjs'),'utf8');fs.writeFileSync(out,adapt(source,mask));}
-module.exports={adapt,SOURCE_ID,SOURCE_NAME,SCOPED_LIST,leadReason,DG_REASON_FIELDS,assertLeadReasonFields};
+module.exports={DG_DUPLICATE_FIELD,leadDuplicate,assertLeadDuplicateField,adapt,SOURCE_ID,SOURCE_NAME,SCOPED_LIST,leadReason,DG_REASON_FIELDS,assertLeadReasonFields};

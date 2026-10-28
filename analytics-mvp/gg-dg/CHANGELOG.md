@@ -69,3 +69,11 @@ Remove the communication sort toggle; keep fixed oldest-first ordering. Normaliz
 ### Calendar disclosure level
 
 Replace the budget/prepayment control with Менеджеры / Сделки. Direct mode opens records under the stage without manager grouping; retain a responsible column, chronological communications and the original stage/date populations. Sum uses budget.
+
+### Correct duplicate references
+
+Read the named duplicate-link field instead of treating absence of a lead URL as an empty reference. Recognize both lead and deal targets and publish only a typed plain ID. Distinguish missing/unloaded/unrecognized values; keep CRM and its required-field rules unchanged.
+
+### Simplify partner presentation
+
+Remove all client-type charts, columns, filters and detail labels from DG, retaining assortment and the incoming Клиент actor role. Distribution cards now use two columns; pipeline shows assortment only. Remove the small static estimate caption below open-budget KPI while retaining its explanatory hover tooltip.

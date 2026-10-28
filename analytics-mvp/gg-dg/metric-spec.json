@@ -142,10 +142,10 @@
     "authorization": "27.10.2026 user requests lead/deal refusal fields, left horizontal reason chart with top10/30/50, right collapsible table with20 rows per page and no horizontal scrolling.",
     "population": "Exactly the union of calendar leadLost and lost rows under current period and global filters. Calendar first-failure history semantics are retained, including an event whose current record may later have reopened. Lead and deal are distinct records, never deduplicated into customers.",
     "reason": "Detailed sanitized lead reason when available, otherwise record reason or missing marker. Group labels normalize whitespace/case only; no invented categories. Top N limits bars only, never table population.",
-    "fields": "Separate columns for typed record ID, responsible, creation date, first-refusal date, latest indexed event date MSK, stage, reason, client type, assortment, originating lead. Desktop is single-line with complete cell text in title; no data removal. All record IDs and originating-lead labels are typed plain text without links or navigation.",
+    "fields": "Separate columns for typed record ID, responsible, creation date, first-refusal date, latest indexed event date MSK, stage, reason, assortment, originating lead or typed duplicate reference. Desktop is single-line with complete cell text in title; no data removal. All record IDs and originating-lead labels are typed plain text without links or navigation.",
     "pagination": "Superseded by user27.10: full-width compact table below the reason chart, maximum10 visible desktop data rows (30px each plus60px sticky header); every filtered record remains reachable by internal vertical scroll. No20-row pagination. Per-column multi-select/date-range filters and ascending/descending sort apply to the same source population as the chart. Narrow layouts retain column controls and stacked records.",
     "timezone": "Europe/Moscow for first failure, activity and communication dates, including events across UTC midnight.",
-    "duplicate": "Scoped read of the user-selected duplicate confirmed no original-lead reference field or URL. Never infer/hardcode a target ID. Show missing original ID explicitly; no CRM modification or CRM link.",
+    "duplicate": "Read the named CRM duplicate-reference user field explicitly. It may point to a lead or deal. Publish only a validated typed ID as plain text in Original record, never the CRM URL or another record details. Distinguish empty, not loaded and unrecognized references; never infer a target from unrelated fields or assume a missing lead URL means no link. CRM required-per-stage rules are not established by the global isRequired metadata flag.",
     "filters": "Column headers retain sorting. Non-date filters open searchable faceted multi-select lists, with apply/reset and counts ignoring their own current filter. Date columns use an independent compact single-month calendar with exact-day double click, inclusive from/to range and highlighted selection/hover preview. Only the refusal table/reason chart are filtered, never the global dashboard dates."
   },
   "kpiCharts": {
@@ -168,5 +168,9 @@
   "calendarPresentation": {
     "disclosure": "Managers default: stage -> manager -> lead/deal -> communications. Deals: stage -> record table -> communications, skipping manager grouping while retaining an explicit responsible column. Stage/root-deal nesting and count/money population remain unchanged; switching mode preserves stage/date context and collapses record communications.",
     "amount": "Calendar sum always uses RUB budgets, independent of the global prepayment setting. Budget/prepayment field selector removed; manager/deal disclosure selector is always available."
+  },
+  "partnerPresentation": {
+    "clientType": "Client type is not presented anywhere in DG: no distribution/pipeline segment, refusal column/filter, or detail metadata. Underlying CRM values are not rewritten; eligible populations are not restricted by client type.",
+    "kpiFootnote": "Remove the static estimate/current-value caption below the open-budget mini chart. Keep the existing contextual tooltip and numerical calculation."
   }
 }

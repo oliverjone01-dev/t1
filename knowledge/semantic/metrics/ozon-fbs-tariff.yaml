@@ -1,9 +1,9 @@
 id: ozon-fbs-tariff
-version: 1
+version: 2
 status: approved
 owner: Иван
 approved_at: '2026-10-28'
-approval: 'добавляй, что нужно; расширенный съём и тарифная лесенка переданы пользователем в этом чате'
+approval: '28.10: пользователь передал расчёт 74/106, 68 отгруженных (24 факт + 44 оценка), затем поручил: ексель не нужен, обнови дашборд. Подтверждённая ставка приоритетнее часов; два расхождения исправлены.'
 decision: Разбор скидок и наценок FBS, очередь ожидающих передачи
 source: 'cabinet /api/posting-service/seller-ui/fbs/posting/list; fbs_tariff_YYYY-MM-DD.psv'
 timezone: Europe/Moscow
@@ -35,9 +35,32 @@ history:
   old_source_mutation: fail closed; cannot silently replace newer rows
 invariants:
   - No actual rate inferred from elapsed hours; raw confirmed rates can differ from such an inference
-  - No monetary estimate of lost discount on orders whose eligibility is unknown
+  - No monetary estimate outside fixed user-approved hypothetical cohort; new orders remain unclassified
   - 156 without final rate includes cancelled, delivered and in-transit; not 156 still delivering
-  - User-reported 74 daily-assembly / 106 bulky cohort not reproduced from missing warehouse metadata; not presented as a computed metric
+  - User-reported 74/106 is a dated manual mapping, not verified warehouse metadata
   - Never add tariff effect to finance commission or penalties; separate block
   - Exact timestamps from dated snapshot; no live countdown from stale data
   - No names, contacts, addresses, warehouse credentials or raw API JSON in public data
+estimate:
+  cohort: katya/problems/fbs-estimate-cohort-2026-10-28.json; fixed IDs, never infer new eligibility from elapsed time
+  applicability: hypothesis from user 74/106 mapping; 74 IDs reproduced from cutoff-created 23-26h in this snapshot only
+  population: mapped daily-assembly postings created in selected Moscow interval, excluding cancelled/returned, requiring nonnegative transfer elapsed time and transfer day no later than source date
+  clock: '<=12h -300bps; <=24h -200bps; <=36h 0; <=48h +100bps; later +200bps'
+  priority: confirmed fact_type/rate/effect always overrides clock, including retained fact monetary basis
+  rounding: half-up to integer kopecks per posting, do not multiply price by quantity
+  missing: null total when no eligible transferred rows; zero is only a known zero effect
+  scenario: hypothetical 3% discount on same 68 posting amounts; not a promise or a financial loss
+  gap: scenario discount + signed mixed net effect; do not add to finance, penalties or the 347k bridge
+  controls_2026_10_28:
+    mapped: 74
+    other_mapped: 106
+    cancelled: 2
+    waiting: 4
+    included: 68
+    confirmed: 24
+    estimated: 44
+    clock_net: -6735.21
+    mixed_net: -8779.43
+    scenario_discount: 86910.39
+    scenario_gap: 78130.96
+    mismatches: '37549854-0567-1: 26.995h, fact -2%, -878 RUB; 16254522-0193-2: 24.397h, fact -2%, -1166.22 RUB; both clock zero'

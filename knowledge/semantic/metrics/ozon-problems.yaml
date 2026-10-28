@@ -14,6 +14,7 @@ ui_revision_2026_10_28:
   separate_charts: 'Иван: две диаграммы кто инициировал и отдельно причины; и для возвратов. Возвратный инициатор только явное поле источника, не выводится из отмены/причины. В текущих45 событиях отдельное поле отсутствует.'
   ranking: cancellation reasons by posting count; returns by known units; fines by positive ruble expense with negative corrections separately
   top: 10/30/50 limits legend rows only; rest grouped, total unchanged; click opens matching event rows
+  rfbs_disclosure: 'Иван28.10: раскрыть соответствующие рейсы по клику на плашки, расшифровать Проверить данные. Нужна сверка ведомости означает существующий набор issues; 85 уникальных рейсов28.10, категории могут пересекаться. Переносы показывают только существующий shifts, неизвестная история остаётся н/д.'
   rfbs: horizontal histogram of snapshot statuses; explicitly independent of period, history still follows period
   missing: unknown quantities/amounts excluded from chart weights and shown separately; no invented zero
   removed: mixed actual-plus-estimated FBS presentation; actual Ozon tariff block retained

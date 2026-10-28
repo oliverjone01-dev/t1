@@ -1,0 +1,53 @@
+id: ozon-rfbs-delivery-timeline
+version: 1
+status: approved
+owner: Иван
+approved_at: '2026-10-28'
+approval: 'Да, применяй эти правила: план/факт из ведомости, будущий факт не доставка, отмены и возвраты отдельно, изменения по дню обнаружения'
+entity: строка рейса нашей доставки OZON
+key: [order, normalized_ledger_codes]
+source: 'Google Sheet 1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY, active + archive'
+source_family: documents
+timezone: Europe/Moscow
+interval: '[from 00:00, to+1day 00:00)'
+partial_period: 'Текущий снимок, без утверждения полноты дня; до первого снимка история неизвестна'
+scope: 'Отгрузка с 2026-10-05; без отгрузки - план; строки без обоих сроков сохранены'
+date_field:
+  queue: latest successful snapshot date, independent of global period
+  history: Moscow day of observed change, filtered by global period
+  delay: actual minus current planned date, calendar days, floored at zero
+fields:
+  planned: Дата доставки
+  actual: Дата доставки факт.
+  status: Статус
+ratio: none
+cancellations_returns: 'Сохраняются и доступны отдельным фильтром; исключены из опозданий, ожидания и счётчика переносов'
+empty_value: null
+identity:
+  ledger_codes: 'М, С, НМ, НС + год и номер; список кодов одной строки сохраняется как один рейс'
+  missing_ledger: 'БЕЗ-НОМЕРА, предупреждение; неоднозначный дубль одного заказа блокирует снимок'
+  changed_ledger_or_order: 'Новая строка, прежняя помечается отсутствующей; без предположений об идентичности'
+  dates_without_year: 'Год из номера ведомости; при отсутствии номера прежний контракт ведомости 2026, проверен 28.10.2026; после смены года неоднозначный год блокирует обновление до подтверждения'
+formulas:
+  delivered_late: 'max(0, actual - planned) при непустых датах и actual <= snapshot day и actual >= shipment'
+  waiting_overdue: 'snapshot day - planned > 0, нет подтверждённого факта, статус не Доставлен и не отмена/возврат'
+  observed_shift: 'planned A != planned B, обе даты заполнены, нет конфликта active/archive, нет отмены/возврата; любой сдвиг направления'
+  first_snapshot: 'baseline, no invented change events; before start count null'
+  missing_row: 'retain history, mark missing, exclude from current delivery/overdue counts'
+  conflict: 'future actual retained visibly but not used; stale Создан + valid actual marked for review, valid actual is used'
+invariants:
+  - Monetary delivery ledger and formulas are unchanged
+  - No addresses, names, phones or arbitrary notes in public snapshot
+  - Full active and archive reads complete before writing
+  - Missing row is not a cancellation; missing date is not zero
+  - Duplicate active/archive identical row counts once
+  - Incompatible duplicates within one tab fail closed
+  - History is append only; identical repeat does not duplicate changes
+  - Snapshot gaps do not create invented daily observations
+  - Ozon promise and penalty data are not inferred from logistics sheet
+reconciliation: 'Verified against specified source fields; no independent carrier proof of delivery supplied'
+golden_rows:
+  - {order: '56155971-0227-2', planned: '2026-10-21', actual: '2026-10-28', late_days: 7, status_conflict: true}
+  - {order: '51364315-0181-2', planned: '2026-10-30', actual: '2026-10-23', late_days: 0}
+  - {order: '39355528-0014-1', planned: '2026-10-20', actual: '2026-10-14', late_days: 0}
+  - {order: '0285462825-0003-1', planned: '2026-11-07', actual: '2026-11-06', confirmed_actual_on_28_oct: null}

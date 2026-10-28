@@ -1350,12 +1350,9 @@ function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
 const capRu=()=>({today:'к пред. дню','7d':'к пред. 7 дням','30d':'к пред. 30 дням','90d':'к пред. 90 дням',year:'к пред. году',all:'к пред. периоду',range:'к пред. периоду'}[CURP]||'к пред. периоду');
 const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span><span class="kt-cap">'+capRu()+'</span>';};
-function periodDates(p){
-  if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
-  if(p==='all')return {from:FLOOR,to:MAXD};
-  const days={'today':1,'7d':7,'30d':30,'90d':90,'year':365}[p]||30;
-  return {from:clampLo(ad(MAXD,-(days-1))),to:MAXD};
-}
+${readFileSync(new URL('./dashboard-period.js',import.meta.url),'utf8')}
+function periodDates(p){return dashboardPeriodDates(p,document.getElementById('range-from').value,document.getElementById('range-to').value,FLOOR,MAXD);}
+
 function prevEqual(w){const len=Math.round((Date.parse(w.to)-Date.parse(w.from))/86400000)+1;const pt=ad(w.from,-1);return {from:clampLo(ad(pt,-(len-1))),to:pt};}
 let CURP=(function(){try{const s=JSON.parse(localStorage.getItem('gg_katya_period')||'null');return s&&s.p?s.p:'30d';}catch(e){return '30d';}})();
 function applyPeriod(){
@@ -5702,7 +5699,7 @@ if (IS_OZON) {
   writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
   const cabinetSnapshot = JSON.parse(readFileSync(dp("competitors/cabinet-2026-10-27.json"), "utf8"));
   writeFileSync(op("katya-competitors-cabinet.html"), cabinetCompetitorPage(cabinetSnapshot));
-  writeFileSync(op('katya-problems.html'),problemsPage(loadProblemData(dp(''))));
+  writeFileSync(op('katya-problems.html'),problemsPage({...loadProblemData(dp('')),periodBounds:{from:pageFloor,to:maxD}}));
 } else {
 // ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.
 // Решение Ивана: проставить облачными/демо-данными только тут, чтобы увидеть вёрстку,

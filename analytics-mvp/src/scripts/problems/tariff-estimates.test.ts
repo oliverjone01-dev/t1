@@ -20,9 +20,8 @@ describe('FBS estimates: facts remain authoritative',()=>{
   const rows=[row(27,{fact_type:'discount',rate_bps:200,effect_cents:-87800,fact_observed:'2026-10-28'}),row(50,{order:'16254522-0193-2'})];
   const d:ProblemData={now:'2026-10-28T09:00:00Z',postings:[],events:[],ratings:[],summary:[],thresholds:null,coverage:{postings:{days:[],loaded_at:null,note:''}},warnings:[],fbsTariff:source(rows),fbsEstimateCohort:cohort(rows.map(x=>x.order))};
   const dom=new JSDOM(problemsPage(d),{runScripts:'dangerously'}),doc=dom.window.document;
-  const set=(from:string,to:string)=>{(doc.querySelector('#from') as unknown as {value:string}).value=from;(doc.querySelector('#to') as unknown as {value:string}).value=to;(doc.querySelector('#apply') as unknown as {click:()=>void}).click();};
-  set('2026-10-01','2026-10-28');expect(doc.querySelector('#tariff-estimate-note')!.textContent).toContain('факт 1 + оценка 1');expect(doc.querySelector('#tariff-estimate-method')!.textContent).toContain('Расхождений: 1 из 1');expect(doc.querySelector('#tariff-estimate-orders')!.textContent).toContain('Оценка по часам');expect(doc.querySelector('#tariff-estimate-summary')!.textContent).toContain('Потенциал, не фактический убыток');
-  set('2026-09-01','2026-09-30');expect(doc.querySelector('#tariff-estimate-summary')!.textContent).toContain('н/д');expect(doc.querySelector('#tariff-estimate-orders')!.textContent).toBe('');dom.window.close();
+  const set=(from:string,to:string)=>{(doc.querySelector('#range-from') as unknown as {value:string}).value=from;(doc.querySelector('#range-to') as unknown as {value:string}).value=to;(doc.querySelector('#range-apply') as unknown as {click:()=>void}).click();};
+  set('2026-10-01','2026-10-28');expect(doc.querySelector('#tariff-estimate-summary')).toBeNull();expect(doc.body.textContent).not.toContain('Отгруженные · факт + оценка');expect(doc.querySelector('#tariff-summary')!.textContent).toContain('Подтверждение');dom.window.close();
   const invalid={...d,fbsEstimateCohort:{...d.fbsEstimateCohort!,other:[rows[0]!.order]}};expect(()=>validateProblems(invalid)).toThrow('Invalid FBS estimate cohort');
  });
 });

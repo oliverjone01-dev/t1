@@ -1,5 +1,5 @@
 id: ozon-problems
-version: 1
+version: 2
 status: approved
 owner: Иван
 approved_at: '2026-10-27'
@@ -7,7 +7,16 @@ approval: 'Да, эти правила подходят - ответ на воп
 decision: Еженедельный разбор конкретных отправлений с менеджерами
 timezone: Europe/Moscow
 interval: '[from 00:00, to+1day 00:00)'
-default_period: previous Monday-Sunday
+default_period: shared gg_katya_period; fallback 30d; bounds identical to main dashboard
+ui_revision_2026_10_28:
+  approval: 'Иван: дополнительно убери отгруженные факт + оценка; периоды как на всем дашборде, чтобы были связаны. Правки документа Google Docs 1chyYipp7l4D0RilESlGFUe1TjCf9zFolCHIiiXb7Z1c.'
+  dates: existing date bases unchanged; common selected range applied to period blocks
+  separate_charts: 'Иван: две диаграммы кто инициировал и отдельно причины; и для возвратов. Возвратный инициатор только явное поле источника, не выводится из отмены/причины. В текущих45 событиях отдельное поле отсутствует.'
+  ranking: cancellation reasons by posting count; returns by known units; fines by positive ruble expense with negative corrections separately
+  top: 10/30/50 limits legend rows only; rest grouped, total unchanged; click opens matching event rows
+  rfbs: horizontal histogram of snapshot statuses; explicitly independent of period, history still follows period
+  missing: unknown quantities/amounts excluded from chart weights and shown separately; no invented zero
+  removed: mixed actual-plus-estimated FBS presentation; actual Ozon tariff block retained
 partial_period: mark
 entity: posting (не товарная штука и не родительский order)
 ratio:

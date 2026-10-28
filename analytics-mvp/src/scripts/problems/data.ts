@@ -47,6 +47,5 @@ export function loadProblemData(dir:string,now=new Date().toISOString()):Problem
  if(skipped)warnings.push(`Доставка: ${skipped} строк с неизвестной стоимостью, оплатой или датой исключены из суммы.`);
  if(deliveryStatus.through&&deliveryStatus.through<moscowDay(now))warnings.push(`Наша доставка загружена по ${deliveryStatus.through}.`);
  const thresholdDefault=JSON.parse(readFileSync('katya/problems/thresholds-2026-10-27.json','utf8'));
- const fbsEstimateCohort=JSON.parse(readFileSync('katya/problems/fbs-estimate-cohort-2026-10-28.json','utf8'));
- return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',thresholdDefault),coverage,warnings,fbsTariff:json('fbs_tariff.json',null),fbsEstimateCohort,deliveryTimeline:json('delivery_timeline.json',null),deliverySource:{through:deliveryStatus.through??null,loaded_at:deliveryStatus.loaded_at??null,corrected_prices:deliveryStatus.corrected_prices??0,issues:deliveryIssues}});
+ return validateProblems({now,postings,events,ratings:rows('rating_daily.ndjson'),summary:rows('rating_summary.ndjson'),thresholds:json('rating_thresholds.json',thresholdDefault),coverage,warnings,fbsTariff:json('fbs_tariff.json',null),deliveryTimeline:json('delivery_timeline.json',null),deliverySource:{through:deliveryStatus.through??null,loaded_at:deliveryStatus.loaded_at??null,corrected_prices:deliveryStatus.corrected_prices??0,issues:deliveryIssues}});
 }

@@ -109,6 +109,7 @@ function adaptTemplate(input,hook){let s=input.replace(/\r\n/g,'\n');
   s=once(s,"  const _cvBody = S.cvView==='dyn'\n    ? `<div id=\"cvDyn\"></div>`\n    : `${_cvFunnel}${_churn}${_oi}`;","  const _cvBody = `${_cvFunnel}${_churn}${_oi}`;");
   s=once(s,'<div class="seg" id="cvSeg"></div>','');
   s=section(s,'offerAnalytics',x=>x.replace('${donuts}${segDyn}','${donuts}').replaceAll('data-ocseg=','data-dg-static-segment=').replace('cursor:pointer;padding:2px 4px','padding:2px 4px').replaceAll('клик по сегменту - конверсия в динамике','доли открытых сделок').replace(' · клик по сегменту - конверсия и сделки',''));
+  s=section(s,'offerAnalytics',x=>x.replace('${donutBlock(grp(open,cliV),"client","Пайплайн по типу клиента")}','').replaceAll('Пайплайн по сегментам: клиент и изделие','Пайплайн по ассортименту').replaceAll('доли пайплайна по клиенту и изделию','доли открытого пайплайна по ассортименту').replace(/info\('Структура открытого горячего пайплайна[^']*'\)/,"info('Распределение открытых сделок по ассортименту.')"));
   s=s.replaceAll('Компания','Лиды от Домгласс').replaceAll('Отдел продаж','Работа отдела продаж');
   s=s.replace(/<span id="nextUpd"[^>]*><\/span>/,'').replace(/<nav class="anchornav"[^>]*>[\s\S]*?<\/nav>/,'').replace(",['mig','После переезда']",'');
   const drawerStart=s.indexOf("  const _ft=document.getElementById('filtToggle')"),drawerEnd=s.indexOf("  const _ds=document.getElementById('dateSeg');",drawerStart);

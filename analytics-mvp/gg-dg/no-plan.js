@@ -1,7 +1,7 @@
 // DG has no approved plan. Preserve the GG components and factual series, without
 // inheriting company-wide targets, achievement colors, forecasts, or manager links.
 const DG_NO_PLAN='План ДГ не задан';
-function dgEmptySegments(){return `<div class="card"><div class="card-title">Пайплайн по сегментам: клиент и изделие</div><div class="grid2">${dgEmpty('Пайплайн по типу клиента')}${dgEmpty('Пайплайн по типу изделия')}</div></div>`;}
+function dgEmptySegments(){return dgEmpty('Пайплайн по ассортименту');}
 function dgEmptyHealth(){return dgEmpty('Здоровье отдела продаж')+`<div class="grid2">${dgEmpty('Конверсия в успех по менеджерам')}${dgEmpty('Конверсия в успех в динамике')}</div>`;}
 function dgEmptyCalendar(){return `<div class="card"><div class="card-title">Календарь горячих сделок</div><div class="card-sub">Весь отдел · календарь движения сделок</div><p>В выбранной выборке нет сделок на стадии предложения.</p></div>`;}
 const dgEmpty=(title,message='По выбранным данным ДГ записей нет')=>`<div class="card"><div class="card-h"><div><div class="card-title">${title}</div><div class="card-sub">${message}</div></div></div></div>`;

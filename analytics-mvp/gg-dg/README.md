@@ -73,3 +73,9 @@ Date column calendars now show one compact month (340px maximum width). Previous
 Communication controls are omitted: no entity selector, sorting toggle or full-reader action. Entire history is chronological, entire message stays inline, and recognized incoming customer senders are labelled only Клиент in the published data and UI.
 
 Calendar disclosure now offers Менеджеры / Сделки alongside count/sum. Direct record mode removes the manager grouping level and adds a responsible column; records and communications stay collapsed until requested. Calendar money is fixed to RUB budgets; the budget/prepayment selector is removed.
+
+Duplicate references are read from the explicit CRM user field and may target a lead or a deal. The refusal table shows only the typed ID under Исходная запись; it never exports the URL or imports unrelated record data. Empty, unknown and unrecognized references have separate labels.
+
+### Simplify partner presentation
+
+Remove all client-type charts, columns, filters and detail labels from DG, retaining assortment and the incoming Клиент actor role. Distribution cards now use two columns; pipeline shows assortment only. Remove the small static estimate caption below open-budget KPI while retaining its explanatory hover tooltip.

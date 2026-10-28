@@ -1,0 +1,105 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "problems-visuals-period-20261028",
+  "timestamp": "2026-10-28T14:30:26.076521+00:00",
+  "deliverable_ref": "codex/problems-visuals-period-20261028@f8a02eb7; audited_hash=b86958093bd97082",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "anchor": "8.1 dialogs-registry-after-rework - higher by0.4: unique counters independently reproduced from saved source records, duplicate injection rejected, source/date semantics explicit; below8.9 annotate because fresh financial cross-family reconciliation is outside this visual revision.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 7,
+    "brand_fit": 10,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.5,
+  "verdict": "go",
+  "gaps": [],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "p9_triggers_fired": [
+    "dashboard money display",
+    "publication gate"
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "feniks-probe.mjs independently reconstructs 4046 postings from orders_daily/problems_postings.ndjson and checks fine/return embedded records against problems_events.ndjson. Outside generated HTML; operational correctness, not independent accounting reconciliation."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Three saved-source to DOM periods: Sep1-30=46 cancellations/17 return units/fines gross8570.71/net8231.71; Oct1-15=29/13/gross15462.68/net15462.68; Oct1-27=53/28/gross39388.09/net38909.09. All exact."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "4046 unique posting IDs, 136 unique event IDs. Injected duplicate posting/event rejected by validateProblems. TOP10/30/50 preserve total in all real periods; 55-category fixture exercises remainder drilldown."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Raw NDJSON, ring totals/initiator totals and fine net footer agree in all periods; KPI and weekly tables share unchanged summarize. 77 selected tests cover model, DOM, nulls, real rates, delivery timeline and shared state."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Diff read across all 12 product/spec paths. No newly hardcoded metric totals in client/template; 10/30/50 are controls, color palette/date counts are configuration. Fine ring uses integer cents."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Final preview HTML and two inspected screenshots dated17:26 after final build; screenshots show separate actor and reason rings (default30d:61 postings). Own runtime probe uses this final HTML; hash independently b86958093bd97082."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "build-katya -> problemsPage no longer loads estimated cohort or renders estimate UI. CSV exports filtered operational event rows only; no estimate tariff rows in events. Source/coverage and missing-data notes retained. No external publish action executed by auditor."
+    }
+  ],
+  "evidence_ledger": [],
+  "sources_of_truth": [
+    "knowledge/semantic/metrics/ozon-problems.yaml",
+    "analytics-mvp/data/orders_daily.ndjson",
+    "analytics-mvp/data/problems_postings.ndjson",
+    "analytics-mvp/data/problems_events.ndjson",
+    "knowledge/episodes/2026-10/problems-visuals/self-check.md",
+    "knowledge/episodes/2026-10/problems-visuals/feniks-probe-results.json"
+  ],
+  "audience": "Иван; internal Ozon operations"
+}

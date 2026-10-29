@@ -55,7 +55,9 @@ def identifiers(doc, offer):
         raise ValueError("invalid ledger identifier")
     tokens = [token for token in re.split(r"[,;\s]+", str(offer or "").strip()) if token]
     if any(not re.fullmatch(r"GG[A-Z]{1,3}-[A-Z0-9]+(?:[.-][A-Z0-9]+)*", token) for token in tokens):
-        raise ValueError("invalid offer identifier")
+        # Delivery is keyed by order/document, not SKU. Service shipments may
+        # contain a description here; never publish that untrusted free text.
+        return canonical_document_id(doc), ""
     return canonical_document_id(doc), " ".join(tokens)
 
 
@@ -100,6 +102,9 @@ def parse_tab(text, name, through, known, delivered, issues=None):
             # Explicit columns: M is customer payment, O is our carrier cost.
             record = dict(zip(FIELDS, [order_of(row[1], known, delivered), doc, offer,
                                       clean(row[4]), status, amount(row[14]), amount(row[12]), "Яндекс", ""]))
+            if clean(row[3]) and not offer:
+                record["note"] = "артикул не распознан; расход доставки учтён по заказу и отправке без привязки к артикулу"
+                counts["unrecognized_offer_rows"] += 1
             result.append(record)
             counts["accepted_rows"] += 1
             counts["missing_cost_rows"] += not bool(record["ship"])

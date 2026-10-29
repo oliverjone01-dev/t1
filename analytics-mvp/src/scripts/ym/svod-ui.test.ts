@@ -33,7 +33,15 @@ beforeAll(async () => {
   const der = mkdtempSync(join(tmpdir(), "svod-der-"));
   cpSync("data-ym", ACC_DATA, { recursive: true });
   cpSync("data-ym", der, { recursive: true });
-  execFileSync("npx", ["tsx", "src/scripts/ym/derive.ts"], { env: { ...process.env, YM_DATA_DIR: der }, stdio: "pipe" });
+  // This test checks arithmetic on a saved snapshot, not wall-clock freshness.
+  // Pin the child clock to that snapshot; production's 36h guard is covered by
+  // delivery-source.test.ts and must still reject genuinely stale refreshes.
+  const loadedAt = JSON.parse(readFileSync(join(der, "delivery_source.json"), "utf8")).loaded_at;
+  const clock = join(der, "snapshot-clock.mjs");
+  writeFileSync(clock, `Date.now = () => Date.parse(${JSON.stringify(loadedAt)});`);
+  execFileSync("npx", ["tsx", "src/scripts/ym/derive.ts"], {
+    env: { ...process.env, YM_DATA_DIR: der, NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --import=${clock}` }, stdio: "pipe",
+  });
   writeFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), readFileSync(join(der, "pnl_sku_netting_daily.ndjson")));
   execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
     env: { ...process.env, DATA_DIR: ACC_DATA, OUT_DIR: out, PLATFORM: "ym" },

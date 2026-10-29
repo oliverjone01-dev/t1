@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 from capture import make_capture, merge_capture, atomic_json, number
 from prepare import prepare
+from import_report import analytics_records
 
 NOW=dt.datetime(2026,10,29,10,tzinfo=dt.timezone.utc)
 STAMP='2026-10-29T09:18:00+00:00'
@@ -19,6 +20,20 @@ def checks():
             'internal_controls':{c:{'reported':v} for c,v in record()['source_values'].items()}}
 
 class CaptureTests(unittest.TestCase):
+    def test_every_used_column_header_is_checked_before_rows(self):
+        labels={'G':'Схема работы','H':'SKU','I':'Артикул','J':'День',
+                'P':'Позиция в поиске\nи каталоге','Q':'Показы всего',
+                'S':'Показы в поиске и\nкаталоге','W':'Посещения карточки товара',
+                'AA':'Добавления в\nкорзину всего','AC':'Заказано товаров'}
+        rows=[{'row':10,'cells':{c:{'value':v} for c,v in labels.items() if c in 'GHIJ'}},
+              {'row':11,'cells':{c:{'value':v} for c,v in labels.items() if c not in 'GHIJ'}}]
+        for col in labels:
+            changed=copy.deepcopy(rows)
+            for row in changed:
+                if col in row['cells']:row['cells'][col]['value']='different metric'
+            with self.assertRaisesRegex(ValueError,'Unexpected analytics schema at '+col):
+                analytics_records([{'sheet':'По товарам','rows':changed}])
+
     def build(self,rows=None,meta=None,stamp=STAMP):
         with patch('capture.read_xlsx',return_value=[]),patch('capture.analytics_records',return_value=(rows or [record()],{},meta or checks())):
             return make_capture('unused.xlsx',['123','456'],stamp,'once',NOW)

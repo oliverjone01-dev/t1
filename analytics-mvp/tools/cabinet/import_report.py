@@ -107,8 +107,10 @@ def analytics_records(sheets, expected_count=None):
     rows = {r['row']: r['cells'] for r in sheet['rows']}
     headers = {c: v['value'] for c, v in rows[10].items() if c <= 'J' and len(c) == 1}
     headers.update({c: v['value'] for c, v in rows[11].items() if v['value'] is not None})
-    for col, label in {'H': 'SKU', 'I': 'Артикул', 'J': 'День',
-                       'Q': 'Показы всего', 'AC': 'Заказано товаров'}.items():
+    for col, label in {'G': 'Схема работы', 'H': 'SKU', 'I': 'Артикул', 'J': 'День',
+                       'P': 'Позиция в поиске\nи каталоге', 'Q': 'Показы всего',
+                       'S': 'Показы в поиске и\nкаталоге', 'W': 'Посещения карточки товара',
+                       'AA': 'Добавления в\nкорзину всего', 'AC': 'Заказано товаров'}.items():
         if headers.get(col) != label:
             raise ValueError('Unexpected analytics schema at ' + col)
     period = rows[1]['A']['value']

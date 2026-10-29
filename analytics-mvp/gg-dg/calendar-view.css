@@ -96,3 +96,6 @@ body{overflow-x:clip}
 
 /* Typed records remain plain text; cool leads and warm deals. */
 .dg-refusal-table .dg-entity-lead{color:#65C9ED}.dg-refusal-table .dg-entity-deal{color:#FFBC75}
+
+/* Assortment fits inside the record table without a horizontal scroller. */
+.dg-calendar .dg-record-list>.t2{min-width:0;table-layout:fixed}.dg-calendar .dg-record-assort{white-space:normal;overflow-wrap:anywhere}

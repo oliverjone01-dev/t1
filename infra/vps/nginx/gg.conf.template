@@ -62,9 +62,8 @@ server {
     # Retired temporary preview; main URL preserves all functions.
     location ^~ /dialog-next/ { return 301 /dialog/; }
 
-    # Public static TURBIUM examples; no dashboard data.
+    # TURBIUM examples inherit the dashboard password.
     location ^~ /turbium-kit/ {
-        auth_basic off;
         alias __GG_ROOT__/public/turbium-kit/;
         index index.html;
         autoindex off;

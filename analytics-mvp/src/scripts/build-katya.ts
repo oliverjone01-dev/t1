@@ -1532,7 +1532,7 @@ if (dailyTotals.length) {
   const NATIVE_CF:Record<string,Fun>={},NATIVE_SF:Record<string,Fun&{name:string;cat:string}>={},NATIVE_CS:Record<string,string[]>={};
   if (selectedCapture) {
     const i=dayIdx(selectedCapture.day);
-    if (i<0 || i>=TOTAL) throw Error('Cabinet funnel: source day outside dashboard calendar');
+    if (i<0) throw Error('Cabinet funnel: source day before dashboard calendar');
     for (const r of nativeFunnel(captureFile).filter(r=>r.date===selectedCapture.day)) {
       const cat=catOf(r.sku),sub=subOf(r.sku),sid=subIdOf(cat,sub);
       const cf=NATIVE_CF[cat] ??=newFun();
@@ -1540,7 +1540,8 @@ if (dailyTotals.length) {
       if (!(NATIVE_CS[cat] ??=[]).includes(sid)) NATIVE_CS[cat]!.push(sid);
       for (const k of ['views','vsearch','pdp','cart','units'] as const) {
         if (r[k]===null) throw Error(`Cabinet funnel: missing source-day measure ${k}`);
-        NATIVE_D[k]![i]!+=r[k];cf[k][i]!+=r[k];sf[k][i]!+=r[k];
+        NATIVE_D[k]![i]=(NATIVE_D[k]![i]??0)+r[k];
+        cf[k][i]=(cf[k][i]??0)+r[k];sf[k][i]=(sf[k][i]??0)+r[k];
       }
     }
   }

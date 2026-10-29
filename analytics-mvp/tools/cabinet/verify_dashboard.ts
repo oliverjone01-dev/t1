@@ -85,6 +85,7 @@ if(captureIsOpen(selected)){
  const nativeMetrics=[['views','views'],['vsearch','search_views'],['pdp','pdp_views'],['cart','cart'],['units','ordered_units']] as const;
  for(const def of definitions.filter((d:any)=>d.тест?.length)){
   const dyn=(tests.window as any).DYN['dyn-'+def.id];if(!dyn||dyn.d.at(-1)!==selected.day)continue;
+  assert(dyn.subs.vsearch.includes(stamp),'Current chart Moscow time');
   for(const [key,field] of nativeMetrics){
    if(!dyn.m[key])continue;
    const observed=selected.items.filter(r=>def.тест.includes(skuToArt[r.sku])&&r[field]!==null);

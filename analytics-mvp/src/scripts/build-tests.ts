@@ -1169,7 +1169,7 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: key === "pos" ? a : rawT, rc: key === "pos" ? b : rawC, mode, unit };
     if(openDay) {
-      subs[key]+=` · ${DM(openDay)} — неполный день, ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openRows[0]!.loaded_at))} МСК; ${measurable?`тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} наблюдаемых товаров`:'этим срезом не измерялось'}. В выводы не входит`;
+      subs[key]+=` · ${DM(openDay)} — неполный день, ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openRows.find(r=>r.date===openDay)!.loaded_at))} МСК; ${measurable?`тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} наблюдаемых товаров`:'этим срезом не измерялось'}. В выводы не входит`;
       tip[key].t.push(pa.value);tip[key].c.push(pb.value);tip[key].rt=[...tip[key].rt,pa.raw];tip[key].rc=[...tip[key].rc,pb.raw];
     }
     if (mode === "index") {

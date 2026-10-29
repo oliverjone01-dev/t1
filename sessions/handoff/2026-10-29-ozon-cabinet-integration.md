@@ -11,3 +11,9 @@ PR550 опубликован:59927dac07bb624f3dfad73cfb3f251b6d96e8de. Pages4089
 Срез29.10 остаётся на12:18МСК;28.10 закрытый. Это не новый свежий съём на время релиза. Цены, соинвест, бустинг, фактический FBS, реклама и деньги не входят в текущий кабинетный адаптер. Не расширять область публичных данных без разрешения.
 
 Ежедневные окна06:56/19:56МСК; конкуренты11:56сохраняют сырьё без неподключённого адаптера. Активный локальный RUNBOOK обновлён после проверки сайта. Нужны включённый Mac, Codex и вход Ozon. Первый будущий плановый запуск ещё не проверен; не выдавать его за доказанный. Не запускать старые deploy/run.sh и srez.py; кабинет Ozon только чтение/фильтры/скачивание. Следующий шаг: фактическая проверка вечернего окна19:56.
+
+## Chart correction after PR552
+
+Customer screenshot showed the existing plan chart still ending at28.10. PR552 (143b481) removes the W1 display cap from the plan funnel chart and adds a separate29.10 observation with date/time/coverage and a current-day column. Main experiment charts also show separate observation points. Closed means, conclusions, goals, API orders and fixed bid comparison windows remain unchanged. Do not promise29.10 for fields absent from the cabinet capture.
+
+Independent GO8.4,hash09f5cae56bc4eb08.166targeted checks and15smoke passed.183closed metric arrays/explanations and closed plan data preserved byte-for-byte. Audit fixed count-tooltip sums and suppressed-position raw values. Extended verify_dashboard.ts checks both regressions and five plan points.

@@ -38,3 +38,5 @@ golden_rows:
   - {date: '2026-10-28', sku: '4865595688', views: 720, vsearch: 439, pdp: 30, cart: 0, units: 1, position: 114}
   - {date: '2026-10-28', sku: '3492791704', views: 216, vsearch: 40, pdp: 24, cart: 3, units: 1, position: 61}
 golden_evidence: 'Строки разрешённого отчёта 28.10, проверены локальным OOXML reader; это не новая формула и не утверждение о новом ручном подтверждении заказчиком.'
+
+partial_chart_display: "Current native snapshot is a separate marked point in plan funnel and main experiment charts, with Moscow capture time and coverage. It never enters historical means, growth, verdicts, goal gauges or API orders. Count tooltip stays a group sum; position uses the existing matched population and 80% guard, suppressing point and tooltip together. Index point applies the existing estimator to the observed population and its own base; no new aggregate-to-article bridge."

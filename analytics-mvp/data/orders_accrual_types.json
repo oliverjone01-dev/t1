@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -79473598,
-  "n": 3318
+  "sum": -79664771,
+  "n": 3325
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2792576,
-  "n": 1630
+  "sum": -2801123,
+  "n": 1635
  },
  {
   "type_id": 3,
@@ -24,8 +24,8 @@
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -1086185,
-  "n": 1728
+  "sum": -1088768,
+  "n": 1732
  },
  {
   "type_id": 64,
@@ -45,8 +45,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -315897,
-  "n": 1667
+  "sum": -316872,
+  "n": 1672
  },
  {
   "type_id": 59,
@@ -66,8 +66,8 @@
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -176619,
-  "n": 306
+  "sum": -177148,
+  "n": 307
  },
  {
   "type_id": 93,
@@ -87,22 +87,22 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -54600,
-  "n": 197
+  "sum": -54880,
+  "n": 198
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -32200,
-  "n": 1610
+  "sum": -32220,
+  "n": 1611
  },
  {
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -20330,
-  "n": 1280
+  "sum": -20370,
+  "n": 1284
  },
  {
   "type_id": 10,
@@ -115,8 +115,8 @@
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -7417,
-  "n": 830
+  "sum": -7432,
+  "n": 832
  },
  {
   "type_id": 14,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1448463,
-  "n": 341
+  "sum": 1518004,
+  "n": 359
  }
 ]

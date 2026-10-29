@@ -31,6 +31,9 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
+import {readCaptureFile} from './ozon/cabinet-capture.js';
+import {mergeCabinetViews,nativeFunnel} from './ozon/cabinet-funnel.js';
+import {readFunnelTests,FUNNEL_TESTS_FILE} from './funnel-tests.js';
 import { noSite as gapNoSite, readGapMarked } from "./gap-daily.js";
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
@@ -321,12 +324,13 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const N = cards.length;
   const mk = () => Array.from({ length: N }, () => new Map<string, number>());
 
-  // воронка: sku_views
+  // Closed-day observations, shared with the rest of the dashboard.
+  const cabinet=readCaptureFile(dp(''));
   const FK = ["views", "vsearch", "pdp", "cart", "units"] as const;
   const fv: Record<string, Map<string, number>[]> = {}; const fst: Record<string, Map<string, number>> = {};
   for (const k of FK) { fv[k] = mk(); fst[k] = new Map(); }
   const svDays = new Set<string>();
-  for (const r of readNd(dp("sku_views.ndjson"))) {
+  for (const r of mergeCabinetViews(readNd(dp("sku_views.ndjson")),cabinet)) {
     if (r.date < DAYS[0]!) continue;
     svDays.add(r.date); const i = SKU_CARD.get(String(r.sku));
     for (const k of FK) { const v = Number(r[k]) || 0; add(fst[k]!, r.date, v); if (i != null) add(fv[k]![i]!, r.date, v); }
@@ -335,8 +339,17 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   // позиция главного - съём тестов
   const mainIdx = new Map(cards.map((c, i) => [c.main_art, i]));
   const pos = mk();
-  for (const r of readNd(dp("funnel_tests.ndjson"))) {
-    const i = mainIdx.get(r.art); if (i != null && Number(r.search_position) > 0) pos[i]!.set(r.date, Number(r.search_position));
+  for (const [art,byDay] of readFunnelTests(dp(FUNNEL_TESTS_FILE)).byArt) {
+    const i=mainIdx.get(art);if(i==null)continue;
+    for (const [date,r] of byDay) if(r.search_position!==null)pos[i]!.set(date,r.search_position);
+  }
+  const skuToArt=existsSync(dp('sku_offer.json')) ? JSON.parse(readFileSync(dp('sku_offer.json'),'utf8')) as Record<string,string>
+    : Object.fromEntries([...off2sku].map(([art,sku])=>[sku,art]));
+  for (const r of nativeFunnel(cabinet)) {
+    if (r.partial) continue;
+    const i=mainIdx.get(skuToArt[r.sku]??'');if(i==null)continue;
+    pos[i]!.delete(r.date);
+    if (r.pos!==null)pos[i]!.set(r.date,r.pos);
   }
   // заказы
   const skuDayAll = new Map<string, number>();   // с отменами, для сверки с кабинетом
@@ -659,7 +672,7 @@ ${tbl3}
 <details class="fold"><summary>Как считаем</summary><div class="fold-b"><ul class="pt-notes">
 <li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : nMsk === 0 ? "День заказа пока по UTC: время заказа появится после ночного сбора, дальше - по Москве." : `День заказа по Москве у ${nMsk} из ${nAll} заказов, у остальных пока UTC (до ночного сбора).`}</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
-<li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
+<li>Воронка - данные по товарам с приоритетом закрытых дней штатного отчёта кабинета. Неполные дни в сравнения не входят. База 14.09-11.10.</li>
 <li>Спидометры (Иван 15.10): период 15.10-31.10. Стрелка - факт с 15.10 к плану всего периода, белая метка - план на последний день данных, цветные зоны строятся от метки: цвет под стрелкой = статус к плану на дату. Внизу справочно факт 01-14.10. Карточки: план - порог / 14 в день. Магазин и оборот: путь цели октября «средне». Реклама: все клики кабинета без «Оплаты за заказ» против плана 15.10 (главные, минимальный клик, 11 кампаний) плюс прочие кампании по их темпу 01-13.10. «Карточки на пути» - по окну решения 15-28.10 к порогу на дату.</li>
 <li>Реклама - неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный. По товарам - отчёт кабинета, он доливается несколько ночей: считаем по последний полный день (${ADS_FULL ? DM(ADS_FULL) : "-"}). 11 кампаний - по дням кампаний (${AD_CAMP_LAST ? DM(AD_CAMP_LAST) : "-"}).</li>
 <li>Оборот к цели: цель посчитана от базы 20,4 млн (модель 13.10), а заказы за ту же базу дают больше - факт выглядит примерно на 3,5% лучше цели.</li>

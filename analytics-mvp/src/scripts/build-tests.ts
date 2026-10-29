@@ -7,14 +7,15 @@
 //   data/prices_daily.ndjson         - соинвест по артикулу и дню (копится с 22.09, может не быть);
 //   data/reakciya.json               - измеренные тесты и дневные ряды по группам магазина.
 //
-// Позиция в поиске есть только в разрезе групп магазина (data/reakciya.json -> daily), по
-// отдельным артикулам её никто не собирает. Поэтому она живёт в блоке «Магазин целиком», а не
-// в карточках тестов: рисовать её по тест/контролю было бы враньём.
+// Штатный cabinet_capture.json накладывает фактические SKU/day на общую воронку и
+// экспериментальный ряд. Неполные дни остаются отдельно в карточках товаров.
 //
 // Запуск: npm run tests:page (или npm run katya, он зовёт этот скрипт).
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { healthHtml } from "./ozon/source-health.js";
 import { dp, op, IS_OZON } from "../paths.js";
+import {readCaptureFile} from './ozon/cabinet-capture.js';
+import {mergeCabinetViews, cabinetTestRows, captureDays} from './ozon/cabinet-funnel.js';
 import { loadCardMap, kinOfTests, collapseByCard, mapHealth } from "./card-kin.js";
 import {
   controlByDay, gapSeries, pairGapSeries, pairFit, readiness, loadMoves, loadCpoDays, isExact,
@@ -129,13 +130,15 @@ for (const line of psv.slice(1)) {
 }
 
 const sku2art = JSON.parse(readFileSync(dp("sku_offer.json"), "utf-8")) as Record<string, string>;
+const CABINET = readCaptureFile(dp(''));
+const VIEW_ROWS = mergeCabinetViews(readNd(dp('sku_views.ndjson')), CABINET);
 const series = new Map<string, Map<string, Row>>();
 const cell = (art: string, d: string): Row => {
   let m = series.get(art); if (!m) { m = new Map(); series.set(art, m); }
   let c = m.get(d); if (!c) { c = {}; m.set(d, c); }
   return c;
 };
-for (const r of readNd(dp("sku_views.ndjson"))) {
+for (const r of VIEW_ROWS) {
   const art = sku2art[String(r.sku)]; if (!art) continue;
   const c = cell(art, r.date);
   for (const k of ["views", "vsearch", "pdp", "cart", "units"]) c[k] = (c[k] || 0) + (r[k] || 0);
@@ -155,7 +158,14 @@ for (const r of readNd(dp("history.ndjson"))) {
 //
 // Файл перекрывает то, что по тем же товарам даёт sku_views: там общий ночной синк, здесь
 // срез, собранный специально под тесты, с починенным списком sku и сторожем на охват.
-const FT = readFunnelTests(dp(FUNNEL_TESTS_FILE));
+const funnelBase = readFunnelTests(dp(FUNNEL_TESTS_FILE));
+const nativeMembers = new Map<string,FunnelRole>();
+for (const t of T.тесты) {
+  for (const art of t.контроль ?? []) nativeMembers.set(art,'control');
+}
+for (const t of T.тесты) for (const art of t.тест ?? []) nativeMembers.set(art,'test_ad');
+const FT = readFunnelTests(dp(FUNNEL_TESTS_FILE), cabinetTestRows(CABINET,sku2art,funnelBase,nativeMembers),
+  new Set(captureDays(CABINET).map(r=>r.day)));
 /** Имена полей контракта -> имена колонок страницы. */
 const FUNNEL_MAP: Array<[FunnelKey, string]> = [
   ["search_position", "pos"], ["search_views", "vsearch"], ["pdp_views", "pdp"],
@@ -1935,6 +1945,20 @@ function exitVsSib(t: TestDef): string {
   return `<span>Итог по выходу: <b>${out}</b> ${plural(out, "вышел", "вышли", "вышли")} против <b>${sib.length}</b> ${plural(sib.length, "соседа", "соседей", "соседей")}</span>`;
 }
 
+function partialTestTable(arts: string[]): string {
+  if (!FT.partialDay || !arts.length) return '';
+  const rows = new Map(FT.partial.filter(r=>r.date===FT.partialDay).map(r=>[r.art,r]));
+  const have=arts.filter(a=>rows.has(a));
+  if (!have.length) return '';
+  const hm=FT.partialTs ? new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(FT.partialTs)) : '';
+  const cell=(v:number|null|undefined)=>v==null?'нет данных':nbsp(v);
+  return `<details class="fold" open><summary><b>Незакрытый срез: ${esc(FT.partialDay)}, ${esc(hm)} МСК · ${have.length} из ${arts.length} товаров</b></summary>`
+    + `<div class="fold-b"><p class="sub">День не закрыт. Эти наблюдения не входят в графики и разницы завершённых дней. Отсутствующий товар показан как «нет данных».</p>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Позиция</th><th>Поиск и каталог</th><th>Посещения карточки</th><th>Корзины</th><th>Заказано, шт.</th></tr></thead><tbody>`
+    + arts.map(a=>{const r=rows.get(a);return `<tr><td>${esc(a)}</td>${[r?.search_position,r?.search_views,r?.pdp_views,r?.hits_to_cart,r?.ordered_units].map(v=>`<td>${cell(v)}</td>`).join('')}</tr>`;}).join('')
+    + `</tbody></table></div></div></details>`;
+}
+
 const cards = T.тесты.map((t, ti) => {
   const tst = t.тест || [], ctl = t.контроль || [];
   let pairsHtml = "", notesHtml = "", chartHtml = "", perArt = "";
@@ -1980,6 +2004,7 @@ const cards = T.тесты.map((t, ti) => {
     + exitVsSib(t)
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
+    + partialTestTable(t.тест ?? [])
     + fold("hyp", "Что проверяем", esc(t.гипотеза))
     + fold("rule", "Правило", esc(t.правило || ""))
     + (t.условие_завершения
@@ -2226,7 +2251,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
     // Заметка и «Откуда данные» - в техническую информацию (Иван 30.09).
     + fold("tech", `Техническая информация тест ${T.тесты.length + bi + 1}`,
       (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
-      + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
+      + fold("cov", "Откуда данные", `Воронка из sku_views и funnel_tests с приоритетом наблюдаемых строк штатного отчёта cabinet_capture по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
         + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`)) + `</section>`;
 }).join("");
 
@@ -2254,7 +2279,7 @@ for (const r of readNd(dp("prices_daily.ndjson"))) {
 }
 const P_VIEWS = new Map<string, Map<string, number>>();
 let P_LAST_VIEWS = "";
-for (const r of readNd(dp("sku_views.ndjson"))) {
+for (const r of VIEW_ROWS) {
   const a = sku2art[String(r.sku)], d = String(r.date || ""), v = Number(r.vsearch);
   if (!a || !d || !Number.isFinite(v)) continue;
   let m = P_VIEWS.get(d); if (!m) { m = new Map(); P_VIEWS.set(d, m); }
@@ -2645,7 +2670,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     + hist.map((h, i) => fold("cov", i === 0 ? "Что уже известно" : `Что уже известно (${i + 1})`, esc(h))).join("")
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
     + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается утром и вечером. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
-      + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
+      + `Показы - sku_views с приоритетом закрытых дней штатного отчёта cabinet_capture, по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
   return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>${closed ? finalBlock(t.итог) : ""}`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
     + (closed ? `<span>Закрыт: <b>${esc(t.закрыт!)}</b></span>` : t.продление_до ? `<span>Продление: <b>до ${esc(t.продление_до)}</b></span>` : "")
@@ -3354,7 +3379,7 @@ gaps.push(`Каталог на ${LAST} это ${nbsp(CARDS.card.size)} ${plural(
   } else {
     const days = [...new Set(FT.rows.map((r) => r.date))].sort();
     const arts = [...FT.byArt.keys()];
-    gaps.push(`Воронка тестов идёт из data/${FUNNEL_TESTS_FILE}: ${nbsp(FT.rows.length)}`
+    gaps.push(`Воронка тестов идёт из data/${FUNNEL_TESTS_FILE} с приоритетом наблюдаемых строк cabinet_capture: ${nbsp(FT.rows.length)}`
       + ` ${plural(FT.rows.length, "строка", "строки", "строк")}, ${nbsp(days.length)}`
       + ` ${plural(days.length, "день", "дня", "дней")} с ${FT.first} по ${FT.last},`
       + ` ${nbsp(arts.length)} ${plural(arts.length, "артикул", "артикула", "артикулов")}`

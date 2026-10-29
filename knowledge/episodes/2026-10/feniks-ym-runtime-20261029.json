@@ -1,0 +1,346 @@
+{
+  "agent": "feniks",
+  "task_id": "ym-runtime-20261029",
+  "timestamp": "2026-10-29T14:55:59.715271+03:00",
+  "scope": "Independent runtime preservation and available-source coverage; not repeated code audit, not browser check",
+  "head": "dff11170b75a1bd1e4b2d14c18b86420e442cda5",
+  "base": "8bc52789a6a325d29a69f92a51634dad73748ea2",
+  "runtime_verdict": "preservation_and_available_source_refresh_confirmed",
+  "financial_verdict": "return",
+  "financial_go": false,
+  "facts": {
+    "orders": {
+      "rows": 3080,
+      "foreign_platform_rows": 0,
+      "last": {
+        "1023124": "2026-10-28",
+        "74986385": "2026-10-28"
+      }
+    },
+    "netting": {
+      "rows": 20246,
+      "foreign_platform_rows": 0,
+      "last": {
+        "1023124": "2026-10-28",
+        "74986385": "2026-10-28"
+      }
+    },
+    "sku_views": {
+      "rows": 31645,
+      "foreign_platform_rows": 0,
+      "last": {
+        "1023124": "2026-10-28",
+        "74986385": "2026-10-28"
+      }
+    },
+    "realization_monthly": {
+      "rows": 798,
+      "foreign_platform_rows": 0
+    },
+    "realization_orders": {
+      "rows": 1232,
+      "foreign_platform_rows": 0
+    },
+    "bonuses_monthly": {
+      "rows": 5919,
+      "foreign_platform_rows": 0,
+      "last": {
+        "1023124": "2026-10-28",
+        "74986385": "2026-10-28"
+      }
+    }
+  },
+  "realization_preservation": {
+    "2026-02": {
+      "rows": 61,
+      "semantically_unchanged": true
+    },
+    "2026-03": {
+      "rows": 86,
+      "semantically_unchanged": true
+    },
+    "2026-04": {
+      "rows": 87,
+      "semantically_unchanged": true
+    },
+    "2026-05": {
+      "rows": 108,
+      "semantically_unchanged": true
+    },
+    "2026-06": {
+      "rows": 92,
+      "semantically_unchanged": true
+    },
+    "2026-07": {
+      "rows": 117,
+      "semantically_unchanged": true
+    },
+    "2026-08": {
+      "rows": 94,
+      "semantically_unchanged": true
+    }
+  },
+  "coverage": {
+    "september": {
+      "shops_sold": [
+        "148992469",
+        "149000600",
+        "149001087",
+        "149032438",
+        "149035080",
+        "149154933"
+      ],
+      "shops_with_rows": [
+        "148992469",
+        "149000600",
+        "149001087",
+        "149032438",
+        "149035080",
+        "149154933"
+      ],
+      "shops_no_data": [],
+      "shops_pending": []
+    },
+    "january": {
+      "shops_sold": [
+        "66056856"
+      ],
+      "shops_with_rows": [
+        "66056856"
+      ],
+      "shops_no_data": [],
+      "shops_pending": []
+    },
+    "october": {
+      "shops_sold": [
+        "148992469",
+        "149000600",
+        "149001087",
+        "149032438",
+        "149035080",
+        "149154933"
+      ],
+      "shops_with_rows": [],
+      "shops_no_data": [],
+      "shops_pending": [
+        "148992469",
+        "149000600",
+        "149001087",
+        "149032438",
+        "149035080",
+        "149154933"
+      ]
+    }
+  },
+  "bot_paths": {
+    "count": 58,
+    "outside_ym": [],
+    "paths": [
+      "analytics-mvp/data-ym/_probe/bad_cells.json",
+      "analytics-mvp/data-ym/_probe/goods-realization-delivered_csv.json",
+      "analytics-mvp/data-ym/_probe/goods-realization-lost_items_csv.json",
+      "analytics-mvp/data-ym/_probe/goods-realization-returned_csv.json",
+      "analytics-mvp/data-ym/_probe/goods-realization-transferred_to_delivery_csv.json",
+      "analytics-mvp/data-ym/_probe/goods-realization-unredeemed_csv.json",
+      "analytics-mvp/data-ym/_probe/shows-sales.json",
+      "analytics-mvp/data-ym/_probe/united-netting.json",
+      "analytics-mvp/data-ym/_probe/ym-bonuses.json",
+      "analytics-mvp/data-ym/ads_30d.json",
+      "analytics-mvp/data-ym/ads_periods.json",
+      "analytics-mvp/data-ym/ads_reports.json",
+      "analytics-mvp/data-ym/bonuses_monthly.ndjson",
+      "analytics-mvp/data-ym/bonuses_state.json",
+      "analytics-mvp/data-ym/daily_totals.ndjson",
+      "analytics-mvp/data-ym/delivery.csv",
+      "analytics-mvp/data-ym/delivery_source.json",
+      "analytics-mvp/data-ym/fee_source.json",
+      "analytics-mvp/data-ym/history.ndjson",
+      "analytics-mvp/data-ym/netting.ndjson",
+      "analytics-mvp/data-ym/netting_state.json",
+      "analytics-mvp/data-ym/netting_summary.json",
+      "analytics-mvp/data-ym/pnl_30d.json",
+      "analytics-mvp/data-ym/pnl_account_daily.ndjson",
+      "analytics-mvp/data-ym/pnl_daily.ndjson",
+      "analytics-mvp/data-ym/pnl_sku_30d.json",
+      "analytics-mvp/data-ym/pnl_sku_daily.ndjson",
+      "analytics-mvp/data-ym/pnl_sku_netting_daily.ndjson",
+      "analytics-mvp/data-ym/promo_monthly.ndjson",
+      "analytics-mvp/data-ym/promo_state.json",
+      "analytics-mvp/data-ym/realization_monthly.ndjson",
+      "analytics-mvp/data-ym/realization_orders.ndjson",
+      "analytics-mvp/data-ym/realization_state.json",
+      "analytics-mvp/data-ym/reconcile.json",
+      "analytics-mvp/data-ym/sku_cogs.json",
+      "analytics-mvp/data-ym/sku_offer.json",
+      "analytics-mvp/data-ym/sku_taxonomy.json",
+      "analytics-mvp/data-ym/sku_views.ndjson",
+      "analytics-mvp/data-ym/skus_live_30d.json",
+      "analytics-mvp/data-ym/svod_orders.json",
+      "analytics-mvp/public/market/assistant.html",
+      "analytics-mvp/public/market/campaigns.html",
+      "analytics-mvp/public/market/cards.html",
+      "analytics-mvp/public/market/competitors.html",
+      "analytics-mvp/public/market/index.html",
+      "analytics-mvp/public/market/katya-command.html",
+      "analytics-mvp/public/market/katya-competitors.html",
+      "analytics-mvp/public/market/katya-marketing.html",
+      "analytics-mvp/public/market/katya-money.html",
+      "analytics-mvp/public/market/katya-report.html",
+      "analytics-mvp/public/market/katya-tovary.html",
+      "analytics-mvp/public/market/katya-voronka.html",
+      "analytics-mvp/public/market/katya.html",
+      "analytics-mvp/public/market/marketing.html",
+      "analytics-mvp/public/market/money.html",
+      "analytics-mvp/public/market/obzor.html",
+      "analytics-mvp/public/market/tovary.html",
+      "analytics-mvp/public/market/voronka.html"
+    ]
+  },
+  "delivery": {
+    "rows": 662,
+    "loaded_at": "2026-10-29T14:48:37.637265+03:00",
+    "through": "2026-10-28",
+    "hash_valid": true,
+    "order62604710146_ship": [
+      161,
+      1000
+    ],
+    "undated_issue": [
+      {
+        "order": "62536179201",
+        "shipped": "",
+        "status": "Доставлен",
+        "ship": 7533.0,
+        "reason": "в Google-таблице нет даты отгрузки; новая отправка пока не добавлена в расход"
+      }
+    ]
+  },
+  "reconciliation": {
+    "verdict": "return",
+    "units_api": 177,
+    "units_report": 180,
+    "report_monthly_and_order_agree": true,
+    "money_diff": 88650,
+    "four_order_actual_minus_derived": [
+      3000,
+      -95650,
+      4500,
+      -500
+    ],
+    "compensation_note": "Order61567636547 buyer payments/refunds4500 minus buyer-expense compensation5000 yields actual-500.",
+    "revenue_diff": 6191143,
+    "bases": {
+      "gross_goods": 10895493,
+      "buyer_goods": 4963578,
+      "price_type_difference": 5931915,
+      "delivery_in_orders_only": 394600,
+      "buyer_goods_vs_realization_remaining": -135372,
+      "combined_difference": 6191143,
+      "comparison_warning": "Gross goods plus delivery and report goods amount have different monetary bases; residual135372 still needs same-population reconciliation, not a bank-shortfall claim."
+    }
+  },
+  "source_ledger_probe": "git show HEAD blobs; exact row counts,latest dates,semantic month comparison,SHA256 delivery manifest,netting sums independently recomputed",
+  "logs": {
+    "full_refresh_log_sha256": "fda5095af1c36a4cd027ef239a94f34edf2c56a72354b29219630c208153aee7",
+    "delta_evidence": [
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:40.1434871Z дельта-гейт accruals: 9136957 -> 9374886 (+3%) ОК",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:40.1457236Z OK pnl: data-ym/pnl_30d.json",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:40.6707222Z дельта-гейт skuCount: 72 -> 69 (-4%) ОК",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:40.6714738Z OK pnlsku: data-ym/pnl_sku_30d.json",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:41.4265040Z facts-gate data-ym/netting.ndjson: строк 20119 -> 20246, месяцев 22 -> 22, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:42.0235359Z facts-gate data-ym/orders.ndjson: строк 3066 -> 3080, месяцев 19 -> 19, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:42.5326722Z facts-gate data-ym/realization_monthly.ndjson: строк 728 -> 798, месяцев 8 -> 9, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:43.3197389Z facts-gate data-ym/sku_views.ndjson: строк 30809 -> 31645, месяцев 6 -> 6, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:43.9308793Z facts-gate data-ym/services_monthly.ndjson: строк 11666 -> 11666, месяцев 18 -> 18, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:44.5135497Z facts-gate data-ym/bonuses_monthly.ndjson: строк 5878 -> 5919, месяцев 20 -> 20, аномалий нет",
+      "snapshots\tДельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)\t2026-10-29T11:48:45.0302650Z facts-gate data-ym/promo_monthly.ndjson: строк 35 -> 35, месяцев 12 -> 12, аномалий нет",
+      "snapshots\tCommit (если есть изменения)\t2026-10-29T11:48:56.9513372Z ^[[36;1m  # с прогрессом возобновляемости. Дельта-гейт поймать этого не мог: слепок для сравнения^[[0m"
+    ],
+    "ozon_md5_ok_lines": 116,
+    "ozon_untouched": true
+  },
+  "supplemental_evidence": {
+    "cogs_source_check": {
+      "checked_on": "2026-10-29",
+      "source": "https://docs.google.com/spreadsheets/d/189lizy57gnKQ9q16WT6JiGeHoxs4469e_-8dc1-mK88/edit",
+      "sheet": "ЯМ",
+      "live_skus": 662,
+      "fixture_skus": 662,
+      "mismatches": [],
+      "fixture_extra": []
+    },
+    "realization_diffs": {
+      "scope": "September report vs API event-month units, not bank reconciliation",
+      "orders_net": 177.0,
+      "real_order_rows_net": 180.0,
+      "real_monthly_net": 180,
+      "diff_rows": [
+        {
+          "business": "1023124",
+          "order": "60360163011",
+          "sku": "GGM-08-2-M",
+          "orders_net": 1.0,
+          "report_net": 0.0,
+          "fin": "2026-09-02",
+          "status": "DELIVERED",
+          "returned": 0
+        },
+        {
+          "business": "1023124",
+          "order": "61528480707",
+          "sku": "GGL-11",
+          "orders_net": 0.0,
+          "report_net": 1.0,
+          "fin": "2026-09-27",
+          "status": "RETURNED",
+          "returned": 1
+        },
+        {
+          "business": "74986385",
+          "order": "60552398978",
+          "sku": "GGT-35-1-3-100-180",
+          "orders_net": 0.0,
+          "report_net": 1.0,
+          "fin": "2026-09-03",
+          "status": "DELIVERED",
+          "returned": 1
+        },
+        {
+          "business": "74986385",
+          "order": "61405848001",
+          "sku": "GGT-35-2-2-100-180",
+          "orders_net": 0.0,
+          "report_net": 1.0,
+          "fin": "2026-09-14",
+          "status": "DELIVERED",
+          "returned": 1
+        },
+        {
+          "business": "74986385",
+          "order": "61567636547",
+          "sku": "GGT-03-2-3-E-16080",
+          "orders_net": 0.0,
+          "report_net": 1.0,
+          "fin": "2026-09-21",
+          "status": "DELIVERED",
+          "returned": 1
+        }
+      ],
+      "prices": {
+        "order_accruals": 10895493,
+        "buyer_price_times_netunits": 4963578.0,
+        "monthly_report_amount": 5098950
+      }
+    }
+  },
+  "limitations": [
+    "No independent bank reconciliation performed or promised.",
+    "September5SKU mismatch: event-month/report-month and4return differences remain; monetary residual135372 needs same-population reconciliation.",
+    "3 legacy inactive campaigns API_DISABLED remain unavailable.",
+    "October realization pending6shops; month not closed.",
+    "Delivery7533rub undated shipment remains excluded with visible issue.",
+    "662/662 COGS agreement verifies source ingestion; it does not prove historical coverage of all sold SKU.",
+    "Source freshness checked in git snapshot as of29October; browser/deployment verification delegated to parent.",
+    "CI2 pre-existing OZON failures remain separate; code audit and tests not rerun here."
+  ]
+}

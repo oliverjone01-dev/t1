@@ -1,44 +1,44 @@
 {
- "dateFrom": "2026-09-28",
- "dateTo": "2026-10-27",
- "generated_at": "2026-10-28T12:58:44.294Z",
+ "dateFrom": "2026-09-29",
+ "dateTo": "2026-10-28",
+ "generated_at": "2026-10-29T13:05:34.186Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2235,
-  "ad_visits_30d": 6612,
-  "yd_visits_30d": 5056,
+  "direct_clicks_30d": 2304,
+  "ad_visits_30d": 6724,
+  "yd_visits_30d": 5138,
   "ad_leads_30d": 94
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4881,
-   "users": 4216,
+   "visits": 4964,
+   "users": 4296,
    "leads": 92,
-   "contacts": 85
+   "contacts": 86
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1548,
-   "users": 615,
+   "visits": 1579,
+   "users": 630,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 175,
+   "visits": 174,
    "users": 131,
    "leads": 1,
    "contacts": 0
   },
   {
    "engine": "Instagram",
-   "visits": 7,
-   "users": 7,
+   "visits": 6,
+   "users": 6,
    "leads": 1,
    "contacts": 0
   },
@@ -53,55 +53,55 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 3037,
-   "leads": 52,
-   "contacts": 43
+   "visits": 3053,
+   "leads": 50,
+   "contacts": 41
   },
   {
    "utm": "genglass",
-   "visits": 1513,
+   "visits": 1550,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "peregorodki_713589837",
-   "visits": 452,
-   "leads": 12,
-   "contacts": 15
-  },
-  {
    "utm": "peregorodki_714445486",
-   "visits": 440,
+   "visits": 489,
    "leads": 1,
    "contacts": 1
   },
   {
+   "utm": "peregorodki_713589837",
+   "visits": 456,
+   "leads": 13,
+   "contacts": 17
+  },
+  {
    "utm": "peregorodki_712877525",
-   "visits": 415,
-   "leads": 9,
-   "contacts": 8
+   "visits": 419,
+   "leads": 10,
+   "contacts": 9
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 259,
+   "visits": 256,
    "leads": 6,
    "contacts": 6
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 164,
+   "visits": 162,
    "leads": 5,
    "contacts": 3
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 126,
+   "visits": 127,
    "leads": 2,
    "contacts": 3
   },
   {
    "utm": "organization",
-   "visits": 69,
+   "visits": 67,
    "leads": 6,
    "contacts": 3
   },
@@ -136,6 +136,12 @@
    "contacts": 0
   },
   {
+   "utm": "peregorodki_v_inter'ere",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "stacionarnye_peregorodki",
    "visits": 2,
    "leads": 0,
@@ -149,12 +155,6 @@
   },
   {
    "utm": "vidy_mezhkomnatnyh_peregorodok",
-   "visits": 2,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "zonirovanie_bez_sten",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -185,12 +185,6 @@
   },
   {
    "utm": "loft_peregorodki_v_kvartire",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "name_705155766",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -233,12 +227,6 @@
   },
   {
    "utm": "peregorodki_710747853",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "peregorodki_v_inter'ere",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -302,46 +290,52 @@
    "visits": 1,
    "leads": 0,
    "contacts": 0
+  },
+  {
+   "utm": "zonirovanie_bez_sten",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
   }
  ],
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6612,
-   "users": 4955,
-   "bounce": 17.861464,
+   "visits": 6724,
+   "users": 5046,
+   "bounce": 17.89113623,
    "leads": 94,
-   "contacts": 85
+   "contacts": 86
   },
   {
    "source": "Link traffic",
-   "visits": 4715,
-   "users": 4587,
-   "bounce": 0.76352068,
+   "visits": 4806,
+   "users": 4677,
+   "bounce": 0.76987099,
    "leads": 18,
    "contacts": 22
   },
   {
    "source": "Search engine traffic",
-   "visits": 3806,
-   "users": 2965,
-   "bounce": 17.81397793,
-   "leads": 139,
-   "contacts": 133
+   "visits": 3824,
+   "users": 2984,
+   "bounce": 17.9916318,
+   "leads": 137,
+   "contacts": 130
   },
   {
    "source": "Direct traffic",
-   "visits": 2573,
-   "users": 2180,
-   "bounce": 15.6626506,
-   "leads": 61,
+   "visits": 2550,
+   "users": 2156,
+   "bounce": 15.68627451,
+   "leads": 62,
    "contacts": 44
   },
   {
    "source": "Internal traffic",
-   "visits": 660,
-   "users": 347,
-   "bounce": 18.48484848,
+   "visits": 674,
+   "users": 350,
+   "bounce": 17.65578635,
    "leads": 9,
    "contacts": 5
   },
@@ -349,15 +343,15 @@
    "source": "Social network traffic",
    "visits": 26,
    "users": 23,
-   "bounce": 42.30769231,
+   "bounce": 46.15384615,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Messenger traffic",
-   "visits": 22,
+   "visits": 18,
    "users": 6,
-   "bounce": 4.54545455,
+   "bounce": 0,
    "leads": 1,
    "contacts": 1
   },

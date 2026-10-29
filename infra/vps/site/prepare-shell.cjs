@@ -31,3 +31,9 @@ for(const dir of fs.readdirSync(site,{withFileTypes:true})){
  fs.writeFileSync(file+'.brand-tmp',html);fs.renameSync(file+'.brand-tmp',file);branded++;
 }
 console.log('Official GENGLASS identity prepared:',branded,'dashboards');
+
+// Administrator-only account management on the home page.
+{
+ const file=path.join(site,"index.html");
+ if(fs.existsSync(file)){let html=fs.readFileSync(file,"utf8");if(!html.includes("data-gg-access-panel")){const accessDir=path.join(__dirname,"../access");html=html.replace("</head>","<style data-gg-access-panel>"+fs.readFileSync(path.join(accessDir,"access-panel.css"),"utf8")+"</style></head>").replace("</body>","<script>"+fs.readFileSync(path.join(accessDir,"access-panel.js"),"utf8")+"</script></body>");fs.writeFileSync(file,html);}}
+}

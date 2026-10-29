@@ -52,6 +52,7 @@ server {
 
     auth_basic "GENGROUP";
     auth_basic_user_file /etc/nginx/gg.htpasswd;
+    include /etc/nginx/snippets/gg-access*.conf;
 
     # Private PostgreSQL snapshots; auth inherited from server.
     location ^~ /_system/ {

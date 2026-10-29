@@ -2,12 +2,27 @@ import {describe,it,expect} from 'vitest';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateCaptureFile,cabinetCaptureHtml,latestCapture} from './cabinet-capture.js';
+import {validateCaptureFile,cabinetCaptureHtml,latestCapture,captureHistoryHtml} from './cabinet-capture.js';
 
 function fixture(){return {version:1,company:'GENGLASS',snapshots:[{version:1,company:'GENGLASS',day:'2026-10-29',captured_at:'2026-10-29T09:18:00+00:00',phase:'once',day_in_progress:true,
  scope:{expected:2,received:1,matched:1,missing:1,extra:0,status:'partial'},totals:{views:12,search_views:7,pdp_views:3,cart:1,ordered_units:0},
  items:[{sku:'123',scheme:null,search_position:0,views:12,search_views:7,pdp_views:3,cart:1,ordered_units:0}],source:'ozon-native-daily-product-report',not_refreshed:['card_price']}]};}
 describe('native cabinet snapshot',()=>{
+ it('shows both stored days instead of hiding yesterday behind the latest snapshot',()=>{
+  const f=fixture(),y=structuredClone(f.snapshots[0]!);y.day='2026-10-28';y.day_in_progress=false;
+  y.items[0]!.views=31;y.totals.views=31;f.snapshots.push(y);
+  const html=captureHistoryHtml(validateCaptureFile(f));
+  expect(html).toContain('2026-10-28');expect(html).toContain('2026-10-29');
+  expect(html).toContain('<td>31</td>');expect(html).toContain('<td>12</td>');
+  expect(html).toContain('День не завершён');expect(html).toContain('Дневной отчёт');
+ });
+ it('uses the latest phase per day without summing morning and evening',()=>{
+  const f=fixture(),evening=structuredClone(f.snapshots[0]!);evening.phase='вечер';evening.captured_at='2026-10-29T16:56:00+00:00';
+  evening.items[0]!.views=77;evening.totals.views=77;f.snapshots.push(evening);
+  const html=captureHistoryHtml(validateCaptureFile(f));
+  expect(html.match(/<td>2026-10-29<\/td>/g)).toHaveLength(1);
+  expect(html).toContain('<td>77</td>');expect(html).not.toContain('<td>89</td>');
+ });
  it('keeps partial scope and explicit zero values',()=>{const r=validateCaptureFile(fixture());expect(r.snapshots[0]!.scope.missing).toBe(1);expect(r.snapshots[0]!.items[0]!.ordered_units).toBe(0);});
  it('rejects hidden private fields',()=>{const r:any=fixture();r.snapshots[0].items[0].price=123;expect(()=>validateCaptureFile(r)).toThrow('unexpected fields');});
  it('rejects a false complete flag',()=>{const r=fixture();r.snapshots[0]!.scope.status='complete';expect(()=>validateCaptureFile(r)).toThrow('scope');});

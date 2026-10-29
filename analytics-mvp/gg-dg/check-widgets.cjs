@@ -27,7 +27,7 @@ test('refusal scrolling retains all records and column filters/sorts agree with 
 test('refusal activity uses Moscow midnight and blank details retain the known reason',()=>{
  const f=fixture();Object.assign(f.leads[0],{statusCode:'JUNK',status:'Некачественный лид',reason:'Дорого'});f.calendar={version:1,leadReasonDetails:{L10:'   '},lead:[{id:'1',key:'L10',at:Date.parse('2026-10-10T12:00:00+03:00'),code:'JUNK',semantic:'F'}],deal:[]};f.communications={version:1,generatedAt:f.generated_at,cache:{status:'available',generatedAt:f.generated_at},events:[{id:'act#1',ts:Date.parse('2026-10-10T22:30:00Z'),entities:['L10'],type:'Письмо',dir:'входящее',who:'Клиент',body:'Request'}]};
  const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-31'");assert.equal(d.run('dgRefusalRows()[0].reason'),'Дорого');assert.equal(d.run('dgRefusalView()[0].cells.activity'),'11.10.2026');
- assert.match(d.run('dgCalendarRecordTable(dgCalendarRows(DG_CAL_ROWS[0]),DG_CAL_ROWS[0])'),/<td>11\.10\.2026<\/td>/);
+ assert.ok(!d.run('dgCalendarRecordTable(dgCalendarRows(DG_CAL_ROWS[0]),DG_CAL_ROWS[0])').includes('Последняя коммуникация'));
  f.leads[0].reason='   ';assert.equal(dashboard(f).run('dgRefusalRows()[0].reason'),'Не заполнена');
 });
 test('missing duplicate-origin hint belongs only to a duplicate lead, not its related deal',()=>{
@@ -311,8 +311,8 @@ test('incoming customer identity is only a role in all published payloads',()=>{
 
 test('calendar switches between manager and direct record levels without changing populations',()=>{
  const d=dashboard();d.run("S.dgCalDealsOpen=true;S.dgCalExpanded.add('kp')");const before=d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')");const managers=d.run('dgCalendarBlock()');assert.ok(managers.includes('dg-heat-manager'));assert.ok(managers.includes('data-dg-calview="deals"'));assert.ok(!managers.includes('data-dg-calamount'));
- d.run("S.dgCalView='deals'");const direct=d.run('dgCalendarBlock()');assert.ok(!direct.includes('dg-heat-manager'));assert.ok(direct.includes('data-dg-calrecord="D20"'));assert.ok(direct.includes('<th>Ответственный</th>'));assert.ok(!direct.includes('Таблица ответственных'));assert.ok(!direct.includes('dg-comm-host'));assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')"),before);
- d.run("S.dgCalRecords.add('D20')");const open=d.run('dgCalendarBlock()');assert.ok(open.includes('colspan="9"'));assert.ok(open.includes('dg-comm-host'));d.run("S.dgCalView='managers';S.dgCalRecords.clear()");assert.ok(d.run('dgCalendarBlock()').includes('dg-heat-manager'));
+ d.run("S.dgCalView='deals'");const direct=d.run('dgCalendarBlock()');assert.ok(!direct.includes('dg-heat-manager'));assert.ok(!direct.includes('data-dg-calrecord='));assert.ok(direct.includes('<th>Ответственный</th>'));assert.ok(!direct.includes('Таблица ответственных'));assert.ok(!direct.includes('dg-comm-host'));assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='kp')).map(x=>x.key).join(',')"),before);
+ d.run("S.dgCalRecords.add('D20')");const open=d.run('dgCalendarBlock()');assert.ok(!open.includes('dg-comm-host'));assert.ok(!open.includes('<th>Лента</th>'));assert.ok(!open.includes('data-dg-calrecord='));d.run("S.dgCalView='managers';S.dgCalRecords.clear()");assert.ok(d.run('dgCalendarBlock()').includes('dg-heat-manager'));
 });
 
 test('duplicate reference field distinguishes lead/deal targets without exposing CRM URLs',()=>{
@@ -327,3 +327,5 @@ test('client-type sections and KPI snapshot footnote are absent from partner pre
 });
 
 test('empty refusal table spans all retained columns',()=>{const f=fixture();f.leads=[];f.deals=[];const d=dashboard(sync(f));const h=d.run('dgRefusalBlock()');assert.ok(h.includes('colspan="9"'));assert.ok(!h.includes('$'+'{DG_LOSS_COLUMNS.length}'));});
+
+test('hidden communications cannot expand or initiate history loading',async()=>{const d=dashboard();d.run("S.dgCalRecords.add('L10');dgCommCache.clear()");const h=d.run('dgCalendarRecordTable(dgCalendarRows(DG_CAL_ROWS[0]),DG_CAL_ROWS[0])');assert.ok(!/data-dg-calrecord|dg-comm-host|Последняя коммуникация|<th>Лента/.test(h));await d.run("dgLoadCommunication('L10')");assert.equal(d.run('dgCommCache.size'),0);assert.ok(!d.run('dgCalendarBlock()').includes('→ коммуникации'));});

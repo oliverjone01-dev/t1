@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-lost_items_csv",
-  "at": "2026-10-21T12:00:14.689Z",
+  "at": "2026-10-29T11:40:29.071Z",
   "headers": [
     "PLACEMENT_PROGRAM",
     "PARTNER_ID",
@@ -49,7 +49,7 @@
     "ADJUSTMENT_INVOICE_NUMBER"
   ],
   "sample_masked": [],
-  "campaign": "149154933",
-  "ym": "2026-07",
+  "campaign": "66056856",
+  "ym": "2026-01",
   "file": "lost_items.csv"
 }

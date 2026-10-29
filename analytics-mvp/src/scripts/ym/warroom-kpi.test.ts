@@ -225,7 +225,8 @@ describe("карточка «Оборот» Маркета: заказано м�
     const tipOf = (name: string) =>
       [...D().querySelectorAll("#kpis .card")].find((c) => (c.textContent || "").includes(name))?.getAttribute("title") || "";
     expect(tipOf("Средний чек")).toContain("заказано минус отменено");
-    expect(tipOf("ДРР")).toContain("заказано минус отменено");
+    expect(tipOf("ДРР")).toContain("Реестр содержит только часть расходов продвижения");
+    expect(tipOf("ДРР")).toContain("по месяцу заказа");
   });
 
   it("снимок без полей о доставке не выдаётся за честные числа", () => {

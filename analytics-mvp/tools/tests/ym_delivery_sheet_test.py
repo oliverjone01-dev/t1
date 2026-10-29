@@ -158,14 +158,33 @@ class DeliverySheetTests(unittest.TestCase):
                     sheet.prepare(root, source(row()), source(row()), NOW)
 
     def test_free_text_in_identifier_columns_never_published(self):
-        for index in [2, 3]:
-            private = row(); private[index] = "PRIVATE-CANARY +70000000000"
-            with self.assertRaisesRegex(ValueError, "invalid date/order/status/amount"):
-                sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
+        private = row(); private[2] = "PRIVATE-CANARY +70000000000"
+        with self.assertRaisesRegex(ValueError, "invalid date/order/status/amount"):
+            sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
+        private = row(); private[3] = "PRIVATE-CANARY +70000000000"
+        records, counts = sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
+        self.assertEqual((records[0]["offer"], records[0]["ship"]), ("", "1000"))
+        self.assertEqual(counts["unrecognized_offer_rows"], 1)
+        self.assertNotIn("PRIVATE-CANARY", sheet.render(records))
+        self.assertNotIn("+70000000000", sheet.render(records))
         private = row(); private[0] = "Яндекс PRIVATE-CANARY"
         records, _ = sheet.parse_tab(source(private), "active", "2026-10-20", {ORDER}, set())
         self.assertEqual(records[0]["tags"], "Яндекс")
         self.assertNotIn("PRIVATE-CANARY", sheet.render(records))
+
+    def test_service_shipment_keeps_main_delivery_and_replays_without_duplicate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); self.root(root)
+            main = row(ship="1000")
+            extra = row(ship="161", paid="0", date="19 октября", doc="", status="Создан")
+            extra[3] = "Крепеж для KONUX + инструкция"
+            first = sheet.prepare(root, source(extra, extra), source(main), NOW)
+            records = [r for r in sheet.read_ledger(first["delivery.csv"]) if r["order"] == ORDER]
+            self.assertEqual(sorted(float(r["ship"]) for r in records), [161, 1000])
+            self.assertNotIn(extra[3], first["delivery.csv"])
+            sheet.write_bundle(root, first)
+            second = sheet.prepare(root, source(extra), source(main), NOW)
+            self.assertEqual(first["delivery.csv"], second["delivery.csv"])
 
     def test_latin_cyrillic_ledger_alias_is_one_document_without_rewriting_absent_history(self):
         rows, _ = sheet.parse_tab(source(row(doc="M26-4639"), row(doc="М26-4639")), "active", "2026-10-20", {ORDER}, set())

@@ -1225,7 +1225,11 @@ const _adsHasId = (x: any): boolean => !!x && (
 );
 function freshAds(name: string): any {
   const rd = (p: string): any => { try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; } };
-  const d = rd(dp(name)), f = rd(fp(name));
+  const d = rd(dp(name));
+  // Shared fixtures contain OZON campaigns. Market snapshots intentionally
+  // have no campaign IDs; that must never select the other platform's source.
+  if (!IS_OZON) return d || { totals: {}, burners: [], top_spend: [], by_line: [] };
+  const f = rd(fp(name));
   if (_adsHasId(d)) return d;
   if (_adsHasId(f)) return f;
   return d || f;
@@ -5598,7 +5602,7 @@ const GMV_KPI = IS_OZON
 {
   const ads = freshAds("ads_30d.json");
   let adsPeriodsCC: any = freshAds("ads_periods.json");
-  if (!_adsHasId(adsPeriodsCC)) adsPeriodsCC = { p7: ads, p30: ads, p90: ads };
+  if (IS_OZON && !_adsHasId(adsPeriodsCC)) adsPeriodsCC = { p7: ads, p30: ads, p90: ads };
   // per-SKU разрежённый дневной ряд за окно (для движений по периоду)
   const skuMeta: Record<string, { nm: string; line: string }> = {};
   const tmpR: Record<string, Record<number, number>> = {}, tmpU: Record<string, Record<number, number>> = {};
@@ -5647,7 +5651,7 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'${IS_OZON ? "Сколько штук заказали за период." : "Сколько штук заказали за период за вычетом отменённых. Та же база, что у левого числа карточки «Оборот», поэтому оборот ÷ заказы сходится со средним чеком."}'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.${NET_TIP}'),
-    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Из ближайшего снимка 7/30/90.${NET_TIP}'),
+    ${IS_OZON ? `kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Из ближайшего снимка 7/30/90.${NET_TIP}')` : `kpi('ДРР','н/д','<span class="kt-d na">см. вкладку «Маркетинг»</span>','Реестр содержит только часть расходов продвижения. ДРР Маркета с деньгами и баллами рассчитывается на вкладке «Маркетинг» по месяцу заказа.')`},
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;

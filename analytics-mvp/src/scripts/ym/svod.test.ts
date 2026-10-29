@@ -791,7 +791,13 @@ describe("деньги кабинета: три источника не долж
     for (const name of ["Полка", "Подписка", "Товарные баннеры"]) {
       expect(other[name], `статья «${name}» не выделена и всё ещё падает в прочее`).toBeGreaterThan(0);
     }
-    expect(Math.round(other["Прочие услуги"] || 0), "в «Прочих услугах» снова осели именованные статьи").toBe(0);
+    // A real account-level charge may have no service name (Oct 2026).
+    // Keep it in Other; only named services must never disappear there.
+    const ledgerMonths = new Set(svod.months.filter((m: any) => m.overhead_src === "ledger").map((m: any) => `${m.business}|${m.ym}`));
+    const unnamed = readFileSync("data-ym/netting.ndjson", "utf8").trim().split("\n").filter(Boolean).map((line) => JSON.parse(line)).filter((r: any) =>
+      !r.order && !r.service && r.type === "Удержание" && r.src === "Оплата услуг Маркета" &&
+      ledgerMonths.has(`${r.business}|${r.d.slice(0, 7)}`)).reduce((s: number, r: any) => s - r.amount, 0);
+    expect(Math.round(other["Прочие услуги"] || 0), "в «Прочих услугах» допустимы только проводки без имени услуги").toBe(Math.round(unnamed));
   });
 });
 

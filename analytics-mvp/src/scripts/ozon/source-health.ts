@@ -13,7 +13,7 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   const captureFile=readCaptureFile(dir),capture=captureFile&&latestCapture(captureFile);
   if(capture)out.push({source:'Кабинет: штатная выгрузка',through:capture.day,expected:today,
     status:capture.day>=today&&capture.scope.status==='complete'?'ok':'warning',
-    note:`Снято ${capture.captured_at}; ${capture.day_in_progress?'день не завершён; ':''}получено ${capture.scope.matched} из ${capture.scope.expected} ожидаемых SKU; не наблюдались ${capture.scope.missing}. Прочие поля кабинета сохраняют прежние даты.`});
+    note:`Снято ${capture.captured_at}; ${capture.day_in_progress?'день не завершён; ':''}получено ${capture.scope.matched} из ${capture.scope.expected} ожидаемых SKU; не наблюдались ${capture.scope.missing}. Измерены показы, посещения карточек, корзины, заказанные товары и позиция поиска. Закрытые дни подключены к воронке, категориям, тестам и показам отчёта; незакрытый срез доступен в Воронке и карточках тестов. Цены, соинвест, бустинг, реклама и денежные показатели сохраняют собственные источники и даты.`});
   const status = json(join(dir, "collector_status.json"));
   const attempt = json(join(dir, "collector_failures.json"));
   if (attempt.failures?.length) out.push({source:"Последняя загрузка",through:attempt.attempted_at ?? null,expected:to,status:"error",note:attempt.failures.join("; ")});

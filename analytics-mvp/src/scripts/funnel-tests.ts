@@ -192,25 +192,30 @@ export function parseRow(raw: unknown): FunnelRow | string {
   return out;
 }
 
-export function readFunnelTests(path: string): FunnelRead {
+export function readFunnelTests(path: string, observations: unknown[] = [], replacedAggregateDays = new Set<string>()): FunnelRead {
   const empty: FunnelRead = {
     rows: [], agg: new Map(), byArt: new Map(), roleOf: new Map(), bad: [],
     first: "", last: "", exists: false, partial: [], partialDay: "", partialTs: "",
   };
-  if (!existsSync(path)) return empty;
+  if (!existsSync(path) && !observations.length) return empty;
   const out: FunnelRead = {
     ...empty, exists: true, agg: new Map(), byArt: new Map(), roleOf: new Map(), rows: [], bad: [], partial: [],
   };
   // Одна строка на ключ «роль + артикул (или тест) + группа + дата»: съём идёт утром и вечером, повтор
   // заменяет прежнюю строку, а не дописывает вторую (иначе двойной счёт, К4). Побеждает последняя в файле.
   const byKey = new Map<string, FunnelRow>();
-  const lines = readFileSync(path, "utf-8").split(/\r?\n/);
+  const lines = (existsSync(path) ? readFileSync(path, "utf-8").split(/\r?\n/) : [])
+    .concat(observations.map(r => JSON.stringify(r)));
   lines.forEach((l, i) => {
     if (!l.trim()) return;
     let raw: unknown;
     try { raw = JSON.parse(l); } catch { out.bad.push({ line: i + 1, why: "не разбирается как JSON" }); return; }
     const r = parseRow(raw);
     if (typeof r === "string") { out.bad.push({ line: i + 1, why: r }); return; }
+    // Once per-SKU cabinet observations replace a day, its historical ready-made
+    // aggregates no longer describe the same observations. Consumers use their
+    // existing per-article control estimator, including its coverage guard.
+    if (AGG_ROLES.has(r.role) && replacedAggregateDays.has(r.date)) return;
     const k = `${r.role}|${r.art}|${r.test_id}|${r.group}|${r.date}`;
     byKey.delete(k); byKey.set(k, r);
   });

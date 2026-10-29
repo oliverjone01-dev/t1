@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateCaptureFile} from './cabinet-capture.js';
@@ -15,7 +15,7 @@ function fixture(){return validateCaptureFile({version:1,company:'GENGLASS',snap
 describe('shared cabinet funnel adapter',()=>{
   it('overrides measured SKU/day fields without changing money, other days or unobserved SKUs',()=>{
     const api=[{date:'2026-10-28',sku:'123',views:1,units:9,revenue:333,ret:2},
-      {date:'2026-10-28',sku:'456',views:6},{date:'2026-10-27',sku:'123',views:4}];
+      {date:'2026-10-28',sku:'456',views:6,vsearch:0,pdp:0,cart:0,units:0},{date:'2026-10-27',sku:'123',views:4}];
     const saved=structuredClone(api), rows=mergeCabinetViews(api,fixture());
     expect(rows[0]).toMatchObject({views:12,units:0,revenue:333,ret:2});
     expect(rows.slice(1)).toEqual(api.slice(1));expect(api).toEqual(saved);
@@ -23,12 +23,17 @@ describe('shared cabinet funnel adapter',()=>{
   it('does not invent zeros for a missing measure',()=>{
     const f=fixture();f.snapshots[0]!.items[0]!.cart=null;f.snapshots[0]!.totals.cart=null;
     expect(mergeCabinetViews([{date:'2026-10-28',sku:'123',cart:9}],f)[0].cart).toBe(9);
+    expect(()=>mergeCabinetViews([],f)).toThrow('missing closed-day measure');
   });
   it('keeps channel and SKU funnel counts equal without rewriting financial totals',()=>{
     const f=fixture();
     const views=mergeCabinetViews([{date:'2026-10-28',sku:'123',views:1,vsearch:1,pdp:1,cart:0,units:4}],f);
     const totals=mergeCabinetTotals([{date:'2026-10-28',views:1,revenue:333,returns:2}],views,f);
     expect(totals[0]).toEqual({date:'2026-10-28',views:12,views_search:7,pdp_views:3,to_cart:1,units:0,revenue:333,returns:2});
+  });
+  it('keeps a new closed native day available without inventing financial fields',()=>{
+    const f=fixture(),views=mergeCabinetViews([],f);
+    expect(mergeCabinetTotals([],views,f)[0]).toEqual({date:'2026-10-28',cabinet_only:true,views:12,views_search:7,pdp_views:3,to_cart:1,units:0});
   });
   it('keeps open-day measurements out of closed-day windows',()=>{
     const f=fixture();f.snapshots[0]!.day='2026-10-29';
@@ -90,5 +95,15 @@ describe('shared cabinet funnel adapter',()=>{
       {...aggregate,date:'2026-10-27'},{...aggregate,date:'2026-10-28'},
     ],new Set(['2026-10-28']));
     expect(read.rows.map(r=>r.date)).toEqual(['2026-10-27']);
+  });
+  it('supersedes a historical partial row even when current membership has changed its role',()=>{
+    const dir=mkdtempSync(join(tmpdir(),'native-role-'));
+    try {
+      const p=join(dir,'funnel.ndjson');
+      const old={date:'2026-10-28',art:'ART',role:'control',search_position:10,search_views:7,pdp_views:3,hits_to_cart:1,ordered_units:0,full:false};
+      writeFileSync(p,JSON.stringify(old));
+      const read=readFunnelTests(p,[{...old,role:'test_ad',full:true}]);
+      expect(read.partial).toEqual([]);expect(read.byArt.get('ART')?.get('2026-10-28')?.role).toBe('test_ad');
+    } finally {rmSync(dir,{recursive:true,force:true});}
   });
 });

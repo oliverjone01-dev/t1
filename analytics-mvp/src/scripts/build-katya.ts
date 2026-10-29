@@ -1458,6 +1458,9 @@ if (ORDERS_FUNNEL) for (const f of facts) {
 let dailyTotals: any[] = [];
 try { dailyTotals = ndLines(dp("daily_totals.ndjson")).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
 if (IS_OZON) dailyTotals = mergeCabinetTotals(dailyTotals,viewRows,readCaptureFile(dp('')));
+if (IS_OZON && dailyTotals.some(t=>t.cabinet_only && t.date<=maxD)) {
+  throw Error('Cabinet funnel: API financial calendar is ahead of its daily totals; wait for complete API totals');
+}
 const MONEY_FIELDS_OK = !dailyTotals.length || dailyTotals.some((t: any) => "accruals" in t && "rev_canc" in t);
 if (dailyTotals.length) {
   for (const t of dailyTotals) {
@@ -1524,22 +1527,20 @@ if (dailyTotals.length) {
   const SUBFUN = structuredClone(Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret, canc: v.canc }])));
   const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
   const captureFile = IS_OZON ? readCaptureFile(dp('')) : null;
-  const latestCaptureDay = captureDays(captureFile).at(-1);
-  const openCapture = latestCaptureDay && captureIsOpen(latestCaptureDay) ? latestCaptureDay : undefined;
-  if (openCapture) {
-    const i=dayIdx(openCapture.day);
-    if (i<0 || i>=TOTAL) throw Error('Cabinet funnel: open day outside dashboard calendar');
-    for (const values of Object.values(FACTS_D)) values[i]=0;
-    for (const o of [...Object.values(CATFUN),...Object.values(SUBFUN)]) for (const k of ['views','vsearch','pdp','cart','units','deliv','ret','canc'] as const) o[k][i]=0;
-    for (const o of Object.values(LINES_D)) for (const k of ['units','ret','canc','cart','rev'] as const) o[k][i]=0;
-    for (const r of nativeFunnel(captureFile).filter(r=>r.date===openCapture.day)) {
+  const selectedCapture = captureDays(captureFile).at(-1);
+  const NATIVE_D:Record<string,number[]>=Object.fromEntries(Object.keys(FACTS_D).map(k=>[k,zD()]));
+  const NATIVE_CF:Record<string,Fun>={},NATIVE_SF:Record<string,Fun&{name:string;cat:string}>={},NATIVE_CS:Record<string,string[]>={};
+  if (selectedCapture) {
+    const i=dayIdx(selectedCapture.day);
+    if (i<0 || i>=TOTAL) throw Error('Cabinet funnel: source day outside dashboard calendar');
+    for (const r of nativeFunnel(captureFile).filter(r=>r.date===selectedCapture.day)) {
       const cat=catOf(r.sku),sub=subOf(r.sku),sid=subIdOf(cat,sub);
-      const cf=CATFUN[cat] ??=newFun();
-      const sf=SUBFUN[sid] ??=Object.assign(newFun(),{name:sub,cat});
-      if (!(CATSUBS[cat] ??=[]).includes(sid)) CATSUBS[cat]!.push(sid);
+      const cf=NATIVE_CF[cat] ??=newFun();
+      const sf=NATIVE_SF[sid] ??=Object.assign(newFun(),{name:sub,cat});
+      if (!(NATIVE_CS[cat] ??=[]).includes(sid)) NATIVE_CS[cat]!.push(sid);
       for (const k of ['views','vsearch','pdp','cart','units'] as const) {
-        if (r[k]===null) throw Error(`Cabinet funnel: missing open-day measure ${k}`);
-        FACTS_D[k]![i]!+=r[k];cf[k][i]!+=r[k];sf[k][i]!+=r[k];
+        if (r[k]===null) throw Error(`Cabinet funnel: missing source-day measure ${k}`);
+        NATIVE_D[k]![i]!+=r[k];cf[k][i]!+=r[k];sf[k][i]!+=r[k];
       }
     }
   }
@@ -1572,34 +1573,42 @@ if (dailyTotals.length) {
   </section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}.kt-table td.cf-cv,.kt-table th.cf-cv{color:var(--ink-3);font-size:11.5px}.cf-cat td.cf-cv{font-weight:500}.cf-total td{font-weight:700;background:rgba(255,255,255,.03);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}.cf-total td.cf-cv{color:var(--ink-3);font-weight:600}</style>`;
   const pageJs = `
-const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
-const NATIVE_DAY=${J(openCapture?.day ?? '')};const NATIVE_NOTE=${J(openCapture ? ` · день не закрыт, снято ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openCapture.captured_at))} МСК · ${openCapture.scope.received} SKU; не наблюдались ${openCapture.scope.missing} из ожидаемого списка ${openCapture.scope.expected}. Денежные показатели, выкуп, отмены и возвраты этим отчётом не измерялись.` : '')};
-const isPartial=w=>!!NATIVE_DAY&&w.from<=NATIVE_DAY&&w.to>=NATIVE_DAY;
+const CLOSED_D=${J(FACTS_D)},CLOSED_CF=${J(CATFUN)},CLOSED_SF=${J(SUBFUN)},CLOSED_CS=${J(CATSUBS)};
+const NATIVE_D=${J(NATIVE_D)},NATIVE_CF=${J(NATIVE_CF)},NATIVE_SF=${J(NATIVE_SF)},NATIVE_CS=${J(NATIVE_CS)};
+let D=CLOSED_D,CF=CLOSED_CF,SF=CLOSED_SF,CS=CLOSED_CS;const LD=${J(LINES_D)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
+const NATIVE_DAYS=${J(captureDays(captureFile).filter(r=>!captureIsOpen(r)).map(r=>r.day))};
+const UNKNOWN_OUTCOME_DAYS=${J([...new Set(viewRows.filter(r=>r.cabinet_loaded_at&&['deliv','ret','canc'].some(k=>!Number.isFinite(r[k]))).map(r=>r.date))])};
+const NATIVE_DAY=${J(selectedCapture?.day ?? '')};const NATIVE_NOTE=${J(selectedCapture ? ` · ${captureIsOpen(selectedCapture)?'день не закрыт':'дневной отчёт'}, снято ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(selectedCapture.captured_at))} МСК · ${selectedCapture.scope.received} SKU; не наблюдались ${selectedCapture.scope.missing} из ожидаемого списка ${selectedCapture.scope.expected}. Денежные показатели, выкуп, отмены и возвраты этим отчётом не измерялись.` : '')};
+const isCabinetView=w=>!!NATIVE_DAY&&CURP==='cabinet';
+const unknownOutcomes=w=>isCabinetView(w)||UNKNOWN_OUTCOME_DAYS.some(d=>d>=w.from&&d<=w.to);
+const nativeWindow=w=>{for(let d=w.from;d<=w.to;d=ad(d,1))if(!NATIVE_DAYS.includes(d))return false;return true;};
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
 function sumW(arr,w){let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;}
 function renderCatFunnel(cur){
-  const partial=isPartial(cur);
+  const sourceOnly=isCabinetView(cur);
+  const outcomesMissing=unknownOutcomes(cur);
   const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
   const sm=(o,k)=>sumW(o[k],cur);
-  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};}).filter(x=>${CAT_KEEP}).sort((a,b)=>b.units-a.units);
+  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};}).filter(x=>sourceOnly||${CAT_KEEP}).sort((a,b)=>b.units-a.units);
   const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
   // Канальный бенчмарк конверсии по каждому шагу (сумма по всем категориям периода).
   // Цвет CV: зелёный - категория конвертит выше канала на этом шаге, красный - ниже.
   const T={};['views','vsearch','pdp','cart','units','deliv','ret','canc'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
   const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?${IS_OZON ? "(T.units-T.canc)" : "T.deliv"}/T.units:0};
   const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
-  const cell=x=>{const vs=partial?x.vsearch:(x.vsearch>0?x.vsearch:null),pd=partial?x.pdp:(x.pdp>0?x.pdp:null);
+  const measured=sourceOnly||nativeWindow(cur);
+  const cell=x=>{const vs=measured?x.vsearch:(x.vsearch>0?x.vsearch:null),pd=measured?x.pdp:(x.pdp>0?x.pdp:null);
     return '<td class="r">'+fmtRu(x.views)+'</td>'+${IS_OZON
       ? "cv(vs,x.views,BM.vs)+(vs!=null?'<td class=\"r\">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)"
       : "cv(pd,x.views,BM.pd)"}
       +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
       +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
-      +'<td class="r">'+fmtRu(x.units)+'</td>'+(partial?ndc:cv(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"},x.units,BM.dl))
-      +(partial?ndc:'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"})+'</td>');};
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+(outcomesMissing?ndc:cv(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"},x.units,BM.dl))
+      +(outcomesMissing?ndc:'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"})+'</td>');};
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
-    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};if(s.units<=0&&s.cart<=0)return;
+    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};if(!sourceOnly&&s.units<=0&&s.cart<=0&&s.views<=0)return;
       h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
   });
   // Итоговая строка = сумма по категориям (T). CV в ней нейтральный (серый) - это и есть бенчмарк.
@@ -1610,38 +1619,40 @@ function renderCatFunnel(cur){
       : "cvP(T.pdp,T.views)"}
     +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
     +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
-    +'<td class="r">'+fmtRu(T.units)+'</td>'+(partial?ndc:cvP(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"},T.units))
-    +(partial?ndc:'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"})+'</td>')+'</tr>';
+    +'<td class="r">'+fmtRu(T.units)+'</td>'+(outcomesMissing?ndc:cvP(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"},T.units))
+    +(outcomesMissing?ndc:'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"})+'</td>')+'</tr>';
   document.getElementById('catfun').innerHTML=h?(totRow+h):'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
 function render(cur,cmp){
-  const partial=isPartial(cur);
+  const sourceOnly=isCabinetView(cur);
+  const outcomesMissing=unknownOutcomes(cur);
+  D=sourceOnly?NATIVE_D:CLOSED_D;CF=sourceOnly?NATIVE_CF:CLOSED_CF;SF=sourceOnly?NATIVE_SF:CLOSED_SF;CS=sourceOnly?NATIVE_CS:CLOSED_CS;
   const S=k=>sumW(D[k],cur),P=k=>sumW(D[k],cmp);
   ${FUN_REV_LINE}
   const kpi=(lab,val,d)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+d+'</div>';
   const cr=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'0%';
   document.getElementById('kpis').innerHTML=[
-    kpi('Оборот, ₽',partial?'нет данных':fMln(rev),partial?'':dlt(rev,prev)),
+    kpi('Оборот, ₽',sourceOnly?'нет данных':fMln(rev),sourceOnly?'':dlt(rev,prev)),
     ${FUN_UNITS_KPI},
     kpi('Показы',fMln(S('views')),dlt(S('views'),P('views'))),
     kpi('Конверсия показ→заказ',${IS_OZON ? "cr(S('units'),S('views'))" : "cr(S('units')-S('canc'),S('views'))"},dlt(${CONV_DELTA})),
-    kpi('Возвраты',partial?'нет данных':fmtRu(S('ret')),partial?'':dlt(S('ret'),P('ret'),false,'шт')),
-    kpi('Отмены',partial?'нет данных':fmtRu(S('canc')),partial?'':dlt(S('canc'),P('canc'),false,'шт'))
+    kpi('Возвраты',outcomesMissing?'нет данных':fmtRu(S('ret')),outcomesMissing?'':dlt(S('ret'),P('ret'),false,'шт')),
+    kpi('Отмены',outcomesMissing?'нет данных':fmtRu(S('canc')),outcomesMissing?'':dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
-  document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+(partial?NATIVE_NOTE:' · сравнение с '+cmp.from+'..'+cmp.to)${FSUB_TAIL};
+  document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+(sourceOnly?NATIVE_NOTE:' · сравнение с '+cmp.from+'..'+cmp.to)${FSUB_TAIL};
   renderCatFunnel(cur);
   // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
   // «Показы в поиске» (vsearch) и «Посещения карточки» (pdp) тянем день-уровнем OZON (dimension=day).
   // Если за период их нет (старые дни до правки workflow) -> null -> «нет данных».
-  const nz=k=>{const s=S(k);return s>0?s:null;};
+  const nz=k=>{const s=S(k);return sourceOnly||nativeWindow(cur)?s:(s>0?s:null);};
   const lv=[
     {n:'Показы, всего', v:S('views'), c:'из показов в поиск'},
     ${VSEARCH_STEP}    {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
     {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
     ${IS_OZON
-      ? `{n:'Выкуплено', v:partial?null:Math.max(0,S('units')-S('canc')), c:''}`
+      ? `{n:'Выкуплено', v:outcomesMissing?null:Math.max(0,S('units')-S('canc')), c:''}`
       // Маркет: «Заказано − Отмены» - это «пока не отменили», а не выкуп. За 01-16.09 такая формула
       // давала 125 при 38 реально доставленных: остальные 85 штук ещё едут. Решение Ивана 17.09 -
       // считать по доставленному, а сколько ещё в пути, сказать подписью под воронкой.
@@ -1662,8 +1673,8 @@ function render(cur,cmp){
   });
   fh+='</div>';
   document.getElementById('funnel').innerHTML=fh;
-  if(partial){
-    document.querySelectorAll('#kpis .kt-d,#kpis .kt-cap').forEach(n=>n.textContent='');
+  if(outcomesMissing){
+    if(sourceOnly)document.querySelectorAll('#kpis .kt-d,#kpis .kt-cap').forEach(n=>n.textContent='');
     document.getElementById('leaks').textContent='Возвраты и отмены этим срезом не измерялись.';
     document.getElementById('retl').innerHTML='<tr><td colspan="8">Нет данных о возвратах и отменах в текущем отчёте</td></tr>';
     return;
@@ -1677,7 +1688,7 @@ function render(cur,cmp){
   const p1=(a,b)=>b?(a/b*100).toFixed(1):'0'; // брошено = добавили в корзину, но не заказали
   document.getElementById('retl').innerHTML=rows.map(x=>{const drop=Math.max(0,x.ct-x.u);return '<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+p1(x.r,x.u)+'%</td><td class="r">'+fmtRu(x.c)+'</td><td class="r" style="color:'+(x.u&&x.c/x.u>0.1?'var(--dn)':'inherit')+'">'+p1(x.c,x.u)+'%</td><td class="r">'+fmtRu(drop)+'</td><td class="r" style="color:'+(x.ct&&drop/x.ct>0.9?'var(--dn)':'inherit')+'">'+p1(drop,x.ct)+'%</td></tr>';}).join('')||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
 }`;
-  writeFileSync(op("katya-voronka.html"), kshell("Воронка", "voronka", body, pageJs, openCapture?.day ?? ''));
+  writeFileSync(op("katya-voronka.html"), kshell("Воронка", "voronka", body, pageJs, selectedCapture?.day ?? ''));
 }
 
 // Общий блок кампаний: базовая разметка и данные «Маркетинга», детализация по карточкам.

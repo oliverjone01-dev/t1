@@ -41,7 +41,9 @@
 //
 // Запуск: npm run picks (сети не требует, читает только data/ и tools/tests/).
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { dp } from "../paths.js";
+import { dp,IS_OZON } from "../paths.js";
+import {readCaptureFile} from './ozon/cabinet-capture.js';
+import {mergeCabinetViews} from './ozon/cabinet-funnel.js';
 import { loadCardMap, kinKey, type CardMap } from "./card-kin.js";
 
 /** Категория по артикулу: первый сегмент. GGL зеркала, GGT столы, GGM свет и так далее.
@@ -191,7 +193,8 @@ function load(): PickInput & { tests: any[] } {
     if (c.inPanel) panel.add(r.art);
   }
   const sku2art = JSON.parse(readFileSync(dp("sku_offer.json"), "utf-8")) as Record<string, string>;
-  for (const r of nd(dp("sku_views.ndjson"))) {
+  const rawViews=nd(dp('sku_views.ndjson'));
+  for (const r of IS_OZON ? mergeCabinetViews(rawViews,readCaptureFile(dp(''))) : rawViews) {
     const art = sku2art[String(r.sku)]; if (!art) continue;
     const c = cell(art, r.date); c.vsearch = (c.vsearch ?? 0) + (r.vsearch || 0);
   }

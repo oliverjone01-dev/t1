@@ -45,6 +45,7 @@ export function nativeFunnel(file: CaptureFile | null): NativeFunnel[] {
  */
 export function mergeCabinetViews(api: any[], file: CaptureFile | null): any[] {
   const rows = new Map<string, any>();
+  const measuredDays = new Set<string>();
   for (const r of api) {
     const key = `${r.date}|${r.sku}`;
     if (rows.has(key)) throw Error(`Cabinet funnel: duplicate API SKU/day ${key}`);
@@ -52,11 +53,17 @@ export function mergeCabinetViews(api: any[], file: CaptureFile | null): any[] {
   }
   for (const r of nativeFunnel(file)) {
     if (r.partial) continue;
+    measuredDays.add(r.date);
     const key = `${r.date}|${r.sku}`, old = rows.get(key) ?? {date:r.date,sku:r.sku};
     const next = {...old};
     for (const k of ['views','vsearch','pdp','cart','units'] as const) if (r[k] !== null) next[k] = r[k];
     next.cabinet_loaded_at = r.loaded_at;
     rows.set(key,next);
+  }
+  for (const r of rows.values()) if (measuredDays.has(r.date)) {
+    for (const k of ['views','vsearch','pdp','cart','units'] as const) {
+      if (!Number.isFinite(r[k])) throw Error(`Cabinet funnel: missing closed-day measure ${r.date}|${r.sku}|${k}`);
+    }
   }
   return [...rows.values()];
 }
@@ -68,7 +75,13 @@ export const readCabinetFunnel = (dir: string) => nativeFunnel(readCaptureFile(d
 export function mergeCabinetTotals(apiTotals: any[], mergedViews: any[], file: CaptureFile|null): any[] {
   const days=new Set(nativeFunnel(file).filter(r=>!r.partial).map(r=>r.date));
   const names=[['views','views'],['vsearch','views_search'],['pdp','pdp_views'],['cart','to_cart'],['units','units']] as const;
-  return apiTotals.map(t=>{
+  const totals=new Map<string,any>();
+  for (const t of apiTotals) {
+    if (totals.has(t.date)) throw Error(`Cabinet funnel: duplicate API day ${t.date}`);
+    totals.set(t.date,t);
+  }
+  for (const date of days) if (!totals.has(date)) totals.set(date,{date,cabinet_only:true});
+  return [...totals.values()].map(t=>{
     if (!days.has(t.date)) return t;
     const rows=mergedViews.filter(r=>r.date===t.date),next={...t};
     for (const [field,total] of names) {

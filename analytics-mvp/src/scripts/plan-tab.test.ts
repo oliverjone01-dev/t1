@@ -335,6 +335,25 @@ function fixture(extra: Record<string, unknown[]> = {}) {
 const pd = (js: string) => JSON.parse(js.slice("window.PD=".length, js.indexOf(";\n")));
 
 describe("planBlock", () => {
+  it('uses closed native observations in plan funnel and position without advancing its order calendar',()=>{
+    const f=fixture();
+    writeFileSync(f('cabinet_capture.json'),JSON.stringify({version:1,company:'GENGLASS',snapshots:[{
+      version:1,company:'GENGLASS',day:'2026-10-15',captured_at:'2026-10-16T06:00:00+03:00',phase:'утро',day_in_progress:false,
+      scope:{expected:1,received:1,matched:1,missing:0,extra:0,status:'complete'},
+      totals:{views:20,search_views:10,pdp_views:2,cart:1,ordered_units:0},
+      items:[{sku:'1',scheme:null,views:20,search_views:10,pdp_views:2,cart:1,ordered_units:0,search_position:12}],
+      source:'ozon-native-daily-product-report',not_refreshed:['card_price']
+    }]}));
+    const d=pd(planBlock('2026-10-17',f)!.js),i=d.days.indexOf('2026-10-15');
+    expect(d.ser[0].views[i]).toBe(20);expect(d.ser[0].pos[i]).toBe(12);
+    expect(d.store.views[i]).toBe(920);expect(d.ser[0].orders[i]).toBe(2);
+    expect(d.od_last).toBe('2026-10-16');
+    const input=JSON.parse(readFileSync(f('cabinet_capture.json'),'utf8'));
+    input.snapshots[0].day_in_progress=true;
+    writeFileSync(f('cabinet_capture.json'),JSON.stringify(input));
+    const partial=pd(planBlock('2026-10-17',f)!.js);
+    expect(partial.ser[0].views[i]).toBe(100);expect(partial.ser[0].pos[i]).toBeNull();
+  });
   it("нет файла плана - блока нет, страница собирается без него", () => {
     const dir = mkdtempSync(join(tmpdir(), "plan-none-"));
     expect(planBlock("2026-10-16", (f) => join(dir, f))).toBeNull();

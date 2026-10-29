@@ -204,14 +204,18 @@ export function readFunnelTests(path: string, observations: unknown[] = [], repl
   // Одна строка на ключ «роль + артикул (или тест) + группа + дата»: съём идёт утром и вечером, повтор
   // заменяет прежнюю строку, а не дописывает вторую (иначе двойной счёт, К4). Побеждает последняя в файле.
   const byKey = new Map<string, FunnelRow>();
-  const lines = (existsSync(path) ? readFileSync(path, "utf-8").split(/\r?\n/) : [])
-    .concat(observations.map(r => JSON.stringify(r)));
+  const sourceLines = existsSync(path) ? readFileSync(path, "utf-8").split(/\r?\n/) : [];
+  const replacedArticles=new Set(observations.flatMap(raw=>{
+    const r=parseRow(raw);return typeof r==='string'||!r.art?[]:[`${r.date}|${r.art}`];
+  }));
+  const lines = sourceLines.concat(observations.map(r => JSON.stringify(r)));
   lines.forEach((l, i) => {
     if (!l.trim()) return;
     let raw: unknown;
     try { raw = JSON.parse(l); } catch { out.bad.push({ line: i + 1, why: "не разбирается как JSON" }); return; }
     const r = parseRow(raw);
     if (typeof r === "string") { out.bad.push({ line: i + 1, why: r }); return; }
+    if (i<sourceLines.length && r.art && replacedArticles.has(`${r.date}|${r.art}`)) return;
     // Once per-SKU cabinet observations replace a day, its historical ready-made
     // aggregates no longer describe the same observations. Consumers use their
     // existing per-article control estimator, including its coverage guard.

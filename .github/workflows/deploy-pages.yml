@@ -70,8 +70,17 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  # Не прерываем публикацию новым событием. Оставляем последнюю ожидающую сборку.
+  # События, которые jobs.build-deploy.if пропустит, не вытесняют её из очереди.
+  # Условие допуска ниже должно соответствовать jobs.build-deploy.if.
+  group: >-
+    ${{ github.event_name == 'workflow_run' &&
+        !(github.event.workflow_run.conclusion == 'success' ||
+          (github.event.workflow_run.name == 'OZON snapshots (прямой, без n8n)' &&
+           github.event.workflow_run.head_branch == 'main' &&
+           github.event.workflow_run.conclusion == 'failure')) &&
+        format('pages-skipped-{0}', github.run_id) || 'pages' }}
+  cancel-in-progress: false
 
 jobs:
   build-deploy:

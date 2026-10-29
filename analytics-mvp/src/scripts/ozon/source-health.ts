@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { closedDay, shiftDay, readRows } from "./collector-integrity.js";
+import {readCaptureFile,latestCapture} from './cabinet-capture.js';
 
 export type SourceHealth = { source: string; through: string | null; expected: string; status: "ok" | "warning" | "error"; note: string };
 const json = (path: string): any => existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
@@ -9,6 +10,10 @@ const maxDate = (rows: any[], fields: string[]) => rows.flatMap(r => fields.map(
 
 export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   const to = closedDay(now), today = shiftDay(to, 1), out: SourceHealth[] = [];
+  const captureFile=readCaptureFile(dir),capture=captureFile&&latestCapture(captureFile);
+  if(capture)out.push({source:'Кабинет: штатная выгрузка',through:capture.day,expected:today,
+    status:capture.day>=today&&capture.scope.status==='complete'?'ok':'warning',
+    note:`Снято ${capture.captured_at}; ${capture.day_in_progress?'день не завершён; ':''}получено ${capture.scope.matched} из ${capture.scope.expected} ожидаемых SKU; не наблюдались ${capture.scope.missing}. Прочие поля кабинета сохраняют прежние даты.`});
   const status = json(join(dir, "collector_status.json"));
   const attempt = json(join(dir, "collector_failures.json"));
   if (attempt.failures?.length) out.push({source:"Последняя загрузка",through:attempt.attempted_at ?? null,expected:to,status:"error",note:attempt.failures.join("; ")});

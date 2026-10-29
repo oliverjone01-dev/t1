@@ -1,0 +1,126 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ym-data-repair-20261029",
+  "timestamp": "2026-10-29T14:26:01.109322+03:00",
+  "deliverable_ref": "knowledge/episodes/2026-10/feniks-audit-ym-data-repair-20261029.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr after repair:8.2 here, independently reproduced PII removal, dedup and platform isolation; complete financial freshness still needs normal refresh.",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Independent source check: semantic metric v2, saved source ledger, API producer contract, author self-check. Full external financial reconciliation excluded from code GO."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "122 svod UI tests cover months, July1-15 plus16-31 and current windows. Own ad periods7/30/90 preserved in live source-isolation fixture."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "16 Python tests cover replay, duplicate rows, main1000+service161, historical retention and strict amount/document/date validation."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "122 UI assertions compare category/order/summary/delivery totals. Ad UI embeds exact YM ADS/ADSP and unavailable DRR with Marketing guidance."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "All8 changed paths inspected; financial production formulas untouched,161 is test fixture. No new production financial constants."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Independent runtime build against exact audited hash.72h stale source remains blocked by unchanged production guard; static saved data not declared fresh."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Before/after private canary removed from offer; ship161 retained, safe warning. Invalid document/date/status/amount still fail closed. YM DRR unavailable instead of OZON claim."
+    },
+    {
+      "id": "B8",
+      "result": "PASS",
+      "evidence": "Independent full before/after OZON builder under frozen test clock:11 HTML files SHA256 identical."
+    },
+    {
+      "id": "B9",
+      "result": "PASS",
+      "evidence": "5 realization-resume subprocess tests: partial/budget rebuild restores shadow month and pairs; repeated run avoids duplicates. New test clock scoped to temporary derive child."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 7,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.2,
+  "verdict": "go",
+  "gaps": [
+    "Full financial completeness remains unverified",
+    "Refresh depends on external API and runtime budget"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Full financial completeness remains unverified",
+      "evidence": "Self-check:September/January pending,3 API_DISABLED; stored delivery stale before fix. Financial GO expressly excluded.",
+      "checkpoint": "accuracy_2_sources_verifiable",
+      "weight": -1
+    },
+    {
+      "gap": "Refresh depends on external API and runtime budget",
+      "evidence": "reports.ts:25 requests per producer process,95min deadline; workflow120min timeout. Partial rebuild rollback independently passes5 tests.",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -1
+    }
+  ],
+  "rework_tz": "",
+  "iteration": 1,
+  "confidence": 0.94,
+  "audience": "Ivan",
+  "sources_of_truth": [
+    "knowledge/semantic/metrics/ym-delivery-sheet.yaml",
+    "knowledge/os/analytics-dod.md",
+    "analytics-mvp/src/scripts/ym/reports.ts",
+    "knowledge/episodes/2026-10/ym-data-repair-self-check-20261029.md",
+    "knowledge/episodes/2026-10/feniks-ym-data-repair-probes-20261029.json"
+  ]
+}

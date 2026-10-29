@@ -1,0 +1,145 @@
+{
+  "audit_hash": "7bba5b8e2b94f8e6",
+  "paths": [
+    "analytics-mvp/src/scripts/build-katya.ts",
+    "analytics-mvp/src/scripts/ym/ad-source-ui.test.ts",
+    "analytics-mvp/src/scripts/ym/svod-ui.test.ts",
+    "analytics-mvp/src/scripts/ym/svod.test.ts",
+    "analytics-mvp/src/scripts/ym/warroom-kpi.test.ts",
+    "analytics-mvp/tools/delivery/fetch_ym_delivery_sheet.py",
+    "analytics-mvp/tools/tests/ym_delivery_sheet_test.py",
+    "knowledge/semantic/metrics/ym-delivery-sheet.yaml"
+  ],
+  "delivery_before_after": {
+    "before": {
+      "error": "active: row 2, invalid date/order/status/amount"
+    },
+    "after": {
+      "offer": "",
+      "ship": "161",
+      "private_leaked": false,
+      "warning": true
+    },
+    "doc": {
+      "blocked": true,
+      "private_leaked": false
+    },
+    "amount": {
+      "blocked": true,
+      "private_leaked": false
+    },
+    "date": {
+      "blocked": true,
+      "private_leaked": false
+    },
+    "status": {
+      "blocked": true,
+      "private_leaked": false
+    }
+  },
+  "ads_before_after": {
+    "before_false": {
+      "p7": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      },
+      "p30": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      }
+    },
+    "before_true": {
+      "p7": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      },
+      "p30": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      }
+    },
+    "after_false": {
+      "p7": {
+        "totals": {
+          "spend": 7
+        }
+      },
+      "p30": {
+        "totals": {
+          "spend": 30
+        }
+      },
+      "p90": {
+        "totals": {
+          "spend": 90
+        }
+      }
+    },
+    "after_true": {
+      "p7": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      },
+      "p30": {
+        "top_spend": [
+          {
+            "id": "OZON"
+          }
+        ]
+      }
+    }
+  },
+  "ozon": {
+    "before": {
+      "katya-competitors.html": "78f79eb246368ea370f3cfa1a7f8bbff63bbab74291167e38ba964fc8dfb79e5",
+      "katya.html": "6b8a6a0bda487eabbce4aa8bd101d34c7d3fbbc78a4203b071518f52ed356453",
+      "katya-reklama-kartochki.html": "1b4c892ab51a9d600d56981adceb91a52ff0ee7848910185a8c1d384674dd152",
+      "katya-report.html": "0af92eff4daeafa395be9badc8867498dc6ea81b6ab77356c5a7627391ed0225",
+      "katya-command.html": "9357f21c8c9142fda8b083a8e66298740e3898ef403ccce64a7eb7a1c5f22157",
+      "katya-marketing.html": "f7280d98606b310feb8c5b5177b394671e79ea10207a79491b11fa1cc706ce2a",
+      "katya-money.html": "79cdd02543282c2df57d500ed855c4a036a74fe63da91f5635b7f70250c22114",
+      "katya-voronka.html": "3578bdb3d2224df189abcdc7c31a02afbc54b11ae9db667c1b806f3a17b2ba47",
+      "katya-problems.html": "62ff87b917daa9f4552f4fc60a1754a773d0b9908a7d0c1babcb6b83ea8cfe74",
+      "katya-tovary.html": "8a9fb3d853373fe8dde63f42cf04532e1314bd4de41d96019038e08db03679bc",
+      "katya-competitors-cabinet.html": "cb08233fce77d62721ed423c0ad82c807ef43b226f11df2d59af7a3d5a7dccb0"
+    },
+    "after": {
+      "katya-competitors.html": "78f79eb246368ea370f3cfa1a7f8bbff63bbab74291167e38ba964fc8dfb79e5",
+      "katya.html": "6b8a6a0bda487eabbce4aa8bd101d34c7d3fbbc78a4203b071518f52ed356453",
+      "katya-reklama-kartochki.html": "1b4c892ab51a9d600d56981adceb91a52ff0ee7848910185a8c1d384674dd152",
+      "katya-report.html": "0af92eff4daeafa395be9badc8867498dc6ea81b6ab77356c5a7627391ed0225",
+      "katya-command.html": "9357f21c8c9142fda8b083a8e66298740e3898ef403ccce64a7eb7a1c5f22157",
+      "katya-marketing.html": "f7280d98606b310feb8c5b5177b394671e79ea10207a79491b11fa1cc706ce2a",
+      "katya-money.html": "79cdd02543282c2df57d500ed855c4a036a74fe63da91f5635b7f70250c22114",
+      "katya-voronka.html": "3578bdb3d2224df189abcdc7c31a02afbc54b11ae9db667c1b806f3a17b2ba47",
+      "katya-problems.html": "62ff87b917daa9f4552f4fc60a1754a773d0b9908a7d0c1babcb6b83ea8cfe74",
+      "katya-tovary.html": "8a9fb3d853373fe8dde63f42cf04532e1314bd4de41d96019038e08db03679bc",
+      "katya-competitors-cabinet.html": "cb08233fce77d62721ed423c0ad82c807ef43b226f11df2d59af7a3d5a7dccb0"
+    },
+    "unchanged": true,
+    "files": 11
+  },
+  "own_tests": {
+    "python_delivery": 16,
+    "svod": 75,
+    "ad_source_ui": 1,
+    "svod_ui": 122,
+    "delivery_source": 1,
+    "realization_resume": 5
+  }
+}

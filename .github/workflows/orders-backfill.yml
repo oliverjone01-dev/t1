@@ -10,7 +10,8 @@ name: orders backfill (аналитика по заказам)
 # прошлых дней подтягиваются сами. Час раньше ночного ozon-snapshots.yml: тот пересобирает
 # страницы и забирает свежие заказы; группа ozon-data не даёт им идти одновременно.
 # С 16.10.2026 (Иван: «данные собираются 2 раза в день, почему не подтягивание после сбора»)
-# главный запуск - сразу после съёма кабинета с мака: мак коммитит data/reakciya.json в main
+# главный запуск - сразу после съёма кабинета с мака: legacy пишет data/reakciya.json,
+# Codex пишет проверенный data/cabinet_capture.json в main.
 # утром и вечером, этот push запускает сбор заказов, а он по окончании - ozon-snapshots
 # (реклама, просмотры), после которого deploy-pages собирает сайт (workflow_run). Расписание
 # ниже - страховка: GitHub запускает его с опозданием на часы, и если мак не прислал съём; по нему
@@ -18,7 +19,7 @@ name: orders backfill (аналитика по заказам)
 on:
   push:
     branches: [main]
-    paths: [analytics-mvp/data/reakciya.json]
+    paths: [analytics-mvp/data/reakciya.json, analytics-mvp/data/cabinet_capture.json]
   schedule:
     - cron: "52 4 * * *" # каждый день ~07:52 МСК, до ночного синка OZON (05:53 UTC)
   workflow_dispatch:

@@ -1,4 +1,5 @@
 // Calendar counts and the Dialog table hierarchy share the same eligible DG records.
+const DG_COMMUNICATIONS_VISIBLE=false;
 S.dgCalView='managers';S.dgCalPick=null;S.dgCalGroup='leads';S.dgCalExpanded=new Set();S.dgCalManagers=new Set();S.dgCalRecords=new Set();S.dgCommChannel='all';
 S.dgCalDealsOpen=false;
 const dgCommCache=new Map();
@@ -171,7 +172,7 @@ function dgCalendarBlock(){
  };
  const body=DG_CAL_ROWS.filter(row=>!DG_CAL_DEAL_STAGES.includes(row.id)).map(row=>draw(row)+(row.id==='deals'&&S.dgCalDealsOpen?`<div class="dg-deal-stages">${DG_CAL_DEAL_STAGES.map(id=>draw(DG_CAL_ROWS.find(r=>r.id===id))).join('')}</div>`:'')).join('');
  const coverage=DATA.communicationCoverage,cache=coverage?.cache,cacheNote=cache?.status==='available'?'Диалоги: '+dgCalendarDateTime(cache.generatedAt):'Дополнение из «Диалогов» недоступно';
- return `<section class="card dg-calendar dg-calendar-gg" id="dg-calendar"><div class="card-h"><div><div class="card-title">Календарь лидов и сделок</div><div class="card-sub">${S.dgCalView==='deals'?'Этап → лид или сделка → коммуникации':'Этап → ответственный → лид или сделка → коммуникации'}</div></div><div class="dg-calendar-controls"><div class="seg" aria-label="Уровень раскрытия календаря"><button data-dg-calview="managers" class="${S.dgCalView!=='deals'?'on':''}" aria-pressed="${S.dgCalView!=='deals'}">Менеджеры</button><button data-dg-calview="deals" class="${S.dgCalView==='deals'?'on':''}" aria-pressed="${S.dgCalView==='deals'}">Сделки</button></div><div class="seg"><button data-dg-calunit="count" class="${!money?'on':''}">Количество</button><button data-dg-calunit="money" class="${money?'on':''}">Сумма</button></div></div></div><div class="card-sub dg-heat-freshness">CRM: ${dgCalendarDateTime(coverage?.generatedAt)} · ${cacheNote}</div><div class="dg-calendar-workspace"><div id="dg-calendar-panel" class="scroll dg-heat-scroll"><div class="dg-heat-calendar" style="--dg-total:${money?108:84}px">${head}${body}</div></div></div></section>`;
+ return `<section class="card dg-calendar dg-calendar-gg" id="dg-calendar"><div class="card-h"><div><div class="card-title">Календарь лидов и сделок</div><div class="card-sub">${S.dgCalView==='deals'?'Этап → лид или сделка':'Этап → ответственный → лид или сделка'}</div></div><div class="dg-calendar-controls"><div class="seg" aria-label="Уровень раскрытия календаря"><button data-dg-calview="managers" class="${S.dgCalView!=='deals'?'on':''}" aria-pressed="${S.dgCalView!=='deals'}">Менеджеры</button><button data-dg-calview="deals" class="${S.dgCalView==='deals'?'on':''}" aria-pressed="${S.dgCalView==='deals'}">Сделки</button></div><div class="seg"><button data-dg-calunit="count" class="${!money?'on':''}">Количество</button><button data-dg-calunit="money" class="${money?'on':''}">Сумма</button></div></div></div><div class="card-sub dg-heat-freshness">CRM: ${dgCalendarDateTime(coverage?.generatedAt)}${DG_COMMUNICATIONS_VISIBLE?' · '+cacheNote:''}</div><div class="dg-calendar-workspace"><div id="dg-calendar-panel" class="scroll dg-heat-scroll"><div class="dg-heat-calendar" style="--dg-total:${money?108:84}px">${head}${body}</div></div></div></section>`;
 }
 
 function dgCalendarDetail(row,pick=S.dgCalPick){
@@ -182,15 +183,15 @@ function dgCalendarDetail(row,pick=S.dgCalPick){
  const managers=[...new Set(filtered.map(x=>x.record.mgr||'Не распределено'))].sort((a,b)=>a.localeCompare(b,'ru'));
  const html=managers.map(manager=>{
   const records=filtered.filter(x=>(x.record.mgr||'Не распределено')===manager),s=dgCalendarSummary(records),open=S.dgCalManagers.has(manager);
-  return `<tr class="mrow"><td><button data-dg-calmgr="${esc(manager)}" aria-expanded="${open}">${open?'▾':'▸'} ${esc(manager)}</button></td><td>${records.length}</td><td>${dgMoney(s.money,'RUB')}${s.missing?' · без суммы '+s.missing:''}</td><td>${s.comm}</td><td>${s.events}</td></tr>${open?`<tr class="subrow"><td colspan="5">${dgCalendarRecordTable(records,row)}</td></tr>`:''}`;
+  return `<tr class="mrow"><td><button data-dg-calmgr="${esc(manager)}" aria-expanded="${open}">${open?'▾':'▸'} ${esc(manager)}</button></td><td>${records.length}</td><td>${dgMoney(s.money,'RUB')}${s.missing?' · без суммы '+s.missing:''}</td>${DG_COMMUNICATIONS_VISIBLE?`<td>${s.comm}</td><td>${s.events}</td>`:""}</tr>${open?`<tr class="subrow"><td colspan="${DG_COMMUNICATIONS_VISIBLE?5:3}">${dgCalendarRecordTable(records,row)}</td></tr>`:''}`;
  }).join('');
- return `<div class="dg-calendar-drill"><h3>${esc(row.label)}${bucket?' · '+esc(blabel(bucket,S.gran)):''}</h3><div class="dg-records" tabindex="0" role="region" aria-label="Таблица ответственных"><table class="tbl t1"><thead><tr><th>Менеджер</th><th>Записей</th><th>Бюджет</th><th>Коммуникаций</th><th>Всех событий</th></tr></thead><tbody>${html||'<tr><td colspan="5">Записей в этом интервале нет</td></tr>'}</tbody></table></div></div>`;
+ return `<div class="dg-calendar-drill"><h3>${esc(row.label)}${bucket?' · '+esc(blabel(bucket,S.gran)):''}</h3><div class="dg-records" tabindex="0" role="region" aria-label="Таблица ответственных"><table class="tbl t1"><thead><tr><th>Менеджер</th><th>Записей</th><th>Бюджет</th>${DG_COMMUNICATIONS_VISIBLE?'<th>Коммуникаций</th><th>Всех событий</th>':''}</tr></thead><tbody>${html||`<tr><td colspan="${DG_COMMUNICATIONS_VISIBLE?5:3}">Записей в этом интервале нет</td></tr>`}</tbody></table></div></div>`;
 }
 function dgCalendarRecordTable(rows,row){
- const refusal=row.mode==='lost',direct=S.dgCalView==='deals';
- return `<div class="dg-record-list" tabindex="0" role="region" aria-label="Таблица лидов и сделок"><table class="tbl t2"><thead><tr><th>Тип / ID</th>${direct?'<th>Ответственный</th>':''}<th>Статус / этап</th>${refusal?'<th>Причина отказа</th>':''}<th>Создана</th><th>${row.mode==='stock'?'Дата остатка':'Событие'}</th><th>Бюджет</th><th>Предоплата</th><th>Последняя коммуникация</th><th>Лента</th></tr></thead><tbody>${rows.map(x=>{
-  const d=x.record,ix=DATA.communicationIndex?.[x.key],open=S.dgCalRecords.has(x.key);
-  return `<tr class="drow" data-dg-calrecord="${x.key}" tabindex="0" role="button" aria-expanded="${open}"><td>${open?'▾':'▸'} <span class="kind">${row.kind==='lead'?'Лид':'Сделка'}</span> <b>${esc(d.id)}</b></td>${direct?'<td>'+esc(d.mgr||'Не распределено')+'</td>':''}<td>${esc(d.status||d.stage||'—')}</td>${refusal?'<td class="dg-refusal-reason">'+esc(DATA.calendar?.leadReasonDetails?.[x.key]||x.reason||'Не заполнена')+'</td>':''}<td>${dgDate(d.created)}</td><td>${dgDate(x.at)}</td><td>${dgMoney(d.budget,d.currency)}</td><td>${row.kind==='deal'?dgMoney(d.prepayAmt,d.currency):'—'}</td><td>${dgDate(ix?.lastAt?dgMSKDay(ix.lastAt):null)}</td><td>${ix?.commIds?.length??'—'} комм.<small>${ix?.openTasks??'—'} открытых дел</small></td></tr>${open?`<tr class="subrow2"><td colspan="${(refusal?9:8)+(direct?1:0)}"><div id="dg-comm-${x.key}" class="dg-comm-host">${dgCommCache.has(x.key)?dgCommunicationTable(x.key):'Загружаю историю…'}</div></td></tr>`:''}`;
+ const refusal=row.mode==='lost',direct=S.dgCalView==='deals',showComm=DG_COMMUNICATIONS_VISIBLE;
+ return `<div class="dg-record-list" tabindex="0" role="region" aria-label="Таблица лидов и сделок"><table class="tbl t2"><thead><tr><th>Тип / ID</th>${direct?'<th>Ответственный</th>':''}<th>Статус / этап</th>${refusal?'<th>Причина отказа</th>':''}<th>Создана</th><th>${row.mode==='stock'?'Дата остатка':'Событие'}</th><th>Бюджет</th><th>Предоплата</th>${showComm?'<th>Последняя коммуникация</th><th>Лента</th>':''}</tr></thead><tbody>${rows.map(x=>{
+  const d=x.record,ix=DATA.communicationIndex?.[x.key],open=showComm&&S.dgCalRecords.has(x.key);
+  return `<tr class="${showComm?'drow':'dg-record-static'}"${showComm?` data-dg-calrecord="${x.key}" tabindex="0" role="button" aria-expanded="${open}"`:""}><td>${showComm?(open?'▾ ':'▸ '):''}<span class="kind">${row.kind==='lead'?'Лид':'Сделка'}</span> <b>${esc(d.id)}</b></td>${direct?'<td>'+esc(d.mgr||'Не распределено')+'</td>':''}<td>${esc(d.status||d.stage||'—')}</td>${refusal?'<td class="dg-refusal-reason">'+esc(DATA.calendar?.leadReasonDetails?.[x.key]||x.reason||'Не заполнена')+'</td>':''}<td>${dgDate(d.created)}</td><td>${dgDate(x.at)}</td><td>${dgMoney(d.budget,d.currency)}</td><td>${row.kind==='deal'?dgMoney(d.prepayAmt,d.currency):'—'}</td>${showComm?`<td>${dgDate(ix?.lastAt?dgMSKDay(ix.lastAt):null)}</td><td>${ix?.commIds?.length??'—'} комм.<small>${ix?.openTasks??'—'} открытых дел</small></td>`:""}</tr>${open?`<tr class="subrow2"><td colspan="${(refusal?9:8)+(direct?1:0)}"><div id="dg-comm-${x.key}" class="dg-comm-host">${dgCommCache.has(x.key)?dgCommunicationTable(x.key):'Загружаю историю…'}</div></td></tr>`:''}`;
  }).join('')}</tbody></table></div>`;
 }
 // Keep source timestamps and bindings intact; only identical timestamps get a lifecycle tie-break.
@@ -212,11 +213,12 @@ function dgCommunicationTable(key){
  return `<div class="feedscroll" tabindex="0" role="region" aria-label="Коммуникации ${key[0]==='L'?'лида':'сделки'} ${esc(key.slice(1))}"><table class="tbl t3"><thead><tr><th>Время · МСК</th><th>Сущность</th><th>Кто</th><th>Канал</th><th>Сообщение</th><th>Статус / срок</th></tr></thead><tbody>${rows||'<tr><td colspan="6">В доступной выгрузке по этой записи событий нет</td></tr>'}</tbody></table></div>`;
 }
 async function dgLoadCommunication(key){
+ if(!DG_COMMUNICATIONS_VISIBLE)return;
  if(!/^[LD]\d+$/.test(key)||!DATA.communicationIndex?.[key])return;
  if(!dgCommCache.has(key))try{const r=await fetch('communications/'+key+'.json',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const p=await r.json();if(p.key!==key||!Array.isArray(p.events)||p.generatedAt!==DATA.communicationCoverage?.generatedAt)throw Error();dgCommCache.set(key,p);}catch{dgCommCache.set(key,{error:true});}
  const host=document.getElementById('dg-comm-'+key);if(host)host.innerHTML=dgCommunicationTable(key);
 }
-function dgCalendarRerender(){render();for(const key of S.dgCalRecords)dgLoadCommunication(key);}
+function dgCalendarRerender(){render();if(DG_COMMUNICATIONS_VISIBLE)for(const key of S.dgCalRecords)dgLoadCommunication(key);}
 document.addEventListener('click',e=>{
  const group=e.target.closest('[data-dg-calgroup]');if(group&&DG_CAL_GROUPS.some(g=>g.id===group.dataset.dgCalgroup)){S.dgCalGroup=group.dataset.dgCalgroup;S.dgCalPick=null;S.dgCalExpanded.clear();S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();document.getElementById('dg-tab-'+S.dgCalGroup)?.focus();return;}
  const row=e.target.closest('[data-dg-calrow]'),cell=e.target.closest('[data-dg-calcell]'),open=e.target.closest('[data-dg-calopen]');
@@ -226,8 +228,8 @@ document.addEventListener('click',e=>{
  const unit=e.target.closest('[data-dg-calunit]');if(unit){S.calUnit=unit.dataset.dgCalunit;dgCalendarRerender();return;}
  const reason=e.target.closest('[data-dg-calreason]');if(reason){S.dgCalPick.reason=reason.dataset.dgCalreason;S.dgCalManagers.clear();S.dgCalRecords.clear();dgCalendarRerender();return;}
  const manager=e.target.closest('[data-dg-calmgr]');if(manager){const key=manager.dataset.dgCalmgr;if(S.dgCalManagers.has(key))S.dgCalManagers.delete(key);else S.dgCalManagers.add(key);dgCalendarRerender();return;}
- const record=e.target.closest('[data-dg-calrecord]');if(record){const key=record.dataset.dgCalrecord;if(S.dgCalRecords.has(key))S.dgCalRecords.delete(key);else S.dgCalRecords.add(key);S.dgCommChannel='all';dgCalendarRerender();return;}
- const retry=e.target.closest('[data-dg-commretry]');if(retry){dgCommCache.delete(retry.dataset.dgCommretry);dgLoadCommunication(retry.dataset.dgCommretry);}
+ const record=e.target.closest('[data-dg-calrecord]');if(record&&DG_COMMUNICATIONS_VISIBLE){const key=record.dataset.dgCalrecord;if(S.dgCalRecords.has(key))S.dgCalRecords.delete(key);else S.dgCalRecords.add(key);S.dgCommChannel='all';dgCalendarRerender();return;}
+ const retry=e.target.closest('[data-dg-commretry]');if(retry&&DG_COMMUNICATIONS_VISIBLE){dgCommCache.delete(retry.dataset.dgCommretry);dgLoadCommunication(retry.dataset.dgCommretry);}
 });
 document.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&e.target.matches('[data-dg-calrecord]')){e.preventDefault();e.target.click();}});
 

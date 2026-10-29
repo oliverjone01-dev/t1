@@ -351,6 +351,19 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     pos[i]!.delete(r.date);
     if (r.pos!==null)pos[i]!.set(r.date,r.pos);
   }
+  // Display-only current-day layer: never enters closed comparisons, goals or API orders.
+  const openRows=nativeFunnel(cabinet).filter(r=>r.partial && r.date<=today && r.date>SV_LAST);
+  const openDay=openRows.map(r=>r.date).sort().pop();
+  const currentRows=openRows.filter(r=>r.date===openDay);
+  const partialSeries=(rows:typeof currentRows,main?:string)=>Object.fromEntries(
+    [...FK,'pos'].map(k=>[k,k==='pos' ? rows.find(r=>r.sku===main)?.pos??null :
+      rows.some(r=>r[k as typeof FK[number]]!==null) ? rows.reduce((n,r)=>n+(r[k as typeof FK[number]]??0),0) : null]));
+  const PARTIAL=openDay ? {day:openDay,loaded_at:currentRows[0]!.loaded_at,
+    cards:cards.map(c=>({...partialSeries(currentRows.filter(r=>c.skus.includes(r.sku)),c.main_sku),
+      have:currentRows.filter(r=>c.skus.includes(r.sku)).length,want:c.skus.length})),
+    store:{...partialSeries(currentRows),have:currentRows.length},
+    all:{...partialSeries(currentRows.filter(r=>SKU_CARD.has(r.sku))),
+      have:currentRows.filter(r=>SKU_CARD.has(r.sku)).length,want:SKU_CARD.size}} : null;
   // заказы
   const skuDayAll = new Map<string, number>();   // с отменами, для сверки с кабинетом
   const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
@@ -610,7 +623,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   }
 
   const DATA = {
-    days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),
+    partial: PARTIAL, days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),
     cards: cards.map((c) => ({ short: c.short, art: c.main_art, thr: c.threshold, thrp: c.threshold_price, base2: Math.round(2 * c.u_wk_base * 100) / 100 })),
     order_breakdown: orderBreakdown, store_breakdown: storeBreakdown,
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,

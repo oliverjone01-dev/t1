@@ -71,7 +71,7 @@ function chart(el,o){ // series [{v,color,name,area,dash,w,pale,dots}], band, vl
   o.series.forEach(function(sr,k){if(sr.area)s+='<linearGradient id="g'+g+'_'+k+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sr.color+'" stop-opacity=".35"/><stop offset="1" stop-color="'+sr.color+'" stop-opacity="0"/></linearGradient>'});
   s+='</defs>';
   for(var q=0;q<=(o.small?2:4);q++){var v=mn+(mx-mn)*q/(o.small?2:4),y=Y(v);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="'+C.soft+'" stroke-width="1"/><text x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end" class="gt">'+fmt(v,Math.abs(mx-mn)<10?1:0)+'</text>'}
-  var step=o.step||Math.max(1,Math.round(n/8));for(var i=0;i<n;i+=step)s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle" class="gt">'+o.xs[i]+'</text>';
+  var step=o.step||Math.max(1,Math.round(n/8));for(var i=0;i<n;i++)if(i%step===0||i===n-1)s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle" class="gt">'+o.xs[i]+'</text>';
   if(o.nodata!=null&&o.nodata<n){var x0=X(Math.max(0,o.nodata-.5));s+='<rect x="'+x0+'" y="'+T+'" width="'+(W-R-x0)+'" height="'+(H-T-B)+'" fill="rgba(93,116,132,.08)"/>'+(o.small?'':'<text x="'+(x0+6)+'" y="'+(T+12)+'" class="gt">ещё нет данных</text>')}
   if(o.band){var bp=o.band.lo.map(function(v,i){return [X(i),Y(v)]}),bq=o.band.hi.map(function(v,i){return [X(i),Y(v)]}).reverse();s+='<path d="'+smooth(bp)+' L'+bq.map(function(p){return p[0]+' '+p[1]}).join(' L')+'Z" fill="rgba(139,158,174,.14)"/>'}
   if(o.vline!=null){var xv=X(o.vline);s+='<line x1="'+xv+'" x2="'+xv+'" y1="'+T+'" y2="'+(H-B)+'" stroke="'+C.cy+'" stroke-dasharray="3 4" opacity=".7"/><text x="'+(xv+4)+'" y="'+(H-B-6)+'" class="gt" style="fill:'+C.cy+'">'+(o.small?'':'старт')+'</text>'}
@@ -83,7 +83,7 @@ function chart(el,o){ // series [{v,color,name,area,dash,w,pale,dots}], band, vl
       var a=' fill="none" stroke="'+sr.color+'" stroke-width="'+(sr.w||2)+'" stroke-linecap="round"'+(sr.dash?' stroke-dasharray="'+sr.dash+'"':'');
       if(main.length>1)s+='<path d="'+smooth(main)+'"'+a+'/>';
       if(pal.length>1)s+='<path d="'+smooth(pal)+'"'+a+' opacity=".35" stroke-dasharray="4 3"/>';
-      if(sr.dots)pts.forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+sr.color+'" stroke="#12161f" stroke-width="2"'+(sr.pale!=null&&p[2]>sr.pale?' opacity=".4"':'')+'/>'});
+      if(sr.dots)pts.forEach(function(p){s+='<circle'+(sr.partial?' data-partial-day="'+sr.partial+'" data-value="'+sr.v[p[2]]+'"':'')+' cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+sr.color+'" stroke="#12161f" stroke-width="2"'+(sr.pale!=null&&p[2]>sr.pale?' opacity=".4"':'')+'/>'});
     });
   });
   s+='<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'" stroke="#e8eef2" opacity="0"/><rect class="hit" x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-B)+'" fill="transparent"/></svg>';
@@ -137,18 +137,26 @@ function btns(id,list,key,cb){$(id).innerHTML=list.map(function(x,i){return '<bu
   [].forEach.call(document.querySelectorAll('#'+id+' .mb'),function(b){b.onclick=function(){cur[key]=+b.dataset.i;cb()}})}
 function drawFunnel(){
   btns('pt-cardsel',SETS.map(function(x){return x.n}),'c',drawFunnel);btns('pt-metsel',M.map(function(x){return x[1]}),'m',drawFunnel);
-  var st=SETS[cur.c],m=M[cur.m],j1=idx(D.w1),xs=DAYS.slice(0,j1+1).map(dm),v=serOf(st.s,m).slice(0,j1+1);
+  var st=SETS[cur.c],m=M[cur.m];
+  var last=m[0]==='orders'?D.od_last:(['sp','clk','acart','cpc'].indexOf(m[0])>=0?(st.s===D.store?D.ad_camp_last:D.ad_last):D.sv_last);
+  var ps=D.partial&&(cur.c<D.cards.length?D.partial.cards[cur.c]:cur.c===D.cards.length?D.partial.all:D.partial.store);
+  var nativeKeys=['views','vsearch','pdp','cart','units','pos'];
+  var canPartial=ps&&(nativeKeys.indexOf(m[0])>=0||(m[2]==='r'&&nativeKeys.indexOf(m[3])>=0&&nativeKeys.indexOf(m[4])>=0));
+  var pv=canPartial?(m[2]==='r'?(ps[m[3]]==null||!ps[m[4]]?null:ps[m[3]]/ps[m[4]]*m[5]):ps[m[0]]):null;
+  var end=canPartial&&D.partial.day>last?D.partial.day:last,j1=idx(end),xs=DAYS.slice(0,j1+1).map(dm),v=serOf(st.s,m).slice(0,j1+1);
+  var point=xs.map(function(){return null});if(canPartial)point[idx(D.partial.day)]=pv;
   var ma=v.map(function(_,j){var t=0,c=0;for(var q=Math.max(0,j-6);q<=j;q++)if(v[q]!=null){t+=v[q];c++}return v[j]==null||c<4?null:t/c});
-  var last=m[0]==='orders'?D.od_last:(['sp','clk','acart','cpc'].indexOf(m[0])>=0?(st.s===D.store?D.ad_camp_last:D.ad_last):D.sv_last);   // магазин - по дням кампаний (ФЕНИКС N6)
   var nd=m[2]==='r'&&m[5]!==1?2:0,f=function(x){return fmt(x,nd)};
-  chart($('pt-dynchart'),{title:'<div class="ch-h">'+st.n+' · '+m[1]+' <span class="muted">день и среднее 7 дней</span></div>',
-    xs:xs,series:[{v:v,color:C.grey,w:1,name:'за день',dash:'2 3'},{v:ma,color:C.s1,w:2.4,area:true,name:'среднее 7 дней'}],vline:idx(D.start),nodata:idx(last)+1,inv:m[0]==='pos',fmtv:f});
+  var partialNote=canPartial?' · '+dm(D.partial.day)+' — неполный день, '+new Date(D.partial.loaded_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'})+' МСК; '+(pv==null?'нет данных':f(pv))+' · наблюдались '+ps.have+(ps.want!=null?' из '+ps.want:'')+' SKU. В среднее и сравнения не входит.':'';
+  chart($('pt-dynchart'),{title:'<div class="ch-h">'+st.n+' · '+m[1]+' <span class="muted">день и среднее 7 дней'+partialNote+'</span></div>',
+    xs:xs,series:[{v:v,color:C.grey,w:1,name:'за день',dash:'2 3'},{v:ma,color:C.s1,w:2.4,area:true,name:'среднее 7 дней'},{v:point,color:C.cy,w:2,dots:true,name:'неполный день',partial:canPartial?D.partial.day:null}],vline:idx(D.start),nodata:canPartial?null:idx(last)+1,inv:m[0]==='pos',fmtv:f});
   var W=[['База 14.09-11.10',D.base_win[0],D.base_win[1]],['07-13.10','2026-10-07','2026-10-13'],['С 15.10',D.start,D.w1]];
   var unit={sum:', в неделю',med:', медиана',r:''};
   var rows=M.map(function(mm){var b=win(st.s,mm,W[0][1],W[0][2]),l=win(st.s,mm,W[1][1],W[1][2]),a=win(st.s,mm,W[2][1],W[2][2]);
     var nd=mm[2]==='r'&&mm[5]!==1?2:0,dd=b&&a!=null?(a/b-1)*100:null,good=mm[0]==='pos'?dd!=null&&dd<=0:dd!=null&&dd>=0;
-    return '<tr'+(mm===m?' class="sel"':'')+'><td>'+mm[1]+'<span class="muted">'+unit[mm[2]]+'</span></td><td class="r">'+fmt(b,nd)+'</td><td class="r">'+fmt(l,nd)+'</td><td class="r">'+fmt(a,nd)+'</td><td class="r">'+(dd==null?'<span class="muted">-</span>':'<span class="'+(good?'up':'dn')+'">'+(good?'▲ ':'▼ ')+(dd>=0?'+':'')+dd.toFixed(0)+'%</span>')+'</td></tr>'});
-  $('pt-dyntbl').innerHTML='<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>'+st.n+'</th>'+W.map(function(w){return '<th class="r">'+w[0]+'</th>'}).join('')+'<th class="r">С 15.10 к базе</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+    var pk=ps?(mm[2]==='r'?(ps[mm[3]]==null||!ps[mm[4]]?null:ps[mm[3]]/ps[mm[4]]*mm[5]):ps[mm[0]]):null;
+    return '<tr'+(mm===m?' class="sel"':'')+'><td>'+mm[1]+'<span class="muted">'+unit[mm[2]]+'</span></td><td class="r">'+fmt(b,nd)+'</td><td class="r">'+fmt(l,nd)+'</td><td class="r">'+fmt(a,nd)+'</td><td class="r">'+(dd==null?'<span class="muted">-</span>':'<span class="'+(good?'up':'dn')+'">'+(good?'▲ ':'▼ ')+(dd>=0?'+':'')+dd.toFixed(0)+'%</span>')+'</td>'+(D.partial?'<td class="r">'+(pk==null?'нет данных':fmt(pk,nd))+'</td>':'')+'</tr>'});
+  $('pt-dyntbl').innerHTML='<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>'+st.n+'</th>'+W.map(function(w){return '<th class="r">'+w[0]+'</th>'}).join('')+'<th class="r">С 15.10 к базе</th>'+(D.partial?'<th class="r">'+dm(D.partial.day)+' · неполный день<br>за день, без пересчёта в неделю</th>':'')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
 }
 drawFunnel();
 

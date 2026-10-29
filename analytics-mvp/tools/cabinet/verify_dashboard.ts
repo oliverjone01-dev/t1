@@ -77,5 +77,33 @@ if(closed){
  const artRows=new Map(closed.items.filter(r=>skuToArt[r.sku]).map(r=>[skuToArt[r.sku],r]));
  pd.cards.forEach((card:any,n:number)=>{const r=artRows.get(card.art);if(r)assert.equal(pd.ser[n].pos[i],r.search_position&&r.search_position>0?r.search_position:null,'Plan position '+card.art);});
 }
+if(captureIsOpen(selected)){
+ assert.equal(pd.partial.day,selected.day,'Plan current day');
+ for(const [k,raw] of [['views','views'],['vsearch','search_views'],['pdp','pdp_views'],['cart','cart'],['units','ordered_units']] as const){
+  assert.equal(pd.partial.store[k],selected.totals[raw],'Current store '+k);
+ }
+ const nativeMetrics=[['views','views'],['vsearch','search_views'],['pdp','pdp_views'],['cart','cart'],['units','ordered_units']] as const;
+ for(const def of definitions.filter((d:any)=>d.тест?.length)){
+  const dyn=(tests.window as any).DYN['dyn-'+def.id];if(!dyn||dyn.d.at(-1)!==selected.day)continue;
+  for(const [key,field] of nativeMetrics){
+   if(!dyn.m[key])continue;
+   const observed=selected.items.filter(r=>def.тест.includes(skuToArt[r.sku])&&r[field]!==null);
+   const sum=observed.length?observed.reduce((n,r)=>n+r[field]!,0):null;
+   assert.equal(dyn.m[key].rt.at(-1),sum,def.id+' partial tooltip '+key);
+  }
+  if(dyn.m.pos)for(const [value,raw] of [['t','rt'],['c','rc']]){
+   if(dyn.m.pos[value].at(-1)===null)assert.equal(dyn.m.pos[raw].at(-1),null,'Suppressed position tooltip');
+  }
+ }
+ const buttons=()=>[...td.querySelectorAll<HTMLButtonElement>('#pt-metsel button')];
+ for(const [label,k] of [['Показы в поиске','vsearch'],['Показы всего','views'],['Карточка','pdp'],['Корзина','cart'],['Заказано (OZON)','units']] as const){
+  buttons().find(b=>b.textContent===label)!.click();
+  const point=td.querySelector('#pt-dynchart [data-partial-day]');
+  assert.equal(number(point?.getAttribute('data-value')??null),pd.partial.cards[0][k],'Plan marker '+k);
+  assert(td.querySelector('#pt-dynchart')!.textContent!.includes(selected.day.slice(8)+'.'+selected.day.slice(5,7)),'Last date on plan axis');
+ }
+ buttons().find(b=>b.textContent==='Расход на клики, ₽')!.click();
+ assert.equal(td.querySelector('#pt-dynchart [data-partial-day]'),null,'No invented ad point');
+}
 tests.window.close();assert.deepEqual(errors,[]);
 console.log(JSON.stringify({ok:true,closed:closed?.day,selected:selected.day,stamp,checkedTestProducts:checked,missingTestProducts:missing,metrics:5}));

@@ -354,6 +354,31 @@ describe("planBlock", () => {
     const partial=pd(planBlock('2026-10-17',f)!.js);
     expect(partial.ser[0].views[i]).toBe(100);expect(partial.ser[0].pos[i]).toBeNull();
   });
+  it('shows current native day in plan charts while closed facts remain unchanged',()=>{
+    const f=fixture(),before=pd(planBlock('2026-10-29',f)!.js);
+    writeFileSync(f('cabinet_capture.json'),JSON.stringify({version:1,company:'GENGLASS',snapshots:[{
+      version:1,company:'GENGLASS',day:'2026-10-29',captured_at:'2026-10-29T09:18:00Z',phase:'утро',day_in_progress:true,
+      scope:{expected:1,received:1,matched:1,missing:0,extra:0,status:'complete'},
+      totals:{views:20,search_views:10,pdp_views:2,cart:1,ordered_units:0},
+      items:[{sku:'1',scheme:null,views:20,search_views:10,pdp_views:2,cart:1,ordered_units:0,search_position:12}],
+      source:'ozon-native-daily-product-report',not_refreshed:['card_price']
+    }]}));
+    const block=planBlock('2026-10-29',f)!,after=pd(block.js);
+    for(const k of ['ser','store','gauges','cards_win','od_last','sv_last'])expect(after[k]).toEqual(before[k]);
+    const dom=new JSDOM(`<body>${block.html}<script>${block.js}</script>`,{runScripts:'dangerously'});
+    const doc=dom.window.document;
+    expect(doc.querySelector('#pt-dynchart')!.textContent).toContain('29.10');
+    expect(doc.querySelector('#pt-dynchart')!.textContent).toContain('12:18');
+    expect(doc.querySelector('#pt-dynchart [data-partial-day="2026-10-29"]')?.getAttribute('data-value')).toBe('10');
+    let buttons=Array.from(doc.querySelectorAll('#pt-metsel button')) as any[];
+    buttons.find(b=>b.textContent==='Показы всего')!.click();
+    expect(doc.querySelector('#pt-dynchart [data-partial-day]')?.getAttribute('data-value')).toBe('20');
+    buttons=Array.from(doc.querySelectorAll('#pt-metsel button')) as any[];
+    buttons.find(b=>b.textContent==='Расход на клики, ₽')!.click();
+    expect(doc.querySelector('#pt-dynchart [data-partial-day]')).toBeNull();
+    expect(doc.querySelector('#pt-dyntbl')!.textContent).toContain('29.10 · неполный день');
+    dom.window.close();
+  });
   it("нет файла плана - блока нет, страница собирается без него", () => {
     const dir = mkdtempSync(join(tmpdir(), "plan-none-"));
     expect(planBlock("2026-10-16", (f) => join(dir, f))).toBeNull();

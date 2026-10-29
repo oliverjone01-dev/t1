@@ -15,7 +15,7 @@ import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { healthHtml } from "./ozon/source-health.js";
 import { dp, op, IS_OZON } from "../paths.js";
 import {readCaptureFile} from './ozon/cabinet-capture.js';
-import {mergeCabinetViews, cabinetTestRows, captureDays} from './ozon/cabinet-funnel.js';
+import {mergeCabinetViews, cabinetTestRows, captureDays, nativeFunnel} from './ozon/cabinet-funnel.js';
 import { loadCardMap, kinOfTests, collapseByCard, mapHealth } from "./card-kin.js";
 import {
   controlByDay, gapSeries, pairGapSeries, pairFit, readiness, loadMoves, loadCpoDays, isExact,
@@ -23,6 +23,7 @@ import {
   type BoostRow, type CoinvRow, type WaveItem,
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import {partialChartPoint} from './partial-chart.js';
 import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
@@ -628,8 +629,8 @@ function endLabels(ya: number | null, yb: number | null, labels: [string, string
 // значение вперёд значит рисовать данные, которых нет (ряды соинвеста и позиции из
 // среза кабинета обрываются на несколько дней раньше воронки).
 function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw",
-              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "", lbl1 = "старт") {
-  const all = [...a, ...b].filter((v): v is number => v != null);
+              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "", lbl1 = "старт", partial?: {a:Pt;b:Pt}) {
+  const all = [...a, ...b,...(partial?[partial.a,partial.b]:[])].filter((v): v is number => v != null);
   if (!all.length) return "";
   const lo0 = Math.min(...all), hi0 = Math.max(...all);
   const anchor = mode === "index" ? 100 : lo0;
@@ -658,7 +659,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
     + `${v === 100 && mode === "index" ? ' stroke-dasharray="3 3"' : ""}/>`
     + `<text class="ax" x="${L - 6}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${axLabel(v)}</text>`).join("");
   const stepX = Math.max(1, Math.floor(days.length / 6));
-  const xt = days.map((d, i) => i % stepX ? "" :
+  const xt = days.map((d, i) => i % stepX && i!==days.length-1 ? "" :
     `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 7}" text-anchor="middle">${d.slice(8, 10)}.${d.slice(5, 7)}</text>`).join("");
   return grid + xt
     + `<line class="st" x1="${x(si).toFixed(1)}" x2="${x(si).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
@@ -667,6 +668,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
         + `<text class="ax st-t" x="${(x(si2) + 4).toFixed(1)}" y="${TP + 20}">${lbl2}</text>` : "")
     + `<path d="${path(b)}" fill="none" stroke="${C_CTRL}" stroke-width="2" stroke-linejoin="round"/>`
     + `<path d="${path(a)}" fill="none" stroke="${C_TEST}" stroke-width="2" stroke-linejoin="round"/>`
+    + (partial ? [partial.a,partial.b].map((v,i)=>v===null?'':`<circle data-partial-day="${days.at(-1)}" data-value="${v}" cx="${x(days.length-1).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" fill="none" stroke="${i?C_CTRL:C_TEST}" stroke-width="2"><title>Неполный день</title></circle>`).join('') : '')
     + endLabels(lastOf(a) != null ? y(lastOf(a)!) : null, lastOf(b) != null ? y(lastOf(b)!) : null, labels)
     + `<line class="ch" x1="0" x2="0" y1="${TP}" y2="${H - B}" style="display:none"/>`
     + `<rect class="hit" x="${L}" y="${TP}" width="${W - L - R}" height="${H - TP - B}" fill="transparent"/>`;
@@ -1061,6 +1063,10 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
   const days: string[] = [];
   // endAt - только для предпросмотра теста 4 до старта: обрезает неполный последний день синка.
   for (let k = -14; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST && (!endAt || d <= endAt)) days.push(d); }
+  const openRows=nativeFunnel(CABINET).filter(r=>r.partial&&r.date<=TODAY&&r.date>(days.at(-1)??'')&&(!endAt||r.date<=endAt));
+  const openDay=openRows.map(r=>r.date).sort().pop();
+  const chartDays=openDay?[...days,openDay]:days;
+  const openByArt=new Map(openRows.filter(r=>r.date===openDay).map(r=>[sku2art[r.sku],r]));
   const si = days.indexOf(st);
   if (si < 0 || !days.length) return "";
   const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
@@ -1145,13 +1151,27 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
         + `Статистику в середине ряда не меняем: это было бы полряда одним способом и полряда другим.</div>`;
       continue;
     }
-    panes[key] = testOnly
-      ? pane(days, si, a, a.map(() => null), mode, ["тест", ""], si2, "акция off")
-      : pane(days, si, a, b, mode, ["тест", "контроль"], si2, "акция off");
+    const measurable=['views','vsearch','pdp','cart','units','pos'].includes(key);
+    const point=(arts:string[])=>partialChartPoint(matrixOf(arts,days,key),arts.map(art=>{
+      const r=openByArt.get(art);return measurable&&r ? r[key as 'views']??null : null;
+    }),idxOf(days,new Set(base)),mode,estOf(key),cardKeys(arts));
+    // Position keeps the same historically matched population as the closed line.
+    const pArts=key==='pos'?posMatched(t.тест!,days,base,post).arts:t.тест!;
+    const cArts=key==='pos'?posMatched(CTL,days,base,post).arts:(ctlInfo?.arts.length?ctlInfo.arts:CTL);
+    const pa=point(pArts),pb=point(cArts);
+    if(key==='pos') {if(pa.have<pa.want*.8)pa.value=pa.raw=null;if(pb.have<pb.want*.8)pb.value=pb.raw=null;}
+    if(ctlInfo?.src==='funnel_agg')pb.value=pb.raw=null; // no fabricated aggregate-to-article base bridge
+    panes[key] = pane(chartDays, si, a, testOnly?a.map(()=>null):b, mode,
+      ["тест",testOnly?"":"контроль"],si2,"акция off","старт",
+      openDay?{a:pa.value,b:testOnly?null:pb.value}:undefined);
     subs[key] = mode === "index"
       ? `100 = средний день двух недель перед стартом · ${EST_NAME[estOf(key)]}`
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: key === "pos" ? a : rawT, rc: key === "pos" ? b : rawC, mode, unit };
+    if(openDay) {
+      subs[key]+=` · ${DM(openDay)} — неполный день, ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openRows[0]!.loaded_at))} МСК; ${measurable?`тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} наблюдаемых товаров`:'этим срезом не измерялось'}. В выводы не входит`;
+      tip[key].t.push(pa.value);tip[key].c.push(pb.value);tip[key].rt=[...tip[key].rt,pa.raw];tip[key].rc=[...tip[key].rc,pb.raw];
+    }
     if (mode === "index") {
       // Число под графиком считается ТЕМ ЖЕ оценщиком, что и линия. До 24.09 линию рисовала
       // медиана дневных индексов, а число считала медиана приростов средних за окно, и на
@@ -1254,7 +1274,7 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
     + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика по дням, тест против контроля">${panes["vsearch"]}</svg>`
     + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads["vsearch"]}</div>`
     + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линия заказов и корзины идёт индексом суммы по группе, а не медианой по артикулам: на 0-2 заказах в день медиана меряет шум. ${posNote}${gap}${thin}</div></div>`
-    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${solo};</script>`;
+    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: chartDays, m: tip, panes, reads, subs })};window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${solo};</script>`;
 }
 
 // ---------- карточки тестов ----------
@@ -1953,7 +1973,7 @@ function partialTestTable(arts: string[]): string {
   const hm=FT.partialTs ? new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(FT.partialTs)) : '';
   const cell=(v:number|null|undefined)=>v==null?'нет данных':nbsp(v);
   return `<details class="fold" open><summary><b>Незакрытый срез: ${esc(FT.partialDay)}, ${esc(hm)} МСК · ${have.length} из ${arts.length} товаров</b></summary>`
-    + `<div class="fold-b"><p class="sub">День не закрыт. Эти наблюдения не входят в графики и разницы завершённых дней. Отсутствующий товар показан как «нет данных».</p>`
+    + `<div class="fold-b"><p class="sub">День не закрыт. На графиках эти наблюдения отмечены отдельно и не входят в разницы завершённых дней. Отсутствующий товар показан как «нет данных».</p>`
     + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Позиция</th><th>Поиск и каталог</th><th>Посещения карточки</th><th>Корзины</th><th>Заказано, шт.</th></tr></thead><tbody>`
     + arts.map(a=>{const r=rows.get(a);return `<tr><td>${esc(a)}</td>${[r?.search_position,r?.search_views,r?.pdp_views,r?.hits_to_cart,r?.ordered_units].map(v=>`<td>${cell(v)}</td>`).join('')}</tr>`;}).join('')
     + `</tbody></table></div></div></details>`;
@@ -3467,7 +3487,7 @@ const partialLine = (() => {
   const hm = /T(\d{2}:\d{2})/.exec(FT.partialTs)?.[1];
   const txt = `${FT.partialDay.slice(8, 10)}.${FT.partialDay.slice(5, 7)} день не закрыт${hm ? `, срез ${hm} МСК` : ""}:`
     + ` по ${nbsp(rows.length)} ${plural(rows.length, "тестовому товару", "тестовым товарам", "тестовым товарам")} показы в поиске ${nbsp(sum("search_views"))}, заходы в карточку ${nbsp(sum("pdp_views"))},`
-    + ` корзина ${nbsp(sum("hits_to_cart"))}, заказано ${nbsp(sum("ordered_units"))} шт. В графики и разницы не входит, утром заменится полным днём.`;
+    + ` корзина ${nbsp(sum("hits_to_cart"))}, заказано ${nbsp(sum("ordered_units"))} шт. На графиках отмечен отдельной точкой; в средние, разницы и выводы не входит, утром заменится полным днём.`;
   gaps.push(`Незакрытый день воронки: ${txt}`);
   return `<p class="sub">${esc(txt)}</p>`;
 })();

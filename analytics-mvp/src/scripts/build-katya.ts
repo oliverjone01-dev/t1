@@ -13,6 +13,7 @@ import {loadProblemData} from './problems/data.js';
 import {problemsPage} from './problems/page.js';
 import { matchedCompetitorPage } from "./competitors/matched-page.js";
 import { healthHtml } from "./ozon/source-health.js";
+import {cabinetCaptureHtml} from './ozon/cabinet-capture.js';
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { cpoOrdersByDay, cpoExportCampaign } from "./cpo-orders-rev.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
@@ -1639,7 +1640,7 @@ function render(cur,cmp){
   const p1=(a,b)=>b?(a/b*100).toFixed(1):'0'; // брошено = добавили в корзину, но не заказали
   document.getElementById('retl').innerHTML=rows.map(x=>{const drop=Math.max(0,x.ct-x.u);return '<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+p1(x.r,x.u)+'%</td><td class="r">'+fmtRu(x.c)+'</td><td class="r" style="color:'+(x.u&&x.c/x.u>0.1?'var(--dn)':'inherit')+'">'+p1(x.c,x.u)+'%</td><td class="r">'+fmtRu(drop)+'</td><td class="r" style="color:'+(x.ct&&drop/x.ct>0.9?'var(--dn)':'inherit')+'">'+p1(drop,x.ct)+'%</td></tr>';}).join('')||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
 }`;
-  writeFileSync(op("katya-voronka.html"), kshell("Воронка", "voronka", body, pageJs));
+  writeFileSync(op("katya-voronka.html"), kshell("Воронка", "voronka", (IS_OZON ? cabinetCaptureHtml(dp('')) : '') + body, pageJs));
 }
 
 // Общий блок кампаний: базовая разметка и данные «Маркетинга», детализация по карточкам.

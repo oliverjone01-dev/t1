@@ -698,4 +698,31 @@ const trend=panel('Динамика коммуникаций','Клиентск�
 })();
 
 // END GG_WORKSPACE_SHARED_FRAME
-(function(){document.querySelectorAll('.gg-nav summary').forEach(summary=>{if(summary.textContent.trim()!=='РОП GG'||summary.querySelector('a'))return;const link=document.createElement('a');link.href='/rop/';link.textContent='РОП GG';link.style.cssText='display:inline;color:inherit;padding:0;background:none;border:0;text-decoration:none';link.setAttribute('aria-label','Открыть РОП GENGLASS');link.addEventListener('click',e=>e.stopPropagation());const text=[...summary.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.includes('РОП GG'));if(text)text.replaceWith(link);});})();
+
+// GG_GALLERY_NAV_FIX
+(function(){
+ const nativeBrand=document.getElementById('brand'),brandButton=document.getElementById('gg-company-button'),brandOptions=document.getElementById('gg-company-options');
+ if(nativeBrand&&brandButton&&brandOptions){
+  const names={all:'GENGROUP',gg:'GENGLASS',gm:'GLASS MEMORY',gentero:'GENTERO'};
+  const syncBrand=()=>{const v=nativeBrand.value in names?nativeBrand.value:'all';brandButton.replaceChildren(document.createTextNode(names[v]+' '));const arrow=document.createElement('span');arrow.textContent='⌄';brandButton.append(arrow);brandOptions.querySelectorAll('[data-company]').forEach(a=>{a.setAttribute('aria-selected',String(a.dataset.company===v));if(a.dataset.company==='all')a.textContent='GENGROUP · все компании';});try{localStorage.setItem('gg-hub-brand',v);}catch{}};
+  const setBrand=v=>{nativeBrand.value=v;nativeBrand.dispatchEvent(new Event('change',{bubbles:true}));syncBrand();brandOptions.hidden=true;brandButton.setAttribute('aria-expanded','false');};
+  brandOptions.addEventListener('click',e=>{const a=e.target.closest('[data-company]');if(!a)return;e.preventDefault();e.stopImmediatePropagation();setBrand(a.dataset.company);},true);
+  nativeBrand.addEventListener('change',syncBrand);document.querySelector('.org-root')?.addEventListener('click',()=>setBrand('all'));
+  const init=()=>{let v=nativeBrand.value;try{v=localStorage.getItem('gg-hub-brand')||v;}catch{}setBrand(v in names?v:'all');};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ }
+ document.querySelectorAll('.gg-nav summary').forEach(summary=>{
+  const label=summary.textContent.trim();
+  if(/^РОП (?:GG|GENGLASS)$/.test(label)){
+   let link=summary.querySelector('a');
+   if(!link){link=document.createElement('a');link.textContent='РОП GG';link.style.cssText='display:inline;color:inherit;padding:0;background:none;border:0;text-decoration:none';const text=[...summary.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&/РОП/.test(n.textContent));if(text)text.replaceWith(link);else{const span=summary.querySelector('.gg-nav-label');if(span)span.replaceChildren(link);else summary.prepend(link);}}
+   link.href='/rop/#sec1';link.setAttribute('aria-label','Открыть РОП GENGLASS и раскрыть разделы');
+   summary.addEventListener('click',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey)return;e.preventDefault();e.stopPropagation();summary.parentElement.open=true;if(location.pathname==='/rop/'){location.hash='sec1';document.getElementById('sec1')?.scrollIntoView({block:'start'});}else location.assign('/rop/#sec1');});
+  }
+  if(/Маркетплейсы/.test(label)){
+   let icon=summary.querySelector('.gg-nav-icon');if(!icon){icon=document.createElement('span');icon.className='gg-nav-icon';const text=summary.firstChild;if(text?.nodeType===Node.TEXT_NODE)text.textContent=text.textContent.replace(/[▦▥▤]/g,'');summary.prepend(icon);}
+   icon.style.cssText='width:24px;height:24px;min-width:24px;display:inline-flex;align-items:center;justify-content:center';
+   icon.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5M3 9v2a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 2-2M5 13v8h14v-8M9 21v-6h6v6"/></svg>';
+  }
+ });
+})();
+

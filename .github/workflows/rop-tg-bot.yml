@@ -215,6 +215,9 @@ jobs:
           const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
           // Ольга Лысенко - РОП (@Olgal89), в списке плановых менеджеров не участвует (тег РОПа в сводке).
           const PLAN=["Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Надежда Лобова","Татьяна Фомичева","Алёна Филатова","Алёна Кубанова"];
+          // Verified current employment boundary; the previous Bitrix account remains inactive.
+          // This bounds only the personal idle counter, not historical money or portfolio totals.
+          const EMPLOYMENT={'Алёна Кубанова':{userId:'8397',start:'2026-10-21'}};
           const TODAY=(d.generated_at||'').slice(0,10);
           // Compact plan/results: only prepayments, open portfolio and calendar days without prepayments.
           const KP=new Set(['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2']);
@@ -229,21 +232,30 @@ jobs:
           const rows=PLAN.map(m=>{
             const own=deals.filter(x=>x.mgr===m);
             const port=own.filter(x=>!x.won&&!x.lost&&KP.has(x.stageCode));
-            const prep=own.map(x=>({date:dayOf(epAt(x)),sum:number(x.prepayAmt),missing:!(number(x.prepayAmt)>0)})).filter(x=>x.date&&x.date<=DATE);
-            const total=a=>({n:a.length,sum:a.reduce((s,x)=>s+x.sum,0),missing:a.filter(x=>x.missing).length});
-            return {m,port:{n:port.length,sum:port.reduce((s,x)=>s+number(x.budget),0)},today:total(prep.filter(x=>x.date===DATE)),month:total(prep.filter(x=>x.date.slice(0,7)===MONTH)),last:prep.map(x=>x.date).sort().at(-1)||null};
+            const prep=own.map(x=>{
+              const prepay=number(x.prepayAmt), fallback=prepay===0, sum=fallback?number(x.budget):prepay;
+              return {date:dayOf(epAt(x)),sum,missing:!(sum>0),fallback:fallback&&sum>0};
+            }).filter(x=>x.date&&x.date<=DATE);
+            const total=a=>({n:a.length,sum:a.reduce((s,x)=>s+x.sum,0),missing:a.filter(x=>x.missing).length,fallback:a.filter(x=>x.fallback).length});
+            const last=prep.map(x=>x.date).sort().at(-1)||null;
+            const employment=EMPLOYMENT[m];
+            const idleSince=employment&&DATE>=employment.start
+              ?own.filter(x=>String(x.mgrId)===employment.userId).map(x=>dayOf(epAt(x)))
+                .filter(date=>date&&date>=employment.start&&date<=DATE).sort().at(-1)||employment.start
+              :last;
+            return {m,port:{n:port.length,sum:port.reduce((s,x)=>s+number(x.budget),0)},today:total(prep.filter(x=>x.date===DATE)),month:total(prep.filter(x=>x.date.slice(0,7)===MONTH)),last,idleSince};
           });
-          const add=(a,b)=>({n:a.n+b.n,sum:a.sum+b.sum,missing:(a.missing||0)+(b.missing||0)});
+          const add=(a,b)=>({n:a.n+b.n,sum:a.sum+b.sum,missing:(a.missing||0)+(b.missing||0),fallback:(a.fallback||0)+(b.fallback||0)});
           const dep=rows.reduce((a,r)=>({port:add(a.port,r.port),today:add(a.today,r.today),month:add(a.month,r.month),last:!a.last||r.last>a.last?r.last:a.last}),{port:{n:0,sum:0},today:{n:0,sum:0},month:{n:0,sum:0},last:null});
           const days=last=>last===null?'нет предоплат в доступной истории':Math.max(0,Math.round((Date.parse(DATE)-Date.parse(last))/864e5))+' дн';
           const TL={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
           const slug=m=>m.split(/\s+/).at(-1).toLowerCase().split('').map(c=>TL[c]??c).join('');
-          const paid=p=>p.n+' шт · '+rub(p.sum)+(p.missing?' (у '+p.missing+' сумма не заполнена)':'');
+          const paid=p=>p.n+' шт · '+rub(p.sum)+(p.fallback?' (у '+p.fallback+' взята сумма сделки)':'')+(p.missing?' (у '+p.missing+' сумма не заполнена)':'');
           const metrics=r=>[
             'Предоплаты за день: <b>'+paid(r.today)+'</b>',
             'Предоплаты за месяц: <b>'+paid(r.month)+'</b>',
             'Портфель в работе: <b>'+r.port.n+' шт · '+rub(r.port.sum)+'</b>',
-            'Без предоплат: <b>'+days(r.last)+'</b>'
+            'Без предоплат: <b>'+days(r.idleSince??r.last)+'</b>'
           ].join('\n');
           const head=MODE==='plan'?'🌅 ПЛАН НА ДЕНЬ':'🌙 ИТОГИ ДНЯ';
           const time=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(ASOF);
@@ -251,7 +263,7 @@ jobs:
           if(MGR&&!selected.length)throw Error('Manager is outside active roster');
           const title=(process.env.GG_DIGEST_TEST==='1'?'🧪 ТЕСТ\n':'')+'<b>'+head+' · '+DATE.split('-').reverse().join('.')+'</b>\nДанные на '+time+' МСК';
           const blocks=selected.map(r=>'<b><a href="https://oliverjone01-dev.github.io/t1/rop-'+slug(r.m)+'/">'+E(r.m)+'</a></b>\n'+metrics(r));
-          const text=title+'\n\n'+(!MGR?'<b><a href="https://oliverjone01-dev.github.io/t1/rop/">ОТДЕЛ</a></b>\n'+metrics(dep)+'\n\n':'')+blocks.join('\n\n')+'\n\n<i>Предоплаты — сделки, перешедшие в производство; суммы предоплат — из поля CRM. Портфель — открытые сделки с КП до предоплаты. Дни — календарные с последней предоплаты, сегодня = 0.</i>';
+          const text=title+'\n\n'+(!MGR?'<b><a href="https://oliverjone01-dev.github.io/t1/rop/">ОТДЕЛ</a></b>\n'+metrics(dep)+'\n\n':'')+blocks.join('\n\n')+'\n\n<i>Предоплаты — сделки, перешедшие в «Предоплата получена». Сумма — поле «Предоплата»; при нуле или пустом поле — сумма сделки. Портфель — открытые сделки с КП до предоплаты. Дни — календарные с последней предоплаты, сегодня = 0; у вернувшегося сотрудника — не раньше подтверждённой даты возвращения.</i>';
           if(text.length>4096)throw Error('Digest exceeds Telegram limit: '+text.length);
           const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text,parse_mode:'HTML',disable_web_page_preview:true})});
           const result=await res.json();

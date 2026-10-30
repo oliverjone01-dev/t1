@@ -127,6 +127,8 @@ test('calendar stock is the stage at bucket end and is never added across bucket
  assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip'),'2026-10-14').length"),1);
  assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip'),'2026-10-15').length"),0);
  assert.equal(d.run("dgCalendarRows(DG_CAL_ROWS.find(r=>r.id==='wip')).length"),0);
+ const empty=d.run("dgCalendarRecordTable([],DG_CAL_ROWS.find(r=>r.id==='wip'),{row:'wip',bucket:null})");assert.ok(empty.includes('На эту дату открытых сделок на этапе нет'));assert.ok(empty.includes('colspan="7"'));
+ const past=d.run("(()=>{const row=DG_CAL_ROWS.find(r=>r.id==='wip');return dgCalendarRecordTable(dgCalendarRows(row,'2026-10-14'),row,{row:'wip',bucket:'2026-10-14'});})()");assert.ok(past.includes('Открытый остаток на 14.10.2026'));assert.ok(!past.includes('На эту дату открытых сделок на этапе нет'));
 });
 
 test('calendar dates use Moscow midnight and reject foreign event owners',()=>{

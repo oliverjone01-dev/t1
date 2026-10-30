@@ -40,6 +40,16 @@ describe("карта карточек из Seller API", () => {
     expect(buildCardMap(many(20), prev2, "d").map!.groups.find((x) => x.main === "8888")!.skus.map((s) => s.offer)).toEqual(["X1", "X2"]);
   });
 
+  it("live SKU owner replaces a carried old offer alias without disabling duplicate protection", () => {
+    const prev = buildCardMap(many(20), null, "2026-10-29").map!;
+    const renamed = many(20).map(x => x.offer_id === "A0-1" ? {...x, offer_id:"NEW-OWNER"} : x);
+    const {map,stats} = buildCardMap(renamed, prev, "2026-10-30", 40);
+    expect(map).not.toBeNull();
+    expect(map!.groups.flatMap(g=>g.skus).filter(x=>x.sku==="01")).toEqual([{sku:"01",offer:"NEW-OWNER"}]);
+    expect(stats.retiredAliases).toBe(1);
+    expect(buildCardMap([...renamed,it_("CONFLICT",1000,"01")],prev,"2026-10-30").map).toBeNull();
+  });
+
   it("fail-closed: обрезанный ответ не добирается прежней картой (Codex P1) и меньше 90 % запрошенных - не пишем", () => {
     const prev = buildCardMap(many(30), null, "2026-09-23").map!;
     const cut = buildCardMap(many(1), prev, "2026-10-16");

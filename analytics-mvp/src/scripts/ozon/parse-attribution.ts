@@ -5,9 +5,10 @@
 
 export interface SkuStat { sku: string; name: string; sp: number; sold: number; om: number; soldModel: number; omModel: number; drr: number; }
 
-const num = (s: string): number => {
+const num = (s: string, decimals = 0): number => {
   const n = parseFloat(String(s ?? "").replace(/\s| /g, "").replace(",", "."));
-  return Number.isFinite(n) ? Math.round(n) : 0;
+  const scale = 10 ** decimals;
+  return Number.isFinite(n) ? Math.round(n * scale) / scale : 0;
 };
 const norm = (s: string) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -44,9 +45,9 @@ export function parseAttributionDaily(text: string): AttrDailyRow[] {
       date: `${dm[3]}-${dm[2]}-${dm[1]}`,
       sku,
       name: (c[ci.name] ?? "").trim(),
-      sp: num(c[ci.sp] ?? ""), sold: num(c[ci.sold] ?? ""), om: num(c[ci.om] ?? ""),
+      sp: num(c[ci.sp] ?? "", 2), sold: num(c[ci.sold] ?? ""), om: num(c[ci.om] ?? "", 2),
       soldModel: ci.soldModel >= 0 ? num(c[ci.soldModel] ?? "") : 0,
-      omModel: ci.omModel >= 0 ? num(c[ci.omModel] ?? "") : 0,
+      omModel: ci.omModel >= 0 ? num(c[ci.omModel] ?? "", 2) : 0,
       toCart: ci.toCart >= 0 ? num(c[ci.toCart] ?? "") : 0,
       drr: 0,
     });

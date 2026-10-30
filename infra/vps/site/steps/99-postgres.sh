@@ -7,7 +7,7 @@ if [ ! -f /srv/gg/system-db/current/server.py ]; then
   exit 1
 fi
 GG_SYSTEM_SITE="$SITE" python3 /srv/gg/system-db/current/server.py import
-# Same-version, read-only first screen; filters hydrate from the PostgreSQL payload.
-node "$GG_OPS/site/prerender-rop.cjs" "$SITE"
-
+# The shared frame must be final before rendering either viewport's first screen.
 node "$GG_OPS/site/prepare-shell.cjs" "$SITE"
+# Same-version, read-only page; controls hydrate from the PostgreSQL payload.
+node "$GG_OPS/site/prerender-rop.cjs" "$SITE"

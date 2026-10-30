@@ -15,3 +15,7 @@
 #gg-workspace #gg-dashboard{min-width:0;max-width:100%;overflow-x:auto}
 #gg-workspace .gg-empty-section{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg-card);color:var(--ink-3);font-size:13px}
 @media(max-width:800px){#gg-workspace>.gg-main{margin-left:0!important}#gg-workspace>.gg-main>.gg-content{padding:22px 14px 50px!important}#gg-workspace .gg-topbar{padding:0 16px!important}#gg-workspace .gg-heading h1,#gg-workspace .gallery-heading h1,#gg-workspace .org-title{font-size:24px!important}}
+/* Reserve navigation icon slots before the early shell script binds events. */
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary){font-size:0!important}
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary)>span{font-size:13px!important}
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary):before{content:"";display:inline-flex;flex:0 0 22px;width:22px;height:22px}

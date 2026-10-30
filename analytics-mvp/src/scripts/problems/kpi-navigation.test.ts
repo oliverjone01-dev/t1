@@ -14,13 +14,13 @@ describe('Problems KPI navigation',()=>{
   (doc.querySelector('[data-p="7d"]') as HTMLElement).click();
   expect((doc.querySelector('#orders-panel') as HTMLElement).hidden).toBe(true);dom.window.close();
  });
- it.each([[0,'cancel-panel','cancel'],[1,'cancel-panel','cancel'],[4,'fine-panel','fine'],[5,'return-panel','return'],[7,'rating-panel','defectCharge']])('KPI %s scrolls to its chart and prepares only its selected list',(index,target,kind)=>{
+ it.each([[0,'cancel-panel','cancel'],[1,'cancel-panel','cancel'],[4,'fine-panel','fine'],[5,'return-panel','return'],[7,'rating-panel','defectCharge'],[2,'shipping-pattern-panel','lateShip']])('KPI %s scrolls to its chart and prepares only its selected list',(index,target,kind)=>{
   const {dom,doc,scrolled}=open();(doc.querySelectorAll('#kpis [data-kind]')[Number(index)] as HTMLElement).click();
   expect(scrolled.at(-1)).toBe(target);expect(scrolled).not.toContain('orders-panel');
   expect((doc.querySelector('#orders-panel') as HTMLElement).hidden).toBe(false);
   expect((doc.querySelector('#kind') as HTMLSelectElement).value).toBe(kind);dom.window.close();
  });
- it.each([[2,'lateShip'],[6,'deliveryLoss']])('KPI without chart %s opens its filtered list',(index,kind)=>{
+ it.each([[6,'deliveryLoss']])('KPI without chart %s opens its filtered list',(index,kind)=>{
   const {dom,doc,scrolled}=open();(doc.querySelectorAll('#kpis [data-kind]')[Number(index)] as HTMLElement).click();
   expect(scrolled.at(-1)).toBe('orders-panel');expect((doc.querySelector('#kind') as HTMLSelectElement).value).toBe(kind);dom.window.close();
  });

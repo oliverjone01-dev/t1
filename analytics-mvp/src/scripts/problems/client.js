@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,
 const fmt=(n,d=0)=>n==null?'н/д':Number(n).toLocaleString('ru-RU',{maximumFractionDigits:d});
 const names={cancel:'Отмена',lateShip:'Просрочка отгрузки',shift:'Перенос доставки',lateDelivery:'Опоздание доставки',fine:'Штраф',defectCharge:'Плата за ошибки (индекс)',return:'Возврат',deliveryLoss:'Доставка в минус'};
 let S,limit=100,reasonFilter=null,reasonGroups=[],rfbsIssue="";
-const kpiTargets={cancel:'cancel-panel',fine:'fine-panel',return:'return-panel',defectCharge:'rating-panel',rfbs:'rfbs-panel'};
+const kpiTargets={lateShip:'shipping-pattern-panel',cancel:'cancel-panel',fine:'fine-panel',return:'return-panel',defectCharge:'rating-panel',rfbs:'rfbs-panel'};
 function revealOrders(){ $('orders-panel').hidden=false; }
 const periodBounds=D.periodBounds??{from:moscowDay(D.now).slice(0,4)+'-01-01',to:moscowDay(D.now)};
 let activePeriod={p:'30d'},selectedPeriod=dashboardPeriodDates('30d','','',periodBounds.from,periodBounds.to);
@@ -20,16 +20,34 @@ function chart(series,label,color,bar=false,threshold=null){
 }
 function bars(items,unit=''){if(!items.length)return '<div class="empty">Нет подтверждённых данных за период</div>';const max=Math.max(...items.map(x=>Math.abs(x[1])),1);return items.map(([k,v])=>'<div class="barrow"><span>'+esc(k)+'</span><div class="track"><div class="fill" style="width:'+Math.abs(v)/max*100+'%"></div></div><b>'+fmt(v)+' '+unit+'</b></div>').join('');}
 const reasonColors=['#ef809e','#b794bd','#d0ac78','#70bac3','#869ce0','#d092c8','#85bfa0','#df9e82','#a9b579','#8299af'];
+function groupMoney(keys,kind){
+ const selected=new Set(keys),rows=S.table.filter(row=>row.kind===kind&&selected.has(row.id));
+ const known=rows.filter(row=>Number.isFinite(row.amount)),missing=rows.length-known.length;
+ if(!known.length)return 'н/д';
+ const cents=known.reduce((sum,row)=>sum+Math.round(row.amount*100),0);
+ return fmt(cents/100,2)+' ₽'+(missing?' · неполно ('+missing+' без суммы)':'');
+}
+function highlightCancelReasons(group=null){
+ const selected=group?new Set(group.keys):null;
+ document.querySelectorAll('#cancel-breakdown [data-reason-group]').forEach(button=>{
+  const reason=reasonGroups[Number(button.dataset.reasonGroup)],keys=selected?reason.keys.filter(key=>selected.has(key)):reason.keys;
+  button.classList.toggle('is-linked',Boolean(selected&&keys.length));button.classList.toggle('is-dim',Boolean(selected&&!keys.length));
+  if(group)button.style.setProperty('--actor-color',group.color);else button.style.removeProperty('--actor-color');
+  button.dataset.relatedCount=selected?String(keys.length):'';
+  button.querySelector('.reason-money').textContent=selected&&keys.length?(keys.length===reason.keys.length?'':keys.length+' из '+reason.keys.length+' · ')+groupMoney(keys,'cancel'):groupMoney(reason.keys,'cancel');
+ });
+ const note=$('cancel-hover-note');if(note)note.textContent=group?group.label+': '+group.keys.length+' отмен · '+groupMoney(group.keys,'cancel')+'. Серые суммы у выделенных причин — для этого инициатора.':'Наведите на инициатора слева, чтобы выделить его причины. Суммы — стоимость отменённых товаров.';
+}
 function renderReasons(){
- reasonGroups=[];
- for(const view of ['cancel-initiator','cancel','fine','return-initiator','return']){
-  const kind=view.split('-')[0],initiator=view.endsWith('-initiator');
-  const rows=S.table.filter(r=>r.kind===kind),n=initiator?Infinity:Number($(kind+'-top').value),unit=kind==='fine'?'₽':kind==='return'?'шт.':'отпр.';
+ reasonGroups=[];const returnColors=new Map();
+ for(const view of ['cancel-initiator','cancel','fine','return-value','return']){
+  const kind=view.split('-')[0],initiator=view.endsWith('-initiator'),moneyView=view==='return-value',moneyMetric=kind==='fine'||moneyView;
+  const rows=S.table.filter(r=>r.kind===kind),n=initiator?Infinity:Number($(kind+'-top').value),unit=moneyMetric?'₽':kind==='return'?'шт.':'отпр.';
   const groups=new Map(),groupIds=new Map();let unknown=0,negative=0,positive=0,zero=0;
   for(const row of rows){
-   const value=kind==='cancel'?1:kind==='return'?row.qty:row.amount;
+   const value=kind==='cancel'?1:kind==='return'&&!moneyView?row.qty:row.amount;
    if(value==null){unknown++;continue;}
-   const v=kind==='fine'?Math.round(value*100):value;
+   const v=moneyMetric?Math.round(value*100):value;
    if(v<0){negative+=v;continue;}if(v===0){zero++;continue;}
    const post=kind==='cancel'?D.postings.find(p=>p.order===row.order):null;
    const actor=kind==='cancel'?post?.initiator:row.initiator;
@@ -40,17 +58,24 @@ function renderReasons(){
   }
   let items=[...groups].sort((a,b)=>b[1]-a[1]),shown=items.slice(0,n).map(([label,value])=>({label,value,keys:groupIds.get(label)}));
   const rest=items.slice(n);if(rest.length)shown.push({label:'Остальные причины ('+rest.length+')',value:rest.reduce((sum,x)=>sum+x[1],0),keys:rest.flatMap(x=>groupIds.get(x[0]))});
-  const display=v=>fmt(kind==='fine'?v/100:v,kind==='fine'?2:0),totalLabel=kind==='fine'?'начислено':kind==='return'?'товаров':'отправлений';
-  let cursor=0;const stops=shown.map((item,i)=>{item.color=i===n?'#667789':reasonColors[i%reasonColors.length];const start=cursor;cursor+=item.value/positive*100;return item.color+' '+start+'% '+cursor+'%';});
-  const ring=positive?'<div class="donut" role="img" aria-label="'+esc(names[kind]+': '+display(positive)+' '+unit)+'" style="background:conic-gradient('+stops.join(',')+')"><div class="donut-total reason-total"><b>'+display(positive)+'</b><small>'+totalLabel+(kind==='fine'?' · ₽':'')+'</small></div></div>':'<div class="empty">'+(rows.length?'Нет положительных значений для диаграммы':kind==='cancel'?S.cancellation.coverage.full?'Отмен нет':'Нет подтверждённых данных':S.metrics[kind].coverage.full?'Событий нет':'Нет подтверждённых данных')+'</div>';
-  const barView=!initiator&&kind!=='fine',barMax=Math.max(...shown.map(item=>item.value),1);
-  const legend=shown.map(item=>{const id=reasonGroups.push({kind,keys:item.keys})-1;if(barView)return '<button class="reason-item reason-bar" data-reason-group="'+id+'"><span class="reason-label">'+esc(item.label)+'</span><span class="reason-track"><i style="width:'+(item.value/barMax*100)+'%;background:'+item.color+'"></i></span><b>'+display(item.value)+' '+unit+'</b></button>';return '<button class="reason-item" data-reason-group="'+id+'"><i class="reason-dot" style="background:'+item.color+'"></i><span class="reason-label">'+esc(item.label)+'</span><b>'+display(item.value)+' '+unit+'</b><small>'+fmt(item.value/positive*100,1)+'%</small></button>';}).join('');
+  const display=v=>fmt(moneyMetric?v/100:v,moneyMetric?2:0),totalLabel=kind==='fine'?'начислено':moneyView?'стоимость товаров':kind==='return'?'товаров':'отправлений';
+  let cursor=0;const stops=shown.map((item,i)=>{if(kind==='return'&&i!==n){if(!returnColors.has(item.label))returnColors.set(item.label,reasonColors[returnColors.size%reasonColors.length]);item.color=returnColors.get(item.label);}else item.color=i===n?'#667789':reasonColors[i%reasonColors.length];const start=cursor;cursor+=item.value/positive*100;return item.color+' '+start+'% '+cursor+'%';});
+  const ring=positive?'<div class="donut" role="img" aria-label="'+esc(names[kind]+': '+display(positive)+' '+unit)+'" style="background:conic-gradient('+stops.join(',')+')"><div class="donut-total reason-total"><b>'+display(positive)+'</b><small>'+totalLabel+(moneyMetric?' · ₽':'')+'</small></div></div>':'<div class="empty">'+(rows.length?'Нет положительных значений для диаграммы':kind==='cancel'?S.cancellation.coverage.full?'Отмен нет':'Нет подтверждённых данных':S.metrics[kind].coverage.full?'Событий нет':'Нет подтверждённых данных')+'</div>';
+  const barView=!initiator&&!moneyMetric,barMax=Math.max(...shown.map(item=>item.value),1);
+  const legend=shown.map(item=>{
+   const id=reasonGroups.push({kind,view,label:item.label,color:item.color,keys:item.keys})-1;
+   const secondary=kind==='cancel'||kind==='return'&&!moneyView?'<small class="reason-money">'+esc(groupMoney(item.keys,kind))+'</small>':'';
+   const value='<span class="reason-values"><b'+(moneyView?' class="money-primary"':'')+'>'+display(item.value)+' '+unit+'</b>'+secondary+'</span>';
+   if(barView)return '<button class="reason-item reason-bar" data-reason-group="'+id+'"><span class="reason-label">'+esc(item.label)+'</span><span class="reason-track"><i style="width:'+(item.value/barMax*100)+'%;background:'+item.color+'"></i></span>'+value+'</button>';
+   return '<button class="reason-item" data-reason-group="'+id+'"><i class="reason-dot" style="background:'+item.color+'"></i><span class="reason-label">'+esc(item.label)+'</span>'+value+'<small>'+fmt(item.value/positive*100,1)+'%</small></button>';
+  }).join('');
   const partial=kind==='cancel'?!S.cancellation.coverage.full:!S.metrics[kind].coverage.full;
   const corrections=kind==='fine'?'<div class="reason-foot">Начисления: '+display(positive)+' ₽ · корректировки: '+display(negative)+' ₽ · итог: '+fmt(S.metrics.fine.sum,2)+' ₽'+(zero?' · нулевых начислений: '+zero:'')+'</div>':'';
   const negativeRows=kind==='fine'?rows.filter(row=>row.amount!==null&&row.amount<0):[];
   const correctionList=negativeRows.length?'<details class="reason-adjustments"><summary>Корректировки в нашу пользу</summary>'+bars(negativeRows.map(row=>[row.reason,row.amount]),'₽')+'</details>':'';
-  $(view+'-breakdown').innerHTML=(barView?(positive?'<div class="reason-total reason-total-inline"><b>'+display(positive)+'</b> '+totalLabel+'</div><div class="reason-bar-list">'+legend+'</div>':ring):'<div class="reason-layout">'+ring+'<div class="reason-list">'+legend+'</div></div>')+corrections+correctionList+'<div class="reason-foot">'+(partial?'Покрытие неполное · ':'')+(unknown?'Без '+(kind==='return'?'количества':'суммы')+': '+unknown+' записей · ':'')+(initiator?'Групп инициаторов: '+items.length:'Показано '+Math.min(n,items.length)+' из '+items.length+' причин'+(rest.length?' + остальные':''))+'</div>';
+  $(view+'-breakdown').innerHTML=(view==='cancel'?'<div id="cancel-hover-note" class="help" aria-live="polite">Наведите на инициатора слева, чтобы выделить его причины. Суммы — стоимость отменённых товаров.</div>':'')+(barView?(positive?'<div class="reason-total reason-total-inline"><b>'+display(positive)+'</b> '+totalLabel+'</div><div class="reason-bar-list">'+legend+'</div>':ring):'<div class="reason-layout">'+ring+'<div class="reason-list">'+legend+'</div></div>')+corrections+correctionList+'<div class="reason-foot">'+(partial?'Покрытие неполное · ':'')+(unknown?'Без '+(kind==='return'&&!moneyView?'количества':'суммы')+': '+unknown+' записей · ':'')+(initiator?'Групп инициаторов: '+items.length:'Показано '+Math.min(n,items.length)+' из '+items.length+' причин'+(rest.length?' + остальные':''))+'</div>';
  }
+ document.querySelectorAll('#cancel-initiator-breakdown [data-reason-group]').forEach(button=>{const group=reasonGroups[Number(button.dataset.reasonGroup)];button.onmouseenter=button.onfocus=()=>highlightCancelReasons(group);button.onmouseleave=button.onblur=()=>highlightCancelReasons();});
  document.querySelectorAll('[data-reason-group]').forEach(button=>button.onclick=()=>{const group=reasonGroups[Number(button.dataset.reasonGroup)];reasonFilter=new Set(group.keys);$('kind').value=group.kind;$('search').value='';limit=100;revealOrders();table();$('orders-panel').scrollIntoView({behavior:'smooth',block:'start'});});
 }
 function card(title,value,sub,coverage,kind=''){return '<div class="card" role="button" tabindex="0" data-kind="'+kind+'" aria-controls="'+(kpiTargets[kind]||'orders-panel')+'"><small>'+title+'</small><div class="value">'+value+'</div><div class="sub">'+sub+'</div><div class="coverage">'+coverage+'</div></div>';}
@@ -69,7 +94,7 @@ function render(){
  $('thresholds').innerHTML=D.thresholds?'<div>Шкала на '+esc(D.thresholds.date)+'</div>'+D.thresholds.rows.map(r=>'<span class=\"badge\">'+esc(r.status)+': '+r.begin+'-'+r.end+'% · просрочка '+r.shipmentDelay+'% · отмена '+r.cancellations+'% · своя доставка '+r.cancellationNonInt+'%</span>').join(' '):'';
  const ws=[...new Set(S.dates.map(d=>shift(d,-((new Date(d+'T00:00:00Z').getUTCDay()+6)%7))))];
  $('weeks').innerHTML='<table><tr><th>Неделя</th><th>Отмены / создано FBS</th><th>Штрафы, ₽</th><th>Возвраты, шт.</th><th>Доставка в минус, ₽</th><th>Индекс на конец</th></tr>'+ws.map(w=>{const a=w<from?from:w,b=shift(w,6)>to?to:shift(w,6),z=summarize(D,a,b),v=(k)=>fmt(z.metrics[k].sum)+(z.metrics[k].coverage.full&&!z.metrics[k].unknownAmount?'':' *');return '<tr><td>'+a+' - '+b+'</td><td>'+fmt(z.cancellation.count)+' / '+z.cancellation.base+'</td><td>'+v('fine')+'</td><td>'+fmt(z.metrics.return.units)+'</td><td>'+v('deliveryLoss')+'</td><td>'+fmt(z.rating?.defect_index!=null?z.rating.defect_index*100:null,2)+(z.rating?.defect_index!=null?'%':'')+'</td></tr>';}).join('')+'</table><small>* Неполный период или есть строки без суммы</small>';
- $('rating-summary').innerHTML=S.summary.length?'<small>Последний снимок не позже конца периода: '+esc(S.summaryDate)+'</small>'+S.summary.filter(r=>r.rating!=='rating_general_indicator_fbs_rfbs').map(r=>'<span>'+esc(r.name)+'<br><b>'+fmt(r.value===null?null:r.value*(r.value_type==='RATIO'?100:1),2)+(r.value_type==='RATIO'&&r.value!==null?'%':'')+'</b></span>').join(''):'<p class="muted">За этот период снимок рейтингов ещё не сохранён.</p>';
+ renderProblemInsights(from,to);renderQuality();
  $('coverage').innerHTML='<table><tr><th>Источник</th><th>Дней</th><th>Последняя загрузка</th><th>Ограничения</th></tr>'+Object.entries(D.coverage).map(([k,v])=>'<tr><td>'+esc(names[k]??'Отправления')+'</td><td>'+S.dates.filter(d=>v.days.includes(d)).length+'/'+S.dates.length+'</td><td>'+esc(v.loaded_at??'не зафиксирована')+'</td><td>'+esc(v.note)+'</td></tr>').join('')+'</table><div class="notes">'+D.warnings.map(w=>'<div class="warning">'+esc(w)+'</div>').join('')+'</div>';
  $('footer').textContent='Сборка '+D.now+' · пропуск = н/д · только подтверждённые ставки FBS; пропуски не заменены нулями';table();
  document.querySelectorAll('#kpis [data-kind]').forEach(el=>{
@@ -153,3 +178,28 @@ $('rfbs-list').ontoggle=()=>{if(typeof document==='undefined'||!$('rfbs-list'))r
 window.addEventListener('pageshow',()=>{if(typeof document==='undefined'||!$('rfbs-list'))return;$('rfbs-list').open=false;$('rfbs-list').hidden=true;});
 
 $('hide-orders').onclick=()=>{$('orders-panel').hidden=true;};
+
+function renderProblemInsights(from,to){
+ const x=problemInsights(D,from,to),short=d=>d?d.split('-').reverse().join('.'):'';
+ const fact=(value,title,detail)=>'<div class="insight-fact"><strong>'+value+'</strong>'+title+'<small>'+detail+'</small></div>';
+ $('shipping-findings').innerHTML=fact(x.total||x.coveredDays===S.dates.length?fmt(x.total):'н/д','регистраций просрочки',fmt(x.uniqueOrders)+' уникальных отправлений')+fact(x.topTwoDaysShare===null?'н/д':fmt(x.topTwoDaysShare*100,1)+'%','приходится на две даты',x.topDays.slice(0,2).map(r=>short(r.label)+' · '+r.count).join(' / ')||'Нет регистраций в источнике')+fact(x.topThreeOffersShare===null?'н/д':fmt(x.topThreeOffersShare*100,1)+'%','приходится на три артикула','Доля среди зарегистрированных просрочек');
+ $('shipping-daily').innerHTML=chart(x.daily,'Просрочки: отправления по дате регистрации','#ec819f',true);
+ $('shipping-offers').innerHTML=bars(x.offers.slice(0,8).map(r=>[r.label,r.count]),'рег.');
+ $('shipping-pattern-note').textContent='Покрытие: '+x.coveredDays+' из '+S.dates.length+' дней. Дата регистрации ошибки может отличаться от фактической задержки. График не показывает процент просрочек среди всех отгрузок; концентрации не доказывают причину. Пропуски источника не заменены нулями.';
+ const latest=x.last?x.last.defect_index*100:null;
+ $('index-insights').innerHTML=fact(fmt(latest,2)+(latest===null?'':'%'),'последнее наблюдение',x.last?short(x.last.date):'Нет наблюдений')+fact(x.deltaPp===null?'н/д':(x.deltaPp>0?'+':'')+fmt(x.deltaPp,2)+' п.п.','изменение за период',x.first?short(x.first.date)+' → '+short(x.last.date):'')+fact(x.peak?fmt(x.peak.defect_index*100,2)+'%':'н/д','максимум в периоде',x.peak?short(x.peak.date):'');
+ if(latest!==null&&x.threshold!==null)$('index-insights').innerHTML+='<div class="index-meta" style="grid-column:1/-1">'+(x.thresholdGapPp>=0?'До порога '+fmt(x.threshold)+'%: '+fmt(x.thresholdGapPp,2)+' п.п.':'Порог '+fmt(x.threshold)+'% превышен на '+fmt(-x.thresholdGapPp,2)+' п.п.')+'<div class="index-meter" role="img" aria-label="Индекс '+fmt(latest,2)+'%, порог '+fmt(x.threshold)+'%"><i style="width:'+Math.min(100,latest/x.threshold*100)+'%"></i></div>'+x.observations+' наблюдений. Индекс рассчитывает Ozon; по числу регистраций его не восстанавливаем.</div>';
+ $('error-composition').innerHTML=bars(x.types.map(r=>[r.label,r.count]),'рег.');
+}
+function renderQuality(){
+ if(!S.summary.length){$('rating-summary').innerHTML='<p class="muted">За этот период снимок рейтингов ещё не сохранён.</p>';return;}
+ const q=qualitySnapshot(S.summary),pct=v=>v===null?'н/д':fmt(v*100,2)+'%';
+ const known=q.zones.filter(z=>z.value!==null),sum=q.zoneTotal;
+ const zoneBar=sum>0?'<div class="zone-bar" role="img" aria-label="Распределение ценовых зон">'+known.map(z=>'<span style="width:'+(q.zonesComplete?z.value/sum*100:z.value*100)+'%;background:'+z.color+'" title="'+esc(z.label+': '+pct(z.value))+'"></span>').join('')+'</div>':'<div class="quality-missing">Нет подтверждённых долей</div>';
+ const zones='<article class="quality-card"><h3>Ценовые зоны</h3>'+zoneBar+q.zones.map(z=>'<div class="zone-key"><i style="background:'+z.color+'"></i><span>'+esc(z.label)+'</span><b>'+pct(z.value)+'</b></div>').join('')+'<div class="quality-note">Доли товаров по прайс-индексу Ozon.'+(!q.zonesComplete?' Часть долей не передана; серое поле не классифицировано.':Math.abs(sum-1)>.00001?' Сумма долей '+fmt(sum*100,2)+'%: значения сохранены, ширины приведены к общей шкале.':'')+'</div></article>';
+ const max=Math.max(1,...q.complaints.map(r=>(r.value??0)*100)),axis=Math.ceil(max);
+ const complaints='<article class="quality-card"><h3>Жалобы по доставке</h3>'+q.complaints.map(r=>'<div class="complaint-row"><div class="complaint-label"><span>'+r.label+'</span><b>'+pct(r.value)+'</b></div>'+(r.value===null?'<small class="quality-missing">Ozon не передал значение</small>':'<div class="complaint-track"><i style="width:'+(r.value*100/axis*100)+'%"></i></div>')+'</div>').join('')+'<div class="quality-note">Общая шкала полос: 0–'+fmt(axis)+'%. Значение 0% и отсутствие данных показаны по-разному.</div></article>';
+ const score=q.score===null?'н/д':fmt(q.score,2);
+ const review='<article class="quality-card quality-assessment"><div><h3>Оценка товаров</h3><div class="quality-score">'+score+'</div>'+(q.score===null?'':'<div class="quality-stars" role="img" aria-label="'+score+' из 5">★★★★★<span style="width:'+Math.max(0,Math.min(100,q.score/5*100))+'%">★★★★★</span></div>')+'<div class="quality-note">Средняя оценка по данным Ozon.</div></div><div><h3>Просрочки отгрузки · общий процент</h3><b>'+pct(q.shipmentDelay)+'</b><div class="quality-note">'+(q.shipmentDelay===null?'Ozon не передал общий процент. Зарегистрированные случаи разобраны в отдельном графике выше.':'Показатель Ozon; отдельно от количества зарегистрированных случаев.')+'</div></div></article>';
+ $('rating-summary').innerHTML='<div class="help">Снимок на '+esc(S.summaryDate)+' · выбранный период учтён</div><div class="quality-grid">'+zones+complaints+review+'</div>';
+}

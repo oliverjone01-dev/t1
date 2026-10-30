@@ -46,11 +46,25 @@ test('KPI comparisons partition the selected and previous equal windows using na
  const d=dashboard(f);d.run("S.start='2026-10-01';S.end='2026-10-10';S.gran='week';S.revMode='prepay';S.amtMode='prepay';S.dateBasis='outcome'");
  assert.equal(d.run('dgKpiSeries().intervals.length'),2);assert.equal(d.run('dgKpiSeries().intervals[0].previousFrom'),'2026-09-21');assert.equal(d.run('dgKpiSeries().intervals[1].previousTo'),'2026-09-30');
  assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.rev,0)'),400);assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.previous.rev,0)'),300);
- assert.equal(d.run('dgKpiSeries().intervals[0].current.won'),0);assert.equal(d.run('dgKpiSeries().intervals[0].current.cr2'),1);assert.equal(d.run('dgKpiSeries().intervals[1].current.cr1'),null);assert.equal(d.run('dgKpiSeries().intervals[0].current.check'),null);
+ assert.equal(d.run('dgKpiSeries().intervals[0].current.won'),0);assert.equal(d.run('dgKpiSeries().intervals[0].current.cr2'),1);assert.equal(d.run('dgKpiSeries().intervals[1].current.cr1'),0);assert.equal(d.run('dgKpiSeries().intervals[0].current.check'),null);
  assert.equal(d.run("dgOpenBudgetAt('2026-10-05')"),218500);assert.equal(d.run("dgOpenBudgetAt('2026-09-25')"),0);
  d.run("S.amtMode='budget'");assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.rev,0)'),218500);
  d.run("S.amtMode='prepay';S.dateBasis='created'");assert.equal(d.run('dgKpiSeries().intervals[0].current.won'),1);assert.equal(d.run('dgKpiSeries().intervals[1].current.won'),0);
  d.run("S.revMode='won'");assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.current.won,0)'),0);assert.equal(d.run('dgKpiSeries().intervals.reduce((a,x)=>a+x.previous.won,0)'),1);
+});
+test('conversion mini charts connect empty observed intervals at zero in both comparison windows',()=>{
+ const d=dashboard();d.run("S.start='2026-10-01';S.end='2026-10-10';S.gran='day'");
+ assert.equal(d.run("dgKpiWindow('2026-10-05','2026-10-05').cr1"),0);
+ assert.equal(d.run("dgKpiWindow('2026-10-05','2026-10-05').cr2"),0);
+ assert.equal(d.run("dgKpiWindow('2026-10-01','2026-10-01').cr1"),1);
+ for(const k of ['CR1 · в сделку','CR2 · в продажу']){
+  const html=d.run('dgKpiGraphFor({k:'+JSON.stringify(k)+',ac:"accent"})');
+  const traces=[...html.matchAll(/<polyline points="([^"]+)"[^>]*>/g)];
+  assert.equal(traces.length,2);for(const trace of traces)assert.equal(trace[1].split(' ').length,10);
+  assert.ok(!html.includes('Нет базы'));assert.match(html,/0,0%/);
+ }
+ assert.equal(d.run("dgKpiWindow('2099-01-01','2099-01-01')"),null);
+ assert.equal(d.run("dgKpiWindow('2026-10-05','2026-10-05').check"),null);
 });
 test('all pages, nested item lists, totals and unique IDs are checked',async()=>{let starts=[];const h=helpers(async(m,p)=>{starts.push(p.start);return p.start===0?{result:{items:[{id:1}]},next:1,total:2}:{result:{items:[{id:2}]},total:2};});assert.equal((await h.strictList('x',{}, {itemsPath:true,idField:'id'})).length,2);assert.deepEqual(starts,[0,1]);await assert.rejects(helpers(async()=>({result:[{ID:1}],total:2})).strictList('x',{}),/incomplete/);await assert.rejects(helpers(async()=>({result:[{ID:1},{ID:1}],total:2})).strictList('x',{}),/duplicate/);});
 test('empty scopes never become global queries, and foreign rows are rejected',async()=>{let calls=0;const h=helpers(async()=>{calls++;return {result:[{ID:1,OWNER_ID:999}]};});assert.equal((await h.scopedChunks('x',{},'@OWNER_ID',[])).length,0);assert.equal(calls,0);await assert.rejects(h.scopedChunks('x',{},'@OWNER_ID',[20]),/foreign scoped row/);});

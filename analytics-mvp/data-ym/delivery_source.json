@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-10-29T16:52:11.095613+03:00",
-  "through": "2026-10-28",
+  "loaded_at": "2026-10-30T16:40:41.222196+03:00",
+  "through": "2026-10-29",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
     "tabs": {
@@ -11,15 +11,15 @@
     }
   },
   "window_from": "2026-10-03",
-  "rows": 662,
+  "rows": 663,
   "source_counts": {
     "active": {
-      "market_rows": 29,
+      "market_rows": 31,
       "historical_rows": 6,
-      "accepted_rows": 14,
+      "accepted_rows": 15,
       "missing_cost_rows": 0,
       "unrecognized_offer_rows": 1,
-      "future_rows": 9
+      "future_rows": 10
     },
     "archive": {
       "market_rows": 525,
@@ -39,5 +39,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "68a51594e7e37ba2812c557e7f61a2743931311babac5506d12aa72cc96278b9"
+  "csv_sha256": "fbbe346aaf9b8646d1a2e30db8ffbac6c794882fd7c544f2a6e0e9850961a92a"
 }

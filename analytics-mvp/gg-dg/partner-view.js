@@ -58,7 +58,7 @@ function dgOpenBudgetAt(to){
 function dgKpiWindow(from,to){
  if(from>DATA.to)return null;
  const D=flt(AD,true).filter(d=>d.created>=from&&d.created<=to),L=flt(AL,false).filter(l=>l.created>=from&&l.created<=to),m=mtr(D,L,soldSet(from,to),lostSet(from,to));
- return {...m,cr1:m.leads?m.qual/m.leads:null,cr2:m.deals?m.conv:null,check:m.won?m.check:null,openM:dgOpenBudgetAt(to),nonqual:L.filter(l=>l.qual==='неквал').length,leadWork:L.filter(l=>l.qual==='в работе').length};
+ return {...m,cr1:m.leads?m.qual/m.leads:0,cr2:m.deals?m.conv:0,check:m.won?m.check:null,openM:dgOpenBudgetAt(to),nonqual:L.filter(l=>l.qual==='неквал').length,leadWork:L.filter(l=>l.qual==='в работе').length};
 }
 function dgKpiSeries(){
  const signature=JSON.stringify([S.start,S.end,S.gran,S.fMgr,S.fSrc,S.fCli,S.fDir,S.revMode,S.amtMode,S.dateBasis]);if(signature===dgKpiCacheKey&&dgKpiCache)return dgKpiCache;

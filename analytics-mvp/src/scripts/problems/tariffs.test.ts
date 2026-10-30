@@ -11,6 +11,16 @@ describe('Cabinet FBS tariffs',()=>{
  it('current rate never becomes a confirmed saving; latest-only queue ignores period',()=>{const d=bundle([row({status:'awaiting_deliver',fact_type:null,rate_bps:null,effect_cents:null,current_type:'discount',current_rate_bps:300}),row({order:'12345678-0002-1',status:'awaiting_deliver',observed:'2026-10-27'})]);const s=summarizeTariffs(d,'2026-09-01','2026-09-30');expect(s.confirmed).toHaveLength(0);expect(s.queue).toHaveLength(1);expect(s.queue[0]!.current_rate_bps).toBe(300);});
  it('facts retained from earlier observation validate against original money basis',()=>{expect(()=>validateTariffs(bundle([row({amount_cents:20000000,fact_amount_cents:14180000})]))).not.toThrow();});
  it('duplicates, guessed effects, unit-multiplied money and invalid rates fail',()=>{for(const rows of [[row(),row()],[row({effect_cents:-850800})],[row({fact_type:null,rate_bps:null})],[row({rate_bps:3000})],[row({fact_type:'no_discount'})]])expect(()=>validateTariffs(bundle(rows))).toThrow();});
+ it('outdated queue is a collapsed dated archive, not current operational status',()=>{
+  const data:ProblemData={now:'2026-10-30T09:00:00Z',postings:[],events:[],ratings:[],summary:[],thresholds:null,coverage:{},warnings:[],fbsTariff:bundle([row({status:'awaiting_deliver',fact_type:null,rate_bps:null,effect_cents:null})])};
+  const dom=new JSDOM(problemsPage(data),{runScripts:'dangerously'}),doc=dom.window.document;
+  expect(doc.querySelector('#tariff-queue-title')?.textContent).toContain('Архив');
+  expect(doc.querySelector('#tariff-queue-note')?.textContent).toContain('28.10.2026');
+  expect(doc.querySelector('#tariff-queue-note')?.textContent).toContain('текущие статусы и ставки не подтверждены');
+  expect((doc.querySelector('#tariff-queue-details') as HTMLDetailsElement).open).toBe(false);
+  expect(doc.querySelector('#tariff-queue')?.textContent).toContain('12345678-0001-1');
+  dom.window.close();
+ });
  it('page exposes tariffs separately from fines, queue and delivery freshness',()=>{
   const d:ProblemData={now:'2026-10-28T09:00:00Z',postings:[],events:[],ratings:[],summary:[],thresholds:null,coverage:{postings:{days:[],loaded_at:null,note:''}},warnings:[],fbsTariff:bundle([row(),row({order:'12345678-0003-1',status:'awaiting_deliver',fact_type:null,rate_bps:null,effect_cents:null,current_type:'discount',current_rate_bps:200,step1_deadline:'2026-10-28T02:44:00Z',step2_deadline:'2026-10-28T14:44:00Z',step3_deadline:'2026-10-29T02:44:00Z',step4_deadline:'2026-10-29T14:44:00Z'})]),deliverySource:{through:'2026-10-27',loaded_at:'2026-10-28T09:00:00Z',corrected_prices:14}};
   const dom=new JSDOM(problemsPage(d),{runScripts:'dangerously'});const doc=dom.window.document;

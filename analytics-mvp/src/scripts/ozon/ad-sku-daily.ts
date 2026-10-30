@@ -73,13 +73,14 @@ export async function main() {
     const corrections: ReportCorrection[] = [];
     const part = await attributionReport(perf, cid, wf, wt, START + BUDGET_MS, r => corrections.push(r));
     if (part.some(r => r.date < wf || r.date > wt || !r.sku)) throw new Error("Ответ вне окна/без SKU");
-    const recs: Row[] = part.map(r => ({ d: r.date, cid, sku: String(r.sku), sp: Math.round(r.sp), om: Math.round(r.om), ca: Math.round(r.toCart) }));
+    const recs: Row[] = part.map(r => ({ d: r.date, cid, sku: String(r.sku), sp: r.sp, om: r.om, ca: Math.round(r.toCart) }));
     validateRows(recs, r => `${r.d}|${r.cid}|${r.sku}`);
     const present = new Set(recs.map(r => r.d));
     if (stats.some(r => r.id === cid && r.date >= wf && r.date <= wt && r.spent > 0 && !present.has(r.date))) throw new Error("Неполный отчёт: нет SKU в день с расходом кампании");
     const spend = new Map<string, number>();
     for (const r of recs) spend.set(r.d, (spend.get(r.d) ?? 0) + r.sp);
-    if (stats.some(r => r.id === cid && r.date >= wf && r.date <= wt && r.spent > 0 && (spend.get(r.date) ?? 0) < r.spent * .95)) throw new Error("Неполный отчёт: по SKU меньше 95% дневного расхода кампании");
+    const deficits = stats.filter(r => r.id === cid && r.date >= wf && r.date <= wt && r.spent > 0 && (spend.get(r.date) ?? 0) < r.spent * .95);
+    if (deficits.length) throw new Error(`Неполный отчёт: по SKU меньше 95% дневного расхода кампании; дней ${deficits.length}; ${deficits.slice(0, 3).map(r => `${r.date}: SKU ${(spend.get(r.date) ?? 0).toFixed(2)}, кампания ${r.spent.toFixed(2)}`).join("; ")}`);
     const merged = replaceSlice(existing, recs, r => r.cid === cid && r.d >= wf && r.d <= wt, r => `${r.d}|${r.cid}|${r.sku}`);
     merged.sort((a, b) => a.d.localeCompare(b.d) || a.cid.localeCompare(b.cid) || a.sku.localeCompare(b.sku));
     writeRows(OUT, merged, r => `${r.d}|${r.cid}|${r.sku}`); existing = merged;

@@ -29,7 +29,7 @@ const str = (v: unknown): string => (v == null ? "" : String(v).trim());
 
 /** Товары API (+ прежняя карта) -> новая карта. Чистая функция, без сети. */
 export function buildCardMap(items: any[], prev: MapFile | null, today: string, requested = 0):
-  { map: MapFile | null; stats: { items: number; requested: number; withModel: number; apiGroups: number; groups: number; carried: number; moved: number; added: number }; why: string } {
+  { map: MapFile | null; stats: { items: number; requested: number; withModel: number; apiGroups: number; groups: number; carried: number; retiredAliases: number; moved: number; added: number }; why: string } {
   const by = new Map<string, { declared: number; skus: Map<string, string> }>();
   let withModel = 0;
   for (const it of items ?? []) {
@@ -47,9 +47,16 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string, 
   const apiGroups = [...by.values()].filter((g) => g.skus.size >= 2).length;
   const prevCard = new Map<string, { card: string; sku: string }>();
   for (const g of prev?.groups ?? []) for (const s of g.skus) prevCard.set(s.offer, { card: str(g.main), sku: str(s.sku) });
-  let carried = 0;
+  const apiSkuOwners = new Map<string, Set<string>>();
+  for (const g of by.values()) for (const [offer, sku] of g.skus) {
+    const owners = apiSkuOwners.get(sku) ?? new Set<string>(); owners.add(offer); apiSkuOwners.set(sku, owners);
+  }
+  let carried = 0, retiredAliases = 0;
   for (const [offer, p] of prevCard) {
     if (apiOffers.has(offer) || !p.card) continue;
+    // API may rename an offer while keeping its SKU. Do not restore the old alias
+    // beside its current owner; conflicting owners inside the live API still fail below.
+    if (p.sku && apiSkuOwners.has(p.sku)) { retiredAliases += 1; continue; }
     const g = by.get(p.card) ?? { declared: 0, skus: new Map<string, string>() };
     g.skus.set(offer, p.sku); by.set(p.card, g); carried += 1;
   }
@@ -63,7 +70,7 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string, 
   let moved = 0, added = 0;
   for (const [o, c] of now) { const p = prevCard.get(o); if (!p) added += 1; else if (p.card !== c) moved += 1; }
   const n = items?.length ?? 0;
-  const stats = { items: n, requested, withModel, apiGroups, groups: groups.length, carried, moved, added };
+  const stats = { items: n, requested, withModel, apiGroups, groups: groups.length, carried, retiredAliases, moved, added };
   if (!n) return { map: null, stats, why: "API не вернул ни одного товара" };
   if (requested && n < requested * MIN_MODEL_SHARE) return { map: null, stats, why: `API вернул ${n} товаров из ${requested} запрошенных (< ${MIN_MODEL_SHARE * 100} %)` };
   if (withModel / n < MIN_MODEL_SHARE) return { map: null, stats, why: `model_id прочитан у ${withModel} из ${n} (< ${MIN_MODEL_SHARE * 100} %)` };
@@ -92,7 +99,7 @@ async function main() {
   const items = await seller.attributesAll(1000, 0, offers);
   const prev: MapFile | null = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf-8")) : null;
   const { map, stats, why } = buildCardMap(items, prev, new Date().toISOString().slice(0, 10), offers.length);
-  console.log(`cards:api: товаров ${stats.items} из ${stats.requested}, с model_id ${stats.withModel}, карточек в API ${stats.apiGroups}, в карте ${stats.groups}; новых в карте ${stats.added}, сменили карточку ${stats.moved}, оставлено из прежней карты ${stats.carried}`);
+  console.log(`cards:api: товаров ${stats.items} из ${stats.requested}, с model_id ${stats.withModel}, карточек в API ${stats.apiGroups}, в карте ${stats.groups}; новых в карте ${stats.added}, сменили карточку ${stats.moved}, оставлено из прежней карты ${stats.carried}, прежних алиасов SKU заменено ${stats.retiredAliases}`);
   if (!map) { console.error(`::error::карта карточек не обновлена: ${why}`); process.exit(1); }
   writeFileSync(OUT, JSON.stringify(map, null, 2) + "\n");
   console.log(`cards:api: ${OUT} записан (${map.imported_at})`);

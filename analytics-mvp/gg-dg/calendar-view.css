@@ -99,3 +99,6 @@ body{overflow-x:clip}
 
 /* Assortment fits inside the record table without a horizontal scroller. */
 .dg-calendar .dg-record-list>.t2{min-width:0;table-layout:fixed}.dg-calendar .dg-record-assort{white-space:normal;overflow-wrap:anywhere}
+
+/* Historical stage traces stay readable without looking like active stock. */
+.dg-calendar .dg-record-ghost td{color:var(--ink-3)}.dg-calendar .dg-record-ghost .kind,.dg-calendar .dg-record-ghost b{color:var(--ink-2)}.dg-calendar .dg-stock-mark{font-size:10px;line-height:1.4}.dg-calendar .dg-record-context{margin-bottom:8px}

@@ -166,8 +166,9 @@
     "customerIdentity": "Recognized inbound communications publish who=Клиент instead of a sender/contact display name. Outbound employee names, technical actors, actual direction, uncertain-side notes and source timestamps remain unchanged."
   },
   "calendarPresentation": {
-    "disclosure": "Managers default: stage -> manager -> lead/deal -> communications. Deals: stage -> record table -> communications, skipping manager grouping while retaining an explicit responsible column. Stage/root-deal nesting and count/money population remain unchanged; switching mode preserves stage/date context and collapses record communications.",
-    "amount": "Calendar sum always uses RUB budgets, independent of the global prepayment setting. Budget/prepayment field selector removed; manager/deal disclosure selector is always available."
+    "disclosure": "Managers: stage -> manager -> lead/deal. Deals: stage -> record table with responsible column. Communications remain hidden.",
+    "amount": "Calendar sum always uses RUB budgets, independent of the global prepayment setting. Budget/prepayment field selector removed; manager/deal disclosure selector is always available.",
+    "stockHistory": "For stock-stage label/manager expansion, list unique eligible records with at least one history interval overlapping selected Moscow dates, capped at snapshot timestamp. Preserve every entry/exit interval, mark departed records muted at the selected cutoff. Current-stage labels, responsible, assortment and monetary parameters come from current cards. Date-cell and total clicks retain exact stock at bucket/period cutoff. Overview row counts are separate from stock totals."
   },
   "partnerPresentation": {
     "clientType": "Client type is not presented anywhere in DG: no distribution/pipeline segment, refusal column/filter, or detail metadata. Underlying CRM values are not rewritten; eligible populations are not restricted by client type.",

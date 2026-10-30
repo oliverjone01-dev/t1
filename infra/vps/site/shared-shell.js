@@ -710,19 +710,23 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   nativeBrand.addEventListener('change',syncBrand);document.querySelector('.org-root')?.addEventListener('click',()=>setBrand('all'));
   const init=()=>{let v=nativeBrand.value;try{v=localStorage.getItem('gg-hub-brand')||v;}catch{}setBrand(v in names?v:'all');};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
  }
- document.querySelectorAll('.gg-nav summary').forEach(summary=>{
+ function fixNavigation(){document.querySelectorAll('.gg-nav summary').forEach(summary=>{
   const label=summary.textContent.trim();
-  if(/^РОП (?:GG|GENGLASS)$/.test(label)){
+  if(/^РОП (?:GG|GENGLASS)$/.test(label)&&!summary.dataset.ggRopLinkReady){
+   summary.dataset.ggRopLinkReady='true';
    let link=summary.querySelector('a');
    if(!link){link=document.createElement('a');link.textContent='РОП GG';link.style.cssText='display:inline;color:inherit;padding:0;background:none;border:0;text-decoration:none';const text=[...summary.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&/РОП/.test(n.textContent));if(text)text.replaceWith(link);else{const span=summary.querySelector('.gg-nav-label');if(span)span.replaceChildren(link);else summary.prepend(link);}}
    link.href='/rop/#sec1';link.setAttribute('aria-label','Открыть РОП GENGLASS и раскрыть разделы');
    summary.addEventListener('click',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey)return;e.preventDefault();e.stopPropagation();summary.parentElement.open=true;if(location.pathname==='/rop/'){location.hash='sec1';document.getElementById('sec1')?.scrollIntoView({block:'start'});}else location.assign('/rop/#sec1');});
   }
-  if(/Маркетплейсы/.test(label)){
+  if(/Маркетплейсы/.test(label)&&!summary.dataset.ggMarketIconReady){
+   summary.dataset.ggMarketIconReady='true';
    let icon=summary.querySelector('.gg-nav-icon');if(!icon){icon=document.createElement('span');icon.className='gg-nav-icon';const text=summary.firstChild;if(text?.nodeType===Node.TEXT_NODE)text.textContent=text.textContent.replace(/[▦▥▤]/g,'');summary.prepend(icon);}
    icon.style.cssText='width:24px;height:24px;min-width:24px;display:inline-flex;align-items:center;justify-content:center';
-   icon.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5M3 9v2a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 2-2M5 13v8h14v-8M9 21v-6h6v6"/></svg>';
+   icon.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" style="width:24px;height:24px" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5M3 9v2a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 2-2M5 13v8h14v-8M9 21v-6h6v6"/></svg>';
   }
- });
+ });}
+ fixNavigation();document.addEventListener('DOMContentLoaded',fixNavigation,{once:true});const nav=document.querySelector('.gg-nav');if(nav)new MutationObserver(fixNavigation).observe(nav,{childList:true,subtree:true});
 })();
+
 

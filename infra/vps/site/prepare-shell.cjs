@@ -22,7 +22,7 @@ for(const name of ['genglass-logo.svg','genglass-mark.svg','genglass-favicon.svg
 const brandStyle='<style data-gg-brand-style>.gg-brand.gg-brand-genglass{gap:0;min-height:42px}.gg-brand-genglass .gg-monogram{background:none;border-radius:0;width:36px;height:36px}.gg-brand-genglass img{display:block;object-fit:contain}.gg-brand-genglass .gg-brand-wordmark{width:174px;height:33px;max-width:100%;object-position:left center}.gg-brand-genglass .gg-brand-copy{display:block;margin-left:10px}.gg-brand-genglass .gg-brand-copy small{font-size:10px;margin-top:5px}html:not([data-theme=light]) .gg-brand-genglass img{filter:invert(1)}html[data-theme=light] .gg-brand-genglass img{filter:none}@media(min-width:801px){html[data-sidebar-mode=compact]:has(.gg-brand-genglass):has(.gg-sidebar:is(:hover,:focus-within)) #gg-menu.gg-menu-floating{left:276px!important}html[data-sidebar-mode=compact] .gg-sidebar:not(:hover):not(:focus-within) .gg-brand-copy{display:none}html[data-sidebar-mode=compact] .gg-sidebar:is(:hover,:focus-within) .gg-brand-genglass .gg-monogram,html[data-sidebar-mode=pinned] .gg-brand-genglass .gg-monogram{display:none}}@media(max-width:800px){.gg-brand-genglass .gg-monogram{display:none}.gg-sidebar .gg-brand-genglass{margin-top:48px!important}}</style>';
 let branded=0;
 for(const dir of fs.readdirSync(site,{withFileTypes:true})){
- if(!dir.isDirectory()||!(['rop','rop2','office','dialog'].includes(dir.name)||dir.name.startsWith('rop-')&&dir.name!=='rop-gm'))continue;
+ if(!dir.isDirectory()||['rop-gm','op-gm','kp-gm','widget-lab'].includes(dir.name))continue;
  const file=path.join(site,dir.name,'index.html');if(!fs.existsSync(file))continue;
  let html=fs.readFileSync(file,'utf8');if(!html.includes('id="gg-sidebar"'))continue;
  html=html.replace(/<a class="gg-brand" href="\/">[\s\S]*?<\/a>/,'<a class="gg-brand gg-brand-genglass" href="/" aria-label="GENGLASS · рабочее пространство GENGROUP"><span class="gg-monogram"><img src="/brand/genglass-mark.svg" width="36" height="36" alt=""></span><span class="gg-brand-copy"><img class="gg-brand-wordmark" src="/brand/genglass-logo.svg" width="174" height="33" alt="GENGLASS"><small>Рабочее пространство · GENGROUP</small></span></a>');
@@ -31,6 +31,17 @@ for(const dir of fs.readdirSync(site,{withFileTypes:true})){
  fs.writeFileSync(file+'.brand-tmp',html);fs.renameSync(file+'.brand-tmp',file);branded++;
 }
 console.log('Official GENGLASS identity prepared:',branded,'dashboards');
+
+// Native reports can contain global main/aside/universal rules. Apply one frame last.
+const frameStyle='<style data-gg-unified-frame>'+fs.readFileSync(path.join(__dirname,'workspace-unified.css'),'utf8')+'</style>';
+let unified=0;
+for(const file of [path.join(site,'index.html'),...fs.readdirSync(site,{withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>path.join(site,d.name,'index.html'))]){
+ if(!fs.existsSync(file))continue;let html=fs.readFileSync(file,'utf8');if(!html.includes('id="gg-workspace"')||html.includes('data-gg-unified-frame'))continue;
+ html=html.replace('</head>',frameStyle+'</head>');
+ if(path.basename(path.dirname(file))==='marketing')html=html.replace('<h2>Маркетинг</h2>','').replace('<p>Дашборд пока пустой.</p>','<p class="gg-empty-section">Данные маркетинга пока не подключены.</p>');
+ fs.writeFileSync(file,html);unified++;
+}
+console.log('Unified GG frame prepared:',unified,'pages');
 
 // Administrator-only account management on the home page.
 {

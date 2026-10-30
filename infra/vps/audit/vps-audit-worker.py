@@ -46,7 +46,7 @@ def run():
             text='\n'.join(part.get('text','') for item in response.get('output',[]) if item.get('type')=='message' for part in item.get('content',[]) if part.get('type')=='output_text')
             try:
                 analysis=json.loads(text)
-                valid=(response.get('status')=='completed' and analysis.get('job_id')==JOB and analysis.get('period_start')==job['period_start'] and analysis.get('period_end_exclusive')==job['period_end_exclusive'] and isinstance(analysis.get('report'),str) and len(analysis['report'].strip())>300)
+                valid=(response.get('status')=='completed' and analysis.get('job_id')==JOB and analysis.get('period_start')==job['period_start'] and analysis.get('period_end_exclusive')==job['period_end_exclusive'] and isinstance(analysis.get('report'),str) and len(analysis['report'].strip())>(0 if job.get('morning_plan_version')==1 else 300))
             except Exception:
                 valid=False; analysis=None
             result.update(status='completed' if valid else 'invalid_output',analysis=analysis,provider_status=response.get('status'))

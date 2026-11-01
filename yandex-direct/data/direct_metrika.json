@@ -1,39 +1,39 @@
 {
- "dateFrom": "2026-09-29",
- "dateTo": "2026-10-28",
- "generated_at": "2026-10-29T13:05:34.186Z",
+ "dateFrom": "2026-10-02",
+ "dateTo": "2026-10-31",
+ "generated_at": "2026-11-01T13:28:28.510Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2304,
-  "ad_visits_30d": 6724,
-  "yd_visits_30d": 5138,
+  "direct_clicks_30d": 2422,
+  "ad_visits_30d": 6933,
+  "yd_visits_30d": 5308,
   "ad_leads_30d": 94
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4964,
-   "users": 4296,
-   "leads": 92,
-   "contacts": 86
+   "visits": 5128,
+   "users": 4460,
+   "leads": 91,
+   "contacts": 83
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1579,
-   "users": 630,
+   "visits": 1618,
+   "users": 643,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 174,
-   "users": 131,
-   "leads": 1,
-   "contacts": 0
+   "visits": 180,
+   "users": 130,
+   "leads": 2,
+   "contacts": 1
   },
   {
    "engine": "Instagram",
@@ -53,67 +53,61 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 3053,
-   "leads": 50,
-   "contacts": 41
+   "visits": 3066,
+   "leads": 49,
+   "contacts": 38
   },
   {
    "utm": "genglass",
-   "visits": 1550,
+   "visits": 1604,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 489,
+   "visits": 649,
    "leads": 1,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 456,
-   "leads": 13,
-   "contacts": 17
+   "visits": 463,
+   "leads": 14,
+   "contacts": 18
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 419,
-   "leads": 10,
-   "contacts": 9
+   "visits": 409,
+   "leads": 11,
+   "contacts": 10
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 256,
-   "leads": 6,
-   "contacts": 6
+   "visits": 237,
+   "leads": 5,
+   "contacts": 5
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 162,
-   "leads": 5,
-   "contacts": 3
+   "visits": 156,
+   "leads": 4,
+   "contacts": 2
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 127,
-   "leads": 2,
-   "contacts": 3
+   "visits": 119,
+   "leads": 3,
+   "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 67,
-   "leads": 6,
+   "visits": 52,
+   "leads": 4,
    "contacts": 3
   },
   {
-   "utm": "_bbr_mirors",
-   "visits": 4,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "keramogranit_steklo_ili_mdf",
-   "visits": 4,
+   "utm": "populyarnye_modeli_zerkal_2026",
+   "visits": 5,
    "leads": 0,
    "contacts": 0
   },
@@ -124,25 +118,31 @@
    "contacts": 0
   },
   {
-   "utm": "populyarnye_modeli_zerkal_2026",
+   "utm": "_bbr_mirors",
    "visits": 3,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "mirors",
-   "visits": 2,
+   "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 3,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_v_inter'ere",
-   "visits": 2,
+   "visits": 3,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "stacionarnye_peregorodki",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_704736563",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -172,6 +172,12 @@
    "contacts": 0
   },
   {
+   "utm": "igrovaya_komnata_za_steklom",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "kak_vybrat_zerkalo",
    "visits": 1,
    "leads": 0,
@@ -184,7 +190,19 @@
    "contacts": 0
   },
   {
+   "utm": "led_podsvetka_u_zerkala",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "loft_peregorodki_v_kvartire",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "mirors",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -211,12 +229,6 @@
    "utm": "name_tk_707098549",
    "visits": 1,
    "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "obedennyj_razdvizhnoj_stol_quatris",
-   "visits": 1,
-   "leads": 1,
    "contacts": 0
   },
   {
@@ -250,7 +262,7 @@
    "contacts": 0
   },
   {
-   "utm": "pyat_oshibok_s_zerkalami",
+   "utm": "raspashnye_peregorodki_i_dveri",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -262,7 +274,13 @@
    "contacts": 0
   },
   {
-   "utm": "stol",
+   "utm": "tm_campaign=reklama_na_transporte",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "trendy_zerkal_2026",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -275,12 +293,6 @@
   },
   {
    "utm": "zerkalo_s_podsvetkoj_v_vannoj",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "zerkalo_v_inter'ere_2026_priyomy",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -301,43 +313,43 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6724,
-   "users": 5046,
-   "bounce": 17.89113623,
+   "visits": 6933,
+   "users": 5231,
+   "bounce": 18.28934083,
    "leads": 94,
-   "contacts": 86
+   "contacts": 84
   },
   {
    "source": "Link traffic",
-   "visits": 4806,
-   "users": 4677,
-   "bounce": 0.76987099,
+   "visits": 4961,
+   "users": 4849,
+   "bounce": 0.88691796,
    "leads": 18,
-   "contacts": 22
+   "contacts": 23
   },
   {
    "source": "Search engine traffic",
-   "visits": 3824,
-   "users": 2984,
-   "bounce": 17.9916318,
-   "leads": 137,
-   "contacts": 130
+   "visits": 3854,
+   "users": 3025,
+   "bounce": 18.13700052,
+   "leads": 145,
+   "contacts": 135
   },
   {
    "source": "Direct traffic",
-   "visits": 2550,
-   "users": 2156,
-   "bounce": 15.68627451,
-   "leads": 62,
-   "contacts": 44
+   "visits": 2464,
+   "users": 2080,
+   "bounce": 16.23376623,
+   "leads": 53,
+   "contacts": 39
   },
   {
    "source": "Internal traffic",
-   "visits": 674,
-   "users": 350,
-   "bounce": 17.65578635,
-   "leads": 9,
-   "contacts": 5
+   "visits": 704,
+   "users": 362,
+   "bounce": 17.32954545,
+   "leads": 12,
+   "contacts": 7
   },
   {
    "source": "Social network traffic",
@@ -350,8 +362,8 @@
   {
    "source": "Messenger traffic",
    "visits": 18,
-   "users": 6,
-   "bounce": 0,
+   "users": 8,
+   "bounce": 5.55555556,
    "leads": 1,
    "contacts": 1
   },

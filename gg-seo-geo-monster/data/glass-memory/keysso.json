@@ -1,17 +1,17 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-10-29",
+ "measured": "2026-11-01",
  "visibility": 2,
- "ai_answers": 18,
- "keywords_total": 578,
+ "ai_answers": 14,
+ "keywords_total": 580,
  "top1": 7,
  "top3": 13,
  "top10": 55,
- "top50": 578,
+ "top50": 580,
  "top_pages": [
   {
    "url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva",
-   "keywords_top50": 62
+   "keywords_top50": 63
   },
   {
    "url": "/products/ritual-products/foto-iz-stekla",
@@ -94,14 +94,21 @@
    "common_ad_keywords": 6,
    "ads_count": 67,
    "ad_keywords_count": 148,
-   "visibility": 17
+   "visibility": 21
   },
   {
    "domain": "pamiatniky.ru",
    "common_ad_keywords": 4,
-   "ads_count": 300,
+   "ads_count": 298,
    "ad_keywords_count": 1556,
    "visibility": 10
+  },
+  {
+   "domain": "ural-glass.ru",
+   "common_ad_keywords": 3,
+   "ads_count": 42,
+   "ad_keywords_count": 84,
+   "visibility": 1
   },
   {
    "domain": "grad-granit.ru",
@@ -109,13 +116,6 @@
    "ads_count": 16,
    "ad_keywords_count": 360,
    "visibility": 0
-  },
-  {
-   "domain": "ural-glass.ru",
-   "common_ad_keywords": 3,
-   "ads_count": 42,
-   "ad_keywords_count": 81,
-   "visibility": 1
   }
  ],
  "history": [
@@ -373,699 +373,704 @@
    "date": "2026-10-29",
    "visibility": 2,
    "top10": 55
+  },
+  {
+   "date": "2026-11-01",
+   "visibility": 2,
+   "top10": 55
   }
  ],
  "keywords": [
   {
-   "phrase": "илики",
+   "phrase": "как называется памятник",
    "pos": null,
-   "freq": 2642,
+   "freq": 9476,
    "url": ""
   },
   {
-   "phrase": "профиль для зеркала алюминиевый",
+   "phrase": "стеклянная картина",
    "pos": null,
-   "freq": 740,
+   "freq": 1710,
    "url": ""
   },
   {
-   "phrase": "зеркала оптом",
+   "phrase": "премьер лазер",
    "pos": null,
-   "freq": 616,
+   "freq": 160,
    "url": ""
   },
   {
-   "phrase": "как установить памятник на могилу самостоятельно",
+   "phrase": "как установить памятник на могилу самостоятельно видео",
    "pos": null,
-   "freq": 92,
+   "freq": 59,
    "url": ""
   },
   {
-   "phrase": "слова на памятник папе",
+   "phrase": "отделка гранитом",
    "pos": null,
-   "freq": 463,
+   "freq": 578,
    "url": ""
   },
   {
-   "phrase": "сверло по мрамору",
-   "pos": null,
-   "freq": 406,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище памяти жертв 9 января",
-   "pos": null,
-   "freq": 513,
-   "url": ""
-  },
-  {
-   "phrase": "киновеевское кладбище",
-   "pos": null,
-   "freq": 864,
-   "url": ""
-  },
-  {
-   "phrase": "смоленское кладбище часы работы",
-   "pos": null,
-   "freq": 472,
-   "url": ""
-  },
-  {
-   "phrase": "богословское кладбище санкт петербург",
-   "pos": null,
-   "freq": 2559,
-   "url": ""
-  },
-  {
-   "phrase": "ножки для табурета",
-   "pos": null,
-   "freq": 1394,
-   "url": ""
-  },
-  {
-   "phrase": "изготовление полок из стекла",
-   "pos": null,
-   "freq": 128,
-   "url": ""
-  },
-  {
-   "phrase": "glass furniture",
-   "pos": null,
-   "freq": 64,
-   "url": ""
-  },
-  {
-   "phrase": "когда можно ставить памятник после похорон",
-   "pos": null,
-   "freq": 170,
-   "url": ""
-  },
-  {
-   "phrase": "как правильно установить памятник на могилу",
-   "pos": null,
-   "freq": 99,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище мурино",
-   "pos": null,
-   "freq": 257,
-   "url": ""
-  },
-  {
-   "phrase": "смоленское кладбище метро",
-   "pos": null,
-   "freq": 1641,
-   "url": ""
-  },
-  {
-   "phrase": "как сделать дырку в камне",
-   "pos": null,
-   "freq": 110,
-   "url": ""
-  },
-  {
-   "phrase": "комаровский некрополь",
-   "pos": null,
-   "freq": 89,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище памяти жертв 9 го января",
-   "pos": null,
-   "freq": 323,
-   "url": ""
-  },
-  {
-   "phrase": "что дороже гранит или мрамор",
-   "pos": null,
-   "freq": 917,
-   "url": ""
-  },
-  {
-   "phrase": "сертолово кладбище",
-   "pos": null,
-   "freq": 139,
-   "url": ""
-  },
-  {
-   "phrase": "установка надгробий",
-   "pos": null,
-   "freq": 822,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище илики",
-   "pos": null,
-   "freq": 210,
-   "url": ""
-  },
-  {
-   "phrase": "что крепче гранит или мрамор",
-   "pos": null,
-   "freq": 106,
-   "url": ""
-  },
-  {
-   "phrase": "купить зеркала оптом",
-   "pos": null,
-   "freq": 216,
-   "url": ""
-  },
-  {
-   "phrase": "укладка тротуарной плитки на могиле",
-   "pos": null,
-   "freq": 278,
-   "url": ""
-  },
-  {
-   "phrase": "комаровское кладбище",
-   "pos": null,
-   "freq": 1123,
-   "url": ""
-  },
-  {
-   "phrase": "пороховское кладбище спб",
-   "pos": null,
-   "freq": 53,
-   "url": ""
-  },
-  {
-   "phrase": "как установить памятник на могилу",
-   "pos": null,
-   "freq": 2829,
-   "url": ""
-  },
-  {
-   "phrase": "мебель из стекла воронеж",
-   "pos": null,
-   "freq": 35,
-   "url": ""
-  },
-  {
-   "phrase": "как установить памятник",
-   "pos": null,
-   "freq": 8100,
-   "url": ""
-  },
-  {
-   "phrase": "благовещенское кладбище",
-   "pos": null,
-   "freq": 655,
-   "url": ""
-  },
-  {
-   "phrase": "ковалевское кладбище",
-   "pos": null,
-   "freq": 2101,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище остров декабристов",
-   "pos": null,
-   "freq": 127,
-   "url": ""
-  },
-  {
-   "phrase": "столешница из лиственницы для кухни",
-   "pos": null,
-   "freq": 133,
-   "url": ""
-  },
-  {
-   "phrase": "когда можно устанавливать памятник на могилу",
-   "pos": null,
-   "freq": 96,
-   "url": ""
-  },
-  {
-   "phrase": "каркас для табурета купить",
-   "pos": null,
-   "freq": 30,
-   "url": ""
-  },
-  {
-   "phrase": "казанское кладбище официальный сайт",
-   "pos": null,
-   "freq": 75,
-   "url": ""
-  },
-  {
-   "phrase": "когда лучше ставить памятник на могилу",
-   "pos": null,
-   "freq": 157,
-   "url": ""
-  },
-  {
-   "phrase": "какой памятник лучше поставить на могилу",
-   "pos": null,
-   "freq": 107,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище красная горка всеволожский район",
-   "pos": null,
-   "freq": 166,
-   "url": ""
-  },
-  {
-   "phrase": "что написать на памятнике",
-   "pos": null,
-   "freq": 4045,
-   "url": ""
-  },
-  {
-   "phrase": "заказать памятник в спб",
-   "pos": null,
-   "freq": 469,
-   "url": ""
-  },
-  {
-   "phrase": "красненькое кладбище",
-   "pos": null,
-   "freq": 1615,
-   "url": ""
-  },
-  {
-   "phrase": "гранитех",
-   "pos": null,
-   "freq": 193,
-   "url": ""
-  },
-  {
-   "phrase": "ножки для табурета металлические купить",
-   "pos": null,
-   "freq": 37,
-   "url": ""
-  },
-  {
-   "phrase": "надпись на могиле",
-   "pos": null,
-   "freq": 3842,
-   "url": ""
-  },
-  {
-   "phrase": "северное кладбище санкт петербург",
-   "pos": null,
-   "freq": 1788,
-   "url": ""
-  },
-  {
-   "phrase": "брусчатка габбро диабаз",
-   "pos": null,
-   "freq": 332,
-   "url": ""
-  },
-  {
-   "phrase": "стеклянные полки под заказ",
+   "phrase": "мебель из профильной трубы фото",
    "pos": null,
    "freq": 94,
    "url": ""
   },
   {
-   "phrase": "как сделать отверстие в камне",
+   "phrase": "изготовление памятников на могилу в спб цены",
    "pos": null,
-   "freq": 419,
+   "freq": 14,
    "url": ""
   },
   {
-   "phrase": "установка памятника своими руками",
+   "phrase": "декоративные изделия из металла",
    "pos": null,
-   "freq": 1608,
+   "freq": 371,
    "url": ""
   },
   {
-   "phrase": "песочинское кладбище",
+   "phrase": "стеклянные полки на заказ",
    "pos": null,
-   "freq": 71,
+   "freq": 413,
    "url": ""
   },
   {
-   "phrase": "сверление мрамора",
+   "phrase": "технология изготовления памятников",
    "pos": null,
-   "freq": 78,
+   "freq": 100,
    "url": ""
   },
   {
-   "phrase": "шокша камень",
+   "phrase": "памятник купить в спб",
    "pos": null,
-   "freq": 56,
+   "freq": 353,
    "url": ""
   },
   {
-   "phrase": "виды надгробных памятников",
+   "phrase": "памятник жанны фриске фото",
    "pos": null,
-   "freq": 127,
+   "freq": 87,
    "url": ""
   },
   {
-   "phrase": "гравировка портрета",
-   "pos": null,
-   "freq": 1160,
-   "url": ""
-  },
-  {
-   "phrase": "инструкция по установке памятника",
-   "pos": null,
-   "freq": 31,
-   "url": ""
-  },
-  {
-   "phrase": "как выбрать памятник",
-   "pos": null,
-   "freq": 458,
-   "url": ""
-  },
-  {
-   "phrase": "как правильно выбрать памятник на могилу",
-   "pos": null,
-   "freq": 16,
-   "url": ""
-  },
-  {
-   "phrase": "как установить памятник на кладбище",
-   "pos": null,
-   "freq": 197,
-   "url": ""
-  },
-  {
-   "phrase": "как ухаживать за могилой",
-   "pos": null,
-   "freq": 306,
-   "url": ""
-  },
-  {
-   "phrase": "материалы для изготовления памятников",
-   "pos": null,
-   "freq": 66,
-   "url": ""
-  },
-  {
-   "phrase": "месторождение габбро",
-   "pos": null,
-   "freq": 289,
-   "url": ""
-  },
-  {
-   "phrase": "полки из закаленного стекла",
-   "pos": null,
-   "freq": 2507,
-   "url": ""
-  },
-  {
-   "phrase": "разрешение на установку памятника",
-   "pos": null,
-   "freq": 2365,
-   "url": ""
-  },
-  {
-   "phrase": "стеклянные памятники",
-   "pos": null,
-   "freq": 2762,
-   "url": ""
-  },
-  {
-   "phrase": "фундамент под памятник",
-   "pos": null,
-   "freq": 917,
-   "url": ""
-  },
-  {
-   "phrase": "чем приклеить гранит к граниту",
-   "pos": null,
-   "freq": 425,
-   "url": ""
-  },
-  {
-   "phrase": "установка памятника на могилу своими руками пошагово",
-   "pos": null,
-   "freq": 79,
-   "url": ""
-  },
-  {
-   "phrase": "лазерная гравировка на памятниках",
-   "pos": null,
-   "freq": 316,
-   "url": ""
-  },
-  {
-   "phrase": "стол из профильной трубы",
-   "pos": null,
-   "freq": 9568,
-   "url": ""
-  },
-  {
-   "phrase": "памятник из бетона своими руками",
-   "pos": null,
-   "freq": 85,
-   "url": ""
-  },
-  {
-   "phrase": "как правильно установить памятник",
-   "pos": null,
-   "freq": 1639,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище в пушкине спб",
-   "pos": null,
-   "freq": 125,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище в девяткино",
-   "pos": null,
-   "freq": 44,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище арбузово ленинградская область",
-   "pos": null,
-   "freq": 66,
-   "url": ""
-  },
-  {
-   "phrase": "портрет на стекле",
-   "pos": null,
-   "freq": 1087,
-   "url": ""
-  },
-  {
-   "phrase": "обязательно ли ставить памятник на могилу",
-   "pos": null,
-   "freq": 38,
-   "url": ""
-  },
-  {
-   "phrase": "иликовское кладбище",
-   "pos": null,
-   "freq": 147,
-   "url": ""
-  },
-  {
-   "phrase": "из какого камня делают памятники",
-   "pos": null,
-   "freq": 159,
-   "url": ""
-  },
-  {
-   "phrase": "памятник младенцу",
-   "pos": null,
-   "freq": 732,
-   "url": ""
-  },
-  {
-   "phrase": "плотность габбро диабаза",
-   "pos": null,
-   "freq": 156,
-   "url": ""
-  },
-  {
-   "phrase": "полировка памятника из гранита",
-   "pos": null,
-   "freq": 73,
-   "url": ""
-  },
-  {
-   "phrase": "гранит карелии архангельск",
-   "pos": null,
-   "freq": 67,
-   "url": ""
-  },
-  {
-   "phrase": "памятник волна",
-   "pos": null,
-   "freq": 962,
-   "url": ""
-  },
-  {
-   "phrase": "репино кладбище",
-   "pos": null,
-   "freq": 44,
-   "url": ""
-  },
-  {
-   "phrase": "что такое мемориальный",
-   "pos": null,
-   "freq": 419,
-   "url": ""
-  },
-  {
-   "phrase": "гранит вес",
-   "pos": null,
-   "freq": 3398,
-   "url": ""
-  },
-  {
-   "phrase": "чем просверлить мрамор",
-   "pos": null,
-   "freq": 103,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище на дальневосточном проспекте",
+   "phrase": "киновеевское кладбище адрес",
    "pos": null,
    "freq": 18,
    "url": ""
   },
   {
-   "phrase": "что прочнее гранит или мрамор для памятника",
+   "phrase": "лахтинское кладбище",
    "pos": null,
-   "freq": 19,
+   "freq": 90,
    "url": ""
   },
   {
-   "phrase": "гранитный поребрик на могилу",
+   "phrase": "сверление гранита",
    "pos": null,
-   "freq": 136,
+   "freq": 242,
    "url": ""
   },
   {
-   "phrase": "что такое эпитафия на памятнике",
+   "phrase": "чем сверлить мрамор",
    "pos": null,
-   "freq": 33,
+   "freq": 196,
    "url": ""
   },
   {
-   "phrase": "склейка мрамора",
+   "phrase": "зачем кладут камень на могилу",
    "pos": null,
-   "freq": 64,
+   "freq": 164,
    "url": ""
   },
   {
-   "phrase": "ооо премьер лазер",
+   "phrase": "богословское кладбище",
    "pos": null,
-   "freq": 21,
+   "freq": 15254,
    "url": ""
   },
   {
-   "phrase": "шрифт на памятник",
+   "phrase": "укладка гранитной плитки",
    "pos": null,
-   "freq": 1242,
+   "freq": 1138,
    "url": ""
   },
   {
-   "phrase": "крепление гранитных плит к стене",
+   "phrase": "комаровское поселковое кладбище",
    "pos": null,
-   "freq": 24,
+   "freq": 251,
    "url": ""
   },
   {
-   "phrase": "памятник черный",
+   "phrase": "виды гранита для памятников",
    "pos": null,
-   "freq": 10925,
+   "freq": 362,
+   "url": ""
+  },
+  {
+   "phrase": "когда можно ставить памятник на могилу",
+   "pos": null,
+   "freq": 234,
+   "url": ""
+  },
+  {
+   "phrase": "лютеранское кладбище",
+   "pos": null,
+   "freq": 3407,
+   "url": ""
+  },
+  {
+   "phrase": "установка памятника на могилу своими руками",
+   "pos": null,
+   "freq": 985,
+   "url": ""
+  },
+  {
+   "phrase": "изготовление полок из стекла на заказ",
+   "pos": null,
+   "freq": 258,
+   "url": ""
+  },
+  {
+   "phrase": "сестрорецкое кладбище официальный сайт",
+   "pos": null,
+   "freq": 27,
+   "url": ""
+  },
+  {
+   "phrase": "как поставить памятник на кладбище",
+   "pos": null,
+   "freq": 160,
+   "url": ""
+  },
+  {
+   "phrase": "для чего нужны памятники",
+   "pos": null,
+   "freq": 397,
+   "url": ""
+  },
+  {
+   "phrase": "северное кладбище спб",
+   "pos": null,
+   "freq": 1706,
+   "url": ""
+  },
+  {
+   "phrase": "лестница в стиле лофт",
+   "pos": null,
+   "freq": 616,
+   "url": ""
+  },
+  {
+   "phrase": "надписи на могильных плитах",
+   "pos": null,
+   "freq": 443,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало в золотой раме",
+   "pos": null,
+   "freq": 1429,
+   "url": ""
+  },
+  {
+   "phrase": "монтаж гранитной плитки",
+   "pos": null,
+   "freq": 99,
+   "url": ""
+  },
+  {
+   "phrase": "пороховское кладбище",
+   "pos": null,
+   "freq": 981,
+   "url": ""
+  },
+  {
+   "phrase": "богословское кладбище как добраться",
+   "pos": null,
+   "freq": 132,
+   "url": ""
+  },
+  {
+   "phrase": "сестрорецкое кладбище",
+   "pos": null,
+   "freq": 377,
+   "url": ""
+  },
+  {
+   "phrase": "ковалевское кладбище адрес",
+   "pos": null,
+   "freq": 38,
+   "url": ""
+  },
+  {
+   "phrase": "франшиза мебельного производства",
+   "pos": null,
+   "freq": 13,
+   "url": ""
+  },
+  {
+   "phrase": "всеволожское кладбище 1",
+   "pos": null,
+   "freq": 69,
+   "url": ""
+  },
+  {
+   "phrase": "памятник родителям",
+   "pos": null,
+   "freq": 16328,
+   "url": ""
+  },
+  {
+   "phrase": "никольское кладбище санкт петербург",
+   "pos": null,
+   "freq": 378,
+   "url": ""
+  },
+  {
+   "phrase": "большеохтинское кладбище",
+   "pos": null,
+   "freq": 2874,
+   "url": ""
+  },
+  {
+   "phrase": "порошкинское кладбище официальный сайт",
+   "pos": null,
+   "freq": 23,
+   "url": ""
+  },
+  {
+   "phrase": "поставить памятник на могилу",
+   "pos": null,
+   "freq": 2157,
+   "url": ""
+  },
+  {
+   "phrase": "франшиза ритуальных услуг",
+   "pos": null,
+   "freq": 37,
+   "url": ""
+  },
+  {
+   "phrase": "что пишут на памятниках",
+   "pos": null,
+   "freq": 833,
+   "url": ""
+  },
+  {
+   "phrase": "богословское кладбище адрес",
+   "pos": null,
+   "freq": 337,
+   "url": ""
+  },
+  {
+   "phrase": "кладбище в песочном спб",
+   "pos": null,
+   "freq": 4,
+   "url": ""
+  },
+  {
+   "phrase": "плитка на кладбище",
+   "pos": null,
+   "freq": 14555,
+   "url": ""
+  },
+  {
+   "phrase": "гранитный крест на могилу фото",
+   "pos": null,
+   "freq": 335,
+   "url": ""
+  },
+  {
+   "phrase": "шушарское кладбище",
+   "pos": null,
+   "freq": 162,
+   "url": ""
+  },
+  {
+   "phrase": "красный гранит фото",
+   "pos": null,
+   "freq": 233,
+   "url": ""
+  },
+  {
+   "phrase": "loft design",
+   "pos": null,
+   "freq": 3698,
+   "url": ""
+  },
+  {
+   "phrase": "южное кладбище санкт петербург",
+   "pos": null,
+   "freq": 2339,
+   "url": ""
+  },
+  {
+   "phrase": "рамка для зеркала купить",
+   "pos": null,
+   "freq": 542,
+   "url": ""
+  },
+  {
+   "phrase": "красненькое кладбище цены",
+   "pos": null,
+   "freq": 32,
+   "url": ""
+  },
+  {
+   "phrase": "отделка могил плиткой",
+   "pos": null,
+   "freq": 155,
+   "url": ""
+  },
+  {
+   "phrase": "оформление могилы на кладбище плиткой",
+   "pos": null,
+   "freq": 108,
+   "url": ""
+  },
+  {
+   "phrase": "чем сверлить гранит",
+   "pos": null,
+   "freq": 223,
+   "url": ""
+  },
+  {
+   "phrase": "слова на памятник маме",
+   "pos": null,
+   "freq": 1000,
+   "url": ""
+  },
+  {
+   "phrase": "покраска ограды на кладбище",
+   "pos": null,
+   "freq": 791,
+   "url": ""
+  },
+  {
+   "phrase": "павловское кладбище",
+   "pos": null,
+   "freq": 911,
+   "url": ""
+  },
+  {
+   "phrase": "богословское кладбище санкт петербург как доехать",
+   "pos": null,
+   "freq": 39,
+   "url": ""
+  },
+  {
+   "phrase": "шуваловское кладбище санкт петербург",
+   "pos": null,
+   "freq": 215,
+   "url": ""
+  },
+  {
+   "phrase": "слова на памятник родителям",
+   "pos": null,
+   "freq": 147,
+   "url": ""
+  },
+  {
+   "phrase": "как доехать до богословского кладбища",
+   "pos": null,
+   "freq": 53,
+   "url": ""
+  },
+  {
+   "phrase": "изготовление памятников в спб",
+   "pos": null,
+   "freq": 454,
+   "url": ""
+  },
+  {
+   "phrase": "какой краской лучше покрасить ограду на кладбище",
+   "pos": null,
+   "freq": 52,
+   "url": ""
+  },
+  {
+   "phrase": "памятники из цветного гранита",
+   "pos": null,
+   "freq": 725,
+   "url": ""
+  },
+  {
+   "phrase": "положить плитку на кладбище",
+   "pos": null,
+   "freq": 1362,
+   "url": ""
+  },
+  {
+   "phrase": "производство металлических стульев",
+   "pos": null,
+   "freq": 127,
+   "url": ""
+  },
+  {
+   "phrase": "ритуальные надписи",
+   "pos": null,
+   "freq": 748,
+   "url": ""
+  },
+  {
+   "phrase": "садовая мебель из профильной трубы фото",
+   "pos": null,
+   "freq": 25,
+   "url": ""
+  },
+  {
+   "phrase": "смоленское кладбище время работы",
+   "pos": null,
+   "freq": 62,
+   "url": ""
+  },
+  {
+   "phrase": "укладка гранита на улице",
+   "pos": null,
+   "freq": 97,
+   "url": ""
+  },
+  {
+   "phrase": "уход за местом захоронения",
+   "pos": null,
+   "freq": 277,
+   "url": ""
+  },
+  {
+   "phrase": "блоки габбро",
+   "pos": null,
+   "freq": 53,
+   "url": ""
+  },
+  {
+   "phrase": "какой памятник",
+   "pos": null,
+   "freq": 98442,
+   "url": ""
+  },
+  {
+   "phrase": "карелия гранит петрозаводск",
+   "pos": null,
+   "freq": 84,
+   "url": ""
+  },
+  {
+   "phrase": "изготовление стеклянных полок",
+   "pos": null,
+   "freq": 165,
+   "url": ""
+  },
+  {
+   "phrase": "кладбище во всеволожске",
+   "pos": null,
+   "freq": 163,
+   "url": ""
+  },
+  {
+   "phrase": "карьер возрождение выборг",
+   "pos": null,
+   "freq": 11,
+   "url": ""
+  },
+  {
+   "phrase": "впк спб",
+   "pos": null,
+   "freq": 168,
+   "url": ""
+  },
+  {
+   "phrase": "как быстро покрасить ограду на кладбище",
+   "pos": null,
+   "freq": 15,
+   "url": ""
+  },
+  {
+   "phrase": "гранитные заготовки для памятников",
+   "pos": null,
+   "freq": 8,
+   "url": ""
+  },
+  {
+   "phrase": "серафимовское кладбище администрация",
+   "pos": null,
+   "freq": 104,
+   "url": ""
+  },
+  {
+   "phrase": "ковалевское кладбище телефон",
+   "pos": null,
+   "freq": 90,
+   "url": ""
+  },
+  {
+   "phrase": "мебель из профтрубы",
+   "pos": null,
+   "freq": 473,
+   "url": ""
+  },
+  {
+   "phrase": "волковское православное кладбище",
+   "pos": null,
+   "freq": 431,
+   "url": ""
+  },
+  {
+   "phrase": "азимут гласс",
+   "pos": null,
+   "freq": 148,
+   "url": ""
+  },
+  {
+   "phrase": "цельноламельная столешница",
+   "pos": null,
+   "freq": 283,
+   "url": ""
+  },
+  {
+   "phrase": "как очистить мрамор от пятен",
+   "pos": null,
+   "freq": 11,
+   "url": ""
+  },
+  {
+   "phrase": "кладбище в сестрорецке",
+   "pos": null,
+   "freq": 91,
+   "url": ""
+  },
+  {
+   "phrase": "табурет лофт",
+   "pos": null,
+   "freq": 849,
+   "url": ""
+  },
+  {
+   "phrase": "купить памятник на могилу в спб",
+   "pos": null,
+   "freq": 50,
+   "url": ""
+  },
+  {
+   "phrase": "семейная могила",
+   "pos": null,
+   "freq": 1352,
+   "url": ""
+  },
+  {
+   "phrase": "ооо мемори",
+   "pos": null,
+   "freq": 36,
+   "url": ""
+  },
+  {
+   "phrase": "где находится северное кладбище в спб",
+   "pos": null,
+   "freq": 6,
+   "url": ""
+  },
+  {
+   "phrase": "изделия из металла для интерьера",
+   "pos": null,
+   "freq": 35,
+   "url": ""
+  },
+  {
+   "phrase": "гореловское кладбище",
+   "pos": null,
+   "freq": 20,
    "url": ""
   }
  ],
  "competitors": [
   {
+   "domain": "m.avito.ru",
+   "visibility": 2703394,
+   "common_keywords": 423,
+   "delta_visibility": 15.6
+  },
+  {
    "domain": "livemaster.ru",
-   "visibility": 102155,
-   "common_keywords": 308,
-   "delta_visibility": -8
+   "visibility": 97786,
+   "common_keywords": 310,
+   "delta_visibility": -4.3
   },
   {
    "domain": "wildberries.ru",
-   "visibility": 1575358,
+   "visibility": 1612285,
+   "common_keywords": 288,
+   "delta_visibility": 2.3
+  },
+  {
+   "domain": "market.yandex.ru",
+   "visibility": 1120500,
    "common_keywords": 286,
-   "delta_visibility": 8.5
+   "delta_visibility": 1
+  },
+  {
+   "domain": "ozon.ru",
+   "visibility": 2945541,
+   "common_keywords": 279,
+   "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
-   "visibility": 514978,
-   "common_keywords": 229,
-   "delta_visibility": 0
+   "visibility": 495302,
+   "common_keywords": 231,
+   "delta_visibility": -3.8
   },
   {
    "domain": "dzen.ru",
-   "visibility": 4048423,
+   "visibility": 3935431,
    "common_keywords": 194,
-   "delta_visibility": 6.1
+   "delta_visibility": -2.8
   },
   {
    "domain": "vseinstrumenti.ru",
-   "visibility": 535554,
-   "common_keywords": 158,
-   "delta_visibility": 8.6
+   "visibility": 528611,
+   "common_keywords": 159,
+   "delta_visibility": -1.3
   },
   {
-   "domain": "m.avito.ru",
-   "visibility": 2337786,
-   "common_keywords": 19,
-   "delta_visibility": -6.4
-  },
-  {
-   "domain": "vk.ru",
-   "visibility": 6579176,
-   "common_keywords": 9,
+   "domain": "postament.ru",
+   "visibility": 2003,
+   "common_keywords": 14,
    "delta_visibility": 0
   },
   {
-   "domain": "easyloft.net",
-   "visibility": 203,
-   "common_keywords": 8,
+   "domain": "yandex.ru",
+   "visibility": 10581691,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "nisp.ru",
+   "visibility": 325,
+   "common_keywords": 12,
    "delta_visibility": 0
   },
   {
    "domain": "pqd.ru",
-   "visibility": 1121,
+   "visibility": 1057,
    "common_keywords": 8,
-   "delta_visibility": 0
+   "delta_visibility": -5.7
   },
   {
    "domain": "talkingstone.ru",
-   "visibility": 479,
+   "visibility": 486,
    "common_keywords": 8,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "ru.pinterest.com",
-   "visibility": 859130,
-   "common_keywords": 7,
-   "delta_visibility": -1.3
-  },
-  {
-   "domain": "cherdak-masterskaya.ru",
-   "visibility": 217,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "danila-master.ru",
-   "visibility": 224,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "market.yandex.ru",
-   "visibility": 1109479,
-   "common_keywords": 5,
    "delta_visibility": 1.5
   },
   {
-   "domain": "m.youtube.com",
-   "visibility": 4045791,
-   "common_keywords": 5,
+   "domain": "ru.pinterest.com",
+   "visibility": 857929,
+   "common_keywords": 7,
+   "delta_visibility": -0.1
+  },
+  {
+   "domain": "organizator24-granit.ru",
+   "visibility": 0,
+   "common_keywords": 7,
    "delta_visibility": 0
   }
  ],
@@ -1074,16 +1079,8 @@
   "entered_top10": [],
   "competitor_up": [
    {
-    "domain": "wildberries.ru",
-    "delta": 8.5
-   },
-   {
-    "domain": "dzen.ru",
-    "delta": 6.1
-   },
-   {
-    "domain": "vseinstrumenti.ru",
-    "delta": 8.6
+    "domain": "m.avito.ru",
+    "delta": 15.6
    }
   ]
  }

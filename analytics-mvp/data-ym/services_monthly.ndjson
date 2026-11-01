@@ -11772,6 +11772,7 @@
 {"ym":"2026-10","business":"1023124","d":"2026-10-28","service":"Буст продаж с оплатой за показы","money":6.62,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-29","service":"Буст продаж с оплатой за показы","money":6.56,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Буст продаж с оплатой за показы","money":4.72,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
+{"ym":"2026-10","business":"1023124","d":"2026-10-31","service":"Буст продаж с оплатой за показы","money":687.69,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-01","service":"Товарные баннеры","money":338.07,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-02","service":"Товарные баннеры","money":418.28,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-03","service":"Товарные баннеры","money":378.39,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
@@ -11798,6 +11799,7 @@
 {"ym":"2026-10","business":"1023124","d":"2026-10-29","service":"Товарные баннеры","money":44.95,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Товарные баннеры","money":0.16,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Товарные баннеры","money":7.68,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
+{"ym":"2026-10","business":"1023124","d":"2026-10-31","service":"Товарные баннеры","money":12.31,"points":0,"order":"","sku":"","campaign":"9519578","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-24","service":"Доставка покупателю","money":2000,"points":0,"order":"63400179777","sku":"GGM-17-2-3","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-06","service":"Доставка покупателю","money":1000,"points":0,"order":"61748303810","sku":"GGM-01-1","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-14","service":"Доставка покупателю","money":1000,"points":0,"order":"62997321219","sku":"GGL-09-2","campaign":"","platform":"ym"}
@@ -11930,6 +11932,7 @@
 {"ym":"2026-10","business":"1023124","d":"2026-10-29","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63683011137","sku":"GGL-01-L-2","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-29","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63747552131","sku":"GGM-24-2","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63783723072","sku":"GGL-09-2","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"1023124","d":"2026-10-31","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63826784001","sku":"GGM-18-2-1","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-05","service":"Перевод платежа покупателя","money":1194.48,"points":0,"order":"62249851778","sku":"GGM-15-3-2","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-05","service":"Перевод платежа покупателя","money":84,"points":0,"order":"62249851778","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-02","service":"Перевод платежа покупателя","money":70,"points":0,"order":"61202653313","sku":"","campaign":"","platform":"ym"}
@@ -12017,6 +12020,8 @@
 {"ym":"2026-10","business":"1023124","d":"2026-10-29","service":"Хранение возвратов","money":25,"points":0,"order":"61692876419","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Хранение возвратов","money":25,"points":0,"order":"63129890883","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"1023124","d":"2026-10-30","service":"Хранение возвратов","money":25,"points":0,"order":"61692876419","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"1023124","d":"2026-10-31","service":"Хранение возвратов","money":25,"points":0,"order":"61692876419","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"1023124","d":"2026-10-31","service":"Хранение возвратов","money":25,"points":0,"order":"63129890883","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Размещение товара","money":470.52,"points":0,"order":"63401657026","sku":"GGT-03-3-3-E-16080","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-26","service":"Размещение товара","money":327.69,"points":0,"order":"63242963968","sku":"GGT-03-1-4-E-12080","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-20","service":"Размещение товара","money":558.56,"points":0,"order":"63062288834","sku":"GGT-35-2-2-100-180","campaign":"","platform":"ym"}
@@ -12258,6 +12263,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Полка","money":500,"points":0,"order":"","sku":"","campaign":"7984761","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Полка","money":500,"points":0,"order":"","sku":"","campaign":"7984761","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Полка","money":500,"points":0,"order":"","sku":"","campaign":"7984761","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Полка","money":500,"points":0,"order":"","sku":"","campaign":"7984761","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-01","service":"Буст продаж с оплатой за показы","money":1429.9,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-01","service":"Буст продаж с оплатой за показы","money":-1413.17,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-02","service":"Буст продаж с оплатой за показы","money":1601.71,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
@@ -12321,12 +12327,15 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Буст продаж с оплатой за показы","money":1,"points":447.93,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Буст продаж с оплатой за показы","money":1,"points":413.22,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Буст продаж с оплатой за показы","money":1,"points":481.49,"order":"","sku":"","campaign":"11135582","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Буст продаж с оплатой за показы","money":1,"points":387.89,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Буст продаж с оплатой за показы","money":1,"points":266.14,"order":"","sku":"","campaign":"11207842","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Буст продаж с оплатой за показы","money":1,"points":840.3,"order":"","sku":"","campaign":"11207842","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Буст продаж с оплатой за показы","money":1,"points":380.56,"order":"","sku":"","campaign":"11207842","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Буст продаж с оплатой за показы","money":5.04,"points":0,"order":"","sku":"","campaign":"11207842","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Буст продаж с оплатой за показы","money":1,"points":45.85,"order":"","sku":"","campaign":"11207849","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Буст продаж с оплатой за показы","money":1,"points":105.35,"order":"","sku":"","campaign":"11207849","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Буст продаж с оплатой за показы","money":1,"points":78.94,"order":"","sku":"","campaign":"11207849","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Буст продаж с оплатой за показы","money":3.32,"points":0,"order":"","sku":"","campaign":"11207849","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-01","service":"Товарные баннеры","money":427.98,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-02","service":"Товарные баннеры","money":494.35,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-03","service":"Товарные баннеры","money":390.49,"points":0,"order":"","sku":"","campaign":"11005735","platform":"ym"}
@@ -12361,6 +12370,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-28","service":"Товарные баннеры","money":1,"points":50.07,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Товарные баннеры","money":1,"points":84.78,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Товарные баннеры","money":1,"points":16.51,"order":"","sku":"","campaign":"11135582","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Товарные баннеры","money":19.56,"points":0,"order":"","sku":"","campaign":"11135582","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-17","service":"Доставка покупателю","money":1000,"points":0,"order":"63140069760","sku":"GGT-47-3-3-80","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-18","service":"Доставка покупателю","money":1000,"points":0,"order":"62026055298","sku":"GGT-47-3-2-80","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-13","service":"Доставка покупателю","money":1000,"points":0,"order":"62152771457","sku":"GGT-03-2-2-S-40","campaign":"","platform":"ym"}
@@ -12446,6 +12456,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-20","service":"Доставка покупателю (средняя миля)","money":36.19,"points":0,"order":"63109220611","sku":"GGT-47-2-5-90","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-06","service":"Доставка покупателю (средняя миля)","money":30.64,"points":0,"order":"61903776963","sku":"GGT-03-2-2-M-100","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-05","service":"Доставка покупателю (средняя миля)","money":30.34,"points":0,"order":"61941615426","sku":"GGT-47-2-2-80","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Доставка покупателю (средняя миля)","money":19.49,"points":0,"order":"61128223235","sku":"GGR-11-2","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-20","service":"Доставка невыкупов и возвратов","money":9.75,"points":0,"order":"62744798528","sku":"GGR-11-1","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-13","service":"Доставка покупателю (средняя миля)","money":11.4,"points":0,"order":"62152771457","sku":"GGT-03-2-2-S-40","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-16","service":"Доставка покупателю (средняя миля)","money":13.4,"points":0,"order":"62342265600","sku":"GGT-03-3-3-L-120","campaign":"","platform":"ym"}
@@ -12460,6 +12471,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-09","service":"Доставка покупателю (средняя миля)","money":36.19,"points":0,"order":"61931822336","sku":"GGT-47-3-3-90","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-06","service":"Доставка покупателю (средняя миля)","money":20.84,"points":0,"order":"61903776963","sku":"GGK-02-2-2-100","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-04","service":"Доставка покупателю (средняя миля)","money":36.19,"points":0,"order":"61884882435","sku":"GGT-47-2-5-90","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Доставка невыкупов и возвратов","money":19.49,"points":0,"order":"61128223235","sku":"GGR-11-2","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-23","service":"Доставка покупателю (средняя миля)","money":17.44,"points":0,"order":"61553690688","sku":"GGT-03-2-2-S-60","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-10","service":"Доставка покупателю (средняя миля)","money":6.68,"points":0,"order":"62012922304","sku":"GGT-03-3-3-L-80","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-23","service":"Доставка невыкупов и возвратов","money":8.72,"points":0,"order":"61553690688","sku":"GGT-03-2-2-S-60","campaign":"","platform":"ym"}
@@ -12630,6 +12642,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63753954817","sku":"GGT-03-3-3-S-40","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-29","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63760652802","sku":"GGT-47-5-1-80","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63786463106","sku":"GGT-03-3-3-L-120","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Приём платежа покупателя","money":0.12,"points":0,"order":"63808928001","sku":"GGT-47-2-2-80","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-09","service":"Перевод платежа покупателя","money":238,"points":0,"order":"61552761089","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-09","service":"Перевод платежа покупателя","money":2678.2,"points":0,"order":"61552761089","sku":"GGT-35-3-3-100-180","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-04","service":"Перевод платежа покупателя","money":2292,"points":0,"order":"61748213825","sku":"GGT-03-2-3-E-14080","campaign":"","platform":"ym"}
@@ -12815,6 +12828,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-23","service":"Обработка невыкупа или возврата","money":7.5,"points":0,"order":"61553690688","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-23","service":"Обработка невыкупа или возврата","money":7.5,"points":0,"order":"61553690688","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-25","service":"Обработка невыкупа или возврата","money":7.5,"points":0,"order":"62651761219","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Обработка невыкупа или возврата","money":7.5,"points":0,"order":"61128223235","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-01","service":"Хранение возвратов","money":15,"points":0,"order":"61140906946","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-02","service":"Хранение возвратов","money":15,"points":0,"order":"61140906946","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-03","service":"Хранение возвратов","money":15,"points":0,"order":"61140906946","sku":"","campaign":"","platform":"ym"}
@@ -12849,4 +12863,7 @@
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Хранение возвратов","money":25,"points":0,"order":"61553690688","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Хранение возвратов","money":25,"points":0,"order":"62651761219","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-30","service":"Хранение возвратов","money":25,"points":0,"order":"61233315201","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Хранение возвратов","money":25,"points":0,"order":"61233315201","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Хранение возвратов","money":25,"points":0,"order":"61553690688","sku":"","campaign":"","platform":"ym"}
+{"ym":"2026-10","business":"74986385","d":"2026-10-31","service":"Хранение возвратов","money":25,"points":0,"order":"62651761219","sku":"","campaign":"","platform":"ym"}
 {"ym":"2026-10","business":"74986385","d":"2026-10-22","service":"Подписка","money":16990,"points":0,"order":"","sku":"","campaign":"","platform":"ym"}

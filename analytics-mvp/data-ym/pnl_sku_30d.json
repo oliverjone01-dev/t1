@@ -1,9 +1,9 @@
 {
   "platform": "ym",
-  "dateFrom": "2026-10-01",
-  "dateTo": "2026-10-30",
-  "skuCount": 66,
-  "singleItemOps": 138,
+  "dateFrom": "2026-10-02",
+  "dateTo": "2026-10-31",
+  "skuCount": 65,
+  "singleItemOps": 137,
   "multiItemOps": 2,
   "bySku": {
     "GGM-26-1-2": {
@@ -14,8 +14,8 @@
     },
     "GGT-35-3-3-100-180": {
       "accruals": 778022,
-      "commission": -2521,
-      "amount": 297502,
+      "commission": -3585,
+      "amount": 289644,
       "ops": 14
     },
     "GGT-03-2-3-E-14080": {
@@ -40,12 +40,6 @@
       "accruals": 203600,
       "commission": -998,
       "amount": 80573,
-      "ops": 1
-    },
-    "GGK-06-3-5-80": {
-      "accruals": 42301,
-      "commission": -3628,
-      "amount": 17556,
       "ops": 1
     },
     "GGK-02-2-2-100": {
@@ -110,8 +104,8 @@
     },
     "GGL-09-2": {
       "accruals": 293119,
-      "commission": -30831,
-      "amount": 105554,
+      "commission": -31129,
+      "amount": 98520,
       "ops": 5
     },
     "GGK-05-2-2-12040": {
@@ -164,8 +158,8 @@
     },
     "GGR-11-1": {
       "accruals": 138156,
-      "commission": -13695,
-      "amount": 50132,
+      "commission": -13821,
+      "amount": 49181,
       "ops": 8
     },
     "GGK-05-1-2-12040": {
@@ -206,8 +200,8 @@
     },
     "GGT-35-5-1-100-180": {
       "accruals": 2111602,
-      "commission": -133694,
-      "amount": 790679,
+      "commission": -134254,
+      "amount": 786758,
       "ops": 42
     },
     "GGM-15-3-2": {
@@ -224,8 +218,8 @@
     },
     "GGT-03-3-3-L-120": {
       "accruals": 239667,
-      "commission": -737,
-      "amount": 90442,
+      "commission": -1150,
+      "amount": 86512,
       "ops": 3
     },
     "GGT-03-2-4-E-14080": {
@@ -260,8 +254,8 @@
     },
     "GGT-35-2-2-100-180": {
       "accruals": 852719,
-      "commission": -3472,
-      "amount": 329332,
+      "commission": -3925,
+      "amount": 325929,
       "ops": 16
     },
     "GGL-05-XL-slim-2": {

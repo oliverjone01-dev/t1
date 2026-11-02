@@ -3615,6 +3615,7 @@ const foldCards = (html: string): string => html
     (_m, id: string | undefined, head: string) => `<section class="card"${id || ""}><details class="tcard"><summary class="chead">${head}</div></summary>`)
   .replace(/<\/section>/g, "</details></section>");
 const PLAN = planBlock(TODAY);
+const NOVEMBER = TODAY >= '2026-11-01'; // Keep the approved November forecast after month close until replaced.
 if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} предупреждений: ${PLAN.warnings.slice(0, 3).join("; ")}`);
 // Плашка на странице (ФЕНИКС #488 R4): системный день и зона предупреждения видны менеджеру, а не только в логе сборки.
 // Окно 7 дней от последнего дня ряда (ФЕНИКС #488 iter2 R4): системный день месячной давности плашкой не висит.
@@ -3630,23 +3631,25 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}${PLAN?.css ?? ""}</style></head><body>`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
-  + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
+  + `<span style="color:#5d7484;margin-left:8px">${NOVEMBER?'история тестов по':'тесты по'} ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
   + healthHtml(dp(""))
-  + `<div class="wrap">${GAP_NOTICE}<div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
+  + `<div class="wrap">${GAP_NOTICE}<div class="h1row"><h1>${NOVEMBER?'Тесты · план на ноябрь':'Тесты · A/B по рекламе'}</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
   // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.
   + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`
   + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета, утром и вечером. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
+  + (NOVEMBER ? partialLine+(PLAN?.html??'')+'<details class="fold" id="tests-history"><summary><b>Ранее запущенные тесты и замеры</b></summary>' : '')
   + priceBanner
-  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>` + partialLine
+  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>` + (NOVEMBER?'':partialLine)
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
   // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
   // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
   // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
   // Первый блок - «План с 15.10: как идём к цели» (Иван 15.10), plan-tab.ts.
-  + (PLAN?.html ?? "")
+  + (NOVEMBER ? '' : (PLAN?.html ?? ""))
   + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + priceCards)
+  + (NOVEMBER ? '</details>' : '')
   + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
   + `<script>${JS}</script>${PLAN ? `<script>${PLAN.js}</script>` : ""}</body></html>`;
 

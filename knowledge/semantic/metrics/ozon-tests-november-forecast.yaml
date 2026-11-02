@@ -1,0 +1,23 @@
+id: ozon-tests-november-forecast
+title: Ноябрьский прогноз на вкладке Тесты
+version: 1
+status: approved
+approved_at: '2026-11-02'
+approval: Пользователь выбрал «Использовать этот прогноз ноября»; определения факта наследуются от ozon-plan-15-10.
+source: analytics-mvp/data/plan_2026-10-15_v4.json goal.*.nov.mid
+targets: {units: 409, turnover_rub: 27300000, payout_rub: 11400000}
+period: ['2026-11-01', '2026-11-30']
+timezone: Europe/Moscow
+date_field: created, orders_daily.t +03:00; fallback orders_daily.d согласно действующей спецификации
+filters: status != cancelled, без нового вычитания возвратов
+formula: Сумма units и revenue магазина по дням ноября; план на дату = месячная цель / 30 * число закрытых дней.
+coverage: Только закрытые даты не позже orders_last и имеющиеся в daily_totals. Пропуск прерывает накопительный факт; незакрытые дни null.
+payout: Только месячная цель; фактическая выплата не подменяется оборотом или дневной оценкой.
+partial_day: Сегодня не входит в выполнение прогноза; отмечается отдельно.
+history: Октябрьские условия не становятся ноябрьскими бюджетами или порогами; доступны в свёрнутой истории.
+after_close: Ноябрьский результат сохраняется после 30.11; декабрьские данные и цели не подставляются.
+golden_rows:
+  - {date: '2026-11-01', units_goal_to_date: 13.633333333333333, turnover_goal_to_date: 910000}
+  - {date: '2026-11-15', units_goal_to_date: 204.5, turnover_goal_to_date: 13650000}
+  - {date: '2026-11-30', units_goal_to_date: 409, turnover_goal_to_date: 27300000}
+reconciliation: Цели из исходного Excel 15.10 и замороженного JSON; факт наследует действующий расчёт магазина, новое независимое подтверждение бухгалтерских итогов не заявляется.

@@ -1,0 +1,24 @@
+id: ozon-tests-november-details
+version: 1
+status: approved
+approval: Пользователь 02.11 попросил те же блоки, что в октябре, с рекламой, ценами и прочими данными; ранее выбрал существующий прогноз ноября.
+inherits: [ozon-plan-15-10, ozon-tests-november-forecast]
+period: ['2026-11-01', '2026-11-30']
+timezone: Europe/Moscow
+population: Те же замороженные карточки 15.10 без withdrawn; весь магазин включает все товары. Новые составы и пороги не выдумываются.
+orders: orders_daily, status != cancelled, день orderDay(t +03:00, fallback d), только до существующего raw cutoff и при daily_totals coverage; без нового вычитания возвратов.
+funnel: mergeCabinetViews, закрытые наблюдения SKU/day; любой пропуск SKU/поля карточки даёт null. Отношения сумм за одну популяцию/дни, нулевой знаменатель null.
+position: Медиана доступных наблюдений главного SKU, количество наблюдаемых дней явно показано.
+advertising: CPC без кампании28753239; ads_sku_daily при adsFullDay отдельно с ноября, ads_daily для кампаний; без изменения источников, валюты или НДС.
+ad_partition: campaign to_min > main SKU > min SKU > other; каждую строку CPC относим ровно в одну группу. Сумма групп = SKU report; campaign difference показана отдельно и не суммируется.
+clicks: Оценка SKU = campaign clicks * sku spend / total campaign SKU spend; магазин = прямой campaign clicks. CPC = сумма расходов / сумма кликов.
+weeks: Четверг-среда, обрезаны 01-30.11; будущие и отсутствующие дни null, количество доступных дней указано.
+prices: Последнее prices_daily не позже today/30.11; база до31.10, точные даты наблюдений; gap_daily с no_site исключён, дата старого среза явно видна. Никаких изменений в кабинете.
+unknown_plan: Ноябрьские пороги карточек, бюджеты, ставки и целевые цены не утверждены; не переносить октябрьские как новый план.
+partial_day: Сегодня исключён из закрытых итогов и сравнений, общая плашка текущего съёма сохраняется отдельно.
+reference: Октябрь отдельной колонкой; абсолютные суммы подписаны числом дней, рядом среднее за день. Без причинного вывода об эффекте цены.
+golden_rows:
+  - {case: ad_partition, main: 10, minimum: 15, specified_campaign: 20, other: 5, cpc_total: 50, cpo_separate: 100}
+  - {case: same_population_ratio, pdp: 8, views: 40, ratio_pct: 20}
+  - {case: production_2026_11_01, store_units: 4, store_revenue_rub: 242964}
+reconciliation: Проверка интерфейса против существующих источников и отдельных ручных эталонов; независимая бухгалтерская сверка не заявляется.

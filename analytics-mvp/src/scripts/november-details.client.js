@@ -1,0 +1,32 @@
+(function(){
+'use strict';var D=window.ND;if(!D)return;
+var $=function(id){return document.getElementById(id)},esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})},fmt=function(v,n){return v==null?'нет данных':v.toLocaleString('ru-RU',{maximumFractionDigits:n==null?1:n})},dm=function(d){return d.slice(8)+'.'+d.slice(5,7)};
+var ix=function(a,b){return D.days.map(function(d,i){return d>=a&&d<=b?i:-1}).filter(function(i){return i>=0})},nov=ix(D.novStart,D.closedEnd),oct=ix('2026-10-01','2026-10-31');
+function total(v){return v.length&&v.every(function(x){return x!=null})?v.reduce(function(a,b){return a+b},0):null}
+function val(s,k,ids){var r=D.ratios[k];if(r){var a=total(ids.map(function(i){return s[r[0]][i]})),b=total(ids.map(function(i){return s[r[1]][i]}));return a!=null&&b?a/b*r[2]:null}var v=ids.map(function(i){return s[k][i]});if(k==='pos'){return window.ND_MEDIAN(v.filter(function(x){return x!=null}))}return total(v)}
+function graph(el,days,lines,title){if(!el)return;var W=920,H=245,L=65,R=15,T=20,B=35,all=[];lines.forEach(function(s){s.v.forEach(function(v){if(v!=null)all.push(v)})});
+var max=all.length?Math.max.apply(null,all)*1.1:1;if(!max)max=1;var x=function(i){return L+(W-L-R)*i/Math.max(1,days.length-1)},y=function(v){return H-B-v/max*(H-T-B)};
+var h='<h3>'+esc(title)+'</h3><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(title)+'"><title>'+esc(title)+'. Пропуски не соединяются и не заменяются нулями.</title>';
+for(var j=0;j<=4;j++){var vv=max*j/4,yy=y(vv);h+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#293744"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end">'+esc(fmt(vv))+'</text>'}
+days.forEach(function(d,i){if(i===0||i===days.length-1||(i+1)%7===0)h+='<text x="'+x(i)+'" y="'+(H-10)+'" text-anchor="middle">'+dm(d)+'</text>'});
+lines.forEach(function(s){var path='',open=false;s.v.forEach(function(v,i){if(v==null){open=false;return}path+=(open?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)+' ';open=true});h+='<path d="'+path+'" stroke="'+s.c+'" fill="none" stroke-width="2"'+(s.dash?' stroke-dasharray="5 4"':'')+'/>';s.v.forEach(function(v,i){if(v!=null)h+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="'+s.c+'" tabindex="0"><title>'+esc(s.n+' · '+dm(days[i])+' · '+fmt(v,2))+'</title></circle>'})});
+el.innerHTML=h+'</svg><div class="nd-legend">'+lines.map(function(s){return '<span style="color:'+s.c+'">━ '+esc(s.n)+'</span>'}).join('')+'</div>'+(all.length?'':'<p class="nd-note">Данных за этот период нет.</p>');}
+var cur={card:0,metric:0};
+function buttons(id,items,key,cb){$(id).innerHTML=items.map(function(n,i){return '<button type="button" data-index="'+i+'" aria-pressed="'+(cur[key]===i)+'">'+esc(n)+'</button>'}).join('');Array.prototype.forEach.call($(id).querySelectorAll('button'),function(b){b.onclick=function(){cur[key]=Number(b.dataset.index);cb()}})}
+function funnel(){buttons('nd-cards',D.series.map(function(s){return s.name}),'card',funnel);buttons('nd-metrics',D.metrics.map(function(m){return m[1]}),'metric',funnel);var set=D.series[cur.card],k=D.metrics[cur.metric][0];var ids=ix(D.novStart,D.novEnd);
+var vals=ids.map(function(i){var r=D.ratios[k];return r?set.s[r[0]][i]!=null&&set.s[r[1]][i]?set.s[r[0]][i]/set.s[r[1]][i]*r[2]:null:set.s[k][i]});
+var ma=vals.map(function(v,j){var w=vals.slice(Math.max(0,j-6),j+1);return v!=null&&w.length===7&&w.every(function(n){return n!=null})?total(w)/7:null});
+var ps=D.partial&&(cur.card<D.partial.cards.length?D.partial.cards[cur.card]:cur.card===D.partial.cards.length?D.partial.all:D.partial.store),native=['views','vsearch','pdp','cart','units','pos'],rr=D.ratios[k];
+var canPartial=ps&&(native.indexOf(k)>=0||(rr&&native.indexOf(rr[0])>=0&&native.indexOf(rr[1])>=0));
+var pv=canPartial?(rr?(ps[rr[0]]!=null&&ps[rr[1]]?ps[rr[0]]/ps[rr[1]]*rr[2]:null):ps[k]):null;
+var lines=[{v:vals,c:'#22d3ee',n:'За закрытый день'},{v:ma,c:'#efbb55',n:'Среднее 7 полных дней',dash:true}];
+if(canPartial&&D.partial.day>=D.novStart&&D.partial.day<=D.novEnd){lines.push({v:ids.map(function(i){return D.days[i]===D.partial.day?pv:null}),c:'#b58ed8',n:'Неполный '+dm(D.partial.day)+' · '+ps.have+(ps.want!=null?'/'+ps.want:'')+' SKU, вне итогов'})}
+graph($('nd-funnel-chart'),ids.map(function(i){return D.days[i]}),lines,set.name+' · '+D.metrics[cur.metric][1]);
+var windowCell=function(s,key,indices){var v=val(s,key,indices),r=D.ratios[key];if(key==='pos')return fmt(v,2);if(r)return fmt(v,2);return v==null?'нет данных':fmt(v)+'<small>'+fmt(v/indices.length,2)+' в день</small>'};
+$('nd-funnel-table').innerHTML='<div class="nd-scroll"><table><thead><tr><th>'+esc(set.name)+'</th><th>Октябрь, 31 день</th><th>Ноябрь, '+nov.length+' закрытых дней</th></tr></thead><tbody>'+D.metrics.map(function(m){return '<tr'+(m[0]===k?' class="nd-selected"':'')+'><td>'+esc(m[1])+'</td><td>'+windowCell(set.s,m[0],oct)+'</td><td>'+windowCell(set.s,m[0],nov)+'</td></tr>'}).join('')+'<tr><td>Дни с позицией главного SKU</td><td>'+oct.filter(function(i){return set.s.pos[i]!=null}).length+'/'+oct.length+'</td><td>'+nov.filter(function(i){return set.s.pos[i]!=null}).length+'/'+nov.length+'</td></tr></tbody></table></div>';
+}
+funnel();
+Array.prototype.forEach.call(document.querySelectorAll('.nd-order'),function(details){details.addEventListener('toggle',function(){if(!details.open)return;var el=details.querySelector('.nd-order-chart'),s=D.series[Number(el.dataset.set)],ids=ix(D.novStart,D.novEnd);graph(el,ids.map(function(i){return D.days[i]}),[{v:ids.map(function(i){return s.s.orders[i]}),c:'#22d3ee',n:'Заказы без отмен, шт.'}],s.name+' · заказы по дням ноября')})});
+Array.prototype.forEach.call(document.querySelectorAll('.nd-price'),function(details){details.addEventListener('toggle',function(){if(!details.open)return;var el=details.querySelector('.nd-price-chart'),p=D.prices[Number(el.dataset.price)],ids=ix(D.novStart,D.novEnd);graph(el,ids.map(function(i){return D.days[i]}),[{v:ids.map(function(i){var r=p.history.find(function(r){return r.day===D.days[i]});return r?r.value:null}),c:'#22d3ee',n:'Наблюдение нашей цены, ₽'}],p.art+' · цена по дням ноября')})});
+var store=D.series[D.series.length-1],ids=ix(D.novStart,D.novEnd);graph($('nd-ads-chart'),ids.map(function(i){return D.days[i]}),[{v:ids.map(function(i){return store.s.sp[i]}),c:'#22d3ee',n:'CPC по кампаниям, ₽/день'}],'Расход на клики по дням ноября');
+})();

@@ -35,6 +35,7 @@ import {readCaptureFile} from './ozon/cabinet-capture.js';
 import {mergeCabinetViews,nativeFunnel} from './ozon/cabinet-funnel.js';
 import {readFunnelTests,FUNNEL_TESTS_FILE} from './funnel-tests.js';
 import { noSite as gapNoSite, readGapMarked } from "./gap-daily.js";
+import {novemberForecast,novemberForecastHtml,novemberForecastCss} from './november-forecast.js';
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 /** Состав объединённых карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать):
@@ -697,5 +698,10 @@ ${cabTxt}
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");
   const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
-  return { html, css, js, warnings };
+  const november = novemberForecast(P.goal, {today,last:OD_LAST,units:stU,revenue:stRev,
+    covered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date)))});
+  const activeHtml = november ? novemberForecastHtml(november) + html
+    .replace('<details class="card tcard" open id="pt-plan">','<details class="card tcard pt-nov-archive" id="pt-plan">')
+    .replace('План с 15.10: как идём к цели','Октябрьские условия тестов и история') : html;
+  return { html:activeHtml, css:css+(november?novemberForecastCss:''), js, warnings };
 }

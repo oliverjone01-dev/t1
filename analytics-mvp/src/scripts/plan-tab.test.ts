@@ -335,6 +335,22 @@ function fixture(extra: Record<string, unknown[]> = {}) {
 const pd = (js: string) => JSON.parse(js.slice("window.PD=".length, js.indexOf(";\n")));
 
 describe("planBlock", () => {
+  it('November puts the monthly forecast first and archives October rules; uses Moscow dates and excludes cancellations',()=>{
+    const f=fixture({orders:[
+      {d:'2026-10-31',t:'2026-10-31T20:30:00Z',status:'delivered',sku:'1',units:100,revenue:100000},
+      {d:'2026-10-31',t:'2026-10-31T21:30:00Z',status:'delivered',sku:'1',units:2,revenue:2000},
+      {d:'2026-11-01',status:'delivered',sku:'9',units:3,revenue:3000},
+      {d:'2026-11-01',status:'cancelled',sku:'1',units:7,revenue:7000},
+      {d:'2026-11-02',status:'delivered',sku:'1',units:99,revenue:99000},
+    ]});
+    writeFileSync(f('daily_totals.ndjson'),JSON.stringify({date:'2026-11-01'}));
+    const p=planBlock('2026-11-02',f)!;const doc=new JSDOM(p.html).window.document;
+    expect(doc.querySelector('#november-plan [data-metric=units]')!.getAttribute('data-fact')).toBe('5');
+    expect(doc.querySelector('#november-plan [data-metric=revenue]')!.getAttribute('data-fact')).toBe('5000');
+    expect(doc.querySelector('#pt-plan')!.hasAttribute('open')).toBe(false);expect(doc.querySelector('#pt-plan')!.className).toContain('pt-nov-archive');
+    expect(p.html.indexOf('id="november-plan"')).toBeLessThan(p.html.indexOf('id="pt-plan"'));
+    expect(planBlock('2026-10-30',f)!.html).not.toContain('id="november-plan"');
+  });
   it('uses closed native observations in plan funnel and position without advancing its order calendar',()=>{
     const f=fixture();
     writeFileSync(f('cabinet_capture.json'),JSON.stringify({version:1,company:'GENGLASS',snapshots:[{

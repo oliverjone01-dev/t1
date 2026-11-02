@@ -286,3 +286,12 @@ table thead{position:sticky!important;top:0!important;z-index:12;background:var(
 .gg-pipeline-hover .ro-lg,.gg-pipeline-hover .gg-composition-arc{cursor:default!important}.gg-pipeline-hover .ro-lg.gg-category-active{background:var(--accent-soft)!important;outline:1px solid var(--border);outline-offset:-1px;border-radius:6px}
 @media(max-width:700px){.gg-plan-bars .gg-pair-row{padding:10px;min-height:85px}.gg-plan-bars .gg-bullet-labels{flex-wrap:wrap;gap:5px 8px}.gg-plan-bars .gg-bullet-labels>label{font-size:9px}.gg-plan-bars .gg-plan-inline-edit input[data-plan-value]{width:80px;font-size:12px}.gg-plan-bars .gg-bullet-labels>[data-frozen]{margin-left:auto;font-size:9px}.gg-select-menu>.gg-select-option{min-height:38px;font-size:12px!important}}
 @media(min-width:801px){html[data-sidebar-mode=compact] .gg-sidebar:not(:hover):not(:focus-within) :is(.gg-nav>a,.gg-nav>details>summary)>span:not(.gg-nav-icon){max-width:0!important;width:0!important;opacity:0!important;overflow:hidden!important;pointer-events:none}}
+
+/* Every scenario metric has a visible value field, including the locked goal. */
+.gg-plan-bars .gg-plan-derived .gg-plan-inline-edit input[data-plan-value]{display:block}
+.gg-plan-bars .gg-plan-derived .gg-plan-inline-edit>b{display:none}
+.gg-plan-bars .gg-plan-derived [data-plan-unit]{display:inline}
+.gg-plan-bars .gg-bullet-labels>label{order:2;margin-left:auto}
+.gg-plan-bars .gg-bullet-labels>[data-frozen]{order:1;margin-left:0;margin-right:auto}
+.gg-plan-bars .gg-plan-bars-foot{justify-content:flex-end;margin-top:12px}
+.gg-plan-bars [data-plan-mode]:empty{display:none}

@@ -2,7 +2,7 @@
   "domain": "loftkrel.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-26T08:02:24.298Z",
+  "measured": "2026-11-02T09:49:38.018Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loftkrel.ru",
   "data": {
     "id": 101588780,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 468,
-        "it50": 20517353,
-        "vis": 2497404,
-        "perc": 0.002280995993976416
+        "cnt": 467,
+        "it50": 20529572,
+        "vis": 2696775,
+        "perc": 0.0022747673453689145
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 361,
-        "it50": 17471113,
-        "vis": 1093257,
-        "perc": 0.0020662679017644727
+        "cnt": 359,
+        "it50": 17474784,
+        "vis": 1131926,
+        "perc": 0.002054388769555034
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
         "cnt": 285,
-        "it50": 18494416,
-        "vis": 2470510,
-        "perc": 0.0015410056743613855
+        "it50": 18512071,
+        "vis": 3050194,
+        "perc": 0.0015395360140958837
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 267,
-        "it50": 14730665,
-        "vis": 1452495,
-        "perc": 0.0018125454621362987
+        "cnt": 266,
+        "it50": 14739300,
+        "vis": 1659954,
+        "perc": 0.0018046990019878828
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
-        "cnt": 259,
-        "it50": 2246,
-        "vis": 121,
-        "perc": 11.531611754229742
+        "cnt": 258,
+        "it50": 2248,
+        "vis": 134,
+        "perc": 11.476868327402135
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 252,
-        "it50": 49568688,
-        "vis": 3816299,
-        "perc": 0.0005083854549468809
+        "cnt": 251,
+        "it50": 49525130,
+        "vis": 3937261,
+        "perc": 0.000506813409677067
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 227,
-        "it50": 6367598,
-        "vis": 870923,
-        "perc": 0.0035649235394571077
+        "cnt": 225,
+        "it50": 6373652,
+        "vis": 857965,
+        "perc": 0.003530158220122467
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 226,
-        "it50": 3139178,
-        "vis": 589879,
-        "perc": 0.007199336896474172
+        "cnt": 224,
+        "it50": 3137917,
+        "vis": 479775,
+        "perc": 0.007138493465569676
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
-        "cnt": 214,
-        "it50": 2786328,
-        "vis": 110994,
-        "perc": 0.007680359239831061
+        "cnt": 213,
+        "it50": 2784756,
+        "vis": 95381,
+        "perc": 0.007648785028203548
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 207,
-        "it50": 3059254,
-        "vis": 188491,
-        "perc": 0.006766355457899213
+        "cnt": 206,
+        "it50": 3058383,
+        "vis": 169611,
+        "perc": 0.00673558543844901
       }
     ],
     "it1": 13,
     "it3": 25,
     "it5": 34,
-    "it10": 66,
-    "it50": 656,
+    "it10": 65,
+    "it50": 655,
     "childsCount": 0,
     "keys": [
       {
@@ -158,14 +158,14 @@
         "wsk": 2
       }
     ],
-    "topkeys": 330079,
+    "topkeys": 330522,
     "pages": [
       {
         "it50": 124,
         "url": "/"
       },
       {
-        "it50": 51,
+        "it50": 49,
         "url": "/reechnye-loft-peregorodki"
       },
       {
@@ -197,103 +197,103 @@
         "url": "/peregorodki-dlya-garderobnyh"
       },
       {
-        "it50": 20,
+        "it50": 21,
         "url": "/loft-peregorodki"
       }
     ],
     "pagesinindex": 59,
     "vis": 4,
-    "topvis": 454954,
+    "topvis": 468989,
     "adconcs": [
       {
         "did": 29918164,
         "name": "yandex.ru",
         "cnt": 77,
-        "it50": 47340533,
-        "vis": 10606856,
-        "adkeyscnt": 47603509,
-        "adscnt": 804192
+        "it50": 47311827,
+        "vis": 10562215,
+        "adkeyscnt": 48202731,
+        "adscnt": 810552
       },
       {
         "did": 29920400,
         "name": "profi.ru",
         "cnt": 60,
-        "it50": 2096290,
-        "vis": 139546,
-        "adkeyscnt": 707535,
-        "adscnt": 188597
+        "it50": 2094472,
+        "vis": 132793,
+        "adkeyscnt": 709911,
+        "adscnt": 189756
       },
       {
         "did": 29917770,
         "name": "vseinstrumenti.ru",
         "cnt": 55,
-        "it50": 4412189,
-        "vis": 493383,
-        "adkeyscnt": 2077984,
-        "adscnt": 1238371
+        "it50": 4411149,
+        "vis": 527713,
+        "adkeyscnt": 2106221,
+        "adscnt": 1255385
       },
       {
         "did": 131748642,
         "name": "kalinkapol.ru",
         "cnt": 51,
-        "it50": 1097,
+        "it50": 1100,
         "vis": 2,
-        "adkeyscnt": 2914,
-        "adscnt": 1489
+        "adkeyscnt": 2930,
+        "adscnt": 1502
       },
       {
         "did": 30329275,
         "name": "union.ru",
         "cnt": 41,
-        "it50": 6363,
-        "vis": 212,
-        "adkeyscnt": 8962,
-        "adscnt": 2609
+        "it50": 6389,
+        "vis": 214,
+        "adkeyscnt": 9148,
+        "adscnt": 2653
       },
       {
         "did": 261778331,
         "name": "genglass.ru",
         "cnt": 39,
-        "it50": 2413,
-        "vis": 36,
-        "adkeyscnt": 371,
-        "adscnt": 197
+        "it50": 2402,
+        "vis": 51,
+        "adkeyscnt": 373,
+        "adscnt": 196
       },
       {
         "did": 29919264,
         "name": "moscow.petrovich.ru",
         "cnt": 38,
-        "it50": 960638,
-        "vis": 128723,
-        "adkeyscnt": 616951,
-        "adscnt": 246169
+        "it50": 960328,
+        "vis": 101726,
+        "adkeyscnt": 618678,
+        "adscnt": 246640
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
         "cnt": 28,
-        "it50": 3139178,
-        "vis": 589879,
-        "adkeyscnt": 534304,
-        "adscnt": 151713
+        "it50": 3137917,
+        "vis": 479775,
+        "adkeyscnt": 544506,
+        "adscnt": 156187
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
         "cnt": 26,
-        "it50": 1389143,
-        "vis": 16913,
-        "adkeyscnt": 135299,
-        "adscnt": 73120
+        "it50": 1391364,
+        "vis": 16814,
+        "adkeyscnt": 135323,
+        "adscnt": 73124
       },
       {
-        "did": 29969733,
-        "name": "ofimall.ru",
+        "did": 125649525,
+        "name": "alfaporta.ru",
         "cnt": 24,
-        "it50": 2377,
-        "vis": 9,
-        "adkeyscnt": 1776,
-        "adscnt": 325
+        "it50": 9853,
+        "vis": 1091,
+        "adkeyscnt": 2624,
+        "adscnt": 704
       }
     ],
     "adkeys": [
@@ -398,17 +398,17 @@
       },
       {
         "p": [
-          0,
-          46
+          1,
+          3
         ],
-        "pos": 46,
-        "sr": 0,
-        "word": "подстолье еж",
-        "ws": 145,
-        "wsk": 24
+        "pos": 3,
+        "sr": 1,
+        "word": "лист нержавейки",
+        "ws": 40781,
+        "wsk": 1323
       }
     ],
-    "adkeyscnt": 787,
+    "adkeyscnt": 788,
     "ads": [
       {
         "facts": "",
@@ -491,16 +491,16 @@
         "txt": "Лазерная резка металла, стоимость, цена, гарантия качества, сроки, мастера, сроки. Качественная работа."
       }
     ],
-    "adscnt": 556,
+    "adscnt": 557,
     "adtraf": 4,
     "adcost": {
-      "average": 75333,
-      "bdg100": 172152,
-      "bdg5": 5416,
-      "bdg62": 81853,
-      "bdg85": 111087,
-      "bdg9": 6154,
-      "max": 172152
+      "average": 74464,
+      "bdg100": 170868,
+      "bdg5": 5380,
+      "bdg62": 80710,
+      "bdg85": 109267,
+      "bdg9": 6091,
+      "max": 170868
     },
     "restop5": 5,
     "history": {
@@ -712,23 +712,28 @@
         "it1": 13,
         "it3": 25,
         "it5": 34,
-        "it10": 66,
-        "it50": 656,
+        "it10": 65,
+        "it50": 655,
         "pagesInIndex": 59,
-        "adsCount": 556,
-        "adKeysCount": 787,
+        "adsCount": 557,
+        "adKeysCount": 788,
         "visAvg": 4,
-        "aiCnt": 23
+        "aiCnt": 25
+      },
+      "2026.11": {
+        "it1": 13,
+        "it3": 25,
+        "it5": 34,
+        "it10": 65,
+        "it50": 655,
+        "pagesInIndex": 59,
+        "adsCount": 557,
+        "adKeysCount": 788,
+        "visAvg": 4,
+        "aiCnt": 25
       }
     },
     "linksHistory": {
-      "2025.04": [
-        54,
-        345,
-        30,
-        12,
-        0
-      ],
       "2025.05": [
         55,
         277,
@@ -854,9 +859,16 @@
         45,
         12,
         57
+      ],
+      "2026.11": [
+        78,
+        379,
+        45,
+        12,
+        57
       ]
     },
-    "aiAnswersCnt": 23,
+    "aiAnswersCnt": 25,
     "aiState": 0,
     "dr": 23,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/e026ff7e39402d6323a4c5c7b648b3b5f6dd3b1ed5a1aef932d101d946eddd39.png",

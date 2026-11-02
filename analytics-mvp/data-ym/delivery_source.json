@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-02T12:37:13.498154+03:00",
+  "loaded_at": "2026-11-02T19:44:43.059998+03:00",
   "through": "2026-11-01",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
@@ -40,5 +40,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "506e8c1f9641be9aa5a9893348e0008dac88575f4b47bfb9978f41462edd12ea"
+  "csv_sha256": "b00e5fd159aa86d612b7304de1ce83d979e5dc401641f2a15423b0a8df17eeb4"
 }

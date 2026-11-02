@@ -2,12 +2,13 @@ import {describe,it,expect} from 'vitest';
 import {JSDOM,VirtualConsole} from 'jsdom';
 import {problemsPage} from './page.js';
 import type {ProblemData} from './model.js';
-function open(){
+function open(patch:Partial<ProblemData>={}){
  const data:ProblemData={now:'2026-10-30T12:00:00Z',postings:[
   ['a','client','Shared',100],['b','seller','Shared',200],['c','seller','Ours',300],['d','ozon','Delivery',400],['e','client','Shared',null]
  ].map(([order,initiator,reason,amount])=>({order:String(order),initiator:String(initiator),reason:String(reason),amount:amount as number|null,date:'2026-10-20',status:'cancelled',scheme:'FBS',offer:'A',sku:'1'})),events:[
   ['a','Heavy',1,1000],['b','Many',5,100],['c','Unknown amount',2,null],['d','Unknown qty',null,50]
  ].map(([id,reason,qty,amount])=>({id:String(id),reason:String(reason),qty:qty as number|null,amount:amount as number|null,date:'2026-10-20',kind:'return',order:null,offer:'A',scheme:'FBS',source:'fixture'})),ratings:[],summary:[],thresholds:null,coverage:{},warnings:[]};
+ Object.assign(data,patch);
  const errors:unknown[]=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e));
  const dom=new JSDOM(problemsPage(data),{runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.HTMLElement.prototype.scrollIntoView=()=>{};}});
  expect(errors).toEqual([]);return {dom,doc:dom.window.document};
@@ -34,13 +35,23 @@ describe('Linked cancellation reasons and return amounts',()=>{
   expect(doc.querySelectorAll('#cancel-breakdown .is-linked')).toHaveLength(2);actor.blur();
   expect(doc.querySelectorAll('#cancel-breakdown .is-linked')).toHaveLength(0);dom.window.close();
  });
- it('returns display known goods value by cause, with missing amounts separate and consistent colors',()=>{
-  const {dom,doc}=open();expect(doc.querySelector('#return-initiator-panel')).toBeNull();
-  expect(doc.querySelector('#return-value-breakdown .donut-total b')!.textContent).toBe('1 150');
-  expect(doc.querySelector('#return-value-breakdown')!.textContent).toContain('Без суммы: 1');
-  expect(row(doc,'#return-breakdown','Unknown amount').querySelector('.reason-money')!.textContent).toBe('н/д');
-  const quantity=row(doc,'#return-breakdown','Heavy'),value=row(doc,'#return-value-breakdown','Heavy');
-  expect((quantity.querySelector('.reason-track i') as HTMLElement).style.background).toBe((value.querySelector('.reason-dot') as HTMLElement).style.background);
+ it('returns have one cause list with units and known values, including unpriced goods',()=>{
+  const {dom,doc}=open();expect(doc.querySelector('#return-initiator-panel')).toBeNull();expect(doc.querySelector('#return-breakdown')).toBeNull();
+  expect(doc.querySelector('#return-panel .donut-total b')!.textContent).toBe('1 150');expect(doc.querySelector('#return-value-breakdown')!.textContent).toContain('Без суммы: 1');
+  const unknown=row(doc,'#return-value-breakdown','Unknown amount');expect(unknown.querySelector('.reason-values b')!.textContent).toBe('2 шт.');expect(unknown.querySelector('.reason-money')!.textContent).toContain('н/д ₽');
+  const value=row(doc,'#return-value-breakdown','Heavy');expect(value.querySelector('.reason-values b')!.textContent).toBe('1 шт.');
   value.click();expect((doc.querySelector('#kind') as HTMLSelectElement).value).toBe('return');expect(doc.querySelectorAll('#orders tr')).toHaveLength(1);dom.window.close();
+ });
+ it('daily graph switches units and value; covered empty days are zero, missing days are gaps',()=>{
+  const {dom,doc}=open({events:[{id:'r',date:'2026-10-20',kind:'return',order:null,offer:'A',scheme:'FBS',reason:'Heavy',qty:3,amount:1200,source:'fixture'}],coverage:{return:{days:['2026-10-20','2026-10-21'],loaded_at:null,note:'fixture'}}});
+  const titles=()=>[...doc.querySelectorAll('#return-daily svg rect title')].map(t=>t.textContent);
+  expect(titles()).toEqual(['2026-10-20 · 3 шт.','2026-10-21 · 0 шт.']);
+  (doc.querySelector('[data-return-metric="amount"]') as HTMLElement).click();expect(titles()).toEqual(['2026-10-20 · 1 200 ₽','2026-10-21 · 0 ₽']);
+  expect(doc.querySelector('[data-return-metric="amount"]')!.getAttribute('aria-pressed')).toBe('true');
+  (doc.querySelector('#return-top') as HTMLSelectElement).dispatchEvent(new dom.window.Event('change'));expect(titles()).toEqual(['2026-10-20 · 1 200 ₽','2026-10-21 · 0 ₽']);dom.window.close();
+ });
+ it('unknown quantity or amount never becomes zero on its daily chart',()=>{
+  const {dom,doc}=open();expect(doc.querySelector('#return-daily svg')).toBeNull();
+  (doc.querySelector('[data-return-metric="amount"]') as HTMLElement).click();expect(doc.querySelector('#return-daily svg')).toBeNull();dom.window.close();
  });
 });

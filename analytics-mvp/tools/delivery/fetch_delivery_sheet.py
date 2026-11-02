@@ -111,7 +111,26 @@ def event_key(event):
     return event["order"], event["date"], event["ship_cents"]
 
 
-def parse_tab(text, tab, through, locations):
+def review_rules(config):
+    if config is None:
+        return []
+    if config.get("version") != 1 or config.get("source_mode") != "read_only":
+        raise ValueError("invalid delivery review rules")
+    seen = set()
+    for rule in config.get("rules", []):
+        key = (rule.get("order"), rule.get("ledger"), rule.get("offer"))
+        if key in seen or not all(isinstance(v, str) for v in key) or rule.get("action") not in {"exclude_extra", "restore_date"}:
+            raise ValueError("invalid or duplicate delivery review rule")
+        seen.add(key)
+        date = dt.date.fromisoformat(rule["date"])
+        if date.isoformat() < START:
+            raise ValueError("review rule cannot change retained history")
+        if rule["action"] == "exclude_extra" and (type(rule.get("ship_cents")) is not int or rule["ship_cents"] <= 0):
+            raise ValueError("excluded extra delivery needs an exact positive receipt")
+    return config.get("rules", [])
+
+
+def parse_tab(text, tab, through, locations, rules=None):
     rows = list(csv.reader(io.StringIO(text)))
     if len(rows) < 2 or any(len(rows[0]) <= i or rows[0][i].strip() != h for i, h in HEADERS.items()):
         raise ValueError(f"{tab}: empty sheet or changed headers")
@@ -120,6 +139,7 @@ def parse_tab(text, tab, through, locations):
     zero = set()
     observed = set()
     counts = collections.Counter()
+    inactive_dates = set()
     for row_no, row in enumerate(rows[1:], 2):
         row += [""] * max(0, 18 - len(row))
         if "OZON" not in row[0].upper():
@@ -130,8 +150,33 @@ def parse_tab(text, tab, through, locations):
         except ValueError:
             pass  # Historic malformed identifiers are outside the write window.
         try:
-            # Historic columns are not interpreted using the modern schema.
+            # Queued trips are plans, not incurred shipment costs. Exact confirmed
+            # cancellation comments are also excluded before missing-date checks.
+            cancelled = CANCELLED(row[7]) or re.fullmatch(r"\s*отмен[её]н(?:а|о)?[.!]?\s*", row[8], re.I)
+            queued = row[7].strip().casefold() == "в очереди" and not row[6].strip()
+            if cancelled or queued:
+                counts["cancelled_rows" if cancelled else "queued_rows"] += 1
+                try:
+                    inactive_date = sheet_date(row[4], row[2])
+                    if inactive_date:
+                        inactive_dates.add((order_number(row[1]), inactive_date))
+                except ValueError:
+                    pass
+                continue
+            rule = next((r for r in (rules or []) if (r["order"], r["ledger"], r["offer"]) == (row[1].strip(), row[2].strip(), row[3].strip())), None)
             date = sheet_date(row[4], row[2])
+            if rule and rule["action"] == "restore_date":
+                if date and date != rule["date"]:
+                    raise ValueError("source date conflicts with approved review date")
+                if not date:
+                    date = rule["date"]
+                    counts["reviewed_date_rows"] += 1
+            if rule and rule["action"] == "exclude_extra":
+                if date != rule["date"] or cents(row[14]) != rule["ship_cents"]:
+                    raise ValueError("approved extra delivery fingerprint changed")
+                counts["excluded_extra_rows"] += 1
+                continue
+            # Historic columns are not interpreted using the modern schema.
             if not date:
                 if any(row[i].strip() for i in (1, 3, 14)):
                     counts["undated_rows"] += 1
@@ -140,9 +185,6 @@ def parse_tab(text, tab, through, locations):
                 continue
             if date > through:
                 counts["future_rows"] += 1
-                continue
-            if CANCELLED(row[7]):
-                counts["cancelled_rows"] += 1
                 continue
             order = order_number(row[1])
             ship = cents(row[14])
@@ -174,7 +216,7 @@ def parse_tab(text, tab, through, locations):
         except (ValueError, MoneyError) as ex:
             # Do not include source values: they can contain personal data.
             raise ValueError(f"{tab}: row {row_no}, invalid date/order/amount") from None
-    return events, missing, dict(counts), {"zero": zero, "orders": observed}
+    return events, missing, dict(counts), {"zero": zero, "orders": observed, "inactive_dates": inactive_dates}
 
 
 def merge_events(previous, incoming, full, corrections=None):
@@ -299,15 +341,16 @@ def archive_needed(state, now):
             or (now - dt.datetime.fromisoformat(state["loaded_at"])).total_seconds() > 36 * 3600)
 
 
-def prepare(data, state, active, archive, now, locations=None):
+def prepare(data, state, active, archive, now, locations=None, rules=None):
     locations = locations if locations is not None else state["locations"]
     through = closed_day(now)
-    incoming, missing, counts, observed = parse_tab(active, "active", through, locations)
+    incoming, missing, counts, observed = parse_tab(active, "active", through, locations, rules)
     zero = observed["zero"]
     full = archive is not None
     if full:
-        ar, missing_ar, counts_ar, observed_ar = parse_tab(archive, "archive", through, locations)
+        ar, missing_ar, counts_ar, observed_ar = parse_tab(archive, "archive", through, locations, rules)
         zero |= observed_ar["zero"]
+        observed["inactive_dates"] |= observed_ar["inactive_dates"]
         observed["orders"] |= observed_ar["orders"]
         # The same shipment across tabs must use the same validation as within a tab.
         for key, event in ar.items():
@@ -322,14 +365,18 @@ def prepare(data, state, active, archive, now, locations=None):
             incoming[key] = event
         missing |= missing_ar
         counts = dict(collections.Counter(counts) + collections.Counter(counts_ar))
-    previous = state.get("events", []) if state else []
+    excluded = {(r["order"], r["date"], r["ship_cents"]) for r in (rules or []) if r["action"] == "exclude_extra"}
+    if state and any(tuple(k) in excluded for k in state.get("primary_keys", {}).values()):
+        raise ValueError("an extra-delivery exclusion cannot remove the accepted primary trip")
+    previous = [e for e in (state.get("events", []) if state else []) if event_key(e) not in excluded]
+    missing -= observed["inactive_dates"]
     if any((e["order"], e["date"]) in zero and event_key(e) not in incoming for e in previous):
         raise ValueError("accepted positive bill became zero or ambiguous zero trip; review required")
     corrections = []
     events, _ = merge_events(previous, incoming, full, corrections)
     replaced = {tuple(c["old"]) for c in corrections}
     unseen = ({event_key(e) for e in previous} - incoming.keys() - replaced if full else
-              ({tuple(k) for k in state.get("unseen_keys", [])} |
+              ({tuple(k) for k in state.get("unseen_keys", []) if tuple(k) not in excluded} |
                {event_key(e) for e in previous if e["order"] in observed["orders"]}) - incoming.keys())
     if full and not counts.get("ozon_rows"):
         raise ValueError("both delivery tabs have no OZON rows")
@@ -338,7 +385,7 @@ def prepare(data, state, active, archive, now, locations=None):
     priced_now = {(e["order"], e["date"]) for e in incoming.values()}
     # On daily active-only reads keep unresolved receipts until archive recovery.
     if not full and state:
-        missing |= {tuple(x) for x in state.get("missing_keys", [])} - priced_now
+        missing |= {tuple(x) for x in state.get("missing_keys", [])} - priced_now - observed["inactive_dates"]
     baseline_cities = state["baseline_cities"] if state else json.loads(data["delivery_cities.json"])
     historical = {}
     for file in FILES[:-1]:
@@ -384,6 +431,8 @@ def prepare(data, state, active, archive, now, locations=None):
               "city_unknown": sum(e["city"] == "город не указан" for e in events),
               "ship": sum(e["ship_cents"] for e in events) / 100, "counts": counts,
               "outputs": {f: hashlib.sha256(s.encode()).hexdigest() for f, s in outputs.items()}}
+    if rules:
+        status["review_rules"] = {"sha256": hashlib.sha256(encoded(rules).encode()).hexdigest(), "restored_date_rows": counts.get("reviewed_date_rows", 0), "excluded_extra_rows": counts.get("excluded_extra_rows", 0)}
     outputs["delivery_sheet_state.json"] = encoded(next_state)
     outputs["delivery_sheet_status.json"] = encoded(status)
     return outputs, status
@@ -409,18 +458,20 @@ def main():
     if state and (state.get("version") != 1 or state.get("start") != START):
         raise ValueError("unsupported delivery state")
     data = {file: (root / file).read_text() for file in FILES}
+    rules_file = root / "delivery_review_rules.json"
+    rules = review_rules(json.loads(rules_file.read_text()) if rules_file.exists() else None)
     active = fetch_tab("active")
     archive = fetch_tab("archive") if archive_needed(state, now) else None
     locations = parse_locations(fetch_tab("locations")) if archive is not None else state["locations"]
     try:
-        outputs, status = prepare(data, state, active, archive, now, locations)
+        outputs, status = prepare(data, state, active, archive, now, locations, rules)
         if archive is None and status["retained_unseen_events"]:
-            outputs, status = prepare(data, state, active, fetch_tab("archive"), now, locations)
+            outputs, status = prepare(data, state, active, fetch_tab("archive"), now, locations, rules)
     except ValueError:
         if archive is not None:
             raise
         # Price/trip ambiguity must be checked against the archived original.
-        outputs, status = prepare(data, state, active, fetch_tab("archive"), now, locations)
+        outputs, status = prepare(data, state, active, fetch_tab("archive"), now, locations, rules)
     if "--dry-run" not in sys.argv:
         write_bundle(root, outputs)
     # Counters only: no source rows, contacts, raw addresses or identifiers.

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "approved_on": "2026-11-02",
+  "source_mode": "read_only",
+  "rules": [
+    {
+      "action": "exclude_extra",
+      "order": "25993815-1601-1",
+      "ledger": "",
+      "offer": "Футорки",
+      "date": "2026-10-20",
+      "ship_cents": 19000,
+      "reason": "User confirmed additional delivery must not be counted"
+    },
+    {
+      "action": "restore_date",
+      "order": "0187270396-0006-3",
+      "ledger": "С26-1515",
+      "offer": "GGL-09-2",
+      "date": "2026-10-21",
+      "reason": "User confirmed date was accidentally removed; source stays read-only"
+    }
+  ]
+}

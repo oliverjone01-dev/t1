@@ -36,6 +36,7 @@ import {mergeCabinetViews,nativeFunnel} from './ozon/cabinet-funnel.js';
 import {readFunnelTests,FUNNEL_TESTS_FILE} from './funnel-tests.js';
 import { noSite as gapNoSite, readGapMarked } from "./gap-daily.js";
 import {novemberForecast,novemberForecastHtml,novemberForecastCss} from './november-forecast.js';
+import {novemberDetails} from './november-details.js';
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 /** Состав объединённых карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать):
@@ -331,7 +332,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const fv: Record<string, Map<string, number>[]> = {}; const fst: Record<string, Map<string, number>> = {};
   for (const k of FK) { fv[k] = mk(); fst[k] = new Map(); }
   const svDays = new Set<string>();
-  for (const r of mergeCabinetViews(readNd(dp("sku_views.ndjson")),cabinet)) {
+  const mergedViews=mergeCabinetViews(readNd(dp("sku_views.ndjson")),cabinet);
+  for (const r of mergedViews) {
     if (r.date < DAYS[0]!) continue;
     svDays.add(r.date); const i = SKU_CARD.get(String(r.sku));
     for (const k of FK) { const v = Number(r[k]) || 0; add(fst[k]!, r.date, v); if (i != null) add(fv[k]![i]!, r.date, v); }
@@ -565,7 +567,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const prLast = new Map<string, [string, number]>(), gapLast = new Map<string, [string, number]>();
   const prHist = new Map<string, Map<string, number>>();   // артикул -> день -> цена (Иван 15.10: было 14.10; Иван 20.10: только смены цены, без колонок дат)
   const priceArts = new Set(P.price.map((p) => p.art));
-  for (const r of readNd(dp("prices_daily.ndjson"))) {
+  const priceSource=readNd(dp("prices_daily.ndjson"));
+  for (const r of priceSource) {
     if (r.d >= (prLast.get(r.offer)?.[0] ?? "")) prLast.set(r.offer, [r.d, Number(r.price)]);
     if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
   }
@@ -575,7 +578,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const OW = ordWindow(START, W1, OD_LAST);
   const artUnits = (art: string, a: string, b: string): number => { let t = 0; for (const [k, v] of odArt) { const [o, d] = k.split("|"); if (o === art && d! >= a && d! <= b) t += v; } return t; };
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
-  for (const r of readGapMarked(dp("gap_daily.ndjson")).rows) {
+  const gapSource=readGapMarked(dp("gap_daily.ndjson")).rows;
+  for (const r of gapSource) {
     // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва;
     // ноль у карточки с историей проходит и зажигает чип «OZON не доплачивает?» (Иван 19.10).
     if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null || gapNoSite(r)) continue;
@@ -700,8 +704,13 @@ ${cabTxt}
   const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
   const november = novemberForecast(P.goal, {today,last:OD_LAST,units:stU,revenue:stRev,
     covered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date)))});
-  const activeHtml = november ? novemberForecastHtml(november) + html
+  const details=november ? novemberDetails({today,days:DAYS,plan:P,cards,ser:SER,store:STORE,views:mergedViews,
+    orders:ordRows.filter(r=>r.d<=OD_RAW_LAST),orderLast:OD_LAST,orderCovered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date))),
+    ads:adsDaily,adsSku:asd,adsLast:AD_CAMP_LAST,adsFull:adsFullDay(adsDaily.map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,'2026-11-01',campDay,adsReceipts),
+    adsCovered:new Set([...new Set(adsDaily.map(a=>String(a.d)))].filter(d=>d>='2026-10-01'&&d<='2026-11-30'&&adsFullDay(adsDaily.filter(a=>a.d===d).map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,d,campDay,adsReceipts)===d)),
+    prices:priceSource,gaps:gapSource.filter(r=>!gapNoSite(r)),partial:PARTIAL}) : null;
+  const activeHtml = november ? novemberForecastHtml(november) + (details?.html??'') + html
     .replace('<details class="card tcard" open id="pt-plan">','<details class="card tcard pt-nov-archive" id="pt-plan">')
     .replace('План с 15.10: как идём к цели','Октябрьские условия тестов и история') : html;
-  return { html:activeHtml, css:css+(november?novemberForecastCss:''), js, warnings };
+  return { html:activeHtml, css:css+(november?novemberForecastCss:'')+(details?.css??''), js:js+'\n'+(details?.js??''), warnings };
 }

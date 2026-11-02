@@ -102,10 +102,10 @@ gg_data_commit() {
   (
     flock -w 600 7 || exit 2
     git -C "$GG_DATA" add -A -- "$scope" || exit 2
-    git -C "$GG_DATA" diff --cached --quiet; d=$?
+    git -C "$GG_DATA" diff --cached --quiet -- "$scope"; d=$?
     [ "$d" = 0 ] && exit 1
     [ "$d" = 1 ] || exit 2
-    git -C "$GG_DATA" -c user.name=gg-server -c user.email=gg-server@localhost commit -q -m "$msg" || exit 2
+    git -C "$GG_DATA" -c user.name=gg-server -c user.email=gg-server@localhost commit --only -q -m "$msg" -- "$scope" || exit 2
   ) 7>"$GG_ROOT/state/locks/data.lock" || rc=$?
   [ "$rc" = 2 ] && gg_warn "коммит данных не удался (git: права, lock или владелец папки $GG_DATA)"
   return "$rc"

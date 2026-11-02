@@ -1,3 +1,4 @@
+import {routeTelegramPayload} from './report-links-preload.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -5,7 +6,8 @@ import crypto from 'node:crypto';
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async function(url,options){
  if(!String(url).endsWith('/sendMessage'))return originalFetch(url,options);
- const body=JSON.parse(options.body),mode=process.env.MODE;
+ const body=routeTelegramPayload(JSON.parse(options.body)),mode=process.env.MODE;
+ options={...options,body:JSON.stringify(body)};
  if(!['plan','itogi'].includes(mode))throw Error('Unexpected digest mode');
  const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const dir=process.env.GG_DIGEST_DELIVERY_DIR||'/srv/gg/state/digest-delivery';fs.mkdirSync(dir,{recursive:true});

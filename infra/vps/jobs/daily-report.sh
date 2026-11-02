@@ -1,7 +1,7 @@
 # Сводка переезда в Telegram (группа алертов): что уже работает на сервере со ссылками,
 # чем закончились задачи, что дальше по плану. Данных не пишет (ветка «-» в jobs.conf).
 # Разделы и план - conf/report.conf, итоги задач - state/jobs/*.json (их пишет gg-job).
-dom=${GG_DOMAIN:-dash.genglas.ru}
+dom=${GG_REPORT_DOMAIN:-${GG_DOMAIN:-dash.genglas.ru}}
 conf="$GG_OPS/conf/report.conf"
 site=$(readlink -f "$GG_ROOT/www/current")
 now=$(date +%s)
@@ -65,3 +65,4 @@ msg+="${nl}${nl}Задачи:${jobs:-${nl}• ещё не запускались
 msg+="${nl}${nl}Вход по личному логину."
 printf '%s\n' "$msg"
 gg_alert "$msg"
+

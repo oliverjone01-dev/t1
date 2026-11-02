@@ -48,3 +48,11 @@ console.log('Unified GG frame prepared:',unified,'pages');
  const file=path.join(site,"index.html");
  if(fs.existsSync(file)){let html=fs.readFileSync(file,"utf8");if(!html.includes("data-gg-access-panel")){const accessDir=path.join(__dirname,"../access");html=html.replace("</head>","<style data-gg-access-panel>"+fs.readFileSync(path.join(accessDir,"access-panel.css"),"utf8")+"</style></head>").replace("</body>","<script>"+fs.readFileSync(path.join(accessDir,"access-panel.js"),"utf8")+"</script></body>");fs.writeFileSync(file,html);}}
 }
+
+// Owner-only endpoint selector. Authorization is enforced by the access API.
+for(const file of [path.join(site,'index.html'),path.join(site,'structure/index.html')]){
+ if(!fs.existsSync(file))continue;let html=fs.readFileSync(file,'utf8');
+ if(!html.includes('id="gg-workspace"')||html.includes('data-gg-routing-panel'))continue;
+ html=html.replace('</body>','<script data-gg-routing-panel>'+fs.readFileSync(path.join(__dirname,'../access/routing-panel.js'),'utf8')+'</script></body>');
+ fs.writeFileSync(file,html);
+}

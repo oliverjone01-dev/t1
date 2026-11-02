@@ -6,7 +6,8 @@ from urllib.parse import unquote
 
 DATA=pathlib.Path(os.environ.get('GG_ACCESS_DATA','/srv/gg/access'))
 SOCKET=os.environ.get('GG_ACCESS_SOCKET','/run/gg-access/http.sock')
-ORIGIN='https://dash.genglas.ru'
+ORIGINS=frozenset(['https://dash.genglas.ru','https://201.51.7.251:8443'])
+from routing import read_mode,write_mode,BASES,OWNER
 SECRET=secrets.token_bytes(32)
 LOCK=threading.RLock()
 USER=re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]{1,63}\Z')
@@ -66,15 +67,30 @@ class Handler(BaseHTTPRequestHandler):
   self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(raw)
  def run_request(self,method):
   try:
+   path=self.path.split('?',1)[0]
+   if method=='GET' and path=='/route-check':
+    selected=read_mode();host=self.headers.get('X-GG-Request-Host','');port=self.headers.get('X-GG-Request-Port','')
+    actual='https://'+host+(':'+port if port and port!='443' else '')
+    wrong=actual!=selected['baseUrl']
+    self.send_response(403 if wrong else 204)
+    if wrong:self.send_header('X-GG-Redirect-Base',selected['baseUrl'])
+    self.send_header('Cache-Control','no-store');self.end_headers();return
    user=self.headers.get('X-GG-Authenticated-User','')
    with locked():users,admins=load()
    if not user or user not in users:raise Problem(401,'Требуется вход.')
    path=self.path.split('?',1)[0]
-   if method=='GET' and path=='/session':return self.reply(200,{'username':user,'isAdmin':user in admins,'csrf':token(user) if user in admins else None})
-   if user not in admins:raise Problem(403,'Управление доступом разрешено только администратору.')
+   if method=='GET' and path=='/session':return self.reply(200,{'username':user,'isAdmin':user in admins,'isRoutingOwner':user==OWNER,'dashboardBaseUrl':read_mode()['baseUrl'],'csrf':token(user) if user in admins or user==OWNER else None})
+   if method=='GET' and path in ['/routing','/routing-client','/recovery']:
+    if user!=OWNER:raise Problem(403,'Переключение адреса доступно только владельцу.')
+    if path=='/routing':return self.reply(200,read_mode())
+    filename='routing-panel.js' if path=='/routing-client' else 'recovery.html'
+    raw=pathlib.Path(__file__).with_name(filename).read_bytes()
+    self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8' if path=='/routing-client' else 'text/html; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.send_header('Cache-Control','private, no-store');self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(raw);return
+   if path=='/routing' and user!=OWNER:raise Problem(403,'Переключение адреса доступно только владельцу.')
+   if path!='/routing' and user not in admins:raise Problem(403,'Управление доступом разрешено только администратору.')
    if method=='GET' and path=='/users':return self.reply(200,{'users':[{'username':name,'admin':name in admins,'current':name==user} for name in sorted(users)]})
    if method not in ('POST','PUT','DELETE'):raise Problem(404,'Раздел не найден.')
-   if self.headers.get('Origin')!=ORIGIN or not hmac.compare_digest(self.headers.get('X-GG-CSRF',''),token(user)):
+   if self.headers.get('Origin') not in ORIGINS or not hmac.compare_digest(self.headers.get('X-GG-CSRF',''),token(user)):
     raise Problem(403,'Обновите страницу и повторите действие.')
    if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':raise Problem(415,'Ожидается JSON.')
    try:length=int(self.headers.get('Content-Length','0'))
@@ -83,6 +99,11 @@ class Handler(BaseHTTPRequestHandler):
    try:data=json.loads(self.rfile.read(length))
    except (ValueError,UnicodeError):raise Problem(400,'Неверный запрос.')
    if not isinstance(data,dict):raise Problem(400,'Неверный запрос.')
+   if path=='/routing' and method=='POST':
+    if set(data)!={'mode'} or data['mode'] not in BASES:raise Problem(400,'Выберите режим: домен или IP.')
+    with locked():saved=write_mode(data['mode'],user)
+    print(json.dumps({'event':'routing.update','actor':user,'mode':saved['mode']}),flush=True)
+    return self.reply(200,saved)
    name=data.get('username','');password=data.get('password','');admin=data.get('admin',False)
    if method!='DELETE' and (not isinstance(name,str) or not USER.fullmatch(name)):raise Problem(400,'Логин: 2–64 символа, латинские буквы, цифры, точка, дефис или подчёркивание.')
    if not isinstance(admin,bool):raise Problem(400,'Неверная роль.')

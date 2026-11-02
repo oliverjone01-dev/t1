@@ -32,6 +32,9 @@ set +e
 (
   cd "$src"
   export GG_SRC="$src" GG_JOB="$name" GG_BRANCH="$br"
+  # Scheduled report links follow the owner-selected entry; no transport/API changes.
+  export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--import=$GG_OPS/tools/report-links-preload.mjs"
+  export GG_REPORT_DOMAIN=$(python3 -c 'import json,pathlib; p=pathlib.Path("/srv/gg/routing/mode.json"); m=json.loads(p.read_text())["mode"] if p.exists() else "domain"; print({"domain":"dash.genglas.ru","ip":"201.51.7.251:8443"}[m])')
   set -euo pipefail
   . "$GG_OPS/lib/gg.sh"
   . "$GG_JOBS_DIR/$script"
@@ -50,7 +53,7 @@ changed=false
 if [ "$nodata" = yes ]; then
   write_status
 elif [ "$rc" = 0 ]; then
-  dc=0; gg_data_commit "job $name: $started" || dc=$?
+  dc=0; gg_data_commit "job $name: $started" "$(gg_safe "$br")" || dc=$?
   if [ "$dc" = 0 ]; then changed=true
   elif [ "$dc" != 1 ]; then rc=91; gg_warn "данные сняты, но не сохранены в git данных" 2>&1 | tee -a "$log" >&2; fi
   write_status   # до сборки сайта: /status/ в этой же сборке покажет свежий итог

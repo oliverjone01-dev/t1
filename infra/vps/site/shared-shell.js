@@ -721,6 +721,8 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   }
   if(/Маркетплейсы/.test(label)&&!summary.dataset.ggMarketIconReady){
    summary.dataset.ggMarketIconReady='true';
+   const caption=[...summary.children].find(n=>n.tagName==='SPAN'&&!n.classList.contains('gg-nav-icon')&&/Маркетплейсы/.test(n.textContent));if(caption)caption.classList.add('gg-nav-label');summary.title='Маркетплейсы';summary.setAttribute('aria-label','Маркетплейсы');
+
    let icon=summary.querySelector('.gg-nav-icon');if(!icon){icon=document.createElement('span');icon.className='gg-nav-icon';const text=summary.firstChild;if(text?.nodeType===Node.TEXT_NODE)text.textContent=text.textContent.replace(/[▦▥▤]/g,'');summary.prepend(icon);}
    icon.style.cssText='width:24px;height:24px;min-width:24px;display:inline-flex;align-items:center;justify-content:center';
    icon.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" style="width:24px;height:24px" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5M3 9v2a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 2-2M5 13v8h14v-8M9 21v-6h6v6"/></svg>';
@@ -730,3 +732,31 @@ const trend=panel('Динамика коммуникаций','Клиентск�
 })();
 
 
+
+// Common dashboard dropdowns: one accessible listbox for goal and period controls.
+(function(){
+ if(window.ggSelectsReady)return;window.ggSelectsReady=true;
+ const entries=new WeakMap();let open=null,serial=0,queued=false;
+ const targets=()=>[document.getElementById('gg-time-grouping'),document.querySelector('.gg-plan-bars [data-goal-key]')].filter(Boolean);
+ function close(focus=false){if(!open)return;const e=open;open=null;e.menu.hidden=true;e.button.setAttribute('aria-expanded','false');e.button.removeAttribute('aria-activedescendant');if(focus)e.button.focus({preventScroll:true});}
+ function move(e,index){const rows=[...e.menu.querySelectorAll('[role=option]')];if(!rows.length)return;e.index=(index+rows.length)%rows.length;rows.forEach((n,i)=>n.classList.toggle('gg-select-focused',i===e.index));e.button.setAttribute('aria-activedescendant',rows[e.index].id);rows[e.index].scrollIntoView({block:'nearest'});}
+ function place(e){const r=e.button.getBoundingClientRect(),bounds=e.button.closest('dialog')?.getBoundingClientRect()||{left:0,right:innerWidth,top:0,bottom:innerHeight},available=Math.max(80,bounds.bottom-r.bottom-14),height=Math.min(300,available);e.menu.style.width=Math.max(150,r.width)+'px';e.menu.style.maxHeight=height+'px';e.menu.style.left=Math.max(bounds.left+8,Math.min(bounds.right-e.menu.offsetWidth-8,r.left))+'px';e.menu.style.top=(r.bottom+6)+'px';}
+ function show(e,last=false){if(e.native.disabled)return;if(open===e){close();return;}close();sync(e);open=e;e.menu.hidden=false;e.button.setAttribute('aria-expanded','true');place(e);move(e,last?e.native.options.length-1:Math.max(0,e.native.selectedIndex));}
+ function choose(e,index){const o=e.native.options[index];if(!o||o.disabled)return;e.native.value=o.value;close(true);e.native.dispatchEvent(new Event('change',{bubbles:true}));sync(e);}
+ function sync(e){if(!e.native.isConnected){e.menu.remove();if(open===e)close();return;}const o=e.native.selectedOptions[0],text=o?.textContent||'Выбрать';if(e.value.textContent!==text)e.value.textContent=text;if(e.button.disabled!==e.native.disabled)e.button.disabled=e.native.disabled;if(e.native.disabled&&open===e)close();
+  const signature=[...e.native.options].map(o=>o.value+'|'+o.textContent+'|'+o.disabled).join('\n');
+  if(signature!==e.signature){e.signature=signature;e.menu.replaceChildren();[...e.native.options].forEach((option,i)=>{const row=document.createElement('button');row.type='button';row.id=e.menu.id+'-'+i;row.className='gg-select-option';row.setAttribute('role','option');row.tabIndex=-1;row.disabled=option.disabled;const label=document.createElement('span');label.textContent=option.textContent;const check=document.createElement('span');check.className='gg-select-check';check.setAttribute('aria-hidden','true');check.textContent='✓';row.append(label,check);row.onclick=()=>choose(e,i);row.onpointerenter=()=>move(e,i);e.menu.append(row);});}
+  [...e.menu.children].forEach((row,i)=>{const selected=i===e.native.selectedIndex;if(row.getAttribute('aria-selected')!==String(selected))row.setAttribute('aria-selected',String(selected));});
+ }
+ function enhance(native){let e=entries.get(native);if(e){sync(e);return;}const wrap=document.createElement('span');wrap.className='gg-custom-select '+(native.matches('[data-goal-key]')?'gg-select-goal':'gg-select-period');native.before(wrap);wrap.append(native);native.classList.add('gg-select-native');native.setAttribute('aria-hidden','true');native.tabIndex=-1;
+  const button=document.createElement('button');button.type='button';button.className='gg-select-trigger';button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');const label=native.getAttribute('aria-label')||[...(native.closest('label')?.childNodes||[])].filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent.trim()).join(' ')||'К какой цели идём';button.setAttribute('aria-label',label);const value=document.createElement('span');value.className='gg-select-value';const arrow=document.createElement('span');arrow.className='gg-select-arrow';arrow.setAttribute('aria-hidden','true');arrow.innerHTML='<svg viewBox="0 0 16 16" fill="none"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';button.append(value,arrow);wrap.append(button);
+  const menu=document.createElement('div');menu.className='gg-select-menu';menu.id='gg-select-menu-'+(++serial);menu.setAttribute('role','listbox');menu.setAttribute('aria-label',label);menu.hidden=true;button.setAttribute('aria-controls',menu.id);(native.closest('dialog')||document.body).append(menu);
+  e={native,wrap,button,value,menu,index:0,signature:''};entries.set(native,e);button.onclick=()=>show(e);native.addEventListener('change',()=>sync(e));native.addEventListener('focus',()=>button.focus({preventScroll:true}));
+  button.onkeydown=event=>{const k=event.key;if(['ArrowDown','ArrowUp','Home','End','Enter',' ','Escape'].includes(k)){event.preventDefault();event.stopPropagation();if(k==='Escape'){close(true);return;}if(open!==e){show(e,k==='End');if(k==='Home')move(e,0);return;}if(k==='ArrowDown')move(e,e.index+1);else if(k==='ArrowUp')move(e,e.index-1);else if(k==='Home')move(e,0);else if(k==='End')move(e,e.native.options.length-1);else choose(e,e.index);}else if(k==='Tab')close();};
+  sync(e);
+ }
+ function scan(){queued=false;targets().forEach(enhance);if(open&&!open.native.isConnected)close();}
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(scan);}}
+ document.addEventListener('pointerdown',e=>{if(open&&!open.wrap.contains(e.target)&&!open.menu.contains(e.target))close();},true);
+ document.addEventListener('close',()=>close(),true);document.addEventListener('scroll',e=>{if(open&&!open.menu.contains(e.target))close();},true);window.addEventListener('resize',()=>close());new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});scan();
+})();

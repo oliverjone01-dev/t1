@@ -28,6 +28,37 @@ function run(d: string, args: string[], budget = "10") {
   return (r.stdout || "") + (r.stderr || "");
 }
 describe("прогресс реализации восстанавливается вместе с месяцем", () => {
+  it("месяц без продаж не закрывается: первая поздняя продажа собирается один раз", () => {
+    const d = seed();
+    writeFileSync(join(d, "realization_monthly.ndjson"), "");
+    writeFileSync(join(d, "realization_state.json"), JSON.stringify({ pairs: [] }));
+    writeFileSync(join(d, "orders.ndjson"), "");
+    run(d, ["2026-06"]);
+    expect(read(d, "realization_state.json").pairs).not.toContain("2026-06/1001");
+    writeFileSync(join(d, "orders.ndjson"), JSON.stringify({ campaign: "1001", fin: "2026-06-10", status: "DELIVERED", delivered: 1 }) + "\n");
+    run(d, ["2026-06"]);
+    const before = readFileSync(join(d, "realization_monthly.ndjson"), "utf8");
+    expect(JSON.parse(before.trim())).toMatchObject({ ym: "2026-06", sold: 1 });
+    run(d, ["2026-06"]);
+    expect(readFileSync(join(d, "realization_monthly.ndjson"), "utf8")).toBe(before);
+  }, 60000);
+  it("старый маркер без обоих слоёв фактов не блокирует продажи пустого месяца", () => {
+    const d = seed();
+    writeFileSync(join(d, "realization_monthly.ndjson"), JSON.stringify({ ym: "2026-05", sku: "OLD", sold: 9, ret: 0, amount: 9000, from: [] }) + "\n");
+    run(d, ["2026-06"]);
+    const rows = readFileSync(join(d, "realization_monthly.ndjson"), "utf8").trim().split("\n").map(l => JSON.parse(l));
+    expect(rows.find(r => r.ym === "2026-05")).toMatchObject({ sold: 9, amount: 9000 });
+    expect(rows.find(r => r.ym === "2026-06")).toMatchObject({ sold: 1 });
+  }, 60000);
+  it("строка подробного отчёта запрещает автоматическое переоткрытие даже при пустом агрегате", () => {
+    const d = seed();
+    writeFileSync(join(d, "realization_monthly.ndjson"), "");
+    const detail = JSON.stringify({ ym: "2026-06", order: "old", sku: "S", sold: 1 }) + "\n";
+    writeFileSync(join(d, "realization_orders.ndjson"), detail);
+    run(d, ["2026-06"]);
+    expect(readFileSync(join(d, "realization_monthly.ndjson"), "utf8")).toBe("");
+    expect(readFileSync(join(d, "realization_orders.ndjson"), "utf8")).toBe(detail);
+  }, 60000);
   it("откаченный новый магазин не помечает старый снимок полностью покрытым", () => {
     const d = seed();
     writeFileSync(join(d, "realization_state.json"), JSON.stringify({ pairs: ["2026-06/2002"], by_month: { "2026-06": { shops_with_rows: ["2002"] } } }));

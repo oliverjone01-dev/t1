@@ -2,7 +2,8 @@
 import json, os, time, urllib.request, urllib.error, hmac, hashlib
 from pathlib import Path
 
-BASE='https://dash.genglas.ru/_audit-bridge'
+# Stable server-to-server transport; public report links follow the owner-selected mode.
+BASE='https://201.51.7.251:8443/_audit-bridge'
 JOB=os.getenv('AUDIT_JOB_ID','')
 KEY=os.getenv('OPENAI_API_KEY','').strip()
 BRIDGE=os.getenv('GG_AUDIT_BRIDGE_TOKEN','').strip() or hmac.new(KEY.encode(),b'gg-private-audit-bridge-v1',hashlib.sha256).hexdigest()
@@ -71,4 +72,5 @@ def run():
     raise SystemExit('VPS result delivery uncertain; no automatic generation retry')
 
 if __name__=='__main__': run()
+
 

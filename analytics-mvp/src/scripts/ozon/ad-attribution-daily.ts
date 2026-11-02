@@ -29,7 +29,7 @@ export function windows(from: string, to: string): Array<[string, string]> {
   return out;
 }
 
-// Кампании дашборда (top_spend + сливы по окнам), а не ВСЕ - резко меньше отчётов.
+// Dashboard IDs remain a fallback; the queue also includes all campaigns with spend in the collection window.
 function dashboardCampaignIds(): string[] {
   const ids = new Set<string>();
   try {
@@ -38,6 +38,18 @@ function dashboardCampaignIds(): string[] {
   } catch { /* */ }
   if (!ids.size) { try { for (const c of (JSON.parse(readFileSync("data/ads_30d.json", "utf-8")).top_spend || [])) if (c?.id) ids.add(String(c.id)); } catch { /* */ } }
   return [...ids];
+}
+
+/** Include every supported campaign with spend, even when it never entered a dashboard top. */
+export function attributionCampaignIds(daily: Array<{d:string;id:string;sp:number}>, fallback:string[], supported:Set<string>, from:string, to:string):string[]{
+  const ids=new Set(fallback.map(String));
+  for(const row of daily)if(row.d>=from&&row.d<=to&&row.sp>0)ids.add(String(row.id));
+  return [...ids].filter(id=>supported.has(id));
+}
+export function attributionPriority(state:Record<string,{through:string}>,spend:Map<string,number>,to:string){
+  return (a:string,b:string)=>Number(state[a]?.through===to)-Number(state[b]?.through===to)
+    || Number((spend.get(b)??0)>0)-Number((spend.get(a)??0)>0)
+    || (state[a]?.through??'').localeCompare(state[b]?.through??'') || (spend.get(b)??0)-(spend.get(a)??0);
 }
 
 export async function main() {
@@ -52,13 +64,11 @@ export async function main() {
   const spend = new Map<string, number>();
   const daily = readRows("data/ads_daily.ndjson");
   for (const r of daily) if (r.d >= shiftDay(to, -6) && r.d <= to) spend.set(String(r.id), (spend.get(String(r.id)) ?? 0) + r.sp);
-  const ids = dashboardCampaignIds().filter(id => supported.has(id)).sort((a,b) => {
-    // Сначала активные незакрытые кампании; дальше самые старые checkpoints.
-    const sa = state[a]?.through ?? "", sb = state[b]?.through ?? "";
-    return Number((spend.get(b) ?? 0) > 0) - Number((spend.get(a) ?? 0) > 0) || sa.localeCompare(sb) || (spend.get(b) ?? 0) - (spend.get(a) ?? 0);
-  });
-  if (!ids.length) throw new Error("Нет доступных CPC кампаний дашборда");
-  const deadline = Date.now() + Number(process.env.ADS_ATTR_BUDGET_MIN || "9") * 60000;
+  const ids = attributionCampaignIds(daily,dashboardCampaignIds(),supported,recent,to).sort(attributionPriority(state,spend,to));
+  if (!ids.length) throw new Error("Нет доступных CPC кампаний с расходом или в дашборде");
+  const budget = Number(process.env.ADS_ATTR_BUDGET_MIN || "9");
+  if(!Number.isFinite(budget)||budget<1||budget>120)throw new Error("ADS_ATTR_BUDGET_MIN должен быть от 1 до 120 минут");
+  const deadline = Date.now() + budget * 60000;
   const failures: string[] = []; let processed = 0;
   for (const id of ids) {
     if (Date.now() >= deadline) break;

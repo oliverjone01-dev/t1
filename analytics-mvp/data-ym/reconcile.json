@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-11-02T09:11:28.554Z",
+  "generated_at": "2026-11-02T09:37:30.137Z",
   "today": "2026-11-02",
   "periods": [
     {
@@ -11,25 +11,18 @@
       "units": {
         "orders_delivered_net": 143,
         "orders_returned": 9,
-        "realization_sold": null,
-        "realization_ret": null,
-        "realization_net": null,
-        "diff": null,
+        "realization_sold": 152,
+        "realization_ret": 3,
+        "realization_net": 149,
+        "diff": -6,
         "coverage": {
           "known": true,
           "shops_sold": 6,
-          "shops_with_rows": 0,
-          "shops_missing": [
-            "148992469",
-            "149000600",
-            "149001087",
-            "149032438",
-            "149035080",
-            "149154933"
-          ],
-          "complete": false
+          "shops_with_rows": 6,
+          "shops_missing": [],
+          "complete": true
         },
-        "status": "нет отчёта о реализации за месяц (не собран / NO_DATA)"
+        "status": "расхождение -6 шт: заказы vs реализация (доначисления, поздние возвраты, месяц ещё не закрыт)"
       },
       "money": {
         "payout_derived": 3553558,
@@ -101,7 +94,13 @@
           "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
         }
       },
-      "revenue": null,
+      "revenue": {
+        "accruals": 9826258,
+        "realization_amount": 4190647,
+        "diff": 5635611,
+        "best_price_types": "BUYER",
+        "status": "расхождение 5635611 ₽; ближе всего состав цен BUYER (YM_REVENUE_PRICE_TYPES)"
+      },
       "cogs": {
         "sku_total": 52,
         "sku_with_cogs": 49,
@@ -127,15 +126,9 @@
         "coverage": {
           "known": true,
           "shops_sold": 5,
-          "shops_with_rows": 0,
-          "shops_missing": [
-            "148992469",
-            "149000600",
-            "149001087",
-            "149035080",
-            "149154933"
-          ],
-          "complete": false
+          "shops_with_rows": 5,
+          "shops_missing": [],
+          "complete": true
         },
         "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       },
@@ -475,22 +468,16 @@
         "2026-07",
         "2026-08",
         "2026-09",
+        "2026-10",
         "2026-11"
       ],
-      "sku_prev_month": 0,
+      "sku_prev_month": 66,
       "prev_month_coverage": {
         "known": true,
         "shops_sold": 6,
-        "shops_with_rows": 0,
-        "shops_missing": [
-          "148992469",
-          "149000600",
-          "149001087",
-          "149032438",
-          "149035080",
-          "149154933"
-        ],
-        "complete": false
+        "shops_with_rows": 6,
+        "shops_missing": [],
+        "complete": true
       }
     },
     "netting_key": {
@@ -726,7 +713,8 @@
   },
   "verdict": "return",
   "blockers": [
-    "отчёт о реализации за 2026-10 добран частично: 0/6 магазинов с продажами, не хватает 148992469, 149000600, 149001087, 149032438, 149035080, 149154933 - штуки и выручка закрытого месяца не сверены",
+    "штуки закрытого месяца расходятся с реализацией на -6",
+    "выручка закрытого месяца vs реализация: расхождение 5635611 ₽; ближе всего состав цен BUYER (YM_REVENUE_PRICE_TYPES)",
     "кампания 21985942 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 23960471 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 40175277 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности"

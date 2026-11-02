@@ -1,0 +1,132 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ym-empty-realization-resume-20261102",
+  "timestamp": "2026-11-02T12:19:32.419589+03:00",
+  "deliverable_ref": "/Users/gengroup/Documents/Codex/ym-audit-20261102/feniks-code-audit-20261102.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr after repair:8.4 here because independently reproduced legacy skip,dual-layer occupancy and budgeted idempotence; final runtime and external financial completeness expressly excluded.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Full-refresh.log shows realization2seconds with0Oct facts and17Octdone. This is skipped API, not proven API NO_DATA."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Independent old/new producer fixture:legacy done empty month0generates/0rows becomes2generates/2sold. Three repeated budget1 runs1,2,2sold."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Independent zero monthly/from[],nonzero/from[],zero order-only and nonzero order-only fixtures inhibit reopening;0generate and detail bytes retained.55 repo assertions pass."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Monthly and detail layers jointly define occupiedMonths. Order-only factual presence blocks reopening independently of monthly layer and previous state."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "All2 changed paths inspected. No production numeric constant,finance formula,OZON path/workflow mutation. Existing rebuild,shadow,conflict guards unchanged."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Exact hash8b7f95b9f601d5ef recomputed before/after probes. Final runtime freshness not claimed."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No financial GO or NO_DATA assertion. Logging contains only month/campaign identifiers; facts preserved on occupied month cases. Explicit rebuild remains required for ambiguous populated month."
+    },
+    {
+      "id": "B8",
+      "result": "PASS",
+      "evidence": "No-sales marker test:empty sales creates no done pairs; late sales fixture and existing resume tests verify subsequent one-time collection."
+    },
+    {
+      "id": "B9",
+      "result": "PASS",
+      "evidence": "Budgeted recovery of2legacydone pairs keeps second pair pending after first success; later resume fetches remaining pair once,third run0newgenerate."
+    },
+    {
+      "id": "B10",
+      "result": "PASS",
+      "evidence": "Full YM520/521:svod-ui.test line811 fails on saved pending-cost data. HEAD vs cd9a859 differs only reviewed2report files;data-ym tree f1460654ce15dc710e03f7f08acf85f66c38ecfd,fixtures tree afc52aca84591d583184b660e0754db3dc1462db,svod-ui/build-katya/derive-lib blobs identical. UI suite does not execute changed reports.ts. Separate baseline checkout rerun not performed; source/input equivalence establishes unrelated failure."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "evidence_ledger": [
+    {
+      "gap": "Runtime refresh and October financial reconciliation remain separate",
+      "evidence": "run41419027115 still pending at audit; no independent bank source. Code GO does not certify financial completeness.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Formal long-term milestone and measured external latency not applicable to short repair",
+      "evidence": "Self-check declares one-day task and external API readiness unknown; no deadline or API guarantee asserted.",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -1
+    }
+  ],
+  "gaps": [
+    "Runtime refresh and October financial reconciliation remain separate",
+    "Formal long-term milestone and measured external latency not applicable to short repair",
+    "Full YM suite has1 pre-existing UI snapshot expectation failure; reviewed report change has identical UI sources/data to cd9a859 baseline."
+  ],
+  "rework_tz": "",
+  "confidence": 0.95,
+  "iteration": 1,
+  "sources_of_truth": [
+    "/Users/gengroup/Documents/Codex/ym-audit-20261102/self-check.md",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261102/full-refresh.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261102/feniks-code-probes.py",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261102/feniks-code-probes.json",
+    "20d6fabb1be1399a5ffacb54d7771654d82a6f49"
+  ],
+  "audience": "Ivan"
+}

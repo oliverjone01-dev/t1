@@ -1,0 +1,177 @@
+{
+  "before": {
+    "rows": [],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 0,
+    "stdout": "realization: всего 0 строк (0 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/before/realization_monthly.ndjson\n",
+    "stderr": "::warning::realization 2026-06: ни один отчёт не разобран - месяц не трогаю\n"
+  },
+  "after": {
+    "rows": [
+      {
+        "ym": "2026-06",
+        "sku": "SKU-1",
+        "sold": 2,
+        "ret": 0,
+        "amount": 2000,
+        "from": [
+          "1001",
+          "2002"
+        ],
+        "platform": "ym",
+        "source": "goods-realization"
+      }
+    ],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 2,
+    "stdout": "  goods-realization: report строк 1, разделитель ';'\n  goods-realization: report строк 1, разделитель ';'\nrealization 2026-06: SKU 1, реализовано нетто 2 шт\nrealization: строк уровня заказа 2 свежих, всего 2\nrealization: всего 1 строк (1 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/after/realization_monthly.ndjson\n",
+    "stderr": "::warning::realization 2026-06/1001: продажи появились, фактов месяца нет - повторно запрашиваю отчёт\n::warning::realization 2026-06/2002: продажи появились, фактов месяца нет - повторно запрашиваю отчёт\n"
+  },
+  "budget_then_resume": [
+    {
+      "rows": [
+        {
+          "ym": "2026-06",
+          "sku": "SKU-1",
+          "sold": 1,
+          "ret": 0,
+          "amount": 1000,
+          "from": [
+            "1001"
+          ],
+          "platform": "ym",
+          "source": "goods-realization"
+        }
+      ],
+      "pairs": [
+        "2026-06/1001"
+      ],
+      "generates": 1,
+      "stdout": "  goods-realization: report строк 1, разделитель ';'\nrealization: строк уровня заказа 1 свежих, всего 1\nrealization: всего 1 строк (1 мес), пар месяц/кампания 1/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/budget/realization_monthly.ndjson\n",
+      "stderr": "::warning::realization 2026-06/1001: продажи появились, фактов месяца нет - повторно запрашиваю отчёт\n::warning::realization 2026-06/2002: продажи появились, фактов месяца нет - повторно запрашиваю отчёт\n::warning::бюджет отчётов исчерпан (1) - остальное доберёт следующий прогон\n"
+    },
+    {
+      "rows": [
+        {
+          "ym": "2026-06",
+          "sku": "SKU-1",
+          "sold": 2,
+          "ret": 0,
+          "amount": 2000,
+          "from": [
+            "1001",
+            "2002"
+          ],
+          "platform": "ym",
+          "source": "goods-realization"
+        }
+      ],
+      "pairs": [
+        "2026-06/1001",
+        "2026-06/2002"
+      ],
+      "generates": 2,
+      "stdout": "  goods-realization: report строк 1, разделитель ';'\nrealization 2026-06: SKU 1, реализовано нетто 2 шт\nrealization: строк уровня заказа 1 свежих, всего 2\nrealization: всего 1 строк (1 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/budget/realization_monthly.ndjson\n",
+      "stderr": ""
+    },
+    {
+      "rows": [
+        {
+          "ym": "2026-06",
+          "sku": "SKU-1",
+          "sold": 2,
+          "ret": 0,
+          "amount": 2000,
+          "from": [
+            "1001",
+            "2002"
+          ],
+          "platform": "ym",
+          "source": "goods-realization"
+        }
+      ],
+      "pairs": [
+        "2026-06/1001",
+        "2026-06/2002"
+      ],
+      "generates": 2,
+      "stdout": "realization 2026-06: SKU 1, реализовано нетто 2 шт (из ранее собранного)\nrealization: всего 1 строк (1 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/budget/realization_monthly.ndjson\n",
+      "stderr": ""
+    }
+  ],
+  "zero_month": {
+    "rows": [
+      {
+        "ym": "2026-06",
+        "sku": "S",
+        "sold": 0,
+        "ret": 0,
+        "amount": 0,
+        "from": [],
+        "platform": "ym",
+        "source": "goods-realization"
+      }
+    ],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 0,
+    "stdout": "realization 2026-06: SKU 1, реализовано нетто 0 шт (из ранее собранного)\nrealization: всего 1 строк (1 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/zero_month/realization_monthly.ndjson\n",
+    "stderr": ""
+  },
+  "unknown_from": {
+    "rows": [
+      {
+        "ym": "2026-06",
+        "sku": "S",
+        "sold": 9,
+        "ret": 0,
+        "amount": 9000,
+        "from": [],
+        "platform": "ym",
+        "source": "goods-realization"
+      }
+    ],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 0,
+    "stdout": "realization 2026-06: SKU 1, реализовано нетто 9 шт (из ранее собранного)\nrealization: всего 1 строк (1 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/unknown_from/realization_monthly.ndjson\n",
+    "stderr": ""
+  },
+  "zero_order_only": {
+    "rows": [],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 0,
+    "stdout": "realization: всего 0 строк (0 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/zero_order_only/realization_monthly.ndjson\n",
+    "stderr": "::warning::realization 2026-06: ни один отчёт не разобран - месяц не трогаю\n"
+  },
+  "order_only": {
+    "rows": [],
+    "pairs": [
+      "2026-06/1001",
+      "2026-06/2002"
+    ],
+    "generates": 0,
+    "stdout": "realization: всего 0 строк (0 мес), пар месяц/кампания 2/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/order_only/realization_monthly.ndjson\n",
+    "stderr": "::warning::realization 2026-06: ни один отчёт не разобран - месяц не трогаю\n"
+  },
+  "no_sales": {
+    "rows": [],
+    "pairs": [],
+    "generates": 0,
+    "stdout": "realization: всего 0 строк (0 мес), пар месяц/кампания 0/2 -> /var/folders/19/nh04vtmx1zsgl15ddttbqjf80000gn/T/feniks-resume-tambptd7/no_sales/realization_monthly.ndjson\n",
+    "stderr": "::warning::realization 2026-06: ни один отчёт не разобран - месяц не трогаю\n"
+  }
+}

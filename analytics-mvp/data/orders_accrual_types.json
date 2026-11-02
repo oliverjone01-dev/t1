@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -81978841,
-  "n": 3392
+  "sum": -82077455,
+  "n": 3396
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2831170,
-  "n": 1660
+  "sum": -2832846,
+  "n": 1664
  },
  {
   "type_id": 3,
@@ -45,8 +45,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -334249,
-  "n": 1738
+  "sum": -335542,
+  "n": 1742
  },
  {
   "type_id": 59,
@@ -87,8 +87,8 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -56840,
-  "n": 205
+  "sum": -57400,
+  "n": 207
  },
  {
   "type_id": 68,
@@ -101,8 +101,8 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -20630,
-  "n": 1310
+  "sum": -20670,
+  "n": 1314
  },
  {
   "type_id": 10,
@@ -143,8 +143,8 @@
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -2975,
-  "n": 121
+  "sum": -3000,
+  "n": 122
  },
  {
   "type_id": 45,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1602885,
-  "n": 382
+  "sum": 1626034,
+  "n": 390
  }
 ]

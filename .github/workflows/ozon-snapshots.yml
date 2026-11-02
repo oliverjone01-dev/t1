@@ -257,6 +257,8 @@ jobs:
           npm run ads:sku:daily || { echo "реклама по SKU не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по SKU не обновлена"; }
 
       - name: per-SKU attribution по дням (основная/объединённая, любой период)
+        env:
+          ADS_ATTR_BUDGET_MIN: "45"
         run: |
           set -euo pipefail
           # Дневной ряд per-SKU атрибуции (groupBy=DATE) -> data/ads_attr_daily.ndjson:

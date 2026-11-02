@@ -257,6 +257,17 @@ describe("async отчёты кампаний", () => {
     await attr(); expect(OzonPerformance.prototype.requestStatistics).toHaveBeenCalledWith(["1"],"2026-08-27","2026-10-20","DATE");
     const first=raw("ads_attr_daily.ndjson"); await attr(); expect(raw("ads_attr_daily.ndjson")).toBe(first);
   });
+  it("attribution imports a spending campaign outside tops once and preserves old history on replay", async()=>{
+    vi.mocked(OzonPerformance.prototype.campaigns).mockResolvedValue([{id:"1",paymentType:"CPC"},{id:"3",paymentType:"CPC"},{id:"2",paymentType:"CPO"}] as any);
+    put("ads_periods.json",{p7:{top_spend:[{id:"1"}]}},false);
+    put("ads_daily.ndjson",[{d:"2026-10-20",id:"1",sp:100},{d:"2026-10-20",id:"3",sp:100},{d:"2026-10-20",id:"2",sp:1000}]);
+    put("ads_attr_daily.ndjson",[{d:"2026-07-01",id:"3",sku:"123",sp:20,om:5}]);
+    await attr(); const first=raw("ads_attr_daily.ndjson"); await attr(); expect(raw("ads_attr_daily.ndjson")).toBe(first);
+    const rows=first.trim().split("\n").map(l=>JSON.parse(l));expect(rows).toHaveLength(3);
+    expect(rows.filter(r=>r.d==="2026-10-20").reduce((n,r)=>n+r.sp,0)).toBe(200);
+    expect(rows.some(r=>r.id==="3"&&r.d==="2026-10-20")).toBe(true);expect(rows.some(r=>r.d==="2026-07-01"&&r.sp===20)).toBe(true);
+    expect(OzonPerformance.prototype.requestStatistics).not.toHaveBeenCalledWith(["2"],expect.anything(),expect.anything(),expect.anything());
+  });
   it("дедлайн не позволяет скачать незавершённый отчёт", async () => {
     await expect(attributionReport(new OzonPerformance({clientId:"x",clientSecret:"y"}),"1","2026-10-20","2026-10-20",Date.now())).rejects.toThrow("дедлайна");
     expect(OzonPerformance.prototype.downloadStatistics).not.toHaveBeenCalled();

@@ -1,0 +1,65 @@
+name: OZON attribution recovery
+on:
+  workflow_dispatch:
+    inputs:
+      budget_minutes:
+        description: 'Sequential report budget, 1-120 minutes; progress is resumable'
+        required: true
+        default: '45'
+permissions:
+  contents: write
+concurrency:
+  group: ozon-data
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 140
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Collect normalized attribution; keep successful campaign windows
+        id: collect
+        continue-on-error: true
+        env:
+          OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+          OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+          ADS_ATTR_BUDGET_MIN: ${{ inputs.budget_minutes }}
+        run: node --import tsx src/scripts/ozon/ad-attribution-daily.ts
+      - name: Validate unique day-campaign-SKU keys before publishing
+        run: |
+          node --import tsx --input-type=module <<'JS'
+          import {readRows,validateRows} from './src/scripts/ozon/collector-integrity.ts';
+          const rows=readRows('data/ads_attr_daily.ndjson');
+          validateRows(rows,r=>`${r.d}|${r.id}|${r.sku}`);
+          if(!rows.length)throw new Error('No attribution rows');
+          console.log('Validated unique attribution rows:',rows.length);
+          JS
+      - name: Commit only accepted attribution rows and checkpoints
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/ads_attr_daily.ndjson data/ads_attr_state.json data/ads_report_adjustments.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: recover CPC attribution across all campaigns'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+      - name: Report incomplete collection after preserving accepted progress
+        if: steps.collect.outcome != 'success'
+        run: |
+          echo '::error::Attribution incomplete; accepted progress saved. Resume recovery; missing data is not zero.'
+          exit 1

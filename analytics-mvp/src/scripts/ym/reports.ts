@@ -151,6 +151,7 @@ async function realization(months: string[]) {
   const ordRows: any[] = [];
   const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
+  const existingOrderRows = readNdjson<any>(OUT_ORD);
   const fresh: any[] = [];
   // Возобновляемость: бэкфилл 8 месяцев x 14 кампаний не влезает в лимит генерации (1 / 2 мин на
   // кабинет), поэтому помним разобранные пары (месяц, кампания) в realization_state.json и каждый
@@ -159,14 +160,14 @@ async function realization(months: string[]) {
   const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
   const originalPairs = new Set(donePairs);
-  // ПЕРЕОТКРЫТИЯ ПАР БОЛЬШЕ НЕТ. Две итерации подряд оно оказывалось небезопасным, и оба раза по
+  // Пары УЖЕ ЗАПОЛНЕННЫХ месяцев не переоткрываем. Две итерации подряд это было небезопасным, и оба раза по
   // одной причине: признак «магазин ничего не дал» выводился косвенно, а разбор складывает поверх
   // накопленного (a.sold += ...), поэтому любая ошибка вывода превращается во второй слой.
   //   итерация 1: признак читался из состояния (shops_with_rows), пустого у старых месяцев;
   //   итерация 2: признак читался из поля from, а писатель проставляет from ВСЕМ строкам, включая
   //   поднятые из файла с пустым множеством - через один прогон from: [] стоял у всех 177 строк,
   //   и переоткрылись бы 14 пар на 4 830 709 ₽ реализации.
-  // Косвенный признак тут в принципе не годится. Оставляем один явный и идемпотентный путь:
+  // Для месяца с любыми накопленными фактами остаётся один явный и идемпотентный путь:
   // ПЕРЕСБОР МЕСЯЦА С НУЛЯ по прямой команде оператора (`ym:realization -- 2026-02 --rebuild`).
   // Он не складывает, а заменяет: строки месяца выбрасываются, пары месяца открываются, месяц
   // собирается заново. Задвоение невозможно по построению, а не по выводу из данных.
@@ -193,6 +194,19 @@ async function realization(months: string[]) {
     if (r.fake || !DELIVERED_STATUSES.has(r.status) || !r.delivered) continue;
     const k = `${String(r.fin).slice(0, 7)}/${r.campaign}`;
     soldBy[k] = (soldBy[k] || 0) + r.delivered;
+  }
+  // 02.11: текущий месяц раньше закрывался, когда продаж ещё не было. После первых продаж
+  // donePairs навсегда блокировал запрос (октябрь: 0/6 при 17 закрытых парах).
+  // Автоматически открыть можно только полностью пустой месяц: ни агрегатов, ни строк заказов.
+  // В таком месяце нет слоя, на который можно повторно сложить отчёт. Любая строка, даже нулевая
+  // или с неизвестным from, запрещает это восстановление и требует явного --rebuild.
+  const occupiedMonths = new Set([...existing, ...existingOrderRows].map((r) => r.ym));
+  if (!rebuild) for (const ym of months) {
+    if (occupiedMonths.has(ym)) continue;
+    for (const { campaign: c } of targets) {
+      const pair = `${ym}/${c.id}`;
+      if (soldBy[pair] && donePairs.delete(pair)) console.warn(`::warning::realization ${pair}: продажи появились, фактов месяца нет - повторно запрашиваю отчёт`);
+    }
   }
   const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
   const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
@@ -240,7 +254,7 @@ async function realization(months: string[]) {
       const pair = `${ym}/${c.id}`;
       if (donePairs.has(pair)) continue;
       // Магазин без наших продаж за месяц: отчёт заведомо пуст, генерацию не тратим.
-      if (!soldBy[pair]) { donePairs.add(pair); continue; }
+      if (!soldBy[pair]) continue; // отсутствие продаж сегодня не закрывает месяц навсегда
       let tables: Tbl[] | null = null;
       try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
       catch (e) {
@@ -320,7 +334,7 @@ async function realization(months: string[]) {
   // Уровень заказа копится только за месяцы, реально собранные этим прогоном. Дописываем к тому,
   // что уже лежит, с дедупом по (месяц, заказ, артикул, роль): повтор прогона не должен задваивать.
   if (ordRows.length) {
-    const prev = readNdjson<any>(OUT_ORD);
+    const prev = existingOrderRows;
     const key = (r: any) => `${r.ym}|${r.order}|${r.sku}|${r.role}`;
     const m = new Map<string, any>();
     for (const r of prev) m.set(key(r), r);

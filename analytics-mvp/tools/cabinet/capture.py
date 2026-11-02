@@ -5,6 +5,7 @@ or publishing code. The scheduler performs browser collection and a reviewed Git
 publication separately.
 """
 import argparse
+from collections import Counter
 import datetime as dt
 from decimal import Decimal
 import hashlib
@@ -86,8 +87,23 @@ def merge_capture(old, fresh):
             raise ValueError('Older capture cannot replace a newer capture')
         old_keys = {(r['sku'], r['scheme']) for r in previous['items']}
         new_keys = {(r['sku'], r['scheme']) for r in fresh['items']}
+        old_counts = Counter(r['sku'] for r in previous['items'])
+        new_counts = Counter(r['sku'] for r in fresh['items'])
+        for sku, scheme in old_keys:
+            if scheme is None and old_counts[sku] == 1 and new_counts[sku] > 1:
+                raise ValueError('Incoming snapshot ambiguously splits an unknown scheme row')
         if old_keys - new_keys:
-            raise ValueError('Incoming snapshot loses previously measured SKU/scheme rows')
+            new_by_sku = {r['sku']: r for r in fresh['items']}
+            for sku, scheme in old_keys - new_keys:
+                replacement = new_by_sku.get(sku, {}).get('scheme')
+                parts = replacement.split(',') if isinstance(replacement, str) else []
+                parts = [part.strip() for part in parts]
+                # Ozon fills previously unknown schemes after orders arrive. Only
+                # a one-to-one refinement is safe; never collapse or invent rows.
+                if (scheme is not None or old_counts[sku] != 1 or new_counts[sku] != 1
+                        or not parts or len(parts) != len(set(parts))
+                        or not set(parts) <= {'FBO', 'FBS'}):
+                    raise ValueError('Incoming snapshot loses previously measured SKU/scheme rows')
     rows = [r for r in rows if (r['day'], r['phase']) != key] + [fresh]
     rows.sort(key=lambda r: (r['day'], r['captured_at']))
     return {'version': 1, 'company': 'GENGLASS', 'snapshots': rows}

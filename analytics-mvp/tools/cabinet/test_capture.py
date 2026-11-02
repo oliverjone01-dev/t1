@@ -65,6 +65,54 @@ class CaptureTests(unittest.TestCase):
         fresh=self.build();old=copy.deepcopy(fresh);old['items'].append(dict(old['items'][0],sku='456'))
         with self.assertRaisesRegex(ValueError,'loses'):merge_capture({'version':1,'company':'GENGLASS','snapshots':[old]},fresh)
 
+    def test_unknown_scheme_can_be_refined_without_reusing_old_metrics(self):
+        previous=self.build()
+        untouched=copy.deepcopy(previous);untouched['day']='2026-10-28'
+        stored={'version':1,'company':'GENGLASS','snapshots':[untouched,previous]}
+        original=copy.deepcopy(stored)
+        for scheme in ['FBS','FBO','FBS, FBO','FBO, FBS']:
+            with self.subTest(scheme=scheme):
+                fresh=copy.deepcopy(previous);fresh['items'][0]['scheme']=scheme
+                fresh['items'][0]['views']=20;fresh['totals']['views']=20
+                fresh['captured_at']='2026-10-30T06:56:00+00:00';fresh['day_in_progress']=False
+                result=merge_capture(stored,fresh)
+                self.assertEqual(result['snapshots'],[untouched,fresh])
+                self.assertEqual(stored,original)
+
+    def test_known_scheme_changes_and_loss_of_known_scheme_still_fail(self):
+        for old_scheme,new_scheme in [('FBS','FBO'),('FBS','FBS, FBO'),('FBS',None)]:
+            with self.subTest(old_scheme=old_scheme,new_scheme=new_scheme):
+                previous=self.build();previous['items'][0]['scheme']=old_scheme
+                fresh=copy.deepcopy(previous);fresh['items'][0]['scheme']=new_scheme
+                with self.assertRaisesRegex(ValueError,'loses'):
+                    merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
+    def test_unknown_scheme_cannot_split_into_multiple_scheme_rows(self):
+        previous=self.build();fresh=copy.deepcopy(previous)
+        fresh['items']=[dict(previous['items'][0],scheme=s) for s in ['FBO','FBS']]
+        with self.assertRaisesRegex(ValueError,'loses'):
+            merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
+    def test_refinement_cannot_collapse_an_existing_multirow_sku(self):
+        previous=self.build();previous['items'].append(dict(previous['items'][0],scheme='FBS'))
+        fresh=self.build();fresh['items'][0]['scheme']='FBS'
+        with self.assertRaisesRegex(ValueError,'loses'):
+            merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
+    def test_unknown_scheme_cannot_be_refined_to_invalid_labels(self):
+        previous=self.build()
+        for scheme in ['', ' ', 'unknown', 'FBS,', 'FBS, FBS', 'FBS, unknown']:
+            with self.subTest(scheme=scheme):
+                fresh=copy.deepcopy(previous);fresh['items'][0]['scheme']=scheme
+                with self.assertRaisesRegex(ValueError,'loses'):
+                    merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
+    def test_refinement_does_not_allow_an_older_capture(self):
+        previous=self.build();fresh=copy.deepcopy(previous)
+        fresh['items'][0]['scheme']='FBS';fresh['captured_at']='2026-10-29T08:00:00+00:00'
+        with self.assertRaisesRegex(ValueError,'Older capture'):
+            merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
     def test_other_day_and_morning_observation_survive_evening(self):
         old=self.build();old['day']='2026-10-28';old['phase']='утро'
         fresh=self.build();fresh['phase']='вечер'

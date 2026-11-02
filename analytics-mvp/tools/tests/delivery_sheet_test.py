@@ -56,6 +56,48 @@ class DeliverySheetTests(unittest.TestCase):
     def prepare(self, active, archive=None, data=None, state=None, now=NOW):
         return sheet.prepare(data or baseline(), state, active, archive if archive is not None else csv_text(row(date="4 октября")), now, LOCATIONS)
 
+    def test_queue_and_exact_cancel_comment_are_not_missing_financial_rows(self):
+        queued = row(order="0147868445-0123", date="", ship="", **{"7":"В очереди"})
+        cancelled = row(date="", ship="", **{"7":"", "8":"ОТМЕНЕН"})
+        out, status = self.prepare(csv_text(row(), queued, cancelled))
+        self.assertEqual(status["undated_rows"], 0)
+        self.assertEqual(status["missing_cost"], 0)
+        self.assertEqual(status["counts"]["queued_rows"], 1)
+        self.assertEqual(status["counts"]["cancelled_rows"], 1)
+
+    def test_approved_extra_is_removed_without_touching_primary_and_replay_is_stable(self):
+        main = row(ship="1000", paid="2000")
+        extra = row(ship="190", paid="", **{"2":"", "3":"Футорки"})
+        old, _ = self.prepare(csv_text(main, extra))
+        state = json.loads(old["delivery_sheet_state.json"])
+        rules = sheet.review_rules({"version":1,"source_mode":"read_only","rules":[{"action":"exclude_extra","order":main[1],"ledger":"","offer":"Футорки","date":"2026-10-07","ship_cents":19000}]})
+        out, status = sheet.prepare(old, state, csv_text(main, extra), csv_text(row(date="4 октября")), NOW, LOCATIONS, rules)
+        self.assertEqual(status["ship"], 1000)
+        self.assertEqual(status["missing_customer_paid"], 0)
+        actual = [json.loads(l) for l in out["delivery_orders.ndjson"].splitlines() if json.loads(l)["order"]==main[1]]
+        self.assertEqual(actual[0]["ship"], 1000)
+        again, _ = sheet.prepare(out, json.loads(out["delivery_sheet_state.json"]), csv_text(main, extra), None, NOW, LOCATIONS, rules)
+        for f in sheet.FILES:
+            self.assertEqual(out[f], again[f])
+        bad = [{"action":"exclude_extra","order":main[1],"ledger":main[2],"offer":main[3],"date":"2026-10-07","ship_cents":100000}]
+        with self.assertRaisesRegex(ValueError,"primary"):
+            sheet.prepare(old,state,csv_text(main,extra),None,NOW,LOCATIONS,bad)
+
+    def test_confirmed_date_restores_dashboard_only_and_rejects_changed_source_date(self):
+        source = row(date="", **{"2":"С26-1515", "3":"GGL-09-2"})
+        rules = sheet.review_rules({"version":1,"source_mode":"read_only","rules":[{"action":"restore_date","order":source[1],"ledger":source[2],"offer":source[3],"date":"2026-10-07"}]})
+        text = csv_text(source)
+        out, status = sheet.prepare(baseline(),None,text,csv_text(row(date="4 октября")),NOW,LOCATIONS,rules)
+        self.assertEqual(source[4], "")
+        self.assertEqual(text,csv_text(source))
+        self.assertEqual(status["undated_rows"],0)
+        self.assertEqual(status["counts"]["reviewed_date_rows"],1)
+        event=json.loads(out["delivery_sheet_state.json"])["events"][0]
+        self.assertEqual(event["date"],"2026-10-07")
+        source[4]="8 октября"
+        with self.assertRaises(ValueError):
+            sheet.prepare(out,json.loads(out["delivery_sheet_state.json"]),csv_text(source),None,NOW,LOCATIONS,rules)
+
     def test_actual_money_mapping_and_replayed_copy(self):
         a = row()
         b = row("0124441920-0100-1", "13 октября", "11430,05", "7100")

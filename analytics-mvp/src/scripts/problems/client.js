@@ -2,19 +2,19 @@ const D=JSON.parse(document.getElementById('problems-data').textContent);
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(n,d=0)=>n==null?'н/д':Number(n).toLocaleString('ru-RU',{maximumFractionDigits:d});
 const names={cancel:'Отмена',lateShip:'Просрочка отгрузки',shift:'Перенос доставки',lateDelivery:'Опоздание доставки',fine:'Штраф',defectCharge:'Плата за ошибки (индекс)',return:'Возврат',deliveryLoss:'Доставка в минус'};
-let S,limit=100,reasonFilter=null,reasonGroups=[],rfbsIssue="";
+let S,limit=100,reasonFilter=null,reasonGroups=[],rfbsIssue="",returnMetric='units';
 const kpiTargets={lateShip:'shipping-pattern-panel',cancel:'cancel-panel',fine:'fine-panel',return:'return-panel',defectCharge:'rating-panel',rfbs:'rfbs-panel'};
 function revealOrders(){ $('orders-panel').hidden=false; }
 const periodBounds=D.periodBounds??{from:moscowDay(D.now).slice(0,4)+'-01-01',to:moscowDay(D.now)};
 let activePeriod={p:'30d'},selectedPeriod=dashboardPeriodDates('30d','','',periodBounds.from,periodBounds.to);
 function chart(series,label,color,bar=false,threshold=null){
  if(!series.some(x=>x.v!==null))return '<div class="empty">Нет подтверждённых данных за период</div>';
- const W=620,H=220,L=48,R=12,T=20,B=30,max=label.includes('отправления')?Math.ceil(Math.max(...series.map(x=>x.v??0),1)/3)*3:Math.max(threshold??0,...series.map(x=>x.v??0),1)*1.12,min=Math.min(0,...series.map(x=>x.v??0)),x=i=>L+(W-L-R)*(series.length===1?.5:i/(series.length-1)),y=v=>T+(H-T-B)*(1-(v-min)/(max-min));
- const countAxis=label.includes('отправления');
+ const W=620,H=220,L=48,R=12,T=20,B=30,max=(label.includes('отправления')||label.includes('шт.'))?Math.ceil(Math.max(...series.map(x=>x.v??0),1)/3)*3:Math.max(threshold??0,...series.map(x=>x.v??0),1)*1.12,min=Math.min(0,...series.map(x=>x.v??0)),x=i=>L+(W-L-R)*(series.length===1?.5:i/(series.length-1)),y=v=>T+(H-T-B)*(1-(v-min)/(max-min));
+ const countAxis=(label.includes('отправления')||label.includes('шт.'));
  let html='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(label)+'">';
  for(let j=0;j<4;j++){const v=countAxis?Math.ceil(max/3)*j:min+(max-min)*j/3;html+='<path d="M'+L+' '+y(v)+'H'+(W-R)+'" stroke="#273443"/><text x="'+(L-6)+'" y="'+(y(v)+4)+'" text-anchor="end">'+fmt(v,1)+'</text>';}
  if(threshold!==null)html+='<path d="M'+L+' '+y(threshold)+'H'+(W-R)+'" stroke="#fb7185" stroke-dasharray="5 5"/><text x="'+(W-R)+'" y="'+(y(threshold)-5)+'" text-anchor="end">порог '+fmt(threshold)+'%</text>';
- let prev=null;series.forEach((p,i)=>{if(p.v===null){prev=null;return;}const title=esc(p.date+' · '+fmt(p.v,2)+(countAxis?' шт.':''));if(bar){const width=Math.max(2,Math.min(25,(W-L-R)/series.length*.65));html+='<rect x="'+(x(i)-width/2)+'" y="'+Math.min(y(p.v),y(0))+'" width="'+width+'" height="'+Math.max(1,Math.abs(y(0)-y(p.v)))+'" fill="'+color+'"><title>'+title+'</title></rect>';}else{if(prev!==null)html+='<path d="M'+x(prev)+' '+y(series[prev].v)+'L'+x(i)+' '+y(p.v)+'" stroke="'+color+'" stroke-width="2"/>';html+='<circle cx="'+x(i)+'" cy="'+y(p.v)+'" r="3" fill="'+color+'"><title>'+title+'</title></circle>';prev=i;}});
+ let prev=null;series.forEach((p,i)=>{if(p.v===null){prev=null;return;}const title=esc(p.date+' · '+fmt(p.v,2)+(countAxis?' шт.':label.includes('₽')?' ₽':''));if(bar){const width=Math.max(2,Math.min(25,(W-L-R)/series.length*.65));html+='<rect x="'+(x(i)-width/2)+'" y="'+Math.min(y(p.v),y(0))+'" width="'+width+'" height="'+Math.max(1,Math.abs(y(0)-y(p.v)))+'" fill="'+color+'"><title>'+title+'</title></rect>';}else{if(prev!==null)html+='<path d="M'+x(prev)+' '+y(series[prev].v)+'L'+x(i)+' '+y(p.v)+'" stroke="'+color+'" stroke-width="2"/>';html+='<circle cx="'+x(i)+'" cy="'+y(p.v)+'" r="3" fill="'+color+'"><title>'+title+'</title></circle>';prev=i;}});
  for(const i of [...new Set([0,Math.floor((series.length-1)/2),series.length-1])])if(series[i])html+='<text x="'+x(i)+'" y="'+(H-7)+'" text-anchor="middle">'+esc(series[i].date.slice(5).split('-').reverse().join('.'))+'</text>';
  return html+'</svg>';
 }
@@ -40,7 +40,7 @@ function highlightCancelReasons(group=null){
 }
 function renderReasons(){
  reasonGroups=[];const returnColors=new Map();
- for(const view of ['cancel-initiator','cancel','fine','return-value','return']){
+ for(const view of ['cancel-initiator','cancel','fine']){
   const kind=view.split('-')[0],initiator=view.endsWith('-initiator'),moneyView=view==='return-value',moneyMetric=kind==='fine'||moneyView;
   const rows=S.table.filter(r=>r.kind===kind),n=initiator?Infinity:Number($(kind+'-top').value),unit=moneyMetric?'₽':kind==='return'?'шт.':'отпр.';
   const groups=new Map(),groupIds=new Map();let unknown=0,negative=0,positive=0,zero=0;
@@ -75,8 +75,46 @@ function renderReasons(){
   const correctionList=negativeRows.length?'<details class="reason-adjustments"><summary>Корректировки в нашу пользу</summary>'+bars(negativeRows.map(row=>[row.reason,row.amount]),'₽')+'</details>':'';
   $(view+'-breakdown').innerHTML=(view==='cancel'?'<div id="cancel-hover-note" class="help" aria-live="polite">Наведите на инициатора слева, чтобы выделить его причины. Суммы — стоимость отменённых товаров.</div>':'')+(barView?(positive?'<div class="reason-total reason-total-inline"><b>'+display(positive)+'</b> '+totalLabel+'</div><div class="reason-bar-list">'+legend+'</div>':ring):'<div class="reason-layout">'+ring+'<div class="reason-list">'+legend+'</div></div>')+corrections+correctionList+'<div class="reason-foot">'+(partial?'Покрытие неполное · ':'')+(unknown?'Без '+(kind==='return'&&!moneyView?'количества':'суммы')+': '+unknown+' записей · ':'')+(initiator?'Групп инициаторов: '+items.length:'Показано '+Math.min(n,items.length)+' из '+items.length+' причин'+(rest.length?' + остальные':''))+'</div>';
  }
+ renderReturns();
  document.querySelectorAll('#cancel-initiator-breakdown [data-reason-group]').forEach(button=>{const group=reasonGroups[Number(button.dataset.reasonGroup)];button.onmouseenter=button.onfocus=()=>highlightCancelReasons(group);button.onmouseleave=button.onblur=()=>highlightCancelReasons();});
  document.querySelectorAll('[data-reason-group]').forEach(button=>button.onclick=()=>{const group=reasonGroups[Number(button.dataset.reasonGroup)];reasonFilter=new Set(group.keys);$('kind').value=group.kind;$('search').value='';limit=100;revealOrders();table();$('orders-panel').scrollIntoView({behavior:'smooth',block:'start'});});
+}
+function returnCause(reason){
+ let label=reason||'Причина не указана';
+ if(/^(Невыкуп \/ отмена|Возврат) · /.test(label)){label=label.replace(/^(Невыкуп \/ отмена|Возврат) · /,'');const last=label.lastIndexOf(' · ');if(last>=0)label=label.slice(0,last);}
+ return label;
+}
+function returnQty(rows){
+ const known=rows.filter(r=>Number.isFinite(r.qty)),missing=rows.length-known.length;
+ return (known.length?fmt(known.reduce((n,r)=>n+r.qty,0))+' шт.':'н/д шт.')+(missing?' · '+missing+' без количества':'');
+}
+function renderReturns(){
+ const rows=S.metrics.return.rows,groups=new Map(),n=Number($('return-top').value);
+ for(const row of rows){const label=returnCause(row.reason);if(!groups.has(label))groups.set(label,[]);groups.get(label).push(row);}
+ const cents=rs=>rs.reduce((n,r)=>n+(Number.isFinite(r.amount)?Math.round(r.amount*100):0),0);
+ const items=[...groups].map(([label,rs])=>({label,rows:rs,value:cents(rs),keys:rs.map(r=>r.id)})).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'ru'));
+ const shown=items.slice(0,n),rest=items.slice(n);
+ if(rest.length){const rs=rest.flatMap(x=>x.rows);shown.push({label:'Остальные причины ('+rest.length+')',rows:rs,value:cents(rs),keys:rs.map(r=>r.id)});}
+ const positive=shown.reduce((n,r)=>n+Math.max(0,r.value),0);let cursor=0;
+ const stops=shown.map((item,i)=>{item.color=i===n?'#667789':reasonColors[i%reasonColors.length];const start=cursor;cursor+=positive?Math.max(0,item.value)/positive*100:0;return item.color+' '+start+'% '+cursor+'%';});
+ const money=rs=>{const known=rs.filter(r=>Number.isFinite(r.amount)),missing=rs.length-known.length;return (known.length?fmt(cents(known)/100,2)+' ₽':'н/д ₽')+(missing?' · '+missing+' без суммы':'');};
+ const total=rows.length?money(rows):S.metrics.return.coverage.full?'0 ₽':'н/д ₽';
+ const ring='<div class="donut" role="img" aria-label="'+esc('Возвраты: '+total+'; '+returnQty(rows))+'" style="background:'+(positive?'conic-gradient('+stops.join(',')+')':'#243141')+'"><div class="donut-total"><b>'+esc(rows.some(r=>Number.isFinite(r.amount))?fmt(cents(rows)/100,2):S.metrics.return.coverage.full?'0':'н/д')+'</b><small>стоимость товаров · ₽</small><small>'+esc(rows.length?returnQty(rows):S.metrics.return.coverage.full?'0 шт.':'н/д шт.')+'</small></div></div>';
+ const legend=shown.map(item=>{const id=reasonGroups.push({kind:'return',view:'return-value',label:item.label,color:item.color,keys:item.keys})-1;
+  return '<button class="reason-item" data-reason-group="'+id+'"><i class="reason-dot" style="background:'+item.color+'"></i><span class="reason-label">'+esc(item.label)+'</span><span class="reason-values"><b>'+esc(returnQty(item.rows))+'</b><small class="reason-money">'+esc(money(item.rows))+'</small></span><small title="Доля известной стоимости товаров">'+(positive&&item.rows.some(r=>Number.isFinite(r.amount))?fmt(Math.max(0,item.value)/positive*100,1)+'%':'—')+'</small></button>';
+ }).join('');
+ $('return-total').innerHTML=ring;
+ $('return-value-breakdown').innerHTML='<div class="reason-list">'+(legend||'<div class="empty">'+(S.metrics.return.coverage.full?'Возвратов нет':'Нет подтверждённых возвратов за период')+'</div>')+'</div><div class="reason-foot">'+(!S.metrics.return.coverage.full?'Покрытие неполное · ':'')+'Показано '+Math.min(n,items.length)+' из '+items.length+' причин'+(rest.length?' + остальные':'')+(rows.some(r=>r.amount==null)?' · Без суммы: '+rows.filter(r=>r.amount==null).length+' записей':'')+'</div>';
+ renderReturnDaily();
+}
+function renderReturnDaily(){
+ const metric=returnMetric==='units'?'qty':'amount',rows=S.metrics.return.rows,coverage=D.coverage.return;
+ const series=S.dates.map(date=>{const rs=rows.filter(r=>r.date===date),covered=coverage?.days.includes(date)&&!(coverage.incomplete_since&&date>=coverage.incomplete_since);
+  const value=rs.length?rs.every(r=>Number.isFinite(r[metric]))?rs.reduce((n,r)=>n+(metric==='amount'?Math.round(r.amount*100):r.qty),0)/(metric==='amount'?100:1):null:covered?0:null;
+  return {date,v:value};});
+ $('return-daily').innerHTML=chart(series,returnMetric==='units'?'Возвраты по дням, шт.':'Стоимость возвращённых товаров по дням, ₽','#70bac3',true);
+ $('return-daily-note').textContent='По дате возврата · '+(returnMetric==='units'?'количество товаров':'стоимость товаров, ₽; не возврат денег покупателю')+'. Пропуски источника и дни с неизвестным '+(returnMetric==='units'?'количеством':'значением стоимости')+' не заменены нулями.'+(!S.metrics.return.coverage.full?' Охват периода неполный; показаны известные значения.':'');
+ document.querySelectorAll('[data-return-metric]').forEach(button=>{button.setAttribute('aria-pressed',String(button.dataset.returnMetric===returnMetric));button.onclick=()=>{returnMetric=button.dataset.returnMetric;renderReturnDaily();};});
 }
 function card(title,value,sub,coverage,kind=''){return '<div class="card" role="button" tabindex="0" data-kind="'+kind+'" aria-controls="'+(kpiTargets[kind]||'orders-panel')+'"><small>'+title+'</small><div class="value">'+value+'</div><div class="sub">'+sub+'</div><div class="coverage">'+coverage+'</div></div>';}
 function cov(c){return c.full?'ДАННЫЕ · '+c.n+'/'+c.total+' дней':'Неполно · '+c.n+'/'+c.total+' дней';}

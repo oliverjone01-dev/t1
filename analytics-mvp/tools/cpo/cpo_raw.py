@@ -40,6 +40,9 @@ def read_file(path):
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     try:
         ws = wb["Statistics"] if "Statistics" in wb.sheetnames else wb.worksheets[0]
+        # Native Ozon exports can declare A1 despite containing a full report.
+        # Scan worksheet XML rather than trusting this cached used-range hint.
+        ws.reset_dimensions()
         rows = list(ws.iter_rows(values_only=True))
     finally:
         wb.close()

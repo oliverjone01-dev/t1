@@ -314,10 +314,11 @@ render();
  }
  function preset(key){const p=presets[key],b=state.base.values;state.tab=key;state.dirty=false;state.v.qual=Math.min(1,Math.max(0,b.qual.fact*p.q));state.v.conv=Math.min(1,Math.max(0,b.conv.fact*p.c));state.v.check=Math.max(0,b.check.fact*p.a);const cpl=actual('cpl');state.v.cpl=cpl==null?null:cpl*p.cpl;balance('preset');paint();}
  function change(key,input){
-  if(!state.goal.locked||key===state.goal.key)return;
+  if(!state.goal.locked)return;
   let value=Number(input);if(!Number.isFinite(value))return;
   value=Math.min(1e12,Math.max(0,value));value=cash.has(key)||rates.has(key)?Math.round(value*100)/100:Math.round(value);
   const v=state.v,g=state.goal;
+  if(key===g.key){g.target=rates.has(key)?Math.min(100,value)/100:value;balance('preset');state.dirty=true;message('');paint();return;}
   if(drivers.has(key)){v[key]=rates.has(key)?Math.min(100,value)/100:value;balance(key);}
   else if(key==='deals'){
    if(g.key==='leads'){v.qual=v.leads>0?Math.min(1,value/v.leads):0;balance('qual');}
@@ -349,10 +350,10 @@ render();
    if(!scales[key])scales[key]=Math.max(minimum,(fact||0)*1.4,(plan||0)*1.4,(state.base.values[key]?.plan||0)*1.4);
    
    if(rates.has(key))scales[key]=1;
-   const max=scales[key],slider=row.querySelector('[data-plan-drag]'),number=row.querySelector('[data-plan-value]');slider.max=rates.has(key)?max*100:max;slider.step=rates.has(key)||cash.has(key)?'.01':'1';slider.value=plan==null?0:rates.has(key)?plan*100:plan;slider.disabled=plan==null||!g.locked||g.key===key;number.disabled=plan==null||!g.locked||g.key===key;row.classList.toggle('gg-plan-derived',g.key===key);row.classList.toggle('gg-plan-goal-row',g.key===key&&g.locked);slider.setAttribute('aria-valuetext',format(key,plan));
+   const max=scales[key],slider=row.querySelector('[data-plan-drag]'),number=row.querySelector('[data-plan-value]');slider.max=rates.has(key)?max*100:max;slider.step=rates.has(key)||cash.has(key)?'.01':'1';slider.value=plan==null?0:rates.has(key)?plan*100:plan;slider.disabled=plan==null||!g.locked;number.disabled=plan==null||!g.locked;row.classList.toggle('gg-plan-derived',false);row.classList.toggle('gg-plan-goal-row',g.key===key&&g.locked);slider.setAttribute('aria-valuetext',format(key,plan));
    if(document.activeElement!==number)number.value=plan==null?'':rates.has(key)?Math.round(plan*10000)/100:cash.has(key)?Math.round(plan*100)/100:Math.round(plan);
    row.querySelector('[data-plan-readable]').textContent=format(key,plan);number.step=rates.has(key)?'.01':cash.has(key)?'.01':'1';let unit=row.querySelector('[data-plan-unit]');if(!unit){unit=document.createElement('small');unit.dataset.planUnit='';row.querySelector('.gg-plan-inline-edit').append(unit);}unit.textContent=rates.has(key)?'%':cash.has(key)?'₽':'шт.';row.querySelector('[data-plan-ratio]').title='Изменение относительно старта';
-   row.querySelector('[data-frozen]').textContent='Старт '+format(key,fact);row.querySelector('[data-plan-fill]').style.width=Math.min(100,Math.max(0,(fact||0)/max*100))+'%';row.querySelector('[data-plan-fill]').className='gg-plan-fact neutral';let start=row.querySelector('[data-plan-start]');if(!start){start=document.createElement('span');start.dataset.planStart='';start.className='gg-plan-start';row.querySelector('.gg-bullet').append(start);}start.style.left=Math.min(100,Math.max(0,(fact||0)/max*100))+'%';start.title='Старт: '+format(key,fact);let marker=row.querySelector('[data-derived-marker]');if(!marker){marker=document.createElement('span');marker.dataset.derivedMarker='';marker.className='gg-plan-output-marker';row.querySelector('.gg-bullet').append(marker);}marker.hidden=g.key!==key;marker.style.left=Math.min(100,Math.max(0,(plan||0)/max*100))+'%';
+   row.querySelector('[data-frozen]').textContent='Старт '+format(key,fact);row.querySelector('[data-plan-fill]').style.width=Math.min(100,Math.max(0,(fact||0)/max*100))+'%';row.querySelector('[data-plan-fill]').className='gg-plan-fact neutral';let start=row.querySelector('[data-plan-start]');if(!start){start=document.createElement('span');start.dataset.planStart='';start.className='gg-plan-start';row.querySelector('.gg-bullet').append(start);}start.style.left=Math.min(100,Math.max(0,(fact||0)/max*100))+'%';start.title='Старт: '+format(key,fact);let marker=row.querySelector('[data-derived-marker]');if(!marker){marker=document.createElement('span');marker.dataset.derivedMarker='';marker.className='gg-plan-output-marker';row.querySelector('.gg-bullet').append(marker);}marker.hidden=true;marker.style.left=Math.min(100,Math.max(0,(plan||0)/max*100))+'%';
    row.querySelector('[data-plan-ratio]').textContent=fact>0&&plan!=null?((plan-fact>=0?'+':'')+nf.format((plan/fact-1)*100)+'%'):'—';row.querySelector('[data-plan-ratio]').className='gg-plan-delta';
   }
   dialog.querySelector('[data-plan-budget-result]').textContent=model.budget==null?'Без бюджета факта стоимость лида не рассчитывается.':'Бюджет сценария '+format('budget',model.budget)+' · стоимость лида '+format('cpl',model.cpl);

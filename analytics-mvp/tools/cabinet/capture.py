@@ -87,9 +87,12 @@ def merge_capture(old, fresh):
             raise ValueError('Older capture cannot replace a newer capture')
         old_keys = {(r['sku'], r['scheme']) for r in previous['items']}
         new_keys = {(r['sku'], r['scheme']) for r in fresh['items']}
+        old_counts = Counter(r['sku'] for r in previous['items'])
+        new_counts = Counter(r['sku'] for r in fresh['items'])
+        for sku, scheme in old_keys:
+            if scheme is None and old_counts[sku] == 1 and new_counts[sku] > 1:
+                raise ValueError('Incoming snapshot ambiguously splits an unknown scheme row')
         if old_keys - new_keys:
-            old_counts = Counter(r['sku'] for r in previous['items'])
-            new_counts = Counter(r['sku'] for r in fresh['items'])
             new_by_sku = {r['sku']: r for r in fresh['items']}
             for sku, scheme in old_keys - new_keys:
                 replacement = new_by_sku.get(sku, {}).get('scheme')

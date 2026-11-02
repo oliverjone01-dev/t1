@@ -88,10 +88,20 @@ class CaptureTests(unittest.TestCase):
                     merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
 
     def test_unknown_scheme_cannot_split_into_multiple_scheme_rows(self):
-        previous=self.build();fresh=copy.deepcopy(previous)
-        fresh['items']=[dict(previous['items'][0],scheme=s) for s in ['FBO','FBS']]
-        with self.assertRaisesRegex(ValueError,'loses'):
-            merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+        previous=self.build()
+        for schemes in [['FBO','FBS'],[None,'FBS'],['FBS',None]]:
+            with self.subTest(schemes=schemes):
+                fresh=copy.deepcopy(previous)
+                fresh['items']=[dict(previous['items'][0],scheme=s) for s in schemes]
+                with self.assertRaisesRegex(ValueError,'splits'):
+                    merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+
+    def test_additional_known_scheme_row_preserves_existing_known_row(self):
+        previous=self.build();previous['items'][0]['scheme']='FBS'
+        fresh=copy.deepcopy(previous);fresh['items'].append(dict(previous['items'][0],scheme='FBO'))
+        fresh['totals']={k:v*2 for k,v in previous['totals'].items()}
+        result=merge_capture({'version':1,'company':'GENGLASS','snapshots':[previous]},fresh)
+        self.assertEqual(result['snapshots'],[fresh])
 
     def test_refinement_cannot_collapse_an_existing_multirow_sku(self):
         previous=self.build();previous['items'].append(dict(previous['items'][0],scheme='FBS'))

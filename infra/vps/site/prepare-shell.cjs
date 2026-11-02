@@ -52,7 +52,7 @@ console.log('Unified GG frame prepared:',unified,'pages');
 // Owner-only endpoint selector. Authorization is enforced by the access API.
 for(const file of [path.join(site,'index.html'),path.join(site,'structure/index.html')]){
  if(!fs.existsSync(file))continue;let html=fs.readFileSync(file,'utf8');
- if(!html.includes('id="gg-workspace"')||html.includes('data-gg-routing-panel'))continue;
+ if(html.includes('data-gg-routing-panel'))continue;
  html=html.replace('</body>','<script data-gg-routing-panel>'+fs.readFileSync(path.join(__dirname,'../access/routing-panel.js'),'utf8')+'</script></body>');
  fs.writeFileSync(file,html);
 }

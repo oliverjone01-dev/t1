@@ -5,3 +5,4 @@
 .nd,.nd-section{min-width:0}.nd-kpis>div{min-width:0;overflow-wrap:anywhere}
 
 @media(max-width:420px){.nd-kpis{grid-template-columns:1fr}.nd-kpis b{white-space:nowrap}}
+.wrap:has(#november-details){overflow-x:clip}

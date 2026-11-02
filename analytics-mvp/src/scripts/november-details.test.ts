@@ -38,6 +38,11 @@ describe('November detailed blocks',()=>{
     // Unique partition main10 + minimum15 + specified campaign20 + other5 =50.
     expect(r.html).toContain('Остаток до суммы отчёта по товарам');
   });
+  it('visible money rows preserve cents and sum to the SKU CPC report',()=>{
+    const f=fixture();f.adsSku[0]!.sp=8.49;f.adsSku[2]!.sp=10.32;const r=novemberDetails(f)!;
+    const dom=new JSDOM(r.html),sum=[...dom.window.document.querySelectorAll('.nd-ad-total')].reduce((n,e)=>n+Number(e.textContent!.replace(/\s/g,'').replace(',','.')),0);
+    expect(sum).toBeCloseTo(50.81,2);expect(r.html).toContain('10,32');dom.window.close();
+  });
   it('leaves incomplete ad reports null while campaign totals stay available',()=>{
     const f=fixture();f.adsFull='2026-10-31';const r=novemberDetails(f)!,i=point(r,'2026-11-01');
     expect(r.data.series[0]!.s.sp![i]).toBeNull();expect(r.data.series.at(-1)!.s.sp![i]).toBe(50);expect(r.html).toContain('Ноябрь ещё не собран');
@@ -73,6 +78,13 @@ describe('November detailed blocks',()=>{
   it('ratios use sums of the same observed days; no zero denominators or gap substitution',()=>{
     expect(metricValue({pdp:[5,3],views:[10,30]},'ctr',[0,1])).toBe(20);expect(metricValue({pdp:[5,null],views:[10,30]},'ctr',[0,1])).toBeNull();
     expect(metricValue({pdp:[0],views:[0]},'ctr',[0])).toBeNull();expect(observedTotal([])).toBeNull();expect(observedTotal([0,0])).toBe(0);
+  });
+  it('uses the shared ordinary median, including two central values, in server and browser',()=>{
+    expect(metricValue({pos:[10,30]},'pos',[0,1])).toBe(20);
+    const f=fixture();f.today='2026-11-03';f.store.orders![2]=99;const r=novemberDetails(f)!;
+    const dom=new JSDOM('<html><body>'+r.html+'<script>'+r.js+'</script></body></html>',{runScripts:'dangerously'});
+    const rows=[...dom.window.document.querySelectorAll('#nd-funnel-table tbody tr')];
+    expect(rows.find(r=>r.firstElementChild?.textContent==='Позиция в поиске')!.lastElementChild!.textContent).toBe('6,5');dom.window.close();
   });
   it('executes every funnel selector, lazy order/price charts and the separate partial point',()=>{
     const f=fixture();f.partial={day:'2026-11-02',cards:[{views:20,vsearch:10,pdp:5,cart:1,units:1,pos:4,have:1,want:2}],all:{views:20,have:1,want:2},store:{views:20,have:1}};

@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {Plan} from './plan-tab.js';
+import {median} from './estimator.js';
 
 type Row=Record<string,any>;
 type Series=Record<string,Array<number|null>>;
@@ -28,7 +29,7 @@ export function metricValue(s:Series,key:string,indices:number[]):number|null {
   const r=ratios[key];
   if(r){const a=observedTotal(indices.map(i=>s[r[0]]?.[i]??null)),b=observedTotal(indices.map(i=>s[r[1]]?.[i]??null));return a!=null&&b? a/b*r[2]:null;}
   const vals=indices.map(i=>s[key]?.[i]??null);
-  if(key==='pos'){const known=vals.filter((v):v is number=>v!==null).sort((a,b)=>a-b);return known.length?known[Math.floor(known.length/2)]!:null;}
+  if(key==='pos')return median(vals.filter((v):v is number=>v!==null));
   return observedTotal(vals);
 }
 export function novemberDetails(input:NovemberInput){
@@ -101,7 +102,7 @@ export function novemberDetails(input:NovemberInput){
   const cpo=nov.length&&nov.every(i=>days[i]!<=I.adsLast&&adsDays.has(days[i]!))?I.ads.filter(r=>nov.some(i=>days[i]===r.d)&&String(r.id)===CPO).reduce((n,r)=>n+(Number(r.sp)||0),0):null;
   const campaignSpend=metricValue(store.s,'sp',adIndices);
   const groups=[...new Set(adsRows.map(r=>r.group))];
-  const adsHtml=groups.map(g=>`<h3>${esc(g)}</h3><div class="nd-ad-grid"><div class="nd-ad-head"><b>Товар / кампания</b><b>Ноябрь, ₽</b>${weeks.map(w=>`<b>${w[0]}</b>`).join('')}</div>${adsRows.filter(r=>r.group===g).map(r=>`<div class="nd-ad-row"><div><b>${esc(r.name)}</b><small>${esc(r.sub)}</small></div><b>${fmt(observedTotal(adIndices.map(i=>r.values[i]!)))}</b>${weeks.map(([,a,b])=>{const ix=days.map((d,i)=>d>=a!&&d<=b!&&d<=closedEnd?i:-1).filter(i=>i>=0);const v=observedTotal(ix.map(i=>r.values[i]!));const max=Math.max(1,...weeks.map(([,a,b])=>days.reduce((n,d,i)=>d>=a!&&d<=b!?n+(r.values[i]??0):n,0)));return `<div><strong>${fmt(v)}</strong>${v==null?'':`<span class="nd-week-bar"><i style="width:${v/max*100}%"></i></span>`}<small>${ix.length?`${ix.filter(i=>r.values[i]!=null).length}/${ix.length} закрытых дней`:'период не начался'}</small></div>`;}).join('')}</div>`).join('')}</div>`).join('');
+  const adsHtml=groups.map(g=>`<h3>${esc(g)}</h3><div class="nd-ad-grid"><div class="nd-ad-head"><b>Товар / кампания</b><b>Ноябрь, ₽</b>${weeks.map(w=>`<b>${w[0]}</b>`).join('')}</div>${adsRows.filter(r=>r.group===g).map(r=>`<div class="nd-ad-row"><div><b>${esc(r.name)}</b><small>${esc(r.sub)}</small></div><b class="nd-ad-total">${fmt(observedTotal(adIndices.map(i=>r.values[i]!)),2)}</b>${weeks.map(([,a,b])=>{const ix=days.map((d,i)=>d>=a!&&d<=b!&&d<=closedEnd?i:-1).filter(i=>i>=0);const v=observedTotal(ix.map(i=>r.values[i]!));const max=Math.max(1,...weeks.map(([,a,b])=>days.reduce((n,d,i)=>d>=a!&&d<=b!?n+(r.values[i]??0):n,0)));return `<div><strong>${fmt(v,2)}</strong>${v==null?'':`<span class="nd-week-bar"><i style="width:${v/max*100}%"></i></span>`}<small>${ix.length?`${ix.filter(i=>r.values[i]!=null).length}/${ix.length} закрытых дней`:'период не начался'}</small></div>`;}).join('')}</div>`).join('')}</div>`).join('');
   const at=(rows:Row[],art:string,limit:string,field:string)=>rows.filter(r=>(r.offer??r.art)===art&&(r.d??r.date)<=limit&&valid(r[field])).sort((a,b)=>String(b.d??b.date).localeCompare(String(a.d??a.date)))[0];
   const priceRows=I.plan.price.map(p=>{const current=at(I.prices,p.art,[I.today,NOV_END].sort()[0]!,'price'),base=at(I.prices,p.art,'2026-10-31','price'),gap=at(I.gaps,p.art,[I.today,NOV_END].sort()[0]!,'gap_pct');
     const history=I.prices.filter(r=>r.offer===p.art&&r.d>=NOV_START&&r.d<=I.today&&r.d<=NOV_END&&valid(r.price)).sort((a,b)=>a.d.localeCompare(b.d));
@@ -119,5 +120,5 @@ export function novemberDetails(input:NovemberInput){
     +section('november-prices','4. Цены и скидка Ozon',`<p>Наша цена по последнему наблюдению, база - последнее наблюдение не позже 31.10. Старая дата видна рядом со значением. Нажмите артикул для графика ноября.</p><div class="nd-scroll"><table><thead><tr><th>Артикул</th><th>До ноября, ₽</th><th>Последняя цена, ₽</th><th>Δ к базе</th><th>Смены в ноябре</th><th>Скидка Ozon</th><th>Цель ноября</th></tr></thead><tbody>${priceHtml}</tbody></table></div><p class="nd-note">Скидка Ozon - отдельный срез, дата указана в каждой строке. Октябрьский срез не считается ноябрьским. Изменение заказов не доказывает эффект цены; новых решений об откате здесь нет.</p>`)+`</section>`;
   const data={days,novStart:NOV_START,novEnd:NOV_END,closedEnd,series:series.map(({name,art,s,coverage,skus})=>({name,art,s,coverage,skuCount:skus.length})),metrics,ratios,prices:priceRows,partial:I.partial};
   const here=dirname(fileURLToPath(import.meta.url));
-  return {html,css:readFileSync(join(here,'november-details.css'),'utf8'),js:`window.ND=${JSON.stringify(data).replace(/</g,'\\u003c')};\n`+readFileSync(join(here,'november-details.client.js'),'utf8'),data};
+  return {html,css:readFileSync(join(here,'november-details.css'),'utf8'),js:`window.ND=${JSON.stringify(data).replace(/</g,'\\u003c')};window.ND_MEDIAN=(${median.toString()});\n`+readFileSync(join(here,'november-details.client.js'),'utf8'),data};
 }

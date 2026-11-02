@@ -5,9 +5,11 @@
 import importlib.util
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
+import zipfile
 
 import openpyxl
 
@@ -75,6 +77,23 @@ try:
     xlsx(os.path.join(raw, "cpo_2026-09_a.xlsx"), "01.09.2026 - 30.09.2026", SEP)
     rows, used, _ = read_raw(raw)
     check("сентябрь один файл", total(rows), 818149.0)
+    # Native export with a stale A1 dimension must not silently lose its header/data.
+    dimension_raw = os.path.join(tmp, "raw_dimension")
+    os.makedirs(dimension_raw)
+    dimension_file = os.path.join(dimension_raw, "2026-09_cpo_orders.xlsx")
+    xlsx(dimension_file, "01.09.2026 - 30.09.2026", SEP)
+    with zipfile.ZipFile(dimension_file) as archive:
+        contents = {name: archive.read(name) for name in archive.namelist()}
+    contents['xl/worksheets/sheet1.xml'], replacements = re.subn(
+        rb'<dimension ref="[^"]+"\s*/>', b'<dimension ref="A1"/>',
+        contents['xl/worksheets/sheet1.xml'])
+    assert replacements == 1
+    with zipfile.ZipFile(dimension_file, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for name, content in contents.items(): archive.writestr(name, content)
+    dimension_rows, dimension_used, _ = read_raw(dimension_raw)
+    check("stale A1 dimension: all source rows", len(dimension_rows), len(SEP))
+    check("stale A1 dimension: source spend", total(dimension_rows), 818149.0)
+    check("stale A1 dimension: report recognized", len(dimension_used), 1)
     # Повтор того же месяца (вторая выгрузка): было 1 636 298, должно остаться 818 149.
     xlsx(os.path.join(raw, "cpo_2026-09_b.xlsx"), "01.09.2026 - 30.09.2026", SEP)
     rows, used, _ = read_raw(raw)

@@ -295,3 +295,9 @@ table thead{position:sticky!important;top:0!important;z-index:12;background:var(
 .gg-plan-bars .gg-bullet-labels>[data-frozen]{order:1;margin-left:0;margin-right:auto}
 .gg-plan-bars .gg-plan-bars-foot{justify-content:flex-end;margin-top:12px}
 .gg-plan-bars [data-plan-mode]:empty{display:none}
+/* Month selection shares the dashboard calendar palette instead of the OS picker. */
+.gg-plan-bars input[data-plan-period][hidden]{display:none!important}
+.gg-plan-bars .gg-plan-month-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;min-width:145px;min-height:34px;padding:8px 10px;font-size:11px;border-radius:7px}
+.gg-plan-month-trigger[aria-expanded=true]{border-color:var(--accent)}
+.gg-plan-month-picker{position:fixed;z-index:10060;box-sizing:border-box;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--ink);box-shadow:0 12px 32px #0005;font:12px 'Golos Text','Segoe UI',sans-serif}
+.gg-plan-month-picker[hidden]{display:none!important}.gg-plan-month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.gg-plan-month-nav b{font-size:13px}.gg-plan-month-picker button{border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ink-2);font:inherit;cursor:pointer;min-height:35px}.gg-plan-month-nav button{width:35px;font-size:22px}.gg-plan-month-picker [data-month-grid]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.gg-plan-month-picker [data-month-choice]{padding:8px 3px}.gg-plan-month-picker button:hover{background:var(--bg-elevated);border-color:var(--border)}.gg-plan-month-picker button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}.gg-plan-month-picker button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}

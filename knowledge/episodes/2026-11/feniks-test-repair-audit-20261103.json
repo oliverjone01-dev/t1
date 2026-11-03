@@ -1,0 +1,125 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ym-ui-test-repair-20261103",
+  "timestamp": "2026-11-03T12:00:51.872759+03:00",
+  "deliverable_ref": "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-test-repair-audit-20261103.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr after repair:8.4 here for test-only change,with independent live DOM probes confirming uniqueSKU and zero-cost behavior and missing/restored warning controls. No financial completeness approval.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Reviewed source independently of test claims:SVcategory accumulates rows+fly_rows;UPD text derives ACC months and ACC_UPD. New source oracle reads factual realization file instead of unconditional January/current-month absence."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Own targeted run4passed/120skipped. Actual full-year coverage assertion plus missing/restored single-month control. Full author run523passed20files read in ym-all.log;not rerun broadly."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Own JSDOM fixture:one missingSKU in rows plus repeated sameSKU fly rows and second uniqueSKU yields2,not4. Known-zero costs yields0;one unknown-zero cost yields1."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Own actual production page probe:delete a nonzero UPD month ->missing warning;restore ->have warning and no missing warning. Finally restores SV/ACC_UPD references. Test finally blocks inspected."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Exact changed product scope is one test file. Production code,formulas,data,OZON,boosting,workflows unchanged;excluded docs/error entries do not grant broader code approval."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Hash247020af711b600b independently recomputed. Source-check26498003 fullcutoff30Oct;Oct31rows exist in both businesses but mirrors money service fields zero. No upstream cause proven."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No financial readiness claim,warning removal,manufactured zero expense or cutoff override. Controlled tests actively require missing warnings and distinguish knownzero."
+    },
+    {
+      "id": "B8",
+      "result": "PASS",
+      "evidence": "Before log2failures,targeted4pass,and full523pass inspected. Independent additional live DOM attack results persisted in feniks-ui-probes.json with reproducible script."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "evidence_ledger": [
+    {
+      "gap": "Financial freshness and October completeness excluded from test-only GO",
+      "evidence": "source-check.json cutoff30Oct,oct31-rows.json mirrors3rows with zero monetary fee fields;cause not established. Workflow41606973524 running at task handoff.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "UPD controlled fixture covers an existing nonzero report month;zero-net report behavior outside this repair scope",
+      "evidence": "Test selects ACC_UPD month with sold truthy,production build-katya5206 also uses u&&u.sold. No change to this existing production behavior.",
+      "checkpoint": "actionability_10_milestone",
+      "weight": -1
+    }
+  ],
+  "gaps": [
+    "Financial freshness and October completeness excluded from test-only GO",
+    "UPD controlled fixture covers an existing nonzero report month;zero-net report behavior outside this repair scope"
+  ],
+  "rework_tz": "",
+  "confidence": 0.95,
+  "iteration": 1,
+  "audience": "Ivan",
+  "sources_of_truth": [
+    "61a090b4",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/self-check.md",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/before.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/targeted.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/ym-all.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-ui-probes.mjs",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-ui-probes.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/source-check.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/oct31-rows.json"
+  ]
+}

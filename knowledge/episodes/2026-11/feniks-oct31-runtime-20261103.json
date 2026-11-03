@@ -1,0 +1,124 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ym-oct31-final-runtime-20261103",
+  "timestamp": "2026-11-03T12:40:39.610870+03:00",
+  "deliverable_ref": "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-oct31-runtime-audit.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr after repair:8.4 operational-only here;date-boundary,unchanged raw day,manifest and isolation independently reproduced. Financial RETURN separate.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Direct git blobs final3f51a49df115 versus26498003:raw31October both businesses7/12rows semantically identical. Total netting20449->20494 does not constitute31Oct backfill."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Independently recomputed fullACCto1Nov,lastBy2Novboth,feeBy1Novboth;Octobercutoff31Oct. Later money-fees permit inclusion,not an invented date or changed rule."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Independent raw order/fee/delivery reconstruction57own,53known agrees ACCshipn/shipk;exact4missing orders unchanged."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Saved pending2SKU runits0,no missing cost among closedOctober delivered/returned orders;7533undated shipment remains separate issue."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "All64finalbot paths limited data-ym and public/market;117OZONmd5OK+untouched summary in refresh-final.log."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Delivery668rows,manifest SHA256valid,loaded3Nov12:35:24MSK,through2Nov,age0.068h at independent check. Nettingstate at3Nov09:28:55UTC includes bothOct pairs."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "No bank/financialGO:reconcile return withunits-7andgross-vs-report diagnostic5533087. Page deployment/browser and final running suite not certified."
+    },
+    {
+      "id": "B8",
+      "result": "PASS",
+      "evidence": "Quantity document target63741595904 normalizedМ26-5135,cost12135.15,buyer6500,offerblank;source freshness verified without manual product edits."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "gaps": [
+    "Financial completeness remains RETURN;31October included in the reporting interval does not certify full independent reconciliation.",
+    "4delivery amounts,2pending costSKU,and7533undated shipment remain source-owner tasks.",
+    "Browser/publicPages and final running test suite outside this read-only runtime audit."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Financial completeness not approved",
+      "evidence": "Direct final reconcile.json:return,units-7,revenue diagnostic5533087.No independent bank source.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Incomplete source expense coverage",
+      "evidence": "Independent57own/53known;missing62449813123,62479121601,62560512003,62710061827. Pendingcogs2,closedmissing0;7533undated issue preserved.",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -1
+    }
+  ],
+  "rework_tz": "",
+  "confidence": 0.96,
+  "iteration": 1,
+  "audience": "Ivan",
+  "sources_of_truth": [
+    "3f51a49df1151d51ede8ac42626ee648713d7a40",
+    "26498003b3e01fa9ed1bd7fd332462796eedabd8",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-oct31-runtime-probe.py",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-oct31-runtime-evidence.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/source-final.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/october-3f51a49df115.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/refresh-final.log"
+  ]
+}

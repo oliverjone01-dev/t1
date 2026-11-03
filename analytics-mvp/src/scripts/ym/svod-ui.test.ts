@@ -801,7 +801,7 @@ describe("свод: колонка «Наша доставка»", () => {
     // ветках проверяется что-то настоящее.
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     const gapMonths = [...new Set(svod.months.flatMap((m: any) =>
-      (m.rows || []).filter((r: any) => !r.cogs_known).map(() => m.ym)))].sort() as string[];
+      [...(m.rows || []), ...(m.fly_rows || [])].filter((r: any) => !r.cogs_known).map(() => m.ym)))].sort() as string[];
 
     if (!gapMonths.length) {
       // Пробелов нет - значит и счётчика быть не должно НИГДЕ. Появится пробел без счётчика,
@@ -838,6 +838,31 @@ describe("свод: колонка «Наша доставка»", () => {
       expect(num(gpTxt), "валовая у строки без С\\С пустая").not.toBeNull();
     }
     if (!collapsed()) click(catRow(gi));
+  });
+
+  it("счётчик без СС учитывает уникальные SKU в пути и отличает ноль от пропуска", () => {
+    const w = dom.window as any;
+    const original = w.SV;
+    const m = original.months.find((m: any) => m.rows?.length);
+    const row = m.rows[0];
+    const badges = () => [...T().querySelectorAll("tr.sv-cat")].reduce((n, tr) =>
+      n + Number((tr.textContent || "").match(/(\d+) без СС/)?.[1] || 0), 0);
+    try {
+      w.SV = { ...original, months: [{ ...m,
+        rows: [{ ...row, cogs_known: true, cogs: 0 }],
+        fly_rows: ["TEST-MISSING-A", "TEST-MISSING-A", "TEST-MISSING-B"].map(sku =>
+          ({ ...row, sku, cogs_known: false, cogs: 0 })),
+        inflight_rows: [], ship_lost_rows: [],
+      }] };
+      setRange(`${m.ym}-01`, `${m.ym}-31`);
+      expect(badges(), "повтор SKU не должен увеличивать счётчик").toBe(2);
+      w.SV.months[0].fly_rows.forEach((r: any) => { r.cogs_known = true; });
+      setRange(`${m.ym}-01`, `${m.ym}-31`);
+      expect(badges(), "известная нулевая СС не является пропуском").toBe(0);
+    } finally {
+      w.SV = original;
+      setRange("2026-07-01", "2026-07-31");
+    }
   });
 
   it("строка ИТОГО читается подряд: поступление − доставка − СС = валовая", () => {
@@ -1549,13 +1574,44 @@ describe("Маркет: аналитика по артикулам за выбр
     expect(errs).toEqual([]);
   });
 
-  it("сверка с УПД показана, и пробел назван", () => {
+  it("сверка с УПД называет фактическое покрытие месяцев окна", () => {
     setRange("2026-01-01", "2026-12-31");
     const cov = D().getElementById("acc-cov")!.textContent || "";
     expect(cov, "сверки с УПД в блоке нет").toMatch(/сверка с УПД/);
-    // За январь и текущий месяц УПД нет - блок обязан это сказать, а не молчать.
-    expect(cov, "пробел по УПД не назван").toMatch(/нет за/);
+    const w = dom.window as any;
+    const months = [...new Set<string>(w.ACC.filter((r: any) => r[0] >= "2026-01-01" && r[0] <= "2026-12-31")
+      .map((r: any) => r[0].slice(0, 7)))].sort();
+    expect(months.length).toBeGreaterThan(0);
+    const facts = readFileSync("data-ym/realization_monthly.ndjson", "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
+    const have = months.filter(m => facts.some(r => r.ym === m));
+    const missing = months.filter(m => !have.includes(m));
+    if (have.length) expect(cov).toContain(`есть за ${have.join(", ")}`);
+    if (missing.length) expect(cov).toContain(`нет за ${missing.join(", ")}`);
+    else expect(cov).not.toContain("нет за");
     expect(errs).toEqual([]);
+  });
+
+  it("сверка с УПД показывает пропуск и убирает его после восстановления месяца", () => {
+    const w = dom.window as any;
+    const original = w.ACC_UPD;
+    const month = Object.keys(original).find(m => original[m].sold && w.ACC.some((r: any) => r[0].slice(0, 7) === m))!;
+    expect(month, "нужен месяц с проводками и УПД").toBeTruthy();
+    const last = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5, 7), 0)).toISOString().slice(0, 10);
+    const coverage = () => D().getElementById("acc-cov")!.textContent || "";
+    try {
+      w.ACC_UPD = { ...original };
+      delete w.ACC_UPD[month];
+      setRange(`${month}-01`, last);
+      expect(coverage()).toContain(`нет за ${month}`);
+      w.ACC_UPD = original;
+      setRange(`${month}-01`, last);
+      expect(coverage()).toContain(`есть за ${month}`);
+      expect(coverage()).not.toContain("нет за");
+      expect(errs).toEqual([]);
+    } finally {
+      w.ACC_UPD = original;
+      setRange("2026-07-01", "2026-07-31");
+    }
   });
 
   // Катя 28.09.2026 сверила блок с отчётом о платежах Маркета за июль: GGL-09-2 «Получено от

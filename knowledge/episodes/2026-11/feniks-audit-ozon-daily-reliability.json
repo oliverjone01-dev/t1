@@ -1,0 +1,97 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-daily-reliability-20261103",
+  "timestamp": "2026-11-03T07:41:30.294592+00:00",
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-ozon-daily-reliability.md",
+  "iteration": 1,
+  "artifact_class": "mixed",
+  "anchor": "7.6 timur-activation iteration1 - current 7.5: real gate rejects payload attacks, but failed cabinet publication is hidden by recovery status.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 1,
+    "actionability_1_operational": 2,
+    "actionability_2_operational": 1,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 1,
+    "insight_4_operational": 1,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 1,
+    "brand_5_operational": 1,
+    "risk_1_operational": 1,
+    "risk_2_operational": 2,
+    "risk_3_operational": 1,
+    "risk_4_operational": 1,
+    "risk_5_operational": 1
+  },
+  "scores": {
+    "accuracy": 8,
+    "actionability": 8,
+    "insight": 7,
+    "brand_fit": 8,
+    "risk_awareness": 6
+  },
+  "weighted_total": 7.5,
+  "verdict": "return",
+  "verdict_override_reason": "Operational recovery returns false ok for cabinet failure, contrary to daily source-to-live success contract.",
+  "probes": [
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Exact receive step executed with mock gh and actual TS/Python validators; expected SHA mismatch rejected."
+    },
+    {
+      "id": "A7",
+      "result": "PASS",
+      "evidence": "Stale, future and conflicting timestamps rejected by accept()."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "All unaffected stored day/phase rows survive merge."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Real TS validator rejects raw_report, browser_cookie, secret_token fields and mismatched totals."
+    },
+    {
+      "id": "D7",
+      "result": "FAIL",
+      "evidence": "Latest cabinet publication failure/cancelled/timed_out yields action=ok and failed=[] in watchdog fixture."
+    },
+    {
+      "id": "D8",
+      "result": "PASS",
+      "evidence": "Same failed snapshots run attempt1 rerun; attempt2 attention; queued source yields wait; missing chain dispatches snapshots."
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "P1: watchdog reports ok after failed/cancelled/timed_out cabinet publication; excludes fourth workflow from failure detection.",
+      "evidence": "Run python3 -B knowledge/episodes/2026-11/feniks-ozon-probes.py; final three fixtures produce action=ok. watchdog.py:40 uses WORKFLOWS[:3].",
+      "checkpoint": "risk_23",
+      "weight": -1
+    }
+  ],
+  "gaps": [
+    "P1: watchdog reports ok after failed/cancelled/timed_out cabinet publication; excludes fourth workflow from failure detection."
+  ],
+  "rework_tz": "Surface latest unsuccessful cabinet publication as attention. Do not replay rejected reports or weaken validators. Add regression for failure/cancelled/timed_out and successful later recovery.",
+  "confidence": 0.9
+}

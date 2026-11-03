@@ -1,0 +1,87 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-daily-reliability-20261103",
+  "timestamp": "2026-11-03T07:42:11.904750+00:00",
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-ozon-daily-reliability-iter2.md",
+  "iteration": 2,
+  "artifact_class": "mixed",
+  "anchor": "8.5 timur-activation iteration3 - current 8.4: live gate attacks and failure detection pass; first real scheduled source-to-live run remains external operational evidence.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 2,
+    "actionability_1_operational": 2,
+    "actionability_2_operational": 1,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 2,
+    "insight_4_operational": 1,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 1,
+    "brand_5_operational": 1,
+    "risk_1_operational": 2,
+    "risk_2_operational": 2,
+    "risk_3_operational": 2,
+    "risk_4_operational": 1,
+    "risk_5_operational": 2
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 8,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "probes": [
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Exact receive step executed with mock gh and actual TS/Python validators; expected SHA mismatch rejected."
+    },
+    {
+      "id": "A7",
+      "result": "PASS",
+      "evidence": "Stale, future and conflicting timestamps rejected by accept()."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "All unaffected stored day/phase rows survive merge."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Real TS validator rejects raw_report, browser_cookie, secret_token fields and mismatched totals."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "All cabinet failure/cancelled/timed_out fixtures return attention, no rerun. Latest subsequent success returns ok. 13 automation unit tests pass."
+    },
+    {
+      "id": "D8",
+      "result": "PASS",
+      "evidence": "Same failed snapshots run attempt1 rerun; attempt2 attention; queued source yields wait; missing chain dispatches snapshots."
+    }
+  ],
+  "evidence_ledger": [],
+  "gaps": [],
+  "rework_tz": "",
+  "confidence": 0.9
+}

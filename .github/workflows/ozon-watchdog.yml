@@ -1,0 +1,24 @@
+name: OZON automatic recovery
+on:
+  schedule:
+    - cron: '23 */2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: ozon-watchdog
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Recover a missing chain or retry one failed attempt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B analytics-mvp/tools/cabinet/watchdog.py

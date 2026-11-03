@@ -1,0 +1,13 @@
+# Ozon strict retest and hardening, 2026-11-03
+
+PR572 merged as d5cb7dff980af8accf3c240d05f79fba3775ce04. Independent FENIKS GO8.8 at9c69207e7dc09ab0. Fixes: bounded/idempotent native submission with durable pre-dispatch receipt; nonforce publication from the exact checked main parent; both data workflows checked before dispatch; isolation of the first orders failure; blocked/overdue runs and skipped Pages handling; timezone-aware latest snapshot; strict provenance labels. Existing public data scope unchanged.
+
+Evidence:48Python tests and40targeted TypeScript tests PASS; all15pages smoke and verify_dashboard PASS on both retained closed day and fresh partial day. Four new watchdog/timezone tests fail on previous main(3failures,1error). Full CI41603720804:1476pass,4previous failures in cpc-card-spread and ym/svod-ui, matching the independently reproduced baseline from PR570. No checks weakened.
+
+Fresh native report generated11:27MSK for2026-11-03 plus a freshly downloaded468-row catalog. Source controls all pass. Daily approved metrics:60801 impressions,20784 search impressions,3268 PDP visits,150 cart adds,5 ordered units. Coverage expected933/received506/matched504/missing429/extra2; current day is partial. Source10:10 was correctly rejected for1-count total discrepancies; it was not repaired by editing numbers.
+
+Real hardened publisher41604244503 succeeded. Bot commit26498003b3e01fa9ed1bd7fd332462796eedabd8 changes only analytics-mvp/data/cabinet_capture.json. Repeating the actual client returned data_in_main with published:false and did not dispatch a duplicate. Pages41604375320 succeeded. Actual browser verification of katya-voronka.html: selected Срез03.11, source11:27MSK, all five totals above and coverage match; day explicitly partial. katya-tests.html also shows03.11 at11:27 as a separate incomplete-day point excluded from averages/differences/verdicts. Local screenshot hardening-live-funnel.png retained as proof.
+
+Local morning/evening/control automation prompts and RUNBOOK updated for receipt states, actual explicit dispatch and the audited working checkout. Schedules and approved scope unchanged. No security bypass or new credentials. Raw XLSX and private run evidence remain local.
+
+Remaining limitations: finance/accrual/postings HTTP429, delivery source row139 two-part order instead of full three-part posting, first actual scheduled native source-to-live execution not yet proven. Independent source families retain their actual dates; valid native publication does not certify financial freshness. Browser collection still needs running Mac/Codex and a valid session. No changes to Yandex Market or source delivery sheet.

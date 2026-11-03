@@ -106,6 +106,29 @@ class DeliverySheetTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             sheet.order_of("50000000001 62227988545", set(), set())
 
+    def test_quantity_prefix_is_one_document_without_multiplying_cost(self):
+        now = dt.datetime(2026, 11, 3, 12, tzinfo=NOW.tzinfo)
+        active = row(date="2 ноября", doc="3 шт М26-4639", ship="12 135,15 ₽", paid="6 500,00 ₽", status="Создан")
+        active[3] = "3 шт GGT-TEST"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); self.root(root)
+            output = sheet.prepare(root, source(active), source(row()), now)
+            saved = [r for r in sheet.read_ledger(output["delivery.csv"]) if r["order"] == ORDER]
+            self.assertEqual(len(saved), 1)
+            self.assertEqual((saved[0]["vedomost"], saved[0]["ship"], saved[0]["buyer"]),
+                             ("М26-4639", "12135.15", "6500"))
+            self.assertEqual(saved[0]["offer"], "")
+            self.assertNotIn("PRIVATE", "".join(output.values()))
+            sheet.write_bundle(root, output)
+            replay = sheet.prepare(root, source(active), source(row()), now)
+            self.assertEqual(output["delivery.csv"], replay["delivery.csv"])
+
+    def test_quantity_document_prefix_does_not_accept_ambiguous_or_private_text(self):
+        for doc in ["0 шт М26-4639", "3 шт М26-4639 М26-4640", "3 шт PRIVATE М26-4639",
+                    "М26-4639 PRIVATE", "3 М26-4639"]:
+            with self.subTest(doc=doc), self.assertRaises(ValueError):
+                sheet.identifiers(doc, "GGT-TEST")
+
     def test_undated_cost_is_visible_issue_without_inventing_shipment_date(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); self.root(root)

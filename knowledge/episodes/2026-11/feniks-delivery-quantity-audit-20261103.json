@@ -1,0 +1,124 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ym-delivery-quantity-document-20261103",
+  "timestamp": "2026-11-03T12:18:35.869444+03:00",
+  "deliverable_ref": "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-delivery-quantity-audit-20261103.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr after repair:8.4 here for independently reproduced strict normalization,alias dedup,PII refusal and byte-identical replay;financial publication outside scope.",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 8
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Before f11a17a6 source rejects counted document;new function accepts single positive count prefix.Strict fullmatch."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "prepare count3 preserves carrier12135.15,buyer6500;count1/9999 accepted.No multiplication."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Duplicate rows collapse;countedLatinM->plainCyrillic->count9999 yields byte-identical CSV.Historic777 retained."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "18Python tests independently PASS,including alias,coverage,manifest,history,null/zero and two-response refusal."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "All2changedcode paths covered;excluded episode/error entries are service docs.NoOZON/formula/workflow changes."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Exact hashd40d5f2bdbcb623c;parent saved live dryrun668rows,targetМ26-5135/12135.15/6500 through2Nov;notpublication."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "11adversarial count/document/PII cases rejected.Offer canary+phone absent from outputs;bad doc/date/amount errors sanitized."
+    },
+    {
+      "id": "B8",
+      "result": "PASS",
+      "evidence": "LatinM/C aliases,шт.period and whitespace normalized.No-sales/status/cost/date guard changes.No row skipped or error swallowed."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "evidence_ledger": [
+    {
+      "gap": "Financial rerun still required",
+      "evidence": "Workflow41606973524 failed atdeliveryrow90;liveprepare668rows is memorydryrun,notpublishedsnapshot.",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Parent native source evidence not independently fetched",
+      "evidence": "Read delivery-live-dry-run.json and selfcheck;independent f11a17a6 before/new fixture probes verify behavior.",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -1
+    }
+  ],
+  "gaps": [
+    "Financial collection/publication requires successful rerun;parser GO is not financial GO.",
+    "External GoogleSheet confirmation supplied by parent;auditor independently checked saved evidence and local behavioral probes."
+  ],
+  "rework_tz": "",
+  "confidence": 0.95,
+  "iteration": 1,
+  "audience": "Ivan",
+  "sources_of_truth": [
+    "38b7fe8c",
+    "f11a17a6",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/delivery-self-check.md",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/delivery-before.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/delivery-after.log",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/delivery-live-dry-run.json",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-delivery-quantity-probes.py",
+    "/Users/gengroup/Documents/Codex/ym-audit-20261103/feniks-delivery-quantity-probes.json"
+  ]
+}

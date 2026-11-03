@@ -1,3 +1,4 @@
+import {novemberPeriods,periodWindow} from './november-periods.js';
 import {readFileSync} from 'node:fs';
 import {NOVEMBER_GROWTH} from './november-growth.js';
 export function financeWindow(today:string,last:string,covered:string[]){
@@ -20,7 +21,9 @@ ${gauge}
 const MAXD=${JSON.stringify(maxD)};
 ${moneyCore}
 const NG=${JSON.stringify(NOVEMBER_GROWTH)}, COVERED=${JSON.stringify(covered)}, BUILT_AT=${JSON.stringify(builtAt)};
-const financeWindow=${financeWindow.toString()};
+const financeWindow=${financeWindow.toString()},periodWindow=${periodWindow.toString()},WEEKS=${JSON.stringify(novemberPeriods())};
+function sendWeeklyFinance(){if(window.parent!==window&&window.NOVEMBER_FINANCE_WEEKLY)window.parent.postMessage(window.NOVEMBER_FINANCE_WEEKLY,location.origin)}
+window.addEventListener('message',function(e){if(e.source===window.parent&&e.origin===location.origin&&e.data&&e.data.type==='ozon-november-weekly-request')sendWeeklyFinance()});
 function renderNovemberFinance(now){
   const today=new Date(now+3*3600e3).toISOString().slice(0,10);
   const last=[MAXD,AN_MAXD,AN_RD_TO].sort()[0]||'';
@@ -36,6 +39,14 @@ function renderNovemberFinance(now){
     if(day===w.end&&w.complete){result={payout:data.grand.amt,net:derived.net,rent:derived.rent};missingCogs=data.miss.length;estimate=data.grand.tbEst;}
   }
   window.NOVEMBER_FINANCE={window:w,result,points,missingCogs,estimate};
+  const periods=WEEKS.map(period=>{
+    const span=periodWindow(period,today),missing=span.closed.filter(d=>d>last||!covered.includes(d)),complete=span.elapsed>0&&!missing.length;
+    let fact=null;
+    if(complete){const data=skuAnalyticsData({from:period.from,to:span.through}),derived=anDerive(data.grand);if(!Number.isFinite(derived.net))throw Error('Non-finite weekly profit');fact=derived.net;}
+    const goal=NG.profit*period.days/30,planToDate=NG.profit*span.elapsed/30;
+    return {...span,missing,complete,fact,goal,planToDate,ratio:fact!==null&&planToDate?fact/planToDate*100:null};
+  });
+  window.NOVEMBER_FINANCE_WEEKLY={type:'ozon-november-weekly-finance',today,periods};sendWeeklyFinance();
   const card=(key,title,fact,goal,unit)=>{
     const elapsed=w.end?Number(w.end.slice(8)):0,mark=key==='rent'?100:elapsed/30*100,planDate=goal*mark/100;
     return '<article class="metric" data-metric="'+key+'" data-fact="'+(fact==null?'':fact)+'" data-target="'+goal+'">'+window.planGauge({title:title,val:fact,plan:goal,mark:mark,stPct:fact!=null&&planDate>0?fact/planDate*100:null,l1:fmt(fact,unit==='%'?2:0)+(fact==null?'':' '+unit),l2:'Цель: '+fmt(goal,unit==='%'?1:0)+' '+unit,l3:key==='payout'?'Сценарный ориентир, не прогноз':key==='rent'?'Доля прибыли в выплате':'Ориентир к дате: '+fmt(planDate)+' ₽'})+'<small>'+(fact==null?'Выполнение не рассчитано':fmt(fact/goal*100,1)+'% цели, предварительно')+'</small></article>';

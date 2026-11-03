@@ -1,0 +1,100 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "november-weekly-20261103",
+  "timestamp": "2026-11-03T14:01:31.579878+00:00",
+  "iteration": 2,
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-november-weekly-20261103.md",
+  "artifact_class": "mixed",
+  "anchor": "8.9 annotate-after-rework - current8.8: real source/iframe/clock probes agree after adversarial schema fix; finance remains provisional and two unrelated baseline tests remain outside scope.",
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.8,
+  "verdict": "go",
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 2,
+    "actionability_1_operational": 2,
+    "actionability_2_operational": 2,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 2,
+    "insight_4_operational": 1,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 2,
+    "brand_5_operational": 1,
+    "risk_1_operational": 2,
+    "risk_2_operational": 2,
+    "risk_3_operational": 2,
+    "risk_4_operational": 1,
+    "risk_5_operational": 2
+  },
+  "probes": [
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Actual parent/frame runtime rejects wrong source, origin, date, goal schema and malformed null-fact/zero-ratio; valid actual frame payload accepted."
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Actual weekly iframe profit equals direct skuAnalyticsData/anDerive result from separately executed generated Money page. Total ads118998 equals sum of raw campaign source rows Nov1-2, without SKU-source duplication."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "30dates partition once into7/7/7/7/2; plan sums preserve450/30.6m/500k.17goods denominator30 for2closed dates, fullweek105 distinct. True0 survives, loss staysnegative, missing date suppressesfact."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Existing cohorts and source definitions unchanged; weekly daily inputs preserve gaps rather than reconstructing cumulative differences."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "All5weekbuttons select matching dates and clear unknown future facts. Nonneutral shared gauge byte-identical to prior renderer across54 cases. Monthly finance still uses unchanged engine/output."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Old HTML loading at Moscow midnight, nextday and December selects correct period; missing newly closed data remains unknown."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Neutral advertising gauge shows fact only, no target percentage, needle or overspend status. Financial null cannot produce false red0 status after the reproduced bridge defect was fixed."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "149 focused tests independently pass after correction. Generated parent and finance HTML run without JS errors; actual frame data consumed after strict validation."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "gaps": [],
+  "evidence_ledger": [],
+  "rework_tz": "",
+  "confidence": 0.95,
+  "p9_triggers_fired": [
+    "existing financial plan and source period change; p9_required=true"
+  ]
+}

@@ -1,3 +1,6 @@
+import {readFileSync} from 'node:fs';
+import {novemberPeriods,periodProgress,periodWindow} from './november-periods.js';
+import {NOVEMBER_GROWTH} from './november-growth.js';
 type Goal = {units:{nov:{mid:number}};turn_mln:{nov:{mid:number}};pay_mln:{nov:{mid:number}}};
 export type ForecastInput = {today:string;last:string;covered:Set<string>;units:Map<string,number>;revenue:Map<string,number>};
 const fmt=(n:number,d=0)=>n.toLocaleString('ru-RU',{maximumFractionDigits:d});
@@ -16,12 +19,12 @@ export function novemberForecast(goal:Goal,input:ForecastInput) {
     if(u!=null&&(!Number.isFinite(u)||u<0))throw new Error('Invalid November units');
     if(r!=null&&(!Number.isFinite(r)||r<0))throw new Error('Invalid November revenue');
     if(have){units+=u!;revenue+=r!;}
-    return {day,units:have&&complete?units:null,revenue:have&&complete?revenue:null,unitsPlan:target.units*(i+1)/30,revenuePlan:target.revenue*(i+1)/30};
+    return {day,dailyUnits:u,dailyRevenue:r,units:have&&complete?units:null,revenue:have&&complete?revenue:null,unitsPlan:target.units*(i+1)/30,revenuePlan:target.revenue*(i+1)/30};
   });
   const elapsed=last?Number(last.slice(8)):0;
   const expected=days.filter(d=>d<input.today).pop()??'';
   const stale=!!expected&&last<expected;
-  return {target,days,points,last,elapsed,expected,stale,complete:!!last&&complete,units:last&&complete?units:null,revenue:last&&complete?revenue:null,
+  return {today:input.today,target,days,points,last,elapsed,expected,stale,complete:!!last&&complete,units:last&&complete?units:null,revenue:last&&complete?revenue:null,
     coveredDays:days.filter(d=>d<=last&&input.covered.has(d)).length};
 }
 type Forecast=NonNullable<ReturnType<typeof novemberForecast>>;
@@ -39,29 +42,34 @@ function graph(f:Forecast,key:'units'|'revenue',title:string){
   return `<div class="nf-chart"><h3>${title}</h3>${svg}</svg><div class="nf-legend">━ Факт закрытых дней <span>┄ План</span></div></div>`;
 }
 export function novemberForecastHtml(f:Forecast, body?:string){
-  const metric=(key:'units'|'revenue',label:string)=>{
-    const fact=f[key],goal=f.target[key],dateGoal=goal*f.elapsed/30,ratio=fact==null?null:fact/goal*100;
-    return `<div class="nf-metric" data-metric="${key}" data-fact="${fact??''}" data-target="${goal}"><div class="nf-dial" id="nf-dial-${key}"></div><div class="nf-fallback"><h3>${label}</h3><strong>${fact==null?'нет данных':fmt(fact)}${key==='revenue'&&fact!=null?' ₽':''}</strong><div>Цель месяца: ${fmt(goal)}${key==='revenue'?' ₽':' шт.'}</div></div><div class="nf-track"><span style="width:${ratio==null?0:Math.min(100,ratio)}%"></span></div><div class="nf-caption">${ratio==null?'Выполнение не рассчитано':`${fmt(ratio,1)}% цели месяца`}${f.last?` · по ${f.last.slice(8)}.11`:''}</div>${f.last?`<div class="nf-caption">План к этой дате: ${fmt(dateGoal,1)}${key==='revenue'?' ₽':' шт.'}</div>`:''}${fact!=null&&f.last?`<div class="nf-caption">Отклонение от плана к дате: ${fact-dateGoal>=0?'+':''}${fmt(fact-dateGoal,1)}${key==='revenue'?' ₽':' шт'}. Осталось до цели: ${fmt(Math.max(0,goal-fact))}${key==='revenue'?' ₽':' шт'}.</div>`:''}${fact!=null&&!f.stale&&f.elapsed<30?`<div class="nf-caption">Нужный темп на оставшиеся ${30-f.elapsed} дн.: ${fmt(Math.max(0,goal-fact)/(30-f.elapsed),1)}${key==='revenue'?' ₽/день':' шт./день'}.</div>`:''}</div>`;
+  const initial=novemberWeeklyData(f),initialRow=initial.periods[initial.selected]!;
+  const metric=(key:string,label:string)=>{
+    const p=key==='units'?initialRow.units:key==='revenue'?initialRow.revenue:null;
+    return `<div class="nf-metric" data-metric="${key}" data-fact="${p?.fact??''}" data-target="${p?.planToDate??''}"><div class="nf-dial" id="nf-dial-${key}"><div class="g-t">${label}</div><div class="g-none">${p?.fact==null?'нет данных':fmt(p.fact)}</div><p>${p?.ratio==null?'Выполнение не рассчитано':fmt(p.ratio,1)+'% плана закрытых дней недели'}</p></div><p class="nf-caption" id="nf-note-${key}">Только закрытые дни выбранной недели.</p></div>`;
   };
+  const weeks=novemberPeriods();
+  const weeklyTable=`<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Неделя</th><th>Дней</th><th>Товары, шт.</th><th>Оборот, ₽</th><th>Чистая прибыль, ₽</th></tr></thead><tbody>${weeks.map(w=>`<tr><td>${w.label}</td><td>${w.days}</td><td>${fmt(f.target.units*w.days/30,2)}</td><td>${fmt(f.target.revenue*w.days/30)}</td><td>${fmt(NOVEMBER_GROWTH.profit*w.days/30,2)}</td></tr>`).join('')}<tr><td>Ноябрь</td><td>30</td><td>${fmt(f.target.units)}</td><td>${fmt(f.target.revenue)}</td><td>${fmt(NOVEMBER_GROWTH.profit)}</td></tr></tbody></table></div><p class="nf-caption">Равномерный ориентир, не прогноз спроса. Рекламный лимит не задан. Прибыль предварительная; недельные суммы показаны с округлением, расчёт использует полную точность.</p>`;
   return `<details class="card tcard nf-plan" open id="november-plan"><summary class="chead"><span class="ctitle">Ноябрь: цель и наше движение</span><span class="chip chip-run">01–30.11.2026</span></summary>
 <p class="sub">План роста от 03.11: 450 товаров и 30,6 млн ₽. Факт - по дате заказа, без известных отмен; количество товаров, не уникальных заказов.</p>
-<div class="pt-gauges nf-metrics">${metric('units','Заказы магазина')}${metric('revenue','Оборот магазина')}</div>
+<div class="mrow-b nf-weeks" aria-label="Неделя плана">${weeks.map(w=>`<button type="button" class="mb" data-nov-week="${w.id}" aria-pressed="false">${w.label}</button>`).join('')}</div><p class="nf-caption" id="november-week-state"></p>
+<div class="pt-gauges nf-metrics">${metric('units','Заказы магазина')}${metric('revenue','Оборот магазина')}${metric('ads','Расход на рекламу')}${metric('net','Чистая прибыль')}</div>
+<details class="fold"><summary>План по неделям</summary>${weeklyTable}</details>
 <div class="pt-plaque"><span class="pt-pl-l">Финансовые цели ноября:</span> выплата <span data-metric="payout" data-target="${f.target.payout}">${fmt(f.target.payout/1e6,1)} млн ₽ - сценарный ориентир</span>; чистая прибыль 500 тыс. ₽ и не менее 4,5% выплаты. Следующий рубеж: 900 тыс. ₽ и 8%. Предварительный факт и движение - в разделе 6.</div>
 <p class="nf-caption" id="november-coverage">Закрытые данные: ${f.coveredDays}/${f.elapsed} дней${f.last?`, по ${f.last.slice(8)}.11`:'. Ноябрьских данных пока нет'}.${f.last&&!f.complete?' Есть пропуск: накопительный итог и выполнение не рассчитаны.':''}${f.stale?` Срез отстаёт: ожидаются данные по ${f.expected}. Нужный темп до обновления не рассчитан.`:''} Только закрытые дни ноября; неполные дни в выполнение не входят. Свежие заказы могут уменьшиться после отмен.</p>
 ${(body??'<!-- NOVEMBER_STORE -->').replace('<!-- NOVEMBER_STORE -->',`<details class="pt-sec" id="november-store"><summary class="sec">3. Магазин к цели ноября</summary><div class="pt-two nf-charts">${graph(f,'units','Товары без отмен, шт.')}${graph(f,'revenue','Оборот, млн ₽')}</div></details>`)}
-<p class="nf-caption">Стрелка показывает долю цели месяца, белая отметка - план к дате, цвет - движение к этому плану. План распределён равномерно на 30 дней, это ориентир темпа, не прогноз спроса. Даты проверки: 12 и 20 ноября. Решения по карточкам и этапы - в разделах 7-8; индивидуальные числовые пороги и бюджеты кампаний не назначены. Октябрь сохранён в истории.</p></details>`;
+<p class="nf-caption">Стрелка и цвет сравнивают факт с планом закрытых дней выбранной недели; белая отметка всегда 100%. Текущий день исключён. Расход на рекламу показан нейтрально, без лимита и оценки перерасхода. План распределён равномерно на 30 дней, это ориентир темпа, не прогноз спроса. Даты проверки: 12 и 20 ноября. Решения по карточкам и этапы - в разделах 7-8; индивидуальные числовые пороги и бюджеты кампаний не назначены. Октябрь сохранён в истории.</p></details>`;
 }
 export const novemberForecastCss=`
 .nf-plan{border-color:#237082}.nf-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.nf-metric{background:#17212c;border:1px solid #293744;border-radius:10px;padding:18px;min-width:0}.nf-metric h3,.nf-chart h3{font-size:14px;margin:0 0 12px}.nf-metric strong{display:block;font-size:28px;margin:8px 0}.nf-caption{font-size:12px;color:#9aafbe;line-height:1.6}.nf-track{height:7px;background:#283746;border-radius:5px;overflow:hidden;margin:14px 0 6px}.nf-track span{display:block;height:100%;background:#22d3ee}.nf-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}.nf-chart{min-width:0}.nf-chart svg{width:100%;height:auto}.nf-chart text{fill:#9aafbe;font:11px system-ui}.nf-goal{fill:none;stroke:#d4a85a;stroke-width:2;stroke-dasharray:6 4}.nf-fact{fill:none;stroke:#22d3ee;stroke-width:2.5}.nf-legend{font-size:12px;color:#22d3ee}.nf-legend span{color:#d4a85a;margin-left:16px}@media(max-width:1100px){.nf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.nf-metrics,.nf-charts{grid-template-columns:1fr}.nf-metric strong{font-size:25px}}
 `;
 
-export function novemberForecastJs(f:Forecast){
-  const configs=(['units','revenue'] as const).map(key=>{
-    const fact=f[key],goal=f.target[key],planDate=goal*f.elapsed/30,unit=key==='units'?' шт.':' ₽';
-    return {key,title:key==='units'?'Заказы магазина':'Оборот магазина',val:fact,plan:goal,mark:f.elapsed/30*100,
-      stPct:fact!=null&&planDate>0?fact/planDate*100:null,
-      l1:fact==null?'нет данных · цель '+fmt(goal)+unit:fmt(fact)+' из '+fmt(goal)+unit,
-      l2:f.last?'01-'+f.last.slice(8)+'.11 · план на дату '+fmt(planDate)+unit:'Закрытых дней ноября пока нет'};
-  });
-  return `(function(){var cfg=${JSON.stringify(configs)};cfg.forEach(function(o){var el=document.getElementById('nf-dial-'+o.key);if(!el||!window.planGauge)return;el.innerHTML=window.planGauge(o);el.parentElement.classList.add('nf-ready');});})();`;
+export function novemberWeeklyData(f:Forecast,ads:Record<string,number|null>={}){
+  const weeks=novemberPeriods(),targets={...f.target,profit:NOVEMBER_GROWTH.profit};
+  const units=Object.fromEntries(f.points.map(p=>[p.day,p.dailyUnits])),revenue=Object.fromEntries(f.points.map(p=>[p.day,p.dailyRevenue]));
+  const selected=weeks.findIndex(w=>f.today<=w.to);
+  return {today:f.today,targets,daily:{units,revenue,ads},selected:selected<0?weeks.length-1:selected,periods:weeks.map(period=>({period,
+    units:periodProgress(period,f.today,units,targets.units),revenue:periodProgress(period,f.today,revenue,targets.revenue),ads:periodProgress(period,f.today,ads,null)}))};
+}
+export function novemberForecastJs(f:Forecast,ads:Record<string,number|null>={}){
+  return `window.NOVEMBER_WEEKLY=${JSON.stringify(novemberWeeklyData(f,ads)).replace(/</g,'\\u003c')};\n(function(){const periodWindow=${periodWindow.toString()};window.NOVEMBER_PERIOD_PROGRESS=${periodProgress.toString()};})();\n`+readFileSync(new URL('./november-weekly.client.js',import.meta.url),'utf8');
 }

@@ -34,7 +34,7 @@ describe('November detailed blocks',()=>{
     expect(r.data.series[0]!.s.sp![i]).toBe(45);expect(r.data.series.at(-1)!.s.sp![i]).toBe(50);
     // Cardinal click estimate: 20/20*4 + 25/30*6 = 9; store directly has10.
     expect(r.data.series[0]!.s.clk![i]).toBe(9);expect(r.data.series.at(-1)!.s.clk![i]).toBe(10);
-    expect(r.html).toContain('100 ₽');expect(r.html).toContain('Группы ниже взаимоисключающие');
+    expect(r.data.adsTotal['2026-11-01']).toBe(150);expect(r.data.adsTotal['2026-11-02']).toBeNull();expect(r.html).toContain('100 ₽');expect(r.html).toContain('Группы ниже взаимоисключающие');
     // Unique partition main10 + minimum15 + specified campaign20 + other5 =50.
     expect(r.html).toContain('Остаток до суммы отчёта по товарам');
   });
@@ -72,7 +72,7 @@ describe('November detailed blocks',()=>{
     f.orderCovered.delete('2026-11-02');const r=novemberDetails(f)!;expect(r.data.closedEnd).toBe('2026-11-30');expect(r.data.prices[0]!.current?.value).toBe(80);
   });
   it('clips Thursday-Wednesday weeks to November, exactly30 distinct dates',()=>{
-    const w=novemberWeeks();expect(w[0]).toEqual(['01-04.11','2026-11-01','2026-11-04']);expect(w.at(-1)).toEqual(['26-30.11','2026-11-26','2026-11-30']);
+    const w=novemberWeeks();expect(w[0]).toEqual(['01-07.11','2026-11-01','2026-11-07']);expect(w.at(-1)).toEqual(['29-30.11','2026-11-29','2026-11-30']);
     expect(w.reduce((n,[,a,b])=>n+(Date.parse(b!)-Date.parse(a!))/864e5+1,0)).toBe(30);
   });
   it('ratios use sums of the same observed days; no zero denominators or gap substitution',()=>{

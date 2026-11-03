@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-03T12:35:24.910579+03:00",
+  "loaded_at": "2026-11-03T17:56:55.484417+03:00",
   "through": "2026-11-02",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
@@ -19,8 +19,8 @@
       "accepted_rows": 12,
       "missing_cost_rows": 0,
       "unrecognized_offer_rows": 2,
-      "future_rows": 11,
-      "undated_rows": 2
+      "future_rows": 12,
+      "undated_rows": 1
     },
     "archive": {
       "market_rows": 533,

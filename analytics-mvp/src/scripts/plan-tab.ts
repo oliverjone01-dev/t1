@@ -35,7 +35,7 @@ import {readCaptureFile} from './ozon/cabinet-capture.js';
 import {mergeCabinetViews,nativeFunnel} from './ozon/cabinet-funnel.js';
 import {readFunnelTests,FUNNEL_TESTS_FILE} from './funnel-tests.js';
 import { noSite as gapNoSite, readGapMarked } from "./gap-daily.js";
-import {novemberForecast,novemberForecastHtml,novemberForecastCss} from './november-forecast.js';
+import {novemberForecast,novemberForecastHtml,novemberForecastJs,novemberForecastCss} from './november-forecast.js';
 import {novemberDetails} from './november-details.js';
 import {NOVEMBER_GROWTH,novemberGrowthHtml,novemberGrowthCss} from './november-growth.js';
 
@@ -702,7 +702,7 @@ ${cabTxt}
 </ul></div></details>
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");
-  const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
+  const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "gauge.client.js"), "utf-8") + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
   const november = novemberForecast(NOVEMBER_GROWTH, {today,last:OD_LAST,units:stU,revenue:stRev,
     covered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date)))});
   const details=november ? novemberDetails({today,days:DAYS,plan:P,cards,ser:SER,store:STORE,views:mergedViews,
@@ -710,8 +710,8 @@ ${cabTxt}
     ads:adsDaily,adsSku:asd,adsLast:AD_CAMP_LAST,adsFull:adsFullDay(adsDaily.map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,'2026-11-01',campDay,adsReceipts),
     adsCovered:new Set([...new Set(adsDaily.map(a=>String(a.d)))].filter(d=>d>='2026-10-01'&&d<='2026-11-30'&&adsFullDay(adsDaily.filter(a=>a.d===d).map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,d,campDay,adsReceipts)===d)),
     prices:priceSource,gaps:gapSource.filter(r=>!gapNoSite(r)),partial:PARTIAL}) : null;
-  const activeHtml = november ? novemberForecastHtml(november) + novemberGrowthHtml(today,details) + (details?.html??'') + html
+  const activeHtml = november ? novemberForecastHtml(november,(details?.html??'<!-- NOVEMBER_STORE -->')+novemberGrowthHtml(today,details)) + html
     .replace('<details class="card tcard" open id="pt-plan">','<details class="card tcard pt-nov-archive" id="pt-plan">')
     .replace('План с 15.10: как идём к цели','Октябрьские условия тестов и история') : html;
-  return { html:activeHtml, css:css+(november?novemberForecastCss+novemberGrowthCss:'')+(details?.css??''), js:js+'\n'+(details?.js??''), warnings };
+  return { html:activeHtml, css:css+(november?novemberForecastCss+novemberGrowthCss:'')+(details?.css??'')+(november?css.replaceAll('#pt-plan','#november-plan')+readFileSync(join(HERE,'november-layout.css'),'utf8'):''), js:js+'\n'+(november?novemberForecastJs(november):'')+'\n'+(details?.js??''), warnings };
 }

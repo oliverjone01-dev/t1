@@ -1,0 +1,105 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "november-october-format-20261103",
+  "timestamp": "2026-11-03T13:29:37.272050+00:00",
+  "iteration": 1,
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-november-october-format-20261103.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.9 annotate-after-rework - current8.8: shared presentation matches original output across54 adversarial inputs; own browser rendering unavailable, DOM/runtime and author screenshot evidence used.",
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.8,
+  "verdict": "go",
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 2,
+    "actionability_1_operational": 2,
+    "actionability_2_operational": 2,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 2,
+    "insight_4_operational": 1,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 2,
+    "brand_5_operational": 1,
+    "risk_1_operational": 2,
+    "risk_2_operational": 2,
+    "risk_3_operational": 2,
+    "risk_4_operational": 1,
+    "risk_5_operational": 2
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "No source data/targets/financial engine/workflows changed. Existing Money-engine calls and source-date/cancellation definitions retained."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Actual financial renderer with loss, genuine zero, missing coverage and undefined ratio: all three gauges preserve facts, missing status and exact4.5% goal."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Actual page has unique IDs and preserved10-card rows/cohorts; order row expansion uses colspan5 and does not mutate ND data."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Shared gauge output is byte-identical to original October renderer on54 cases across null/negative/boundaries/overachievement,3marks and high-is-bad modes. November gauges2; October markup5 but hidden in rolled November archive."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "New price state counts aggregate existing priceRows; no invented campaign budgets or per-card goal thresholds."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Final preview carries explicit pointer/white-date-mark/color explanation, dated facts and historical archive; own IAB unavailable, structural runtime plus author browser evidence used."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Missing/negative finance stays missing/negative, no invented completion or seller change. Old409 targets stay hidden rather than presented as current."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Actual runtime exercised every new order row open/close, funnel selectors, every price chart toggle, old October breakdown pills and metric selectors with no JS errors."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "141 focused tests independently pass; actual generated page has5 collapsed sections in October order and one open outer details; no duplicate IDs/runtime errors."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "gaps": [],
+  "evidence_ledger": [],
+  "rework_tz": "",
+  "confidence": 0.93,
+  "p9_triggers_fired": [
+    "existing financial goals and public dashboard presentation; p9_required=true"
+  ]
+}

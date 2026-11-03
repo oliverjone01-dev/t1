@@ -494,6 +494,28 @@ describe("клиент блока в jsdom: скрипт отрабатывае�
     const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].map((x) => x.textContent!.replace(/\s+/g, " "));
     return { errs, g, doc: dom.window.document };
   }
+  it('November shares October gauges, keeps five familiar collapsed sections and preserves history',()=>{
+    const f=fixture({orders:[{d:'2026-11-01',status:'delivered',sku:'1',units:2,revenue:2000}]});
+    writeFileSync(f('daily_totals.ndjson'),JSON.stringify({date:'2026-11-01'}));
+    const r=run('2026-11-02',f);
+    expect(r.errs).toEqual([]);
+    const ids=['november-orders','november-funnel','november-store','november-ads','november-prices'];
+    const sections=[...r.doc.querySelectorAll('#november-details>.pt-sec')];
+    expect(sections.map(e=>e.id)).toEqual(ids);
+    for(const e of sections)expect(e.hasAttribute('open')).toBe(false);
+    expect(r.doc.querySelector('#november-plan')!.hasAttribute('open')).toBe(true);
+    expect(r.doc.querySelector('#pt-plan')!.hasAttribute('open')).toBe(false);
+    expect(r.doc.querySelectorAll('#pt-gauges .gauge')).toHaveLength(5);
+    expect(r.doc.querySelectorAll('#november-plan .nf-dial .gauge')).toHaveLength(2);
+    const gauge=r.doc.querySelector('#nf-dial-units .gauge')!;
+    expect(Number(gauge.getAttribute('data-pct'))).toBeCloseTo(2/450*100);
+    expect(gauge.getAttribute('data-zone')).toBe(gauge.getAttribute('data-st'));
+    const toggle=r.doc.querySelector('.nd-order-toggle') as HTMLButtonElement;
+    toggle.click();expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(r.doc.querySelector('.nd-order-detail svg')).not.toBeNull();
+    const allIds=[...r.doc.querySelectorAll('[id]')].map(e=>e.id);
+    expect(new Set(allIds).size).toBe(allIds.length);
+  });
   it("ошибок нет, 5 спидометров, у каждого подпись", () => {
     const r = run("2026-10-17");
     expect(r.errs).toEqual([]); expect(r.g).toHaveLength(5);

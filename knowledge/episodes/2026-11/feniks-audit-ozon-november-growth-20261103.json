@@ -1,0 +1,98 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-november-growth-20261103",
+  "timestamp": "2026-11-03T11:54:18.444589+00:00",
+  "iteration": 1,
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-ozon-november-growth-20261103.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.9 annotate-after-rework - current8.6: actual runtime and external frozen-source references agree; current order lag, provisional finance and two unrelated baseline tests remain explicit.",
+  "scores": {
+    "accuracy": 9,
+    "actionability": 8,
+    "insight": 9,
+    "brand_fit": 8,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.6,
+  "verdict": "go",
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 2,
+    "actionability_1_operational": 1,
+    "actionability_2_operational": 2,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 2,
+    "insight_4_operational": 2,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 1,
+    "brand_5_operational": 1,
+    "risk_1_operational": 2,
+    "risk_2_operational": 2,
+    "risk_3_operational": 2,
+    "risk_4_operational": 1,
+    "risk_5_operational": 2
+  },
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Frozen source commercial-analysis and independent finance-details: all10 card before/after/threshold values exact; profit differences below0.0051rub; Sept/Oct unit/net/payout references match."
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "Runtime: missing channel/account intersection day, realization hole or late realization start blocks cumulative fact; observed zero kept, loss negative, zero payout ratio unavailable; Moscow midnight and December30day cap correct."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Existing plan card cohort/withdrawn filtering unchanged. Frozen10card source thresholds show exactly8 passed. Historical source/data files unmodified."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "Actual generated finance page executes without JS errors: Nov2 payout365176/net-72047.473. Current orders staleNov1 is marked; old409 November goal appears as previous historical reference/collapsed archive, active450 remains distinct."
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "Frozen numbers deliberately stored in historical content, labeled analysis03Nov/sourcef5978ab. Live facts are obtained from existing engine/details; no copied live net formula."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Preview build has active final4.5% target formatter. Source date/closed day and build timestamp present; no claim screenshot alone proves live source freshness."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Nonfinite engine result produces visibly unavailable financial result. Missing fact cannot yield achievement. Passing calendar milestone dates never mark execution complete."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "gaps": [],
+  "evidence_ledger": [],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "sources_of_truth": [
+    "knowledge/semantic/metrics/ozon-november-growth.yaml",
+    "knowledge/episodes/2026-11/selfcheck-ozon-november-growth-20261103.md",
+    "/Users/gengroup/Documents/Codex/ozon-autonomous/analysis-20261103-october/commercial-analysis.json",
+    "/Users/gengroup/Documents/Codex/ozon-autonomous/analysis-20261103-october/finance-details.json"
+  ]
+}

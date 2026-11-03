@@ -1,0 +1,40 @@
+/* November uses October's plan-tab styles; only namespace/layout bridges below. */
+#november-plan{border-color:var(--soft)}
+#november-plan .nf-metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));max-width:900px;margin:12px 0;gap:10px}
+#november-plan .nf-metric{padding:10px 10px 8px;border-radius:12px;text-align:center;background:linear-gradient(180deg,#151b25,#12161f)}
+#november-plan .nf-dial .gauge{padding:0;border:0;background:none}
+#november-plan .nf-ready .nf-fallback,#november-plan .nf-ready .nf-track{display:none}
+#november-plan .nf-caption{font-size:12px;color:var(--ink3)}
+#november-plan .nf-charts{margin:10px 0;gap:12px}
+#november-plan .nf-chart{border:1px solid var(--soft);border-radius:10px;padding:6px 8px}
+#november-plan .nf-chart h3{font-size:12.5px;margin:6px 2px}
+#november-plan .nd{margin:0}
+#november-plan .nd-section,#november-plan .ng-plan>.pt-sec{padding:0;margin:0;border:0;border-radius:0;background:none}
+#november-plan .nd-title,#november-plan .ng-plan>.pt-sec>summary{font:inherit}
+#november-plan summary.sec{font-size:14px;font-weight:700;margin:14px 0 8px}
+#november-plan .nd details[open]>summary{margin-bottom:8px}
+#november-plan .nd table,#november-plan .ng-table{font-size:12px}
+#november-plan .nd th,#november-plan .nd td,#november-plan .ng-table th,#november-plan .ng-table td{padding:8px 10px}
+#november-plan .ng-plan details{margin-top:0;padding-top:0;border-top:0}
+#november-plan .ng-plan summary{font-size:12.5px}
+#november-plan .ng-plan p,#november-plan .ng-plan li{font-size:12.5px;line-height:1.5;color:var(--ink2)}
+#november-plan .nd-selectors{gap:6px;margin:6px 2px}
+#november-plan .nd-selectors button{padding:3px 10px;background:transparent;border-color:var(--soft);color:var(--ink3)}
+#november-plan .nd-selectors button[aria-pressed=true]{border-color:var(--cy);color:var(--cy)}
+#november-plan .nd-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+#november-plan .nd-kpis>div{flex:1 1 170px;padding:8px 12px;border:1px solid var(--soft);border-radius:8px;background:none}
+#november-plan .nd-kpis b{font-size:16px;margin:5px 0}
+#november-plan .nd-week-bar{height:14px;border-radius:7px}
+#november-plan .nd-week-bar i{border-radius:7px;background:var(--cy)}
+#november-plan .nd-ad-row,#november-plan .nd-ad-head{gap:8px}
+#november-plan .ng-finance{background:#12161f}
+@media(max-width:700px){#november-plan .pt-two{grid-template-columns:minmax(0,1fr)}#november-plan .nf-metrics{grid-template-columns:minmax(0,1fr)}#november-plan .nf-metric{max-width:100%}}
+
+#november-plan .nf-dial svg{display:block;max-width:240px;margin:auto}
+#november-plan .nd-order-toggle{border:0;background:none;color:inherit;text-align:left;padding:0;font:inherit;cursor:pointer}
+#november-plan .nd-order-toggle small{display:block;margin-left:15px}
+#november-plan .nd-order-detail .nd-order-chart{max-width:none;width:100%}
+#november-plan .nd-order-detail .nd-skus{max-width:680px}
+
+/* Legacy October dials roll into November with obsolete targets; keep them hidden in the archive. */
+.pt-nov-archive #pt-gauges{display:none}

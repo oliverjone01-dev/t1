@@ -24,7 +24,7 @@ describe('November forecast',()=>{
  });
  it('keeps payout as a goal with no invented daily fact; SVGs expose day tooltips',()=>{
   const dom=new JSDOM(novemberForecastHtml(novemberForecast(goal,input())!));
-  const pay=dom.window.document.querySelector('[data-metric=payout]')!;expect(pay.getAttribute('data-fact')).toBeNull();expect(pay.textContent).toContain('после закрытия ноября');
+  const pay=dom.window.document.querySelector('[data-metric=payout]')!;expect(pay.getAttribute('data-fact')).toBeNull();expect(pay.textContent).toContain('сценарный ориентир');
   expect(dom.window.document.querySelectorAll('svg')).toHaveLength(2);expect(dom.window.document.querySelectorAll('circle title')[0]!.textContent).toContain('2026-11-01');
   expect(dom.window.document.querySelectorAll('circle')).toHaveLength(2);dom.window.close();
  });

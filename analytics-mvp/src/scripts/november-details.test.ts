@@ -19,7 +19,7 @@ describe('November detailed blocks',()=>{
   it('has orders, selectable funnel, weekly ads, prices and a link to the store goal',()=>{
     const r=novemberDetails(fixture())!;
     for(const id of ['november-orders','november-funnel','november-ads','november-prices'])expect(r.html).toContain('id="'+id+'"');
-    expect(r.html).toContain('href="#november-plan"');expect(r.html).toContain('&lt;Альфа&gt;');expect(r.html).not.toContain('<test>');
+    expect(r.html).toContain('<!-- NOVEMBER_STORE -->');expect(r.html).toContain('&lt;Альфа&gt;');expect(r.html).not.toContain('<test>');
     expect(r.html).toContain('Порог ноября');expect(r.html).toContain('Не задан');expect(r.html).not.toContain('20000');
     expect(r.js).not.toContain('</script');
   });
@@ -95,7 +95,8 @@ describe('November detailed blocks',()=>{
     expect(doc.querySelectorAll('#nd-funnel-chart circle')).toHaveLength(2);
     for(const id of ['nd-cards','nd-metrics'])for(let i=0;i<doc.querySelectorAll('#'+id+' button').length;i++)(doc.querySelectorAll('#'+id+' button')[i] as any).click();
     (doc.querySelector('#nd-metrics button') as any).click();expect(doc.querySelector('#nd-funnel-chart h3')!.textContent).toContain('Магазин');
-    for(const cls of ['nd-order','nd-price']){const el=doc.querySelector('.'+cls) as any;el.open=true;el.dispatchEvent(new dom.window.Event('toggle'));expect(el.querySelector('svg')).not.toBeNull();}
+    const order=doc.querySelector('.nd-order-toggle') as any;order.click();expect(order.getAttribute('aria-expanded')).toBe('true');expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(false);expect(doc.querySelector('.nd-order-detail svg')).not.toBeNull();order.click();expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(true);
+    for(const cls of ['nd-price']){const el=doc.querySelector('.'+cls) as any;el.open=true;el.dispatchEvent(new dom.window.Event('toggle'));expect(el.querySelector('svg')).not.toBeNull();}
     expect(doc.querySelectorAll('.nd-order-chart circle')).toHaveLength(1);expect(doc.querySelectorAll('.nd-price-chart circle')).toHaveLength(2);
     expect(errors).toEqual([]);dom.window.close();
   });

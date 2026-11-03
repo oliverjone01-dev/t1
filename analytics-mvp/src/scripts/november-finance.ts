@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {NOVEMBER_GROWTH} from './november-growth.js';
 export function financeWindow(today:string,last:string,covered:string[]){
   const days=Array.from({length:30},(_,i)=>'2026-11-'+String(i+1).padStart(2,'0'));
@@ -8,9 +9,14 @@ export function financeWindow(today:string,last:string,covered:string[]){
 }
 // Reuses the actual Money-page functions and embedded inputs. No second financial formula.
 export function novemberFinancePage(moneyCore:string,maxD:string,covered:string[],builtAt:string){
+  const gauge=readFileSync(new URL('./plan-tab/gauge.client.js',import.meta.url),'utf8');
+  const gaugeCss=readFileSync(new URL('./plan-tab/plan-tab.css',import.meta.url),'utf8').replaceAll('#pt-plan','#finance-metrics');
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GENGLASS · Финансовая цель ноября</title><style>
 body{margin:0;padding:16px;background:#17212c;color:#e6eef6;font:14px system-ui}*{box-sizing:border-box}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.metric{padding:14px;border:1px solid #344756;border-radius:10px}.metric strong{font-size:26px;display:block;margin:9px 0}.metric h3{font-size:13px;margin:0}p,small{line-height:1.55;color:#b1c3d0}.track{height:7px;background:#344756;border-radius:5px;overflow:hidden;margin:12px 0}.track i{height:100%;display:block;background:#22d3ee}a{color:#68d4ee}table{border-collapse:collapse;width:100%;font-size:12px}td,th{text-align:left;padding:8px;border-bottom:1px solid #344756}.scroll{overflow:auto}svg{width:100%;height:190px}.warn{color:#f4ce8b}h2{font-size:18px;margin:0 0 12px}@media(max-width:700px){.grid{grid-template-columns:1fr}.metric strong{font-size:24px}}
+${gaugeCss}
+#finance-metrics{--soft:#232B36;--ink:#e6eef6;--ink2:#b1c3d0;--ink3:#8b9eae}#finance-metrics .metric{padding:10px;text-align:center;background:linear-gradient(180deg,#151b25,#12161f);border-radius:12px}#finance-metrics .gauge{border:0;padding:0;background:none}#finance-metrics svg{height:auto;max-width:240px}body{background:#12161f}
 </style></head><body><h2>Предварительный финансовый результат ноября</h2><div id="finance-state" role="status">Расчёт загружается. Если данные не появились, откройте вкладку «Деньги».</div><div id="finance-metrics" class="grid"></div><div id="finance-chart"></div><div id="finance-quality"></div><details><summary>Движение по закрытым дням</summary><div class="scroll"><table><thead><tr><th>По дату</th><th>Выплата, ₽</th><th>Чистая прибыль, ₽</th><th>Ориентир прибыли, ₽</th></tr></thead><tbody id="finance-days"></tbody></table></div></details><p><a href="katya-money.html" target="_top">Открыть подробный расчёт</a></p><script>
+${gauge}
 const MAXD=${JSON.stringify(maxD)};
 ${moneyCore}
 const NG=${JSON.stringify(NOVEMBER_GROWTH)}, COVERED=${JSON.stringify(covered)}, BUILT_AT=${JSON.stringify(builtAt)};
@@ -30,7 +36,10 @@ function renderNovemberFinance(now){
     if(day===w.end&&w.complete){result={payout:data.grand.amt,net:derived.net,rent:derived.rent};missingCogs=data.miss.length;estimate=data.grand.tbEst;}
   }
   window.NOVEMBER_FINANCE={window:w,result,points,missingCogs,estimate};
-  const card=(key,title,fact,goal,unit)=>'<article class="metric" data-metric="'+key+'" data-fact="'+(fact==null?'':fact)+'" data-target="'+goal+'"><h3>'+title+'</h3><strong>'+fmt(fact,unit==='%'?2:0)+(fact==null?'':' '+unit)+'</strong><small>Цель: '+fmt(goal,unit==='%'?1:0)+' '+unit+'</small><div class="track"><i style="width:'+(fact==null?0:Math.max(0,Math.min(100,fact/goal*100)))+'%"></i></div><small>'+(fact==null?'Выполнение не рассчитано':fmt(fact/goal*100,1)+'% цели, предварительно')+'</small></article>';
+  const card=(key,title,fact,goal,unit)=>{
+    const elapsed=w.end?Number(w.end.slice(8)):0,mark=key==='rent'?100:elapsed/30*100,planDate=goal*mark/100;
+    return '<article class="metric" data-metric="'+key+'" data-fact="'+(fact==null?'':fact)+'" data-target="'+goal+'">'+window.planGauge({title:title,val:fact,plan:goal,mark:mark,stPct:fact!=null&&planDate>0?fact/planDate*100:null,l1:fmt(fact,unit==='%'?2:0)+(fact==null?'':' '+unit),l2:'Цель: '+fmt(goal,unit==='%'?1:0)+' '+unit,l3:key==='payout'?'Сценарный ориентир, не прогноз':key==='rent'?'Доля прибыли в выплате':'Ориентир к дате: '+fmt(planDate)+' ₽'})+'<small>'+(fact==null?'Выполнение не рассчитано':fmt(fact/goal*100,1)+'% цели, предварительно')+'</small></article>';
+  };
   document.getElementById('finance-metrics').innerHTML=card('net','Расчётная чистая прибыль',result?.net??null,NG.profit,'₽')+card('rent','Прибыль / выплата',result?.rent??null,NG.rent,'%')+card('payout','Выплата после удержаний',result?.payout??null,NG.pay_mln.nov.mid*1e6,'₽');
   document.getElementById('finance-quality').innerHTML='<p class="warn">'+(result?'SKU без себестоимости: '+missingCogs+'. Оценочная часть базы налога: '+fmt(estimate)+' ₽. ':'')+'Доставка по ведомости: '+(AN_VED_MAXD||'нет данных')+'. Доход и доставка учитываются вместе по дате начисления; ожидающие начисления расходы не вычитаются отдельно. Полнота всех затрат и бухгалтерская сверка не подтверждены.</p><p>Прибыль и выплата относятся к начислениям и реализациям; их нельзя сравнивать как одну когорту с заказами выше. АДМ: 30% положительных баз по SKU/дням; налог: действующая модель 15% базы реализации. Реклама уже учтена в выплате. Достижение числовой цели не подтверждает окончательную прибыль.</p>';
   document.getElementById('finance-days').innerHTML=points.map(p=>'<tr><td>'+p.day+'</td><td>'+fmt(p.payout)+'</td><td>'+fmt(p.net)+'</td><td>'+fmt(NG.profit*Number(p.day.slice(8))/30)+'</td></tr>').join('');

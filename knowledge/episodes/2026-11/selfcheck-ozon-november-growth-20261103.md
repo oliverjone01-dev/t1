@@ -46,3 +46,7 @@ Validation:
 Runtime output: /Users/gengroup/Documents/Codex/ozon-autonomous/november-growth-preview. Build/test logs: /tmp/november-*.log. Browser preview: http://127.0.0.1:8869/katya-tests.html.
 
 Residual: the current order snapshot covers only 01 November; latest expected closed date is 02 November. Financial dates reach 02 November. The two are explicitly separate populations/date bases. No bank/actual company cost reconciliation has been performed.
+
+## Public publication consent, 03.11.2026
+
+After the automatic review blocked the first push because the earlier cabinet allowance excluded finance, the user explicitly answered «Разрешаю этот состав и плановые обновления» to publication of the November plan and financial results on the existing public dashboard and GitHub oliverjone01-dev/t1: orders, turnover, payout, expenses, calculated profit and profitability, including card-level estimates and subsequent scheduled updates of those indicators. No secrets or personal data are included. This does not authorise seller-side campaign or price mutations.

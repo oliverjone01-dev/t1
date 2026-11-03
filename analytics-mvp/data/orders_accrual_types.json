@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -82350206,
-  "n": 3409
+  "sum": -82680037,
+  "n": 3420
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2838346,
-  "n": 1666
+  "sum": -2848884,
+  "n": 1675
  },
  {
   "type_id": 3,
@@ -24,8 +24,8 @@
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -1133569,
-  "n": 1786
+  "sum": -1136153,
+  "n": 1790
  },
  {
   "type_id": 64,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -338082,
-  "n": 1752
+  "sum": -341701,
+  "n": 1764
  },
  {
   "type_id": 74,
@@ -52,8 +52,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -312858,
-  "n": 204
+  "sum": -313314,
+  "n": 205
  },
  {
   "type_id": 22,
@@ -66,8 +66,8 @@
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -178086,
-  "n": 311
+  "sum": -178718,
+  "n": 312
  },
  {
   "type_id": 116,
@@ -87,36 +87,36 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -57400,
-  "n": 207
+  "sum": -57960,
+  "n": 209
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -33120,
-  "n": 1656
- },
- {
-  "type_id": 16,
-  "name": "Drop-Off",
-  "bucket": "delivery",
-  "sum": -20690,
-  "n": 1316
+  "sum": -33200,
+  "n": 1660
  },
  {
   "type_id": 10,
   "name": "Compensation",
   "bucket": "other",
-  "sum": -15849,
-  "n": 5
+  "sum": -23578,
+  "n": 7
+ },
+ {
+  "type_id": 16,
+  "name": "Drop-Off",
+  "bucket": "delivery",
+  "sum": -20780,
+  "n": 1325
  },
  {
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -7592,
-  "n": 849
+  "sum": -7636,
+  "n": 854
  },
  {
   "type_id": 14,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1628907,
-  "n": 391
+  "sum": 1745445,
+  "n": 425
  }
 ]

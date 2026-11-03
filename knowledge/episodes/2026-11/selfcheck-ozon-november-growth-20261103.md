@@ -38,6 +38,8 @@ Validation:
 - Existing smoke: all 16 standard pages passed. New finance page separately executed in JSDOM and IAB; no script errors.
 - New financial live result for 01-02 November: payout 365176; net -72047.473; rent -19.729520286108606%. Source is actual Money engine; not independently bank-reconciled.
 - TypeScript baseline vs worktree: same 94 pre-existing diagnostics, no new normalised diagnostics.
+- Full vitest with local IPC permitted: 1486 passed, 2 failed. Both failures are unchanged cpc-card-spread September snapshot assertions, reproduced on clean base 15b4cb9 (2 failed / 4 passed). This is not an all-green test claim. Logs: /tmp/november-full-tests-unrestricted.log and /tmp/november-cpc-baseline.log.
+- Cabinet verify_dashboard passed: closed 02.11, selected partial 03.11 11:27, checked19/missing2 products, 5 metrics.
 - git diff --check clean.
 - Browser found a 4.5% target rounded to 5%; fixed goal percentage formatting and added a regression assertion before audit.
 

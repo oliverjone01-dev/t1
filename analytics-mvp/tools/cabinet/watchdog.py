@@ -12,8 +12,22 @@ def stamp(value):
 
 
 def plan(runs, now):
+    # GitHub emits skipped Pages runs for unrelated unsuccessful workflows.
+    # Those never deploy and must not hide the last actual publication.
+    runs = {name: sorted((r for r in runs.get(name, [])
+                         if r.get('head_branch', 'main') == 'main' and r.get('conclusion') != 'skipped'),
+                        key=lambda r: stamp(r['created_at']), reverse=True) for name in WORKFLOWS}
+    active = [(name, r) for name, rows in runs.items() for r in rows if r['status'] != 'completed']
+    limits = {'orders-backfill.yml': 210, 'ozon-snapshots.yml': 390,
+              'deploy-pages.yml': 90, 'ozon-cabinet-publish.yml': 45}
+    stuck = [{'workflow': name, 'run_id': r['id'], 'status': r['status']}
+             for name, r in active
+             if now-stamp(r.get('run_started_at') or r['created_at']) > dt.timedelta(minutes=limits[name])
+             or r['status'] in ['waiting', 'action_required']]
+    if stuck:
+        return {'action': 'attention', 'stuck': stuck, 'reason': 'Workflow blocked or exceeded expected duration; do not cancel automatically'}
     # Never evict pending ozon-data / Pages work through another dispatch.
-    if any(r['status'] != 'completed' for rows in runs.values() for r in rows):
+    if active:
         return {'action': 'wait', 'reason': 'Existing collection/publication is active'}
     latest = {k: v[0] if v else None for k, v in runs.items()}
     orders = latest['orders-backfill.yml']

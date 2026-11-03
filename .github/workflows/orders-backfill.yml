@@ -48,6 +48,8 @@ env:
 
 jobs:
   orders:
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 180
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -62,6 +64,9 @@ jobs:
           node-version: "22"
       - run: npm ci || npm install
       - name: Сбор по заказам
+        id: orders
+        continue-on-error: true
+        timeout-minutes: 30
         run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
       # Шаги начислений ниже ходят в тот же OZON и ловят 429 (16.10: «rate limit per second» в
       # pnl-sku-accrual). Раньше сбой рвал весь прогон до коммита, и пропадали уже собранные заказы.
@@ -108,12 +113,14 @@ jobs:
         # возвратов). Хвост из двух месяцев перетягивается каждый раз, месяцы без базы - один раз.
         id: realm
         continue-on-error: true
+        timeout-minutes: 25
         run: npm run pnl:realization
       - name: Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня)
         # Иван 25.09.2026, п. 1.4 и 2.2: база налога и деньги таблицы по артикулам за незакрытый месяц
         # - из отчёта о реализации за день, а не оценкой. Каждый прогон перетягивает последние 31 день.
         id: reald
         continue-on-error: true
+        timeout-minutes: 25
         run: npx tsx src/scripts/ozon/realization-daily.ts 31
       - name: Калибровка соинвеста по эталону начислений
         # Сети не требует, поэтому не падает вместе с OZON. Вердикт виден прямо в логе шага:
@@ -175,8 +182,12 @@ jobs:
             echo "::error::отчёт о реализации: месячный ${{ steps.realm.outcome }}, за день ${{ steps.reald.outcome }} - перезапусти workflow"
             exit 1
           fi
+          if [ "${{ steps.orders.outcome }}" != "success" ]; then
+            echo "::error::сбор заказов не завершён: ${{ steps.orders.outcome }}; независимые отчёты обработаны, прежние заказы сохранены"
+            exit 1
+          fi
           # шаг, оборванный по timeout-minutes, приходит failure (раннер: таймаут = Failed, ФЕНИКС #485 iter2);
-          # skipped при упавшем «Сбор по заказам» сюда не попадает: тогда и коммита не было
+          # outcome сохраняет failure и при continue-on-error: частичный сбор не становится зелёным.
           if [ "${{ steps.pnlsku.outcome }}" = "failure" ] || [ "${{ steps.acq.outcome }}" = "failure" ] || [ "${{ steps.pnlacc.outcome }}" = "failure" ]; then
             echo "::error::начисления: по SKU ${{ steps.pnlsku.outcome }}, эквайринг ${{ steps.acq.outcome }}, канальный P&L ${{ steps.pnlacc.outcome }} - заказы закоммичены, перезапусти workflow"
             exit 1

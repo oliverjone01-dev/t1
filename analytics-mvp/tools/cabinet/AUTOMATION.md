@@ -50,3 +50,23 @@ data. No claim of guaranteed unattended browser access: login/CAPTCHA or
 managed approval restrictions can still require the owner. Only meaningful
 failures or required actions should notify the owner; routine unchanged
 monitoring stays quiet.
+
+## Failure isolation and retry receipts
+
+The first orders collector is bounded and independent of other financial reports.
+A failure keeps the final run red but permits the independent collectors, commit
+and snapshots continuation. Orders workflows are main-only. Capture timestamp
+ordering compares timezone-aware instants.
+
+The client has bounded subprocess calls and a nonblocking local lock. It writes
+an atomic receipt before dispatch and reconciles the deterministic run-name on
+repeat. An ambiguous timeout is not retried. --retry-failed allows one retry
+only for a confirmed failed/timed_out server run; never delete the receipt to
+force a retry. data_in_main still does not certify Pages publication.
+
+The server publishes a one-file Git tree with the checked main commit as its
+sole parent, then advances main without force. Any concurrent main change
+fails closed, including changes to API inputs or builders. Reprepare and rerun
+checks once. The publisher does not dispatch orders while snapshots is active.
+The watchdog ignores skipped deployment runs and reports blocked/overdue
+active workflows instead of waiting silently forever; it never cancels them.

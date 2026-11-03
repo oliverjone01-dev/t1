@@ -53,6 +53,30 @@ class Recovery(unittest.TestCase):
             self.assertEqual(result['action'], 'attention')
             self.assertIn(WORKFLOWS[3], result['failed'])
 
+    def test_skipped_deploy_does_not_hide_real_success(self):
+        rows = self.base(); rows[WORKFLOWS[2]].insert(0, run(7, conclusion='skipped'))
+        self.assertEqual(plan(rows, NOW)['action'], 'ok')
+        rows[WORKFLOWS[3]] = [run(7)]
+        self.assertEqual(plan(rows, NOW)['workflow'], WORKFLOWS[2])
+
+    def test_stuck_or_approval_blocked_is_attention_not_permanent_wait(self):
+        for status, when in [('waiting', NOW), ('in_progress', NOW-dt.timedelta(hours=9))]:
+            rows = self.base(); r = run(status=status, conclusion=None)
+            r['created_at'] = when.isoformat(); rows[WORKFLOWS[0]] = [r]
+            result = plan(rows, NOW)
+            self.assertEqual(result['action'], 'attention'); self.assertTrue(result['stuck'])
+
+    def test_rerun_start_time_not_original_creation_controls_timeout(self):
+        rows = self.base(); r = run(status='in_progress', conclusion=None, attempt=2)
+        r['created_at'] = (NOW-dt.timedelta(days=1)).isoformat(); r['run_started_at'] = NOW.isoformat()
+        rows[WORKFLOWS[0]] = [r]
+        self.assertEqual(plan(rows, NOW)['action'], 'wait')
+
+    def test_non_main_active_run_and_out_of_order_results_are_ignored(self):
+        rows = self.base(); r = run(status='queued', conclusion=None); r['head_branch'] = 'feature'
+        rows[WORKFLOWS[2]].append(r)
+        self.assertEqual(plan(rows, NOW)['action'], 'ok')
+
 
 class Accept(unittest.TestCase):
     def row(self, day='2026-11-02', stamp='2026-11-03T07:00:00Z'):
@@ -85,6 +109,14 @@ class Accept(unittest.TestCase):
     def test_partial_day_flag_is_checked(self):
         with self.assertRaises(ValueError):
             accept({'snapshots': []}, {'snapshots': [self.row(day='2026-11-03')]}, NOW)
+
+    def test_equivalent_timezones_compare_instants_not_strings(self):
+        old = {'version': 1, 'company': 'GENGLASS', 'snapshots': [self.row(stamp='2026-11-03T09:00:00+03:00')]}
+        result, changed = accept(old, {'snapshots': [self.row()]}, NOW)
+        self.assertEqual(len(changed), 1)
+        self.assertEqual(result['snapshots'][0]['captured_at'], '2026-11-03T07:00:00Z')
+        with self.assertRaises(ValueError):
+            accept(result, old, NOW)
 
 
 if __name__ == '__main__':

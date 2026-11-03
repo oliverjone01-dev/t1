@@ -83,7 +83,7 @@ def merge_capture(old, fresh):
     key = (fresh['day'], fresh['phase'])
     previous = next((r for r in rows if (r['day'], r['phase']) == key), None)
     if previous:
-        if fresh['captured_at'] < previous['captured_at']:
+        if dt.datetime.fromisoformat(fresh['captured_at'].replace('Z', '+00:00')) < dt.datetime.fromisoformat(previous['captured_at'].replace('Z', '+00:00')):
             raise ValueError('Older capture cannot replace a newer capture')
         old_keys = {(r['sku'], r['scheme']) for r in previous['items']}
         new_keys = {(r['sku'], r['scheme']) for r in fresh['items']}
@@ -105,7 +105,7 @@ def merge_capture(old, fresh):
                         or not set(parts) <= {'FBO', 'FBS'}):
                     raise ValueError('Incoming snapshot loses previously measured SKU/scheme rows')
     rows = [r for r in rows if (r['day'], r['phase']) != key] + [fresh]
-    rows.sort(key=lambda r: (r['day'], r['captured_at']))
+    rows.sort(key=lambda r: (r['day'], dt.datetime.fromisoformat(r['captured_at'].replace('Z', '+00:00'))))
     return {'version': 1, 'company': 'GENGLASS', 'snapshots': rows}
 
 

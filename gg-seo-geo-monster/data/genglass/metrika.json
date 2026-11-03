@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-11-02",
+ "measured": "2026-11-03",
  "visits_30d": [
-  {
-   "date": "2026-10-03",
-   "visits": 480,
-   "search_visits": 73
-  },
   {
    "date": "2026-10-04",
    "visits": 500,
@@ -151,6 +146,11 @@
    "date": "2026-11-01",
    "visits": 582,
    "search_visits": 105
+  },
+  {
+   "date": "2026-11-02",
+   "visits": 74,
+   "search_visits": 9
   }
  ],
  "top_phrases": [
@@ -160,7 +160,7 @@
   },
   {
    "phrase": "genglass официальный сайт",
-   "visits": 26
+   "visits": 25
   },
   {
    "phrase": "генгласс зеркала",
@@ -171,20 +171,16 @@
    "visits": 8
   },
   {
-   "phrase": "межкомнатные перегородки",
-   "visits": 8
+   "phrase": "дженгласс",
+   "visits": 7
   },
   {
-   "phrase": "дженгласс",
+   "phrase": "межкомнатные перегородки",
    "visits": 7
   },
   {
    "phrase": "стол на заказ",
    "visits": 6
-  },
-  {
-   "phrase": "дженгласс ру",
-   "visits": 5
   },
   {
    "phrase": "зеркало на заказ",
@@ -196,6 +192,10 @@
   },
   {
    "phrase": "genglass стол",
+   "visits": 4
+  },
+  {
+   "phrase": "дженгласс ру",
    "visits": 4
   },
   {
@@ -217,10 +217,6 @@
   {
    "phrase": "стол genglass",
    "visits": 4
-  },
-  {
-   "phrase": "GENGLASS",
-   "visits": 3
   },
   {
    "phrase": "genglas",
@@ -273,6 +269,10 @@
   {
    "phrase": "столы на заказ по индивидуальным размерам москва",
    "visits": 3
+  },
+  {
+   "phrase": "GENGLASS",
+   "visits": 2
   },
   {
    "phrase": "GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный",
@@ -339,10 +339,6 @@
    "visits": 2
   },
   {
-   "phrase": "перегородка для зонирования комнаты",
-   "visits": 2
-  },
-  {
    "phrase": "перегородка из реек купить москва",
    "visits": 2
   },
@@ -353,16 +349,20 @@
   {
    "phrase": "перегородки стеклянные",
    "visits": 2
+  },
+  {
+   "phrase": "раздвижной",
+   "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 441
+   "visits": 433
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 123
+   "visits": 114
   },
   {
    "url": "/zerkala-na-zakaz/",
@@ -374,11 +374,11 @@
   },
   {
    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-   "visits": 91
+   "visits": 92
   },
   {
    "url": "/product-category/tables/",
-   "visits": 81
+   "visits": 75
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
@@ -386,7 +386,7 @@
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 71
+   "visits": 68
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
@@ -394,38 +394,34 @@
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 42
-  },
-  {
-   "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
-   "visits": 39
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 39
-  },
-  {
-   "url": "/product-category/steklyannye-doski/",
    "visits": 38
   },
   {
+   "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
+   "visits": 37
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 37
+  },
+  {
+   "url": "/product-category/steklyannye-doski/",
+   "visits": 37
+  },
+  {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 36
+   "visits": 35
   },
   {
    "url": "/product-category/mirrors/rotatable/",
    "visits": 32
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 31
-  },
-  {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 31
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
    "visits": 30
   },
   {
@@ -433,7 +429,7 @@
    "visits": 30
   },
   {
-   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
    "visits": 29
   },
   {
@@ -441,11 +437,15 @@
    "visits": 29
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
+   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
    "visits": 28
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "visits": 27
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
    "visits": 27
   },
   {
@@ -478,6 +478,6 @@
   }
  ],
  "goals": [],
- "bounce_rate": 13.5,
+ "bounce_rate": 13.6,
  "depth": 2.5
 }

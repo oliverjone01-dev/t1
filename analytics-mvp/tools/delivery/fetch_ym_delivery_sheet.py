@@ -51,6 +51,11 @@ def canonical_document_id(value):
 
 def identifiers(doc, offer):
     doc = clean(doc)
+    # The sheet may prefix a single ledger number with the item count. This
+    # count labels the shipment; carrier cost remains the full cell amount.
+    counted = re.fullmatch(r"[1-9]\d{0,3}\s+шт\.?\s+([МСMC]\d{2}-\d{1,8})", doc)
+    if counted:
+        doc = counted[1]
     if doc and not re.fullmatch(r"[МСMC]\d{2}-\d{1,8}", doc):
         raise ValueError("invalid ledger identifier")
     tokens = [token for token in re.split(r"[,;\s]+", str(offer or "").strip()) if token]

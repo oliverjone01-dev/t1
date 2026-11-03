@@ -42,6 +42,14 @@ defaults:
     shell: bash
 
 jobs:
+  cabinet-automation:
+    name: "OZON cabinet automation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native capture and recovery regression tests
+        run: python3 -B -m unittest discover -s tools/cabinet -p 'test_*.py' -v
   tests:
     name: "vitest + smoke"
     runs-on: ubuntu-latest

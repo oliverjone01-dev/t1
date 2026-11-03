@@ -1,0 +1,87 @@
+name: OZON cabinet validated publication
+on:
+  workflow_dispatch:
+    inputs:
+      blob_sha:
+        description: Sanitized cabinet capture blob (no raw reports)
+        required: true
+      base_sha:
+        description: Expected current cabinet capture blob
+        required: true
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: ozon-cabinet-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BLOB_SHA: ${{ inputs.blob_sha }}
+      BASE_SHA: ${{ inputs.base_sha }}
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Receive only a bounded JSON blob against the expected source
+        run: |
+          set -euo pipefail
+          [[ "$BLOB_SHA" =~ ^[0-9a-f]{40}$ && "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git hash-object data/cabinet_capture.json)" = "$BASE_SHA"
+          gh api "repos/$GITHUB_REPOSITORY/git/blobs/$BLOB_SHA" > "$RUNNER_TEMP/blob.json"
+          python3 - <<'PY'
+          import base64,json,os,pathlib
+          b=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'blob.json').read_text())
+          assert b['encoding']=='base64' and 0 < b['size'] <= 8_000_000
+          raw=base64.b64decode(b['content']); assert len(raw)==b['size']
+          json.loads(raw)
+          pathlib.Path(os.environ['RUNNER_TEMP'],'incoming.json').write_bytes(raw)
+          PY
+          node --import tsx src/scripts/ozon/validate-cabinet-capture.ts "$RUNNER_TEMP/incoming.json"
+          node --import tsx src/scripts/ozon/validate-cabinet-capture.ts data/cabinet_capture.json
+          python3 -B tools/cabinet/accept_capture.py data/cabinet_capture.json "$RUNNER_TEMP/incoming.json" "$RUNNER_TEMP/merged.json"
+          node --import tsx src/scripts/ozon/validate-cabinet-capture.ts "$RUNNER_TEMP/merged.json"
+      - name: Build and verify the existing dashboard with staged data
+        run: |
+          set -euo pipefail
+          cp -a data "$RUNNER_TEMP/stage-data"
+          cp "$RUNNER_TEMP/merged.json" "$RUNNER_TEMP/stage-data/cabinet_capture.json"
+          mkdir "$RUNNER_TEMP/preview"
+          export DATA_DIR="$RUNNER_TEMP/stage-data" OUT_DIR="$RUNNER_TEMP/preview"
+          for script in build-katya build-tests build-reakciya build-boost smoke; do
+            node --import tsx "src/scripts/$script.ts"
+          done
+          node --import tsx tools/cabinet/verify_dashboard.ts "$DATA_DIR" "$OUT_DIR"
+      - name: Publish only the validated capture with optimistic SHA
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,json,os,pathlib,subprocess
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(root/'merged.json').read_bytes()
+          old=json.loads(pathlib.Path('data/cabinet_capture.json').read_text())
+          if json.loads(raw)==old:
+              print('No capture changes'); raise SystemExit(0)
+          body={'message':'data: validated scheduled Ozon cabinet capture','branch':'main',
+                'sha':os.environ['BASE_SHA'],'content':base64.b64encode(raw).decode()}
+          subprocess.run(['gh','api','--method','PUT',f"repos/{os.environ['GITHUB_REPOSITORY']}/contents/analytics-mvp/data/cabinet_capture.json",
+                          '--input','-','--jq','.commit.sha'],input=json.dumps(body),text=True,check=True)
+          PY
+      - name: Continue the API chain unless it is already collecting
+        run: |
+          set -euo pipefail
+          active=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/orders-backfill.yml/runs?branch=main&per_page=20" --jq '[.workflow_runs[]|select(.status != "completed")]|length')
+          if [ "$active" = 0 ]; then
+            gh workflow run orders-backfill.yml --repo "$GITHUB_REPOSITORY" --ref main
+          fi

@@ -22,6 +22,7 @@ on:
     paths: [analytics-mvp/data/reakciya.json, analytics-mvp/data/cabinet_capture.json]
   schedule:
     - cron: "52 4 * * *" # каждый день ~07:52 МСК, до ночного синка OZON (05:53 UTC)
+    - cron: "12 17 * * *" # повтор вечером ~20:12 МСК, независимо от съёма Mac
   workflow_dispatch:
     inputs:
       from:
@@ -149,7 +150,7 @@ jobs:
         # И по расписанию: в группе ozon-data новый запуск заменяет ждущий, и прогон по расписанию
         # может вытеснить прогон от съёма (Codex P2 #484). Своего расписания у ozon-snapshots больше
         # нет: его запуск по расписанию - этот шаг после прогона orders по расписанию (без дубля, ФЕНИКС K1).
-        if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' }}
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
         run: |
           set -euo pipefail
           ok=0

@@ -1,6 +1,6 @@
 /* November uses October's plan-tab styles; only namespace/layout bridges below. */
 #november-plan{border-color:var(--soft)}
-#november-plan .nf-metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));max-width:900px;margin:12px 0;gap:10px}
+#november-plan .nf-metrics{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));max-width:none;margin:12px 0;gap:10px}
 #november-plan .nf-metric{padding:10px 10px 8px;border-radius:12px;text-align:center;background:linear-gradient(180deg,#151b25,#12161f)}
 #november-plan .nf-dial .gauge{padding:0;border:0;background:none}
 #november-plan .nf-ready .nf-fallback,#november-plan .nf-ready .nf-track{display:none}
@@ -38,3 +38,10 @@
 
 /* Legacy October dials roll into November with obsolete targets; keep them hidden in the archive. */
 .pt-nov-archive #pt-gauges{display:none}
+
+#november-plan .nf-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+#november-plan .nf-weeks button[aria-pressed=true]{border-color:var(--cy);color:var(--cy);background:rgba(34,211,238,.08)}
+#november-plan .nf-metric .g-l1{font-size:15px;margin-top:3px}
+#november-plan .nf-metric .g-l2{line-height:1.5}
+@media(max-width:1000px){#november-plan .nf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){#november-plan .nf-metrics{grid-template-columns:minmax(0,1fr)}}

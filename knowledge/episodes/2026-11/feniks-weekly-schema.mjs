@@ -1,0 +1,8 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {createRequire} from 'node:module';const root=process.cwd(),require=createRequire(root+'/analytics-mvp/package.json'),{JSDOM,VirtualConsole}=require('jsdom');
+const p='/Users/gengroup/Documents/Codex/ozon-autonomous/november-weekly-preview',url='http://127.0.0.1:8873',errs=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errs.push(String(e)));const opts={runScripts:'dangerously',url:url+'/katya-tests.html',virtualConsole:vc,beforeParse(w){w.Date.now=()=>Date.parse('2026-11-03T12:00:00Z')}};
+const dom=new JSDOM(fs.readFileSync(p+'/katya-tests.html','utf8'),opts),w=dom.window,doc=w.document;const frame=doc.getElementById('november-finance-frame');
+const fin=new JSDOM(fs.readFileSync(p+'/katya-november-finance.html','utf8'),{...opts,url:url+'/katya-november-finance.html'});fin.window.renderNovemberFinance(Date.parse('2026-11-03T12:00:00Z'));const data=JSON.parse(JSON.stringify(fin.window.NOVEMBER_FINANCE_WEEKLY));
+assert.ok(Number.isFinite(data.periods[0].fact)&&data.periods[0].fact<0);const send=x=>w.dispatchEvent(new w.MessageEvent('message',{data:x,source:frame.contentWindow,origin:url}));
+const wrong=JSON.parse(JSON.stringify(data));wrong.periods[0].fact=null;wrong.periods[0].ratio=0;wrong.periods[0].missing=[];
+send(wrong);assert.equal(doc.querySelector('#nf-dial-net .gauge'),null);assert.equal(doc.querySelector('[data-metric=net]').dataset.fact,'');send(data);assert.equal(Number(doc.querySelector('[data-metric=net]').dataset.fact),data.periods[0].fact);console.log('B7 malformed nullfact/ratio0 rejected; genuine financial payload accepted PASS');
+dom.window.close();fin.window.close();

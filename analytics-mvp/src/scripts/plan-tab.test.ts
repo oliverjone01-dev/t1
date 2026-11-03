@@ -506,9 +506,9 @@ describe("клиент блока в jsdom: скрипт отрабатывае�
     expect(r.doc.querySelector('#november-plan')!.hasAttribute('open')).toBe(true);
     expect(r.doc.querySelector('#pt-plan')!.hasAttribute('open')).toBe(false);
     expect(r.doc.querySelectorAll('#pt-gauges .gauge')).toHaveLength(5);
-    expect(r.doc.querySelectorAll('#november-plan .nf-dial .gauge')).toHaveLength(2);
+    expect(r.doc.querySelectorAll('#november-plan .nf-dial .gauge')).toHaveLength(3);
     const gauge=r.doc.querySelector('#nf-dial-units .gauge')!;
-    expect(Number(gauge.getAttribute('data-pct'))).toBeCloseTo(2/450*100);
+    expect(Number(gauge.getAttribute('data-pct'))).toBeCloseTo(2/15*100);
     expect(gauge.getAttribute('data-zone')).toBe(gauge.getAttribute('data-st'));
     const toggle=r.doc.querySelector('.nd-order-toggle') as HTMLButtonElement;
     toggle.click();expect(toggle.getAttribute('aria-expanded')).toBe('true');

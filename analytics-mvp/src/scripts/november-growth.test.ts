@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {JSDOM,VirtualConsole} from 'jsdom';
 import {NOVEMBER_GROWTH,novemberGrowthHtml,stageState} from './november-growth.js';
-import {novemberForecast,novemberForecastHtml} from './november-forecast.js';
+import {novemberForecast,novemberForecastHtml,novemberWeeklyData} from './november-forecast.js';
 import {financeWindow,novemberFinancePage} from './november-finance.js';
 const nov=Array.from({length:30},(_,i)=>`2026-11-${String(i+1).padStart(2,'0')}`);
 const input={today:'2026-11-03',last:'2026-11-02',covered:new Set(nov),units:new Map([['2026-11-01',4],['2026-11-02',11]]),revenue:new Map([['2026-11-01',242964],['2026-11-02',600000]])};
@@ -11,7 +11,7 @@ describe('November growth plan',()=>{
   expect(f.target.units).toBe(450);expect(f.target.revenue).toBe(30600000);expect(f.units).toBe(15);
   expect([f.points[0]!.unitsPlan,f.points[14]!.unitsPlan,f.points[29]!.unitsPlan]).toEqual([15,225,450]);
   expect([f.points[0]!.revenuePlan,f.points[14]!.revenuePlan,f.points[29]!.revenuePlan]).toEqual([1020000,15300000,30600000]);
-  expect(novemberForecastHtml(f)).toContain('Нужный темп');
+  expect(novemberWeeklyData(f).periods[0]!.units.ratio).toBe(50);
  });
  it('does not present stale or missing data as a current pace',()=>{
   const f=novemberForecast(NOVEMBER_GROWTH,{...input,last:'2026-11-01'})!;
@@ -21,7 +21,7 @@ describe('November growth plan',()=>{
  });
  it('retains actual overachievement while capping only visual fill and does not invent completed stages',()=>{
   const f=novemberForecast(NOVEMBER_GROWTH,{...input,units:new Map([['2026-11-01',500]])})!;
-  expect(f.units).toBe(500);expect(novemberForecastHtml(f)).toContain('111,1%');
+  expect(f.units).toBe(500);expect(novemberWeeklyData(f).periods[0]!.units.ratio).toBeCloseTo(500/30*100);
   expect(stageState('2026-11-02','2026-11-03','2026-11-05')).toBe('Запланировано');
   expect(stageState('2026-11-04','2026-11-03','2026-11-05')).toBe('Окно по плану');
   expect(stageState('2026-11-06','2026-11-03','2026-11-05')).toBe('Срок прошёл');

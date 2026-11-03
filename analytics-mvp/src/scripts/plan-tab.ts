@@ -713,5 +713,5 @@ ${cabTxt}
   const activeHtml = november ? novemberForecastHtml(november,(details?.html??'<!-- NOVEMBER_STORE -->')+novemberGrowthHtml(today,details)) + html
     .replace('<details class="card tcard" open id="pt-plan">','<details class="card tcard pt-nov-archive" id="pt-plan">')
     .replace('План с 15.10: как идём к цели','Октябрьские условия тестов и история') : html;
-  return { html:activeHtml, css:css+(november?novemberForecastCss+novemberGrowthCss:'')+(details?.css??'')+(november?css.replaceAll('#pt-plan','#november-plan')+readFileSync(join(HERE,'november-layout.css'),'utf8'):''), js:js+'\n'+(november?novemberForecastJs(november):'')+'\n'+(details?.js??''), warnings };
+  return { html:activeHtml, css:css+(november?novemberForecastCss+novemberGrowthCss:'')+(details?.css??'')+(november?css.replaceAll('#pt-plan','#november-plan')+readFileSync(join(HERE,'november-layout.css'),'utf8'):''), js:js+'\n'+(november?novemberForecastJs(november,details?.data.adsTotal):'')+'\n'+(details?.js??''), warnings };
 }

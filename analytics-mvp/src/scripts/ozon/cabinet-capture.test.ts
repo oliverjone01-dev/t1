@@ -8,6 +8,16 @@ function fixture(){return {version:1,company:'GENGLASS',snapshots:[{version:1,co
  scope:{expected:2,received:1,matched:1,missing:1,extra:0,status:'partial'},totals:{views:12,search_views:7,pdp_views:3,cart:1,ordered_units:0},
  items:[{sku:'123',scheme:null,search_position:0,views:12,search_views:7,pdp_views:3,cart:1,ordered_units:0}],source:'ozon-native-daily-product-report',not_refreshed:['card_price']}]};}
 describe('native cabinet snapshot',()=>{
+ it('selects the latest instant across timezone offsets consistently in history',()=>{
+  const f=fixture(), newer=structuredClone(f.snapshots[0]!);
+  f.snapshots[0]!.captured_at='2026-10-29T12:00:00+03:00';
+  newer.phase='вечер';newer.captured_at='2026-10-29T10:00:00Z';
+  newer.items[0]!.views=77;newer.totals.views=77;f.snapshots.push(newer);
+  const validated=validateCaptureFile(f);
+  expect(latestCapture(validated)!.totals.views).toBe(77);
+  expect(captureHistoryHtml(validated)).toContain('<td>77</td>');
+  expect(captureHistoryHtml(validated)).not.toContain('<td>12</td>');
+ });
  it('shows both stored days instead of hiding yesterday behind the latest snapshot',()=>{
   const f=fixture(),y=structuredClone(f.snapshots[0]!);y.day='2026-10-28';y.day_in_progress=false;
   y.items[0]!.views=31;y.totals.views=31;f.snapshots.push(y);
@@ -24,6 +34,7 @@ describe('native cabinet snapshot',()=>{
   expect(html).toContain('<td>77</td>');expect(html).not.toContain('<td>89</td>');
  });
  it('keeps partial scope and explicit zero values',()=>{const r=validateCaptureFile(fixture());expect(r.snapshots[0]!.scope.missing).toBe(1);expect(r.snapshots[0]!.items[0]!.ordered_units).toBe(0);});
+ it('rejects arbitrary text in provenance labels',()=>{const r=fixture();r.snapshots[0]!.not_refreshed=['private_client_name'];expect(()=>validateCaptureFile(r)).toThrow('provenance');});
  it('rejects hidden private fields',()=>{const r:any=fixture();r.snapshots[0].items[0].price=123;expect(()=>validateCaptureFile(r)).toThrow('unexpected fields');});
  it('rejects a false complete flag',()=>{const r=fixture();r.snapshots[0]!.scope.status='complete';expect(()=>validateCaptureFile(r)).toThrow('scope');});
  it('rejects duplicate source rows',()=>{const r=fixture();r.snapshots[0]!.items.push({...r.snapshots[0]!.items[0]!});expect(()=>validateCaptureFile(r)).toThrow('item key');});

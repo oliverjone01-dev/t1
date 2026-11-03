@@ -1,6 +1,7 @@
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+const notRefreshed = new Set(['card_price','coinvest','boosting_components','fbs_tariff','cpo_settings','card_groups','competitor_watchlist']);
 const metrics = ['views','search_views','pdp_views','cart','ordered_units'] as const;
 type Metric = typeof metrics[number];
 export type CaptureItem = {sku:string;scheme:string|null;search_position:number|null} & Record<Metric,number|null>;
@@ -19,7 +20,7 @@ export function validateCaptureFile(raw:any):CaptureFile {
   const k=r.day+'|'+r.phase;
   if(r.version!==1||r.company!=='GENGLASS'||!/^\d{4}-\d{2}-\d{2}$/.test(r.day)||new Date(r.day).toISOString().slice(0,10)!==r.day||!Number.isFinite(Date.parse(r.captured_at))||!/(?:Z|[+-]\d\d:\d\d)$/.test(r.captured_at)||!['утро','вечер','once'].includes(r.phase)||typeof r.day_in_progress!=='boolean'||seen.has(k))throw Error('Cabinet capture: date/key');
   seen.add(k);
-  if(r.source!=='ozon-native-daily-product-report'||!Array.isArray(r.not_refreshed)||r.not_refreshed.some((x:any)=>typeof x!=='string'||!/^[a-z_]+$/.test(x)))throw Error('Cabinet capture: provenance');
+  if(r.source!=='ozon-native-daily-product-report'||!Array.isArray(r.not_refreshed)||r.not_refreshed.some((x:any)=>typeof x!=='string'||!notRefreshed.has(x)))throw Error('Cabinet capture: provenance');
   keys(r.scope,['expected','received','matched','missing','extra','status']);keys(r.totals,[...metrics]);
   const s=r.scope;
   if(![s.expected,s.received,s.matched,s.missing,s.extra].every(count)||s.expected===0||s.received===0||s.matched+s.missing!==s.expected||s.matched+s.extra!==s.received||s.status!==(s.missing?'partial':'complete')||!Array.isArray(r.items)||!r.items.length)throw Error('Cabinet capture: scope');
@@ -44,7 +45,7 @@ export function readCaptureFile(dir:string):CaptureFile|null {
  const p=join(dir,'cabinet_capture.json');return existsSync(p)?validateCaptureFile(JSON.parse(readFileSync(p,'utf8'))):null;
 }
 export function latestCapture(file:CaptureFile):CabinetCapture|null {
- return [...file.snapshots].sort((a,b)=>a.day.localeCompare(b.day)||a.captured_at.localeCompare(b.captured_at)).at(-1)??null;
+ return [...file.snapshots].sort((a,b)=>a.day.localeCompare(b.day)||Date.parse(a.captured_at)-Date.parse(b.captured_at)).at(-1)??null;
 }
 const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const value=(n:number|null)=>n===null?'нет данных':n.toLocaleString('ru-RU');

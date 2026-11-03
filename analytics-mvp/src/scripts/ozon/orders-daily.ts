@@ -144,7 +144,6 @@ async function main() {
   // замаскированного эквайринга/хранения. Пишем отдельным файлом.
   console.log(`  сборов по продаже ${sale}, из них с датой начисления ${withDate}`);
   const typesArr = Object.entries(byType).map(([tid, v]) => ({ type_id: Number(tid), ...v, sum: Math.round(v.sum) })).sort((a, b) => a.sum - b.sum);
-  writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
   // ВОЗВРАТЫ вычитаются НЕ здесь: эндпоинт /v1/returns/list отдаёт заявки/отправки возвратов, а не
@@ -177,6 +176,7 @@ async function main() {
   const prevRows: OrderRow[] = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
   const bad = checkRows(prevRows, rows);
   if (bad) throw new Error(bad);
+  writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка
   const T = rows.reduce((a, r) => ({ rev: a.rev + r.revenue, com: a.com + r.commission, pay: a.pay + r.payout, u: a.u + r.units }), { rev: 0, com: 0, pay: 0, u: 0 });

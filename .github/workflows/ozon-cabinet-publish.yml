@@ -1,4 +1,5 @@
 name: OZON cabinet validated publication
+run-name: cabinet-${{ inputs.blob_sha }}-${{ inputs.base_sha }}
 on:
   workflow_dispatch:
     inputs:
@@ -39,6 +40,7 @@ jobs:
           set -euo pipefail
           [[ "$BLOB_SHA" =~ ^[0-9a-f]{40}$ && "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$(git hash-object data/cabinet_capture.json)" = "$BASE_SHA"
+          echo "CHECKED_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           gh api "repos/$GITHUB_REPOSITORY/git/blobs/$BLOB_SHA" > "$RUNNER_TEMP/blob.json"
           python3 - <<'PY'
           import base64,json,os,pathlib
@@ -63,25 +65,17 @@ jobs:
             node --import tsx "src/scripts/$script.ts"
           done
           node --import tsx tools/cabinet/verify_dashboard.ts "$DATA_DIR" "$OUT_DIR"
-      - name: Publish only the validated capture with optimistic SHA
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import base64,json,os,pathlib,subprocess
-          root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(root/'merged.json').read_bytes()
-          old=json.loads(pathlib.Path('data/cabinet_capture.json').read_text())
-          if json.loads(raw)==old:
-              print('No capture changes'); raise SystemExit(0)
-          body={'message':'data: validated scheduled Ozon cabinet capture','branch':'main',
-                'sha':os.environ['BASE_SHA'],'content':base64.b64encode(raw).decode()}
-          subprocess.run(['gh','api','--method','PUT',f"repos/{os.environ['GITHUB_REPOSITORY']}/contents/analytics-mvp/data/cabinet_capture.json",
-                          '--input','-','--jq','.commit.sha'],input=json.dumps(body),text=True,check=True)
-          PY
+      - name: Publish only the validated capture against the checked main commit
+        run: python3 -B tools/cabinet/publish_capture.py "$CHECKED_HEAD" "$RUNNER_TEMP/merged.json" data/cabinet_capture.json
       - name: Continue the API chain unless it is already collecting
         run: |
           set -euo pipefail
-          active=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/orders-backfill.yml/runs?branch=main&per_page=20" --jq '[.workflow_runs[]|select(.status != "completed")]|length')
+          # Both share ozon-data: dispatching while snapshots is queued could evict it.
+          active=0
+          for workflow in orders-backfill.yml ozon-snapshots.yml; do
+            count=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=main&per_page=30" --jq '[.workflow_runs[]|select(.status != "completed")]|length')
+            active=$((active + count))
+          done
           if [ "$active" = 0 ]; then
             gh workflow run orders-backfill.yml --repo "$GITHUB_REPOSITORY" --ref main
           fi

@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
+import {novemberFinancePage} from "./november-finance.js";
 import { loadMatchedSnapshot } from "./competitors/matched-data.js";
 import { cabinetCompetitorPage } from "./competitors/cabinet-page.js";
 import {loadProblemData} from './problems/data.js';
@@ -3895,6 +3896,9 @@ if(typeof window!=='undefined')window.addEventListener('resize',function(){try{s
     const moneyCore = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
     if (moneyCore === pageJs) throw new Error("report: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
     writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_BODY, `const REP=${J(rep)};` + moneyCore + REPORT_JS));
+    const channelDays=new Set(ndLines(dp("pnl_channel_accrual_daily.ndjson")).map(l=>String(JSON.parse(l).d)));
+    const financeDays=ndLines(dp("pnl_account_accrual_daily.ndjson")).map(l=>String(JSON.parse(l).d)).filter(d=>channelDays.has(d));
+    writeFileSync(op("katya-november-finance.html"),novemberFinancePage(moneyCore,maxD,financeDays,BUILD_TS));
   }
   // Вкладка «Отчет» Маркета (01.10.2026, спека ym-monthly-report.yaml): так же несёт код и данные «Денег»
   // Маркета целиком (pageJs + svodJs), чтобы считать функцией accAgg блока «Аналитика по артикулам

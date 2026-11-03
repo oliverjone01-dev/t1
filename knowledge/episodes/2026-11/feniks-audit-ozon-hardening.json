@@ -1,0 +1,103 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "ozon-reliability-hardening-20261103",
+  "timestamp": "2026-11-03T08:30:36.015637+00:00",
+  "iteration": 1,
+  "deliverable_ref": "knowledge/episodes/2026-11/feniks-audit-ozon-hardening.md",
+  "artifact_class": "mixed",
+  "anchor": "8.5 timur-activation iteration3 - current8.8: real malicious payload, rapid retry and Git divergence probes all passed; first fresh scheduled source-to-live run remains outside local audit.",
+  "scores": {
+    "accuracy": 9,
+    "actionability": 9,
+    "insight": 8,
+    "brand_fit": 9,
+    "risk_awareness": 9
+  },
+  "weighted_total": 8.8,
+  "verdict": "go",
+  "checkpoints": {
+    "accuracy_1_operational": 2,
+    "accuracy_2_operational": 2,
+    "accuracy_3_operational": 2,
+    "accuracy_4_operational": 1,
+    "accuracy_5_operational": 2,
+    "actionability_1_operational": 2,
+    "actionability_2_operational": 2,
+    "actionability_3_operational": 2,
+    "actionability_4_operational": 2,
+    "actionability_5_operational": 1,
+    "insight_1_operational": 2,
+    "insight_2_operational": 2,
+    "insight_3_operational": 2,
+    "insight_4_operational": 1,
+    "insight_5_operational": 1,
+    "brand_1_operational": 2,
+    "brand_2_operational": 2,
+    "brand_3_operational": 2,
+    "brand_4_operational": 2,
+    "brand_5_operational": 1,
+    "risk_1_operational": 2,
+    "risk_2_operational": 2,
+    "risk_3_operational": 2,
+    "risk_4_operational": 1,
+    "risk_5_operational": 2
+  },
+  "probes": [
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Exact receive rejects mismatching source blob SHA; exact publish rejects main race after first ref read, concurrent commit survives."
+    },
+    {
+      "id": "A6",
+      "result": "PASS",
+      "evidence": "Real temporary Git object graph: tree changes only analytics-mvp/data/cabinet_capture.json, commit has checked sole parent, final PATCH force=false."
+    },
+    {
+      "id": "A7",
+      "result": "PASS",
+      "evidence": "Freshness, conflicting capture timestamp and source-day flags rejected as before; offset ordering fixed."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Unchanged day/phase history survives partial incoming data; measured row loss and ambiguous SKU split rejected."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Actual TS validator rejects unknown private fields, totals mismatch and arbitrary private_client_name provenance label."
+    },
+    {
+      "id": "D7",
+      "result": "PASS",
+      "evidence": "Fast repeat after explicit retry before run indexing remains unknown/attempt2 with only two dispatches total. Indexed retry failure does not permit a third dispatch."
+    },
+    {
+      "id": "D8",
+      "result": "PASS",
+      "evidence": "Client API timeout60; durable receipt precedes dispatch; pending source is not evicted and stale/blocked active work returns attention."
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "Ruby YAML parse and bash -n all changed workflow run blocks; exact server Receive/Publish/continue/final outcome shells executed against fixtures. Main-only and independent collector flags verified."
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "gaps": [],
+  "evidence_ledger": [],
+  "rework_tz": "",
+  "confidence": 0.94,
+  "sources_of_truth": [
+    "knowledge/episodes/2026-11/ozon-hardening-self-check.md",
+    "knowledge/semantic/metrics/ozon-cabinet-funnel-delivery.yaml",
+    "knowledge/feniks/red-team-probes.md",
+    "https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#steps-context"
+  ]
+}

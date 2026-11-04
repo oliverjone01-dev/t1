@@ -24,6 +24,7 @@
 {"d":"2026-10-09","sku":"3492796112","accruals":29129,"commission":-15147,"delivery":-336,"acquiring":0,"storage":0,"otherSvc":-379,"amount":13267}
 {"d":"2026-10-21","sku":"3492827722","accruals":23900,"commission":-12428,"delivery":-246,"acquiring":0,"storage":0,"otherSvc":-311,"amount":10916}
 {"d":"2026-10-25","sku":"3492827722","accruals":23900,"commission":-12428,"delivery":-347,"acquiring":0,"storage":0,"otherSvc":-155,"amount":10970}
+{"d":"2026-10-31","sku":"3492813785","accruals":23183,"commission":-12055,"delivery":-447,"acquiring":0,"storage":0,"otherSvc":-151,"amount":10531}
 {"d":"2026-02-06","sku":"3492815548","accruals":35754,"commission":-14302,"delivery":-1869,"acquiring":0,"storage":0,"otherSvc":0,"amount":19584}
 {"d":"2026-02-07","sku":"3492822125","accruals":37250,"commission":-16017,"delivery":-1471,"acquiring":0,"storage":0,"otherSvc":-372,"amount":19389}
 {"d":"2026-02-08","sku":"3492835691","accruals":41738,"commission":-17947,"delivery":-1799,"acquiring":0,"storage":0,"otherSvc":-417,"amount":21575}
@@ -2908,6 +2909,7 @@
 {"d":"2026-10-26","sku":"3564846960","accruals":30730,"commission":-15980,"delivery":-466,"acquiring":0,"storage":0,"otherSvc":-200,"amount":14085}
 {"d":"2026-10-26","sku":"3492797992","accruals":58805,"commission":-29402,"delivery":-667,"acquiring":0,"storage":0,"otherSvc":-382,"amount":28354}
 {"d":"2026-10-26","sku":"3579701389","accruals":109900,"commission":-56049,"delivery":0,"acquiring":0,"storage":0,"otherSvc":-714,"amount":53137}
+{"d":"2026-10-27","sku":"3492803714","accruals":52878,"commission":-25910,"delivery":-953,"acquiring":0,"storage":0,"otherSvc":-344,"amount":25671}
 {"d":"2026-10-27","sku":"3497338067","accruals":45900,"commission":-22491,"delivery":-360,"acquiring":0,"storage":0,"otherSvc":-298,"amount":22751}
 {"d":"2026-10-27","sku":"3492813002","accruals":36300,"commission":-18876,"delivery":-2178,"acquiring":0,"storage":0,"otherSvc":-236,"amount":15010}
 {"d":"2026-10-28","sku":"3492799566","accruals":42532,"commission":-20841,"delivery":-2169,"acquiring":0,"storage":0,"otherSvc":-276,"amount":19246}

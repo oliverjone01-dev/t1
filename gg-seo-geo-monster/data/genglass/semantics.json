@@ -1,5 +1,5 @@
 {
- "measured": "2026-11-03",
+ "measured": "2026-11-04",
  "phrases": [
   {
    "phrase": "окантовка для зеркала",
@@ -74,6 +74,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "настенное панно",
+   "pos": null,
+   "freq": 7601,
+   "url": "",
+   "cluster": "настенное",
+   "intent": "commercial"
+  },
+  {
    "phrase": "система ral",
    "pos": null,
    "freq": 2465,
@@ -87,14 +95,6 @@
    "freq": 237,
    "url": "",
    "cluster": "ширма",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "барный стол",
-   "pos": null,
-   "freq": 17740,
-   "url": "",
-   "cluster": "барный",
    "intent": "commercial"
   },
   {
@@ -186,6 +186,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "ral белый цвет",
+   "pos": null,
+   "freq": 3700,
+   "url": "",
+   "cluster": "белый",
+   "intent": "commercial"
+  },
+  {
    "phrase": "полка стеклянная",
    "pos": null,
    "freq": 35472,
@@ -218,19 +226,19 @@
    "intent": "commercial"
   },
   {
-   "phrase": "стеллаж перегородка",
-   "pos": null,
-   "freq": 8400,
-   "url": "",
-   "cluster": "стеллаж",
-   "intent": "commercial"
-  },
-  {
    "phrase": "стеклянные дверцы для шкафа",
    "pos": null,
    "freq": 2830,
    "url": "",
    "cluster": "стеклянные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "консоль подвесная",
+   "pos": null,
+   "freq": 7268,
+   "url": "",
+   "cluster": "консоль",
    "intent": "commercial"
   },
   {
@@ -743,14 +751,6 @@
    "freq": 2086,
    "url": "",
    "cluster": "вырезать",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "разбилось зеркало примета",
-   "pos": null,
-   "freq": 2679,
-   "url": "",
-   "cluster": "разбилось",
    "intent": "commercial"
   },
   {

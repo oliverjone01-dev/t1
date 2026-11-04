@@ -256,7 +256,7 @@
 {"d":"2026-10-19","accruals":1247776,"commission":-637400,"delivery":-4193,"fees":-681880,"payout":565896,"ops":17}
 {"d":"2026-10-20","accruals":1376067,"commission":-702012,"delivery":-11083,"fees":-740200,"payout":635867,"ops":21}
 {"d":"2026-10-21","accruals":221201,"commission":-112037,"delivery":-5382,"fees":-122530,"payout":98671,"ops":6}
-{"d":"2026-10-22","accruals":378751,"commission":-174262,"delivery":-7746,"fees":-192764,"payout":185987,"ops":7}
+{"d":"2026-10-22","accruals":378751,"commission":-159585,"delivery":-7746,"fees":-178087,"payout":200664,"ops":7}
 {"d":"2026-10-23","accruals":344866,"commission":-147562,"delivery":-7825,"fees":-166967,"payout":177899,"ops":6}
 {"d":"2026-10-24","accruals":642291,"commission":-327066,"delivery":-13685,"fees":-359312,"payout":282979,"ops":12}
 {"d":"2026-10-25","accruals":482642,"commission":-242378,"delivery":-14886,"fees":-264372,"payout":218270,"ops":12}
@@ -264,7 +264,7 @@
 {"d":"2026-10-27","accruals":135078,"commission":-67277,"delivery":-3491,"fees":-80329,"payout":54749,"ops":3}
 {"d":"2026-10-28","accruals":107745,"commission":-32229,"delivery":-3525,"fees":-42462,"payout":65283,"ops":3}
 {"d":"2026-10-29","accruals":193414,"commission":-95186,"delivery":-5667,"fees":-110667,"payout":82747,"ops":3}
-{"d":"2026-10-30","accruals":58257,"commission":-30294,"delivery":-1299,"fees":-39627,"payout":18630,"ops":1}
+{"d":"2026-10-30","accruals":99157,"commission":-51153,"delivery":-1685,"fees":-61418,"payout":37739,"ops":2}
 {"d":"2026-10-31","accruals":114983,"commission":-57037,"delivery":-1077,"fees":-62395,"payout":52588,"ops":3}
 {"d":"2026-11-01","accruals":0,"commission":0,"delivery":0,"fees":-1729,"payout":-1729,"ops":0}
 {"d":"2026-11-02","accruals":0,"commission":0,"delivery":0,"fees":-6763,"payout":-6763,"ops":0}

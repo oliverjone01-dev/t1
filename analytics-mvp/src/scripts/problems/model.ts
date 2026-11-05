@@ -121,7 +121,8 @@ export function validateDeliveryTimeline(s:DeliveryTimeline){
 }
 export function summarizeDeliveryTimeline(s:DeliveryTimeline|null|undefined,from:string,to:string){
  const terminal=(status:string)=>/отмен|возврат|вернули/i.test(status);
- const rows=(s?.rows??[]).map(r=>{
+ const undated=(s?.rows??[]).filter(r=>!r.shipped).length;
+ const rows=(s?.rows??[]).filter(r=>r.shipped!==null&&r.shipped>=from&&r.shipped<=to).map(r=>{
   const issues=[...r.issues],today=s!.source_date,closed=terminal(r.status);
   const conflict=r.issues.includes('source_conflict'),future=!!r.actual&&r.actual>today,beforeShip=!!r.actual&&!!r.shipped&&r.actual<r.shipped;
   if(future)issues.push('future_actual');if(beforeShip)issues.push('actual_before_ship');if(r.missing)issues.push('missing');
@@ -136,7 +137,7 @@ export function summarizeDeliveryTimeline(s:DeliveryTimeline|null|undefined,from
  const history=(s?.history??[]).filter(h=>{const d=moscowDay(h.observed_at);return d>=from&&d<=to;}).sort((a,b)=>b.observed_at.localeCompare(a.observed_at));
  const shifts=history.filter(h=>h.changes.planned?.[0]&&h.changes.planned?.[1]&&!h.conflict&&!terminal(h.status));
  const historyAvailable=!!s&&to>=moscowDay(s.started_at);
- return {rows,history,shifts,shiftCount:historyAvailable?shifts.length:null,
+ return {rows,undated,history,shifts,shiftCount:historyAvailable?shifts.length:null,
   overdue:rows.filter(r=>r.overdue!==null),late:rows.filter(r=>r.late!==null&&r.late>0),
   delivered:rows.filter(r=>r.confirmedActual!==null),review:rows.filter(r=>r.issues.length),
   excluded:rows.filter(r=>r.closed),stale:s?moscowDay(s.loaded_at)!==s.source_date:false};

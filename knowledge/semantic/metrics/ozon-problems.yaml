@@ -1,5 +1,5 @@
 id: ozon-problems
-version: 2
+version: 3
 status: approved
 owner: Иван
 approved_at: '2026-10-27'
@@ -16,7 +16,7 @@ ui_revision_2026_10_28:
   ranking: cancellation reasons by posting count; returns by known units; fines by positive ruble expense with negative corrections separately
   top: 10/30/50 limits legend rows only; rest grouped, total unchanged; click opens matching event rows
   rfbs_disclosure: 'Иван28.10: раскрыть соответствующие рейсы по клику на плашки, расшифровать Проверить данные. Нужна сверка ведомости означает существующий набор issues; 85 уникальных рейсов28.10, категории могут пересекаться. Переносы показывают только существующий shifts, неизвестная история остаётся н/д.'
-  rfbs: horizontal histogram of snapshot statuses; explicitly independent of period, history still follows period
+  rfbs: shipment cohort in selected period (revision 2026-11-05); snapshot status histogram; history by observed date
   missing: unknown quantities/amounts excluded from chart weights and shown separately; no invented zero
   removed: mixed actual-plus-estimated FBS presentation; actual Ozon tariff block retained
 partial_period: mark
@@ -58,3 +58,10 @@ golden_rows:
   - {date: '2026-10-20', charge_rub: 5215.5, source: cabinet rating_defects_2026-10-27.json}
   - {date: '2026-10-21', charge_rub: 6700.38, source: cabinet rating_defects_2026-10-27.json}
   - {date: '2026-10-27', defect_index: 0.09053498, source: cabinet rating_defects_2026-10-27.json}
+
+rfbs_period_revision_2026_11_05:
+  request: Пользователь требует учитывать выбранный ноябрь в Нашей доставке вместо общей очереди октября.
+  basis: Список рейсов, просрочки, поздние доставки, сверка и отмены фильтруются по shipped включительно from..to; календарные даты ведомости.
+  unknown: Рейсы без shipped не приписываются месяцу; отдельное число в подписи. Пустая выборка означает отсутствие рейсов в сохранённом снимке, не доказательство полноты источника.
+  history: Изменения и переносы сохраняют дату обнаружения Europe/Moscow; прежняя плановая дата может относиться к прошлому месяцу.
+  freshness: Статусы и просрочка на source_date; видимое предупреждение об устаревании сохраняется. Денежный учёт не меняется.

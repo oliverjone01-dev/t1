@@ -173,3 +173,12 @@ it('reveals exactly the started advertising weeks while preserving totals and pa
   expect(doc.querySelector('.nd-ad-grid')!.getAttribute('style')).toContain(String(count+1));
  }
 });
+
+it('card plans render whole units and weekly targets preserve monthly total',()=>{
+ const f=fixture();f.cards[0]!.short='EVELIX';const r=novemberDetails(f)!,doc=new JSDOM(r.html).window.document;
+ const cells=[...doc.querySelectorAll('#nd-order-detail-0 .nd-card-weeks tbody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent!));
+ const goals=cells.map(c=>Number(c[1]!.replace(/\s/g,'')));expect(goals.every(Number.isInteger)).toBe(true);
+ expect(goals.reduce((a,b)=>a+b,0)).toBe(r.data.orderSummary[0]!.goal);
+ for(const c of cells)expect(c[2]).toMatch(/^\d+$/);
+ expect(doc.querySelector('.nd-order-row td:nth-child(2) small')!.textContent).not.toMatch(/\d,\d/);
+});

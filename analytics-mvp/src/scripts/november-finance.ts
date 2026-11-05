@@ -1,4 +1,4 @@
-import {novemberPeriods,periodWindow} from './november-periods.js';
+import {novemberGaugePeriods,periodWindow} from './november-periods.js';
 import {readFileSync} from 'node:fs';
 import {NOVEMBER_GROWTH} from './november-growth.js';
 export function financeWindow(today:string,last:string,covered:string[]){
@@ -21,7 +21,7 @@ ${gauge}
 const MAXD=${JSON.stringify(maxD)};
 ${moneyCore}
 const NG=${JSON.stringify(NOVEMBER_GROWTH)}, COVERED=${JSON.stringify(covered)}, BUILT_AT=${JSON.stringify(builtAt)};
-const financeWindow=${financeWindow.toString()},periodWindow=${periodWindow.toString()},WEEKS=${JSON.stringify(novemberPeriods())};
+const financeWindow=${financeWindow.toString()},periodWindow=${periodWindow.toString()},WEEKS=${JSON.stringify(novemberGaugePeriods())};
 function sendWeeklyFinance(){if(window.parent!==window&&window.NOVEMBER_FINANCE_WEEKLY)window.parent.postMessage(window.NOVEMBER_FINANCE_WEEKLY,location.origin)}
 window.addEventListener('message',function(e){if(e.source===window.parent&&e.origin===location.origin&&e.data&&e.data.type==='ozon-november-weekly-request')sendWeeklyFinance()});
 function renderNovemberFinance(now){

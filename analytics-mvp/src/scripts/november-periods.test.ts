@@ -104,10 +104,11 @@ it('keeps source-gap and finance-failure warnings independent through timeout an
 it('updates stage calendar labels when opening an older build on a later Moscow date',()=>{
  const f=novemberForecast(NOVEMBER_GROWTH,{...input,today:'2026-11-05'})!;
  for(const [now,visible] of [['2026-11-07',4],['2026-12-01',7]] as const){
-  const dom=new JSDOM(novemberForecastHtml(f,novemberGrowthHtml('2026-11-05',null))+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse(now+'T09:00:00Z')}}),doc=dom.window.document;
+  const errors:string[]=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e)));
+  const dom=new JSDOM(novemberForecastHtml(f,'<!-- NOVEMBER_STORE -->'+novemberGrowthHtml('2026-11-05',null))+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse(now+'T09:00:00Z')},virtualConsole:vc}),doc=dom.window.document;
   expect(doc.querySelectorAll('[data-nov-stage-end]:not([hidden])')).toHaveLength(visible);
   expect(doc.querySelector('[data-nov-stage-end="2026-11-05"] .nov-stage-date')!.textContent).toBe('Срок прошёл');
   expect(doc.querySelector('[data-nov-stage-end="2026-11-19"] .nov-stage-date')!.textContent).toBe(now==='2026-12-01'?'Срок прошёл':'Окно по плану');
-  expect(doc.querySelector('#november-stages')!.textContent).toContain('Выполнение не подтверждено');dom.window.close();
+  expect(doc.querySelector('#november-stages')!.textContent).toContain('Выполнение не подтверждено');expect(errors).toEqual([]);dom.window.close();
  }
 });

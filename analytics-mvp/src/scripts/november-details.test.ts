@@ -157,5 +157,7 @@ it('colors per-group advertising against the October reference without assigning
  const r=novemberDetails(f)!,doc=new JSDOM(r.html).window.document;
  expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.getAttribute('data-ad-status')).toBe('over');
  expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.textContent).toContain('116,7%');
+ expect(doc.querySelector('.nd-ad-row [data-ad-status="future"]')!.textContent).toContain('период не начался');
+ expect(doc.querySelector('.nd-ad-row [data-ad-status="future"]')!.textContent).not.toContain('нет ориентира');
  expect(r.html).toContain('Общий CPC + CPO');
 });

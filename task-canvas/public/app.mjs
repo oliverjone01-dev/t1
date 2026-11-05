@@ -1,44 +1,55 @@
-import { CARD, QUADRANTS, STATUSES, localDate, createLayout, moveTask, parseDelimited, fromSheet, validateBoard, groupFor } from './model.mjs';
+import { CARD, STATUSES, localDate, createLayout, moveTask, validateBoard, groupFor, dropTarget, fitCamera, importBoard } from './model.mjs';
+import { dataSignature, writeBoard } from './storage.mjs';
 const $ = selector => document.querySelector(selector);
 const STORAGE = 'gengroup.task-canvas.v1';
 const today = () => localDate();
 let tasks = [], extraOwners = [], mode = 'priority', camera = { x: 32, y: 32, z: .8 }, selected = null, editing = null;
 let history = [], future = [], layout, gesture = null, space = false, storageFailed = false, toastTimer;
-let stateLoadError = false, storageConflict = false;
+let stateLoadError = false, storageConflict = false, unsavedChanges = false;
+let storedSignature = dataSignature({tasks:[],owners:[]});
 try {
   const saved = localStorage.getItem(STORAGE);
   if (saved) {
-    const state = JSON.parse(saved); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
+    const state = JSON.parse(saved); storedSignature = dataSignature(state); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
     mode = ['priority', 'owners', 'time'].includes(state.mode) ? state.mode : 'priority';
-    if (state.camera && ['x','y','z'].every(k => Number.isFinite(state.camera[k]))) camera = { x: state.camera.x, y: state.camera.y, z: Math.max(.08, Math.min(2, state.camera.z)) };
+    if (state.camera && ['x','y','z'].every(k => Number.isFinite(state.camera[k]))) camera = { x: state.camera.x, y: state.camera.y, z: Math.max(.0001, Math.min(2, state.camera.z)) };
   }
 } catch { stateLoadError = true; storageFailed = true; }
 const esc = value => String(value || '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4500); }
 function persist() {
-  try {
-    if (storageConflict) { $('#save-state').textContent = 'Конфликт вкладок · экспортируйте копию'; return; }
-    if (stateLoadError) { $('#save-state').textContent = 'Ошибка чтения · экспортируйте копию'; return; }
-    localStorage.setItem(STORAGE, JSON.stringify({ version: 1, tasks, owners: extraOwners, mode, camera }));
-    storageFailed = false; $('#save-state').textContent = 'Сохранено на устройстве';
-  } catch { storageFailed = true; $('#save-state').textContent = 'Не сохранено · экспортируйте доску'; toast('Браузер не смог сохранить доску. Скачайте экспорт, чтобы не потерять изменения.'); }
+  if (storageConflict || stateLoadError) {
+    $('#save-state').textContent = 'Не сохранено · экспортируйте копию'; return false;
+  }
+  const state = { version: 1, tasks, owners: extraOwners, mode, camera };
+  const result = writeBoard(localStorage, STORAGE, state, storedSignature);
+  if (result.ok) {
+    storedSignature = result.signature; storageFailed = false; unsavedChanges = false;
+    $('#save-state').textContent = 'Сохранено на устройстве'; return true;
+  }
+  storageConflict = result.reason === 'conflict'; storageFailed = !storageConflict;
+  $('#save-state').textContent = storageConflict ? 'Конфликт вкладок · экспортируйте копию' : 'Не сохранено · экспортируйте доску';
+  return false;
+}
+function savedToast(message) {
+  toast(storageConflict || stateLoadError || storageFailed ? 'Изменения только в памяти. Экспортируйте доску перед закрытием.' : message);
 }
 function snapshot() { return JSON.stringify({ tasks, owners: extraOwners }); }
 function change(fn) {
   const before = snapshot(); fn();
-  if (snapshot() !== before) { history.push(before); if (history.length > 50) history.shift(); future = []; persist(); }
+  if (snapshot() !== before) { history.push(before); if (history.length > 50) history.shift(); future = []; unsavedChanges = true; persist(); }
   render();
 }
 function restore(from, to) {
   if (!from.length) return;
-  to.push(snapshot()); const state = JSON.parse(from.pop()); tasks = state.tasks; extraOwners = state.owners; selected = null; persist(); render();
+  to.push(snapshot()); const state = JSON.parse(from.pop()); tasks = state.tasks; extraOwners = state.owners; selected = null; unsavedChanges = true; persist(); render();
 }
 function updateOptions() {
   const units = [...new Set(tasks.map(t => t.unit).filter(Boolean))].sort();
   const owners = [...new Set([...tasks.map(t => t.owner).filter(Boolean), ...extraOwners])].sort();
   for (const [id, values, label] of [['unit-filter', units, 'Все юниты'], ['owner-filter', owners, 'Вся команда']]) {
     const select = $(`#${id}`); const current = select.value;
-    select.innerHTML = `<option value="">${label}</option>` + (id === 'owner-filter' ? '<option value="__none">Без ответственного</option>' : '') + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    select.innerHTML = `<option value="">${label}</option>` + (id === 'owner-filter' ? '<option value="__none">Без ответственного</option>' : '') + values.map(v => `<option value="${esc(id === 'owner-filter' ? 'owner:'+v : v)}">${esc(v)}</option>`).join('');
     if ([...select.options].some(o => o.value === current)) select.value = current;
   }
   $('#owner-list').innerHTML = owners.map(o => `<option value="${esc(o)}"></option>`).join('');
@@ -48,7 +59,7 @@ function isVisible(task) {
   const q = $('#search').value.toLocaleLowerCase('ru').trim();
   return (!$('#hide-done').checked || !['Готово','Отменено'].includes(task.status)) &&
     (!$('#unit-filter').value || task.unit === $('#unit-filter').value) &&
-    (!$('#owner-filter').value || ($('#owner-filter').value === '__none' ? !task.owner : task.owner === $('#owner-filter').value)) &&
+    (!$('#owner-filter').value || ($('#owner-filter').value === '__none' ? !task.owner : `owner:${task.owner}` === $('#owner-filter').value)) &&
     (!q || [task.title, task.owner, task.ownerNote, task.direction, task.unit, task.sourceId, task.comment].some(v => (v || '').toLocaleLowerCase('ru').includes(q)));
 }
 function render() {
@@ -82,11 +93,11 @@ function applyCamera() {
   $('#world').style.transform = `translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;
   $('#viewport').style.backgroundSize = `${24 * camera.z}px ${24 * camera.z}px`;
   $('#viewport').style.backgroundPosition = `${camera.x}px ${camera.y}px`;
-  $('#zoom-label').textContent = `${Math.round(camera.z * 100)}%`;
+  $('#zoom-label').textContent = `${camera.z < .01 ? (camera.z * 100).toFixed(1) : Math.round(camera.z * 100)}%`;
 }
 function zoom(factor, point) {
   const rect = $('#viewport').getBoundingClientRect(); point ||= { x: rect.width / 2, y: rect.height / 2 };
-  const next = Math.max(.08, Math.min(2, camera.z * factor));
+  const next = Math.max(.0001, Math.min(2, camera.z * factor));
   camera.x = point.x - (point.x - camera.x) * next / camera.z;
   camera.y = point.y - (point.y - camera.y) * next / camera.z; camera.z = next; applyCamera();
 }
@@ -94,12 +105,8 @@ function fit() {
   if (!tasks.length) return;
   const visible = tasks.filter(isVisible); if (!visible.length) return;
   const positions = visible.map(t => layout.placed.get(t.id)).filter(Boolean);
-  const minX = Math.min(...positions.map(p => p.x)) - 30, minY = Math.min(...positions.map(p => p.y)) - 100;
-  const maxX = Math.max(...positions.map(p => p.x)) + CARD.width + 30, maxY = Math.max(...positions.map(p => p.y)) + CARD.height + 30;
   const rect = $('#viewport').getBoundingClientRect();
-  camera.z = Math.min(1, Math.max(.08, Math.min((rect.width - 64) / (maxX - minX), (rect.height - 80) / (maxY - minY))));
-  camera.x = (rect.width - (maxX - minX) * camera.z) / 2 - minX * camera.z;
-  camera.y = 24 - minY * camera.z; applyCamera(); persist();
+  camera = fitCamera(positions, rect.width, rect.height); applyCamera(); persist();
 }
 function worldPoint(event) {
   const r = $('#viewport').getBoundingClientRect();
@@ -144,7 +151,7 @@ $('#viewport').addEventListener('pointermove', e => {
   if (pinch && touches.size === 2) {
     const [a,b] = [...touches.values()]; const r = $('#viewport').getBoundingClientRect();
     const center = {x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top};
-    const z = Math.max(.08,Math.min(2,pinch.camera.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch.distance)));
+    const z = Math.max(.0001,Math.min(2,pinch.camera.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch.distance)));
     camera = {z,x:center.x-(pinch.center.x-pinch.camera.x)*z/pinch.camera.z,y:center.y-(pinch.center.y-pinch.camera.y)*z/pinch.camera.z}; applyCamera(); return;
   }
   if (!gesture || e.pointerId !== gesture.pointer) return;
@@ -155,7 +162,7 @@ $('#viewport').addEventListener('pointermove', e => {
   gesture.moved = true; gesture.card.classList.add('dragging');
   const p = worldPoint(e); const x = p.x-gesture.dx, y = p.y-gesture.dy;
   gesture.card.style.left = `${x}px`; gesture.card.style.top = `${y}px`;
-  const group = layout.groups.find(g => x+CARD.width/2 >= g.x && x+CARD.width/2 <= g.x+g.w && y+CARD.height/2 >= g.y && y+CARD.height/2 <= g.y+g.h+216);
+  const group = dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
   document.querySelectorAll('.zone').forEach(el => el.classList.toggle('drop-target', el.dataset.group === group?.id));
 });
 function endGesture(e, cancelled = false) {
@@ -166,13 +173,13 @@ function endGesture(e, cancelled = false) {
   if (current.type === 'pan') { persist(); return; }
   if (current.moved && !cancelled) {
     const p = worldPoint(e), x = p.x-current.dx, y = p.y-current.dy;
-    const target = layout.groups.find(g => x+CARD.width/2 >= g.x && x+CARD.width/2 <= g.x+g.w && y+CARD.height/2 >= g.y && y+CARD.height/2 <= g.y+g.h+216);
+    const target = dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
     if (target) {
       try {
         const task = tasks.find(t => t.id === current.id); const next = moveTask(task,mode,target,x,y,today());
         change(() => tasks = tasks.map(t => t.id === current.id ? next : t));
         const label = mode === 'priority' ? target.title : mode === 'owners' ? `Ответственный: ${next.owner || 'не назначен'}` : `Срок: ${next.due || 'не указан'}`;
-        toast(label);
+        savedToast(label);
       } catch (error) { toast(error.message); render(); }
     } else { render(); toast('Поместите карточку внутрь дорожки.'); }
   } else if (cancelled) render();
@@ -207,42 +214,31 @@ $('#task-form').addEventListener('submit', e => {
     if (task.priority !== old.priority) delete task.positions.priority;
   }
   change(() => tasks = old ? tasks.map(t => t.id === editing ? task : t) : [...tasks,task]);
-  $('#editor').close(); toast('Задача сохранена');
+  $('#editor').close(); savedToast('Задача сохранена');
 });
 $('#task-form').elements.title.addEventListener('input',e => e.target.setCustomValidity(''));
-$('#delete-task').onclick = () => { change(() => tasks = tasks.filter(t => t.id !== editing)); $('#editor').close(); toast('Задача удалена. Можно отменить.'); };
+$('#delete-task').onclick = () => { change(() => tasks = tasks.filter(t => t.id !== editing)); $('#editor').close(); savedToast('Задача удалена. Можно отменить.'); };
 $('#add').onclick = () => openTask();
 $('#new-owner').onclick = () => {
   const name = prompt('Имя ответственного для новой дорожки');
   if (!name?.trim()) return;
   if (extraOwners.includes(name.trim()) || tasks.some(t => t.owner === name.trim())) return toast('Такая дорожка уже есть.');
   change(() => extraOwners.push(name.trim()));
-  const g = layout.groups.find(g => g.id === name.trim()); camera.x = 30-g.x*camera.z; camera.y = 30; applyCamera(); persist();
+  const g = layout.groups.find(g => g.id === `owner:${name.trim()}`); camera.x = 30-g.x*camera.z; camera.y = 30; applyCamera(); persist();
 };
 function openImport() { $('#import-error').textContent = ''; $('#import-dialog').showModal(); }
 $('#import-open').onclick = openImport; $('#empty-import').onclick = openImport; $('#help-open').onclick = () => $('#help-dialog').showModal();
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $(`#${b.dataset.close}`).close());
 $('#import-file').onchange = async e => {
-  try { const file = e.target.files[0]; if (file) $('#import-text').value = await file.text(); }
+  try { const file = e.target.files[0]; if (file) { if (file.size > 10 * 1024 * 1024) throw new Error('Файл больше 10 МБ.'); $('#import-text').value = await file.text(); } }
   catch { $('#import-error').textContent = 'Не удалось прочитать файл. Попробуйте вставить текст.'; }
 };
 $('#import-submit').onclick = () => {
   try {
-    const text = $('#import-text').value.trim(); if (!text) throw new Error('Выберите файл или вставьте строки таблицы.');
-    const json = text.startsWith('{') || text.startsWith('[') ? JSON.parse(text) : null;
-    let imported = json ? validateBoard(json) : fromSheet(parseDelimited(text));
-    const importedOwners = Array.isArray(json?.owners) ? json.owners.filter(o => typeof o === 'string' && o.trim()) : [];
-    if (!imported.length) throw new Error('В файле не нашлось задач с названием.');
-    // Only an exact, single name is safe to promote from the source note.
-    const simpleNames = /^(Иван|Дима|Миша|Надя|Катя|Софа|Сергей|Саша Климен|Кристина|Виктория|Богдан)$/i;
-    imported = imported.map(t => ({...t, owner: t.owner || (simpleNames.test(t.ownerNote || '') ? t.ownerNote : '')}));
-    const duplicates = imported.length - new Set(imported.map(t => t.id)).size;
-    if (duplicates) throw new Error('В таблице повторяются ID задач. Исправьте их перед импортом.');
-    const existing = new Set(tasks.map(t => t.id)); const added = $('#replace-import').checked ? imported : imported.filter(t => !existing.has(t.id));
-    if (!added.length && !$('#replace-import').checked) throw new Error('Эти ID уже есть на доске. Для восстановления копии выберите замену.');
-    change(() => { tasks = $('#replace-import').checked ? imported : [...tasks,...added]; extraOwners = $('#replace-import').checked ? importedOwners : [...new Set([...extraOwners,...importedOwners])]; });
+    const result = importBoard($('#import-text').value, tasks, extraOwners, {replace:$('#replace-import').checked});
+    change(() => { tasks = result.tasks; extraOwners = result.owners; });
     clearFilters(); $('#import-dialog').close(); camera = { x:32,y:24,z:.8 }; applyCamera(); persist();
-    toast(`Добавлено ${added.length} задач${added.length < imported.length ? '; существующие ID пропущены' : ''}.`);
+    savedToast(`Импортировано ${result.added} задач${result.skipped ? '; существующие ID пропущены' : ''}.`);
   } catch (error) { $('#import-error').textContent = error.message; }
 };
 $('#export').onclick = () => {
@@ -261,9 +257,9 @@ $('#zoom-in').onclick = () => { zoom(1.2); persist(); }; $('#zoom-out').onclick 
 window.addEventListener('keydown',e => {
   const typing = e.target.closest('input,textarea,select,[contenteditable]'); if (typing || document.querySelector('dialog[open]')) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='z') { e.preventDefault(); e.shiftKey ? restore(future,history) : restore(history,future); return; }
-  if (e.code==='Space') { e.preventDefault(); space=true; $('#viewport').classList.add('hand'); }
+  if (e.code==='Space' && !e.target.closest('button,a')) { e.preventDefault(); space=true; $('#viewport').classList.add('hand'); }
   if (e.key==='/') { e.preventDefault(); $('#search').focus(); }
-  if (e.key.toLowerCase()==='f') { e.preventDefault(); fit(); }
+  if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase()==='f') { e.preventDefault(); fit(); }
   if (['+','=','-'].includes(e.key)) { e.preventDefault(); zoom(e.key==='-' ? 1/1.2 : 1.2); persist(); }
   if (e.key==='Escape') { selected=null; render(); }
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
@@ -274,7 +270,16 @@ window.addEventListener('keydown',e => {
 });
 window.addEventListener('keyup',e => { if(e.code==='Space') { space=false; $('#viewport').classList.remove('hand'); } });
 window.addEventListener('blur',() => { space=false; touches.clear(); pinch=null; if(gesture) { gesture=null; render(); } $('#viewport').classList.remove('hand','panning'); });
-window.addEventListener('storage',e => { if(e.key===STORAGE) { storageConflict=true; $('#save-state').textContent='Доска изменена в другой вкладке'; toast('Доска изменена в другой вкладке. Экспортируйте текущую копию и обновите страницу.'); } });
+window.addEventListener('storage', e => {
+  if (e.key !== STORAGE && e.key !== null) return;
+  try {
+    const incoming = e.newValue ? dataSignature(JSON.parse(e.newValue)) : dataSignature({tasks:[],owners:[]});
+    if (incoming === storedSignature) return; // Panning in another tab is not a data conflict.
+  } catch { /* Invalid incoming data must not overwrite the current board. */ }
+  storageConflict = true; $('#save-state').textContent = 'Доска изменена в другой вкладке';
+  toast('Доска изменена в другой вкладке. Экспортируйте текущую копию и обновите страницу.');
+});
+window.addEventListener('beforeunload', e => { if(unsavedChanges) { e.preventDefault(); e.returnValue=''; } });
 $('#demo').onclick = () => {
   const example = [
     ['Подготовить план запуска','ГГР','Иван','do','В работе'],['Согласовать материалы для команды','ГГВ','Софа','do','В ожидании'],

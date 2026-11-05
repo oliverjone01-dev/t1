@@ -1,9 +1,11 @@
 import {bootstrapBoard,mergeBoards,comparable,equal} from './sync-model.mjs';
 import {validateBoard} from './model.mjs';
+import {remoteChanges} from './changes.mjs';
 const cleanBoard = board => ({tasks:validateBoard(board),owners:Array.isArray(board?.owners)?board.owners:[]});
 export class SyncEngine {
-  constructor({api,getLocal,apply,onState,cache=null,schedule=(...args)=>setTimeout(...args),cancel=(...args)=>clearTimeout(...args)}) {
+  constructor({api,getLocal,apply,onState,onRemote=()=>{},cache=null,schedule=(...args)=>setTimeout(...args),cancel=(...args)=>clearTimeout(...args)}) {
     this.api=api;this.getLocal=getLocal;this.apply=apply;this.onState=onState;this.schedule=schedule;this.cancel=cancel;
+    this.onRemote=onRemote;
     this.base=null;this.conflicts=[];this.enabled=false;this.connected=false;this.busy=false;this.timer=null;this.retryDelay=20000;
     try {if(cache?.base) {this.base=cleanBoard(cache.base);this.conflicts=Array.isArray(cache.conflicts)?cache.conflicts:[];this.enabled=!!cache.enabled;}} catch {this.cacheInvalid=true;}
     this.loadedBaseline=!!this.base;
@@ -24,6 +26,7 @@ export class SyncEngine {
     this.busy=true;this.state('syncing');
     try {
       let remote=await this.api.read();
+      const changes=remoteChanges(this.base,remote.board,cleanBoard(this.getLocal()));
       if(!this.base)this.base=remote.board;
       let local=cleanBoard(this.getLocal());
       if(!this.bootstrapped) {
@@ -33,12 +36,14 @@ export class SyncEngine {
       this.bootstrapped=true;
       let plan=mergeBoards(this.base,local,remote.board);
       this.conflicts=plan.conflicts;
+      this.onRemote(changes);
       const captured=cleanBoard(plan.board);
       this.base=cleanBoard(remote.board);
       this.apply(captured,this.snapshot());
       if(plan.writes.length || !equal([...remote.board.owners].sort(),[...captured.owners].sort())) {
         await this.api.write(remote,plan.writes,captured.owners);
         const acknowledged=await this.api.read();
+        this.onRemote(remoteChanges(remote.board,acknowledged.board,captured));
         const observed=new Map(acknowledged.board.tasks.map(t=>[t.id,t]));
         for(const write of plan.writes) {
           const actual=observed.get(write.id),expected=write.task;

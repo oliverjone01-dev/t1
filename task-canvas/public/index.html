@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f6f5f2"><title>GENGROUP · Холст задач</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Холст задач GENGROUP"><span class="brand-mark">g.</span><span>GENGROUP<small>Рабочее пространство</small></span></a>
+    <span class="header-divider"></span>
+    <div class="board-name"><strong>Холст задач</strong><span id="save-state" role="status">Сохранено на устройстве</span></div>
+    <div class="header-actions"><button id="import-open" class="button quiet">↓ Импорт</button><button id="export" class="button quiet">↑ Экспорт</button><button id="add" class="button primary">+ Задача</button></div>
+  </header>
+  <main>
+    <aside class="sidebar">
+      <div class="eyebrow">ПРОСТРАНСТВО</div>
+      <h1>Всё на<br>своих местах<span>.</span></h1>
+      <p class="intro">От общей картины<br>к следующему действию.</p>
+      <div class="side-label">Вид доски</div>
+      <nav class="views" aria-label="Вид доски">
+        <button data-mode="priority" class="view active"><span>▦</span> Приоритеты <small>01</small></button>
+        <button data-mode="owners" class="view"><span>☷</span> Команда <small>02</small></button>
+        <button data-mode="time" class="view"><span>◷</span> Сроки <small>03</small></button>
+      </nav>
+      <div class="side-label filter-label">Фильтры <button id="clear-filters" class="text-button">Сбросить</button></div>
+      <label class="filter">Юнит<select id="unit-filter"><option value="">Все юниты</option></select></label>
+      <label class="filter">Ответственный<select id="owner-filter"><option value="">Вся команда</option></select></label>
+      <label class="check"><input type="checkbox" id="hide-done" checked> Скрыть завершённые</label>
+      <div class="side-bottom"><div class="local-dot"></div><strong>Ваш рабочий холст</strong><p>Изменения хранятся в этом браузере. Экспортируйте доску для переноса.</p><button id="help-open" class="text-button">Как работать с доской ↗</button></div>
+    </aside>
+    <section class="workspace" aria-label="Доска задач">
+      <div class="workspace-top"><div><div class="eyebrow" id="view-kicker">МАТРИЦА ПРИОРИТЕТОВ</div><h2 id="view-title">Что действительно важно</h2></div><div class="stats"><strong id="task-count">0</strong><span>задач<br>на доске</span></div></div>
+      <div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Найти задачу, направление, человека…" aria-label="Поиск задач"><kbd>/</kbd></label><button id="new-owner" class="button quiet" hidden>+ Ответственный</button><select id="lane-jump" aria-label="Перейти к дорожке"><option value="">К дорожке…</option></select><span id="view-hint">Перенесите карточку, чтобы изменить приоритет</span><button id="undo" class="icon-button" title="Отменить (Ctrl/Cmd+Z)" aria-label="Отменить" disabled>↶</button><button id="redo" class="icon-button" title="Повторить (Ctrl/Cmd+Shift+Z)" aria-label="Повторить" disabled>↷</button></div>
+      <div id="viewport" tabindex="0" aria-label="Холст. Стрелки перемещают обзор. Плюс и минус меняют масштаб.">
+        <div id="world"><div id="zones"></div><div id="cards"></div></div>
+        <div id="empty" hidden><span>↗</span><h3>Дайте задачам место</h3><p>Импортируйте первую вкладку таблицы<br>или создайте свою первую карточку.</p><button id="empty-import" class="button primary">Импортировать задачи</button><button id="demo" class="text-button">Посмотреть на примере</button></div>
+        <div id="no-results" hidden>По этим фильтрам задач нет. <button id="reset-search" class="text-button">Сбросить фильтры</button></div>
+      </div>
+      <div class="canvas-footer"><span><i class="grid-icon">⠿</i> Привязка к сетке · 24 px</span><span>Пробел + перетаскивание · перемещение холста</span><span id="selection-info">Двойной клик по карточке · детали</span></div>
+      <div class="zoom-controls"><button id="zoom-out" aria-label="Уменьшить масштаб">−</button><button id="zoom-label" title="Масштаб 100%">100%</button><button id="zoom-in" aria-label="Увеличить масштаб">+</button><span></span><button id="fit" aria-label="Показать всю доску" title="Показать всю доску (F)">⛶</button></div>
+    </section>
+  </main>
+  <dialog id="editor" class="drawer"><form id="task-form"><div class="dialog-top"><span class="eyebrow" id="editor-id">НОВАЯ ЗАДАЧА</span><button type="button" class="icon-button" data-close="editor" aria-label="Закрыть">×</button></div><h2>Детали задачи</h2>
+    <label>Задача<textarea name="title" required rows="3" maxlength="1000"></textarea></label>
+    <div class="form-row"><label>Юнит<input name="unit" list="unit-list" maxlength="100"></label><label>Статус<select name="status"></select></label></div>
+    <label>Ответственный<input name="owner" list="owner-list" placeholder="Назначить человека" maxlength="200"></label><p id="owner-note" class="source-note"></p>
+    <div class="form-row"><label>Срок<input name="due" type="date"></label><label>Приоритет<select name="priority"><option value="">Входящие</option><option value="do">Важно · срочно</option><option value="plan">Важно · не срочно</option><option value="delegate">Не важно · срочно</option><option value="later">Не важно · не срочно</option></select></label></div><p id="due-note" class="source-note"></p>
+    <label>Ожидаемый результат<textarea name="description" rows="3"></textarea></label><label>Комментарий<textarea name="comment" rows="3"></textarea></label>
+    <details><summary>Контекст из таблицы</summary><p id="source-context"></p><a id="source-link" target="_blank" rel="noopener noreferrer" hidden>Открыть задачу ↗</a></details>
+    <div class="form-actions"><button type="button" id="delete-task" class="button danger">Удалить</button><button type="submit" class="button primary">Сохранить задачу</button></div>
+  </form></dialog>
+  <dialog id="import-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">ИМПОРТ ДАННЫХ</span><button class="icon-button" data-close="import-dialog" aria-label="Закрыть">×</button></div><h2>Из таблицы — на холст</h2><p>Скопируйте первую вкладку вместе с заголовками и вставьте ниже. Можно загрузить CSV или сохранённую доску JSON.</p><label class="file-input">Выбрать CSV / JSON<input type="file" id="import-file" accept=".json,.csv,.tsv,text/csv,application/json"></label><label class="import-label">Или вставьте строки таблицы<textarea id="import-text" rows="7" placeholder="ID ⇥ Юнит ⇥ Направление ⇥ …"></textarea></label><label class="check"><input type="checkbox" id="replace-import"> Заменить текущие задачи (можно отменить)</label><p class="source-note">Импорт не назначает приоритеты. Сложные формулировки ответственных сохраняются в контексте. Google Таблица не изменяется.</p><p id="import-error" class="error" role="alert"></p><button id="import-submit" class="button primary">Добавить на доску</button></dialog>
+  <dialog id="help-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">БЫСТРЫЙ СТАРТ</span><button class="icon-button" data-close="help-dialog" aria-label="Закрыть">×</button></div><h2>Место определяет действие</h2><ol><li><strong>Приоритеты.</strong> Четыре квадрата «важно × срочно». Входящие остаются без приоритета до вашего решения.</li><li><strong>Команда.</strong> Перенесите карточку в дорожку человека, чтобы назначить его ответственным. Добавьте дорожку кнопкой «+ Ответственный».</li><li><strong>Сроки.</strong> Перенос задаёт дату: сегодня, конец этой или следующей недели. В «Позже» — понедельник через неделю. Точную дату меняйте в деталях.</li><li><strong>Навигация.</strong> Колесо / трекпад перемещают обзор; Ctrl/Cmd + колесо — зум под курсором. Пробел + мышь — рука. F — вся доска.</li><li><strong>Карточка.</strong> Двойной клик или Enter — детали. Перетаскивание — размещение по сетке. В деталях можно менять все рабочие поля.</li><li><strong>Сохранение.</strong> Автоматически в этом браузере. Экспорт JSON — копия всей доски с позициями. Ctrl/Cmd+Z — отмена последнего изменения.</li></ol><p class="source-note">Это персональная доска без совместного редактирования и синхронизации с Google Sheets. Не очищайте данные браузера без экспорта.</p></dialog>
+  <datalist id="owner-list"></datalist><datalist id="unit-list"></datalist>
+  <div id="toast" role="status" hidden></div><script type="module" src="./app.mjs"></script>
+</body></html>

@@ -48,7 +48,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
+    paths: [task-canvas/**, analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -121,6 +121,11 @@ jobs:
           set -euo pipefail
           mkdir -p _site
           cp -r analytics-mvp/public/. _site/
+          # Персональная доска задач: код без внутренних данных.
+          if [ -d task-canvas/public ]; then
+            mkdir -p _site/tasks
+            cp -r task-canvas/public/. _site/tasks/
+          fi
           # SMM: статика-плейсхолдер (свой build добавляется в сессии SMM)
           mkdir -p _site/smm
           cp -r smm/public/. _site/smm/

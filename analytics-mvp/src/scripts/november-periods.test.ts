@@ -38,14 +38,14 @@ describe('weekly plan',()=>{
   expect(periodProgress(weeks[0]!,'2026-11-03',{'2026-11-01':-50000,'2026-11-02':-24817},500000).ratio).toBeLessThan(0);
   expect(periodProgress(weeks[0]!,'2026-11-03',{'2026-11-01':60,'2026-11-02':0},450).ratio).toBe(200);
  });
- it('renders neutral ad spend and safely receives same-origin finance from the bound frame',()=>{
+ it('renders capped ad spend and safely receives same-origin finance from the bound frame',()=>{
   const f=novemberForecast(NOVEMBER_GROWTH,input)!,errors:string[]=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e)));
   const dom=new JSDOM(novemberForecastHtml(f,'<!-- NOVEMBER_STORE --><iframe id="november-finance-frame"></iframe>')+'<script>'+source+novemberForecastJs(f,{'2026-11-01':50000,'2026-11-02':68998})+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/katya-tests.html',virtualConsole:vc,beforeParse(w){w.Date.now=()=>Date.parse(input.today+'T09:00:00Z')}});
   const w=dom.window,doc=w.document,frame=doc.querySelector('iframe')!;
   expect(doc.querySelector('#nf-dial-units .gauge')!.getAttribute('data-pct')).toBe(String(17/30*100));
   expect(doc.querySelector('[data-metric=ads]')!.getAttribute('data-fact')).toBe('118998');
-  expect(doc.querySelector('#nf-dial-ads .gv')!.textContent).toBe('факт');
-  expect(doc.querySelector('#nf-dial-ads .gauge')!.getAttribute('data-st')).toBe('');
+  expect(doc.querySelector('#nf-dial-ads .gv')!.textContent).toContain('9,17% ДРР');
+  expect(doc.querySelector('#nf-dial-ads .gauge')!.getAttribute('data-st')).toBe('#34D399');
   const periods=novemberGaugePeriods().map(p=>periodProgress(p,input.today,{'2026-11-01':-50000,'2026-11-02':-24817},500000));
   const msg={type:'ozon-november-weekly-finance',today:input.today,periods};
   const send=(data:unknown,source:unknown=frame.contentWindow,origin='https://dashboard.example')=>w.dispatchEvent(new w.MessageEvent('message',{data,source:source as any,origin}));
@@ -150,4 +150,25 @@ it('month profit is computed directly for the whole window and missing days stay
  w.renderNovemberFinance(Date.parse('2026-11-10T00:00:00Z'));const p=w.NOVEMBER_FINANCE_WEEKLY.periods;
  expect(p).toHaveLength(6);expect(p[0].fact).toBe(49);expect(p[1].fact).toBe(4);expect(p[5]).toMatchObject({fact:81,goal:500000,planToDate:150000});expect(p[5].fact).not.toBe(p[0].fact+p[1].fact);dom.window.close();
  const missing=new JSDOM(novemberFinancePage(core,'2026-11-30',days.filter(d=>d!=='2026-11-01'),'test'),{runScripts:'dangerously'}),m=missing.window as any;m.renderNovemberFinance(Date.parse('2026-11-10T00:00:00Z'));expect(m.NOVEMBER_FINANCE_WEEKLY.periods[5].fact).toBeNull();expect(m.NOVEMBER_FINANCE_WEEKLY.periods[1].fact).toBe(4);missing.window.close();
+});
+
+it('DRR cap follows actual same-period turnover, including month, zero and missing revenue',()=>{
+ for(const [revenue,spend,status] of [[100000,10000,'within'],[100000,10000.01,'exceeded'],[0,100,'exceeded'],[0,0,'within'],[null,100,'unknown']] as const){
+  const f=novemberForecast(NOVEMBER_GROWTH,{...input,today:'2026-11-02',last:'2026-11-01',covered:new Set(['2026-11-01']),revenue:new Map(revenue===null?[]:[['2026-11-01',revenue]])})!;
+  // A missing order day must stay missing, not become zero.
+  if(revenue===null)f.points[0]!.dailyRevenue=null;
+  const dom=new JSDOM(novemberForecastHtml(f)+'<script>'+source+novemberForecastJs(f,{'2026-11-01':spend})+'</script>',{runScripts:'dangerously'}),d=dom.window.document;
+  for(const mode of ['0','5']){
+   (d.querySelector('[data-nov-week="'+mode+'"]') as HTMLElement).click();
+   const card=d.querySelector('[data-metric=ads]')!;
+   expect(card.getAttribute('data-status')).toBe(status);expect(card.hasAttribute('hidden')).toBe(false);
+   expect(card.getAttribute('data-target')).toBe(revenue===null?'':String(revenue/10));
+   const gauge=d.querySelector('#nf-dial-ads .gauge')!;
+   expect(gauge.getAttribute('data-st')).toBe(status==='unknown'?'':status==='exceeded'?'#FF7A7E':'#34D399');
+   if(revenue===100000){expect(gauge.getAttribute('data-zone')).toBe(status==='exceeded'?'#FF7A7E':'#34D399');}
+   if(revenue===null||revenue===0)expect(d.querySelector('#nf-dial-ads .gv')!.textContent).toBe('ДРР —');
+  }
+  (d.querySelector('[data-nov-week="1"]') as HTMLElement).click();expect(d.querySelector('[data-metric=ads]')!.hasAttribute('hidden')).toBe(true);
+  dom.window.close();
+ }
 });

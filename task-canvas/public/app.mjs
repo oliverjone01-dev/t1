@@ -14,6 +14,7 @@ let stateLoadError = false, storageConflict = false, unsavedChanges = false;
 let cloudEngine = null, cloudCache = null, googleAuth = null, editingBase = null;
 let inbox = new ChangeInbox();
 let cloudRenderNeeded = false;
+let renderedDay = null;
 let storedSignature = dataSignature({tasks:[],owners:[]});
 try {
   const saved = localStorage.getItem(STORAGE);
@@ -73,6 +74,7 @@ function isVisible(task) {
 }
 function render() {
   cloudRenderNeeded=false;
+  renderedDay=today();
   renderChanges();
   updateOptions();
   const visible = tasks.filter(isVisible);
@@ -367,7 +369,7 @@ function cloudState(state) {
 function businessSignature(board) {return JSON.stringify({tasks:board.tasks.map(t=>({id:t.id,...comparable(t)})),owners:board.owners});}
 function applyCloud(board,cache) {
   const changed=businessSignature({tasks,owners:extraOwners})!==businessSignature(board);
-  cloudRenderNeeded ||= JSON.stringify(tasks)!==JSON.stringify(board.tasks) || JSON.stringify(extraOwners)!==JSON.stringify(board.owners);
+  cloudRenderNeeded ||= renderedDay!==today() || JSON.stringify(tasks)!==JSON.stringify(board.tasks) || JSON.stringify(extraOwners)!==JSON.stringify(board.owners);
   tasks=board.tasks;extraOwners=board.owners;cloudCache=cache;
   if(changed) {history=[];future=[];}
   // A second local tab must refresh first; cross-device merging is handled by the sync engine.

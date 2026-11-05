@@ -20,7 +20,7 @@ describe('November detailed blocks',()=>{
     const r=novemberDetails(fixture())!;
     for(const id of ['november-orders','november-funnel','november-ads','november-prices'])expect(r.html).toContain('id="'+id+'"');
     expect(r.html).toContain('<!-- NOVEMBER_STORE -->');expect(r.html).toContain('&lt;Альфа&gt;');expect(r.html).not.toContain('<test>');
-    expect(r.html).toContain('Порог ноября');expect(r.html).toContain('Не задан');expect(r.html).not.toContain('20000');
+    expect(r.html).toContain('Цель ноября');expect(r.html).toContain('Не задан');expect(r.html).not.toContain('20000');
     expect(r.js).not.toContain('</script');
   });
   it('keeps October, today and December out of November orders',()=>{
@@ -106,7 +106,7 @@ describe('October design reused for November',()=>{
   it('groups November models, keeps month thresholds unset and opens SKU details',()=>{
     const f=fixture();f.taxonomy={'1':{model:'TRUBIS Wood Oval 160'}};
     const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
-    expect(doc.querySelectorAll('#november-orders thead th')).toHaveLength(7);
+    expect(doc.querySelectorAll('#november-orders > .nd-scroll > table > thead th')).toHaveLength(7);
     expect(doc.querySelectorAll('#november-funnel .grp th[colspan="3"]')).toHaveLength(4);
     expect(doc.querySelector('#nd-ob0-button-0')!.textContent).toContain('TRUBIS Wood Oval 160');
     (doc.querySelector('#nd-ob0-button-0') as any).click();expect(doc.querySelector('#nd-ob0-sku-0')!.hasAttribute('hidden')).toBe(false);
@@ -131,4 +131,31 @@ it('keeps closed dates on the funnel when the native partial snapshot is stale',
   const chart=doc.querySelector('#nd-funnel-chart')!;
   expect(chart.querySelectorAll('text')[chart.querySelectorAll('text').length-2]!.textContent).toBe('04.11');
   expect(chart.querySelector('[data-partial-day]')).toBeNull();expect(chart.textContent).not.toContain('Неполный');dom.window.close();
+});
+
+it('keeps observed traffic and exact gaps visible without promoting it to complete comparisons',()=>{
+ const f=fixture();f.views=f.views.filter(r=>!(r.date==='2026-11-01'&&r.sku==='2'));
+ f.taxonomy={'2':{offer:'missing <variant>'}};
+ const r=novemberDetails(f)!,i=r.data.days.indexOf('2026-11-01');
+ expect(r.data.series[0]!.s.pdp![i]).toBeNull();expect(r.data.series[0]!.observed!.pdp![i]).toBe(10);
+ expect(r.data.series[0]!.gaps.find(g=>g.day==='2026-11-01')!.missing).toEqual([{sku:'2',offer:'missing <variant>',fields:['views','vsearch','pdp','cart','units']}]);
+ expect(r.html).toContain('missing &lt;variant&gt;');expect(r.html).not.toContain('missing <variant>');
+ const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+ expect(doc.querySelector('#nd-funnel-table')!.textContent).toContain('≥ 70');expect(doc.querySelector('#nd-funnel-table')!.textContent).toContain('неполный охват');
+ expect(doc.querySelector('#nd-funnel-chart circle[fill="#E5B567"]')).not.toBeNull();dom.window.close();
+});
+it('adds November month and weekly targets for the established card names',()=>{
+ const f=fixture();f.cards[0]!.short='EVELIX';const r=novemberDetails(f)!;
+ expect(r.data.orderSummary[0]!.goal).toBeGreaterThan(0);
+ const doc=new JSDOM(r.html).window.document;
+ expect(doc.querySelectorAll('#nd-order-detail-0 .nd-card-weeks tbody tr')).toHaveLength(5);
+ expect(doc.querySelector('#nd-order-detail-0 .nd-card-weeks tbody tr:last-child')!.textContent).toContain('29-30.11');
+ expect(doc.querySelector('#nd-order-detail-0 .nd-card-weeks tbody tr:last-child')!.textContent).toContain('период не начался');
+});
+it('colors per-group advertising against the October reference without assigning an overall cap',()=>{
+ const f=fixture();f.cards[0]!.click_new=60;f.plan.min_budget_sku=100;f.plan.min_campaign_budget=140;
+ const r=novemberDetails(f)!,doc=new JSDOM(r.html).window.document;
+ expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.getAttribute('data-ad-status')).toBe('over');
+ expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.textContent).toContain('116,7%');
+ expect(r.html).toContain('Общий CPC + CPO');
 });

@@ -64,3 +64,10 @@
 #november-plan .nd-ad-grid .wk-grid>*{padding:5px 10px;font-size:12px;font-weight:400}
 #november-plan .nd-ad-grid .wk-head>*{border-bottom:1px solid var(--soft);color:var(--ink2)}
 #november-plan .nd-ad-grid strong{font-size:11.5px;font-weight:400}
+
+#november-plan .nd-incomplete{color:#E5B567}
+#november-plan .nd-incomplete small{color:#E5B567;font-size:10px}
+#november-plan .nd-coverage{margin:6px 0;font-size:12px}
+#november-plan .nd-coverage table td:last-child{white-space:normal}
+#november-plan .nd-card-weeks{margin-top:12px}
+#november-plan .nd-ad-grid .pl-fill{padding:0}

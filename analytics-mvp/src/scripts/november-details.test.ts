@@ -120,7 +120,8 @@ describe('October design reused for November',()=>{
     const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
     (doc.querySelector('.nd-order-toggle') as any).click();
     expect(doc.querySelector('.nd-order-chart path[stroke="#F59E0B"]')).toBeNull();
-    expect(doc.querySelector('.nd-order-chart')!.textContent).toContain('нет данных');dom.window.close();
+    expect(doc.querySelector('.nd-order-chart')!.hasAttribute('hidden')).toBe(true);
+    expect(doc.querySelector('.nd-order-row')!.textContent).toContain('нет данных');dom.window.close();
   });
 });
 

@@ -1,8 +1,75 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { snap, createLayout, moveTask, timeBucket, timeLanes, parseDelimited, fromSheet, validateBoard, parseDeadline, dropTarget, importBoard, fitCamera, CARD } from '../public/model.mjs';
+import { snap, createLayout, moveTask, groupFor, STATUS_LANES, timeBucket, timeLanes, parseDelimited, fromSheet, validateBoard, parseDeadline, dropTarget, importBoard, fitCamera, CARD } from '../public/model.mjs';
+import {mergeBoards,buildWriteRequests} from '../public/sync-model.mjs';
 const date = '2026-11-05';
 const task = { id:'one', title:'Задача', owner:'Иван', due:'2026-11-09', priority:'plan', positions:{} };
+test('every view has separate done and cancelled zones, even with no cards',()=>{
+  for(const mode of ['priority','owners','time']) {
+    const layout=createLayout([] ,mode,date);
+    for(const lane of STATUS_LANES)assert.ok(layout.groups.some(g=>g.id===lane.id));
+    for(const lane of STATUS_LANES)assert.equal(groupFor({...task,status:lane.status},mode,date),lane.id);
+    const list=[{...task,id:'active',status:'В работе'},{...task,id:'done',status:'Готово'},{...task,id:'cancelled',status:'Отменено'}];
+    const positioned=createLayout(list,mode,date);
+    assert.equal(positioned.placed.size,3);
+    assert.equal(positioned.placed.get('done').group,'status:done');
+    assert.equal(positioned.placed.get('cancelled').group,'status:cancelled');
+  }
+});
+test('dropping into either status zone changes status while retaining task planning fields',()=>{
+  for(const mode of ['priority','owners','time'])for(const lane of STATUS_LANES) {
+    const target=createLayout([task],mode,date).groups.find(g=>g.id===lane.id);
+    const moved=moveTask({...task,status:'В работе'},mode,target,target.x+31,target.y+130,date);
+    assert.equal(moved.status,lane.status);assert.equal(moved.owner,task.owner);assert.equal(moved.due,task.due);assert.equal(moved.priority,task.priority);
+    assert.equal(moved.positions[mode].group,lane.id);assert.equal(moved.positions[mode].x,24);
+    assert.doesNotThrow(()=>validateBoard([moved]));
+  }
+});
+test('returning a finished card resumes work and updates only the chosen planning dimension',()=>{
+  for(const status of ['Готово','Отменено'])for(const mode of ['priority','owners','time']) {
+    const targets={priority:'do',owners:'owner:Катя',time:'today'};
+    const target=createLayout([task],mode,date,['Катя']).groups.find(g=>g.id===targets[mode]);
+    const moved=moveTask({...task,status},mode,target,target.x+24,target.y+96,date);
+    assert.equal(moved.status,'В работе');
+    assert.equal(moved.owner,mode==='owners'?'Катя':task.owner);
+    assert.equal(moved.due,mode==='time'?date:task.due);
+    assert.equal(moved.priority,mode==='priority'?'do':task.priority);
+    assert.equal(groupFor(moved,mode,date),target.id);
+  }
+});
+test('status lanes do not collide with people who have similar names or IDs',()=>{
+  const list=[{...task,id:'a',owner:'Готово',status:'В работе'},{...task,id:'b',owner:'status:done',status:'В работе'},{...task,id:'c',status:'Готово'}];
+  const layout=createLayout(list,'owners',date);
+  assert.equal(layout.placed.get('a').group,'owner:Готово');
+  assert.equal(layout.placed.get('b').group,'owner:status:done');
+  assert.equal(layout.placed.get('c').group,'status:done');
+});
+test('completion-zone cards stay on grid without overlapping the priority matrix or each other',()=>{
+  const list=Array.from({length:24},(_,i)=>({...task,id:String(i),status:i%2?'Готово':'Отменено',positions:{priority:{group:i%2?'status:done':'status:cancelled',x:24,y:96}}}));
+  const layout=createLayout(list,'priority',date);
+  const terminal=layout.groups.filter(g=>g.status);
+  const active=layout.groups.filter(g=>!g.status);
+  for(const group of terminal)for(const other of active)assert.ok(group.x>=other.x+other.w || group.x+group.w<=other.x || group.y>=other.y+other.h || group.y+group.h<=other.y);
+  const positions=[...layout.placed.values()];
+  for(let i=0;i<positions.length;i++) {
+    const p=positions[i];assert.equal(p.x%24,0);assert.equal(p.y%24,0);
+    for(const q of positions.slice(i+1))assert.ok(p.x+CARD.width<=q.x || q.x+CARD.width<=p.x || p.y+CARD.height<=q.y || q.y+CARD.height<=p.y);
+  }
+});
+test('completion transfers sync only the status cell and layout, preserving source planning data',()=>{
+  const base={tasks:validateBoard([{...task,status:'В работе'}]),owners:[]};
+  for(const lane of STATUS_LANES) {
+    const target=createLayout(base.tasks,'priority',date).groups.find(g=>g.id===lane.id);
+    const moved=moveTask(base.tasks[0],'priority',target,target.x+24,target.y+96,date);
+    const plan=mergeBoards(base,{...base,tasks:[moved]},base);
+    assert.deepEqual(plan.writes[0].fields,['status','positions']);
+    const snapshot={board:base,records:[{id:task.id,row:3,cells:Array.from({length:22},()=>({}))}]};
+    snapshot.records[0].cells[18]={formattedValue:task.id};
+    const requests=buildWriteRequests(snapshot,plan.writes,[]);
+    assert.deepEqual(requests.map(r=>r.updateCells.start.columnIndex),[8,17]);
+    assert.equal(requests[0].updateCells.rows[0].values[0].userEnteredValue.stringValue,lane.status);
+  }
+});
 test('moving between quadrants changes priority without changing owner or exact date', () => {
   const target = createLayout([task],'priority',date).groups.find(g => g.id==='do');
   const moved = moveTask(task,'priority',target,target.x+29,target.y+113,date);

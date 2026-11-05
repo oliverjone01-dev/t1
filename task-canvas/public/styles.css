@@ -403,6 +403,20 @@ h1 span {
   background:#eef5f0b0;
   border-color:#ccdfd1;
 }
+.zone.cancelled{background:#f5eef0b0;border-color:#e3d0d6}
+.green .zone-number{color:#65967a;border-color:#b6d2bf}
+.cancelled .zone-number{color:#a47683;border-color:#d9bfc7}
+.status-shortcuts{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:9px 30px;background:#fcfbf9;border-bottom:1px solid var(--line)}
+.status-shortcuts>span{font-size:9px;color:#98909c;margin-right:3px}
+.status-shortcuts small{margin-left:auto;font-size:9px;color:#a19aa5}
+.status-shortcut{display:flex;align-items:center;gap:8px;border:1px solid;border-radius:6px;padding:6px 10px;font-size:10px;cursor:pointer}
+.status-shortcut b{font-size:9px;font-weight:500;min-width:14px;text-align:center;border-radius:3px;background:#ffffffa0;padding:1px 3px}
+.done-shortcut{background:#eef6f0;border-color:#d0e0d5;color:#628671}
+.cancelled-shortcut{background:#f7eff1;border-color:#e4d1d7;color:#a17b86}
+.status-shortcut:hover{filter:brightness(.97)}
+.status-shortcut.drop-target{outline:2px solid currentColor;outline-offset:2px;filter:brightness(.95)}
+@media(max-width:1000px){.status-shortcuts{padding-left:16px;padding-right:16px}.status-shortcuts small{display:none}}
+@media(max-width:700px){.status-shortcuts{padding:7px 10px;gap:7px}.status-shortcuts>span{display:none}.status-shortcut{font-size:9px;padding:5px 8px}}
 .zone-header {
   padding:24px;
   display:flex;

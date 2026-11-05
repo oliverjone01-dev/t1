@@ -1,4 +1,4 @@
-import { CARD, STATUSES, localDate, createLayout, moveTask, validateBoard, groupFor, dropTarget, fitCamera, importBoard } from './model.mjs';
+import { CARD, STATUSES, STATUS_LANES, statusGroup, localDate, createLayout, moveTask, validateBoard, groupFor, dropTarget, fitCamera, importBoard } from './model.mjs';
 import { SyncEngine } from './sync-engine.mjs';
 import { GoogleAuth } from './google-auth.mjs';
 import { SheetsApi } from './sheets-api.mjs';
@@ -65,19 +65,22 @@ function updateOptions() {
   $('#owner-list').innerHTML = owners.map(o => `<option value="${esc(o)}"></option>`).join('');
   $('#unit-list').innerHTML = units.map(u => `<option value="${esc(u)}"></option>`).join('');
 }
-function isVisible(task) {
+function matchesFilters(task) {
   const q = $('#search').value.toLocaleLowerCase('ru').trim();
-  return (!$('#hide-done').checked || !['Готово','Отменено'].includes(task.status)) &&
-    (!$('#unit-filter').value || task.unit === $('#unit-filter').value) &&
+  return (!$('#unit-filter').value || task.unit === $('#unit-filter').value) &&
     (!$('#owner-filter').value || ($('#owner-filter').value === '__none' ? !task.owner : `owner:${task.owner}` === $('#owner-filter').value)) &&
     (!q || [task.title, task.owner, task.ownerNote, task.direction, task.unit, task.sourceId, task.comment].some(v => (v || '').toLocaleLowerCase('ru').includes(q)));
 }
+function isVisible(task) {return matchesFilters(task) && (!$('#hide-done').checked || !statusGroup(task));}
 function render() {
   cloudRenderNeeded=false;
   renderedDay=today();
+  document.querySelectorAll('.status-shortcut').forEach(button=>button.classList.remove('drop-target'));
   renderChanges();
   updateOptions();
   const visible = tasks.filter(isVisible);
+  const matching=tasks.filter(matchesFilters);
+  for(const lane of STATUS_LANES)$(`[data-status-count="${lane.id}"]`).textContent=matching.filter(t=>statusGroup(t)===lane.id).length;
   layout = createLayout(visible, mode, today(), [...new Set([...extraOwners,...tasks.map(t => t.owner).filter(Boolean)])]);
   $('#lane-jump').innerHTML = '<option value="">К дорожке…</option>' + layout.groups.map(g => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join('');
   $('#task-count').textContent = visible.length;
@@ -89,7 +92,7 @@ function render() {
   $('#view-kicker').textContent = info[0]; $('#view-title').textContent = info[1]; $('#view-hint').textContent = info[2];
   document.querySelectorAll('[data-mode]').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
   $('#new-owner').hidden = mode !== 'owners';
-  $('#zones').innerHTML = layout.groups.map((g, i) => `<section class="zone ${g.color}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.id === 'inbox' ? '↓' : String(i + (mode === 'priority' ? 0 : 1)).padStart(2,'0')}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter(t => groupFor(t, mode, today()) === g.id).length}</span></div></section>`).join('');
+  $('#zones').innerHTML = layout.groups.map((g, i) => `<section class="zone ${g.color}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || (g.id === 'inbox' ? '↓' : String(i + (mode === 'priority' ? 0 : 1)).padStart(2,'0'))}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter(t => groupFor(t, mode, today()) === g.id).length}</span></div></section>`).join('');
   $('#cards').innerHTML = visible.map(task => {
     const p = layout.placed.get(task.id); if (!p) return '';
     const name = task.owner || (task.ownerNote ? 'Уточнить ответственного' : 'Не назначен');
@@ -125,6 +128,10 @@ function fit() {
 function worldPoint(event) {
   const r = $('#viewport').getBoundingClientRect();
   return { x: (event.clientX - r.left - camera.x) / camera.z, y: (event.clientY - r.top - camera.y) / camera.z };
+}
+function statusDropTarget(event) {
+  const button=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-status-zone]');
+  return button ? layout.groups.find(group=>group.id===button.dataset.statusZone) : null;
 }
 $('#viewport').addEventListener('wheel', e => {
   e.preventDefault();
@@ -176,8 +183,9 @@ $('#viewport').addEventListener('pointermove', e => {
   gesture.moved = true; gesture.card.classList.add('dragging');
   const p = worldPoint(e); const x = p.x-gesture.dx, y = p.y-gesture.dy;
   gesture.card.style.left = `${x}px`; gesture.card.style.top = `${y}px`;
-  const group = dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
+  const group = statusDropTarget(e) || dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
   document.querySelectorAll('.zone').forEach(el => el.classList.toggle('drop-target', el.dataset.group === group?.id));
+  document.querySelectorAll('.status-shortcut').forEach(el=>el.classList.toggle('drop-target',el.dataset.statusZone===group?.id));
 });
 function endGesture(e, cancelled = false) {
   touches.delete(e.pointerId);
@@ -187,13 +195,16 @@ function endGesture(e, cancelled = false) {
   if (current.type === 'pan') { persist(); return; }
   if (current.moved && !cancelled) {
     const p = worldPoint(e), x = p.x-current.dx, y = p.y-current.dy;
-    const target = dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
+    const shortcut=statusDropTarget(e), target = shortcut || dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
     if (target) {
       try {
-        const task = tasks.find(t => t.id === current.id); const next = moveTask(task,mode,target,x,y,today());
+        const task = tasks.find(t => t.id === current.id);
+        const index=shortcut ? tasks.filter(t=>t.id!==task.id && groupFor(t,mode,today())===target.id).length : 0;
+        const next = moveTask(task,mode,target,shortcut?target.x+24+(index%2)*312:x,shortcut?target.y+96+Math.floor(index/2)*216:y,today());
+        if(statusGroup(next))$('#hide-done').checked=false;
         change(() => tasks = tasks.map(t => t.id === current.id ? next : t));
-        const label = mode === 'priority' ? target.title : mode === 'owners' ? `Ответственный: ${next.owner || 'не назначен'}` : `Срок: ${next.due || 'не указан'}`;
-        savedToast(label);
+        const label = target.status ? `Статус: ${next.status}` : mode === 'priority' ? target.title : mode === 'owners' ? `Ответственный: ${next.owner || 'не назначен'}` : `Срок: ${next.due || 'не указан'}`;
+        savedToast(statusGroup(task) && !statusGroup(next) ? `В работе · ${label}` : label);
       } catch (error) { toast(error.message); render(); }
     } else { render(); toast('Поместите карточку внутрь дорожки.'); }
   } else if (cancelled) render();
@@ -229,6 +240,7 @@ $('#task-form').addEventListener('submit', e => {
   if(old && dirty.some(key=>String(old[key] || '')!==String(editingBase?.[key] || '') && String(old[key] || '')!==String(data[key] || ''))) {toast('Эти поля обновились из таблицы. Скопируйте свой текст, закройте и откройте карточку для сравнения.');return;}
   const patch=old ? Object.fromEntries(dirty.map(key=>[key,data[key]])) : data;
   const task = { ...(old || {id:crypto.randomUUID(),positions:{}}), ...patch };task.priority ||= null;
+  if(statusGroup(task))$('#hide-done').checked=false;
   if (old) {
     task.positions = structuredClone(old.positions || {});
     if (task.owner !== old.owner) delete task.positions.owners;
@@ -268,7 +280,7 @@ $('#export').onclick = () => {
   const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `gengroup-board-${today()}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   toast('Копия доски скачана');
 };
-function clearFilters() { $('#search').value=''; $('#unit-filter').value=''; $('#owner-filter').value=''; $('#hide-done').checked=true; render(); }
+function clearFilters() { $('#search').value=''; $('#unit-filter').value=''; $('#owner-filter').value=''; $('#hide-done').checked=false; render(); }
 function renderChanges() {
   const count=inbox.size, button=$('#changes-open');
   button.textContent=count ? `Изменения · ${count}` : 'Изменения';
@@ -313,8 +325,15 @@ $('#changes-list').onclick=e=>{
 $('#clear-filters').onclick = clearFilters;
 $('#reset-search').onclick = () => { clearFilters(); $('#hide-done').checked=false; render(); };
 for (const id of ['search','unit-filter','owner-filter','hide-done']) $(`#${id}`).addEventListener(id === 'search' ? 'input' : 'change',render);
-document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode=b.dataset.mode; camera={x:32,y:32,z:.8}; render(); const first=tasks.filter(isVisible).map(t=>layout.placed.get(t.id)).find(Boolean); if(first) { const g=layout.groups.find(g=>g.id===first.group); camera.x=32-g.x*camera.z; } applyCamera(); persist(); });
-$('#lane-jump').onchange = e => { const g=layout.groups.find(g=>g.id===e.target.value); if(!g) return; camera.x=32-g.x*camera.z; camera.y=24-g.y*camera.z; applyCamera(); persist(); };
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode=b.dataset.mode; camera={x:32,y:32,z:.8}; render(); const visible=tasks.filter(isVisible), firstTask=visible.find(t=>!statusGroup(t)) || visible[0], first=layout.placed.get(firstTask?.id); if(first) { const g=layout.groups.find(g=>g.id===first.group); camera.x=32-g.x*camera.z; } applyCamera(); persist(); });
+function jumpToGroup(id,readable=false) {
+  if(STATUS_LANES.some(g=>g.id===id)) {$('#hide-done').checked=false;render();}
+  const g=layout.groups.find(g=>g.id===id);if(!g)return;
+  if(readable)camera.z=Math.max(.8,Math.min(1,camera.z));
+  camera.x=32-g.x*camera.z;camera.y=24-g.y*camera.z;applyCamera();persist();
+}
+$('#lane-jump').onchange=e=>jumpToGroup(e.target.value);
+document.querySelectorAll('[data-status-zone]').forEach(button=>button.onclick=()=>jumpToGroup(button.dataset.statusZone,true));
 $('#undo').onclick = () => restore(history,future); $('#redo').onclick = () => restore(future,history);
 $('#zoom-in').onclick = () => { zoom(1.2); persist(); }; $('#zoom-out').onclick = () => { zoom(1/1.2); persist(); }; $('#zoom-label').onclick = () => { zoom(1/camera.z); persist(); }; $('#fit').onclick=fit;
 window.addEventListener('keydown',e => {

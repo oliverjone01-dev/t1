@@ -13,20 +13,33 @@ function draw(key,p,goal,title,unit,neutral){
   var quality=p.missing.length?'Нет полного покрытия: '+p.missing.map(function(d){return d.slice(8)+'.11'}).join(', '):closed;
   el.innerHTML=window.planGauge({title:title,val:p.fact,plan:month?p.goal:p.planToDate,mark:month?p.elapsed/p.days.length*100:100,stPct:p.ratio,neutral:neutral,neutralLabel:p.fact==null?'нет данных':'факт',
     l1:p.fact==null?'нет данных':fmt(p.fact)+(unit||''),
-    l2:neutral?'CPC + CPO · без оценки перерасхода':p.elapsed?'План закрытых дней: '+fmt(p.planToDate)+unit:'План закрытых дней ещё не наступил',
-    l3:neutral?'Лимит периода не задан':(month?'Цель всего месяца: ':'Цель всей недели: ')+fmt(p.goal)+unit});
+    l2:p.elapsed?'План закрытых дней: '+fmt(p.planToDate)+unit:'План закрытых дней ещё не наступил',
+    l3:(month?'Цель всего месяца: ':'Цель всей недели: ')+fmt(p.goal)+unit});
   card.classList.add('nf-ready');card.dataset.fact=p.fact==null?'':String(p.fact);card.dataset.target=p.planToDate==null?'':String(p.planToDate);
   document.getElementById('nf-note-'+key).textContent=quality+(key==='net'?' · Предварительная модельная прибыль; бухгалтерская сверка не завершена.':'');
+}
+function drawAds(row){
+  var p=row.ads,r=row.revenue,cap=D.targets.adsDrrLimit,x=window.NOVEMBER_DRR(p.fact,r.fact,cap);
+  var el=document.getElementById('nf-dial-ads'),card=el.parentElement;card.hidden=p.fact==null;
+  var status=x.status==='exceeded'?{c:'#FF7A7E',t:'лимит превышен',i:'▲'}:x.status==='within'?{c:'#34D399',t:'в пределах лимита',i:'✓'}:null;
+  el.innerHTML=window.planGauge({title:'Реклама · общий ДРР',val:p.fact,plan:x.limit,mark:100,hiBad:true,hardCap:true,ticks:[[0,'0'],[100,fmt(cap)+'%'],[150,fmt(cap*1.5)+'%']],status:status,neutral:x.drr==null,
+    valueLabel:x.drr==null?'ДРР —':fmt(x.drr,2)+'% ДРР',
+    l1:fmt(p.fact)+' ₽ · CPC + CPO',
+    l2:'Предел ДРР: '+fmt(cap)+'%'+(x.limit==null?' · нет полного оборота за период':' · '+fmt(x.limit,2)+' ₽'),
+    l3:x.remaining==null?'Остаток лимита не рассчитан':(x.remaining<0?'Превышение: ':'Остаток до лимита: ')+fmt(Math.abs(x.remaining),2)+' ₽'});
+  card.classList.add('nf-ready');card.dataset.fact=p.fact==null?'':String(p.fact);card.dataset.target=x.limit==null?'':String(x.limit);card.dataset.drr=x.drr==null?'':String(x.drr);card.dataset.status=x.status;
+  var gaps=Array.from(new Set(p.missing.concat(r.missing)));
+  document.getElementById('nf-note-ads').textContent=(gaps.length?'Нет полного покрытия: '+gaps.map(function(d){return d.slice(8)+'.11'}).join(', '):'Закрыто '+p.elapsed+' из '+p.days.length+' дн. · по '+p.through.slice(8)+'.11')+' · CPC + CPO / оборот магазина без отмен за те же дни. '+(r.fact===0?'Оборот равен нулю; процент ДРР не определён. ':'')+'Зелёный ≤10%, красный >10%. Белая отметка — предел 10% ДРР. Это контроль, не автоматическая остановка рекламы.';
 }
 function render(){
   var row=D.periods[selected];
   var issues=[['Заказы',row.units],['Оборот',row.revenue],['Реклама',row.ads]];if(finance)issues.push(['Прибыль',finance[selected]]);
   document.getElementById('november-week-issues').textContent=issues.filter(function(x){return x[1].missing.length}).map(function(x){return x[0]+': нет полного покрытия за '+x[1].missing.map(function(d){return d.slice(8)+'.11'}).join(', ')}).join(' · ');
-  document.getElementById('november-week-state').textContent=(selected===5?'Весь ноябрь · 01–30.11.':'Неделя '+row.period.label+'.')+(row.units.elapsed?(selected===5?' 100% на шкале = полная цель месяца. Белая отметка и цвет показывают темп по закрытым дням.':' 100% на шкале = план уже закрытых дней недели. Полная цель недели указана под спидометром.'):' Закрытых дней пока нет. План периода: '+fmt(row.units.goal)+' шт., оборот '+fmt(row.revenue.goal)+' ₽, прибыль '+fmt(D.targets.profit*row.period.days/30)+' ₽. Факт появится после закрытия дней.');
+  document.getElementById('november-week-state').textContent=(selected===5?'Весь ноябрь · 01–30.11.':'Неделя '+row.period.label+'.')+(row.units.elapsed?(selected===5?' Для заказов, оборота и прибыли: 100% на шкале = полная цель месяца. Белая отметка и цвет показывают темп по закрытым дням.':' Для заказов, оборота и прибыли: 100% на шкале = план уже закрытых дней недели. Полная цель недели указана под спидометром.'):' Закрытых дней пока нет. План периода: '+fmt(row.units.goal)+' шт., оборот '+fmt(row.revenue.goal)+' ₽, прибыль '+fmt(D.targets.profit*row.period.days/30)+' ₽. Факт появится после закрытия дней.');
   Array.prototype.forEach.call(document.querySelectorAll('[data-nov-week]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.novWeek)===selected))});
   draw('units',row.units,D.targets.units,'Заказы магазина',' шт.',false);
   draw('revenue',row.revenue,D.targets.revenue,'Оборот магазина',' ₽',false);
-  draw('ads',row.ads,null,'Расход на рекламу',' ₽',true);
+  drawAds(row);
   if(finance){var f=finance[selected];draw('net',f,D.targets.profit,'Чистая прибыль',' ₽',false);}
   else {document.getElementById('nf-dial-net').parentElement.hidden=true;document.getElementById('nf-note-net').textContent='Предварительная прибыль загружается из раздела «Деньги». Если расчёт не появился, откройте финансовый раздел ниже.';}
 }

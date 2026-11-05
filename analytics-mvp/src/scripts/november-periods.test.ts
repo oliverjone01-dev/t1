@@ -40,7 +40,7 @@ describe('weekly plan',()=>{
  });
  it('renders neutral ad spend and safely receives same-origin finance from the bound frame',()=>{
   const f=novemberForecast(NOVEMBER_GROWTH,input)!,errors:string[]=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e)));
-  const dom=new JSDOM(novemberForecastHtml(f,'<!-- NOVEMBER_STORE --><iframe id="november-finance-frame"></iframe>')+'<script>'+source+novemberForecastJs(f,{'2026-11-01':50000,'2026-11-02':68998})+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/katya-tests.html',virtualConsole:vc});
+  const dom=new JSDOM(novemberForecastHtml(f,'<!-- NOVEMBER_STORE --><iframe id="november-finance-frame"></iframe>')+'<script>'+source+novemberForecastJs(f,{'2026-11-01':50000,'2026-11-02':68998})+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/katya-tests.html',virtualConsole:vc,beforeParse(w){w.Date.now=()=>Date.parse(input.today+'T09:00:00Z')}});
   const w=dom.window,doc=w.document,frame=doc.querySelector('iframe')!;
   expect(doc.querySelector('#nf-dial-units .gauge')!.getAttribute('data-pct')).toBe(String(17/30*100));
   expect(doc.querySelector('[data-metric=ads]')!.getAttribute('data-fact')).toBe('118998');

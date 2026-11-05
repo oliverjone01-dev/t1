@@ -1,3 +1,4 @@
+import {renderOrderBreakdown,type OrderBreakdown,type OrderModel} from './plan-tab/order-breakdown.js';
 // Блок «План с 15.10: как идём к цели» - первый на странице «Тесты» (Иван 15.10, прототип одобрен).
 //
 // ЧТО ЭТО. План «10 карточек + цена» (Excel 15.10): главному товару карточки клик 20 000 ₽/нед,
@@ -276,24 +277,6 @@ const readNd = (f: string): any[] => existsSync(f)
   : [];
 const add = (m: Map<string, number>, k: string, v: number): void => { m.set(k, (m.get(k) ?? 0) + v); };
 const chip = (st: string): string => `<span class="chip ${st === "идём" ? "chip-done" : st === "отстаём" ? "chip-bad" : "chip-off"}">${st}</span>`;
-
-interface OrderModel { model: string; units: number; share: number; skus: Array<{ sku: string; offer: string; units: number }> }
-interface OrderBreakdown { total: number | null; end: string; models: OrderModel[] }
-const MODEL_COLORS = ["#22d3ee", "#a28eea", "#efbb55", "#65c7a3", "#d58aad", "#72a7ed", "#e89965", "#a6be63"];
-function renderOrderBreakdown(b: OrderBreakdown, start: string, id: string): string {
-  const head = `<div class="ob-head"><b>Заказы по моделям</b><span>${DM(start)}-${b.end ? DM(b.end) : "?"} · ${F(b.total)} шт.</span></div>`;
-  if (b.total == null || b.total === 0) return `<section class="order-breakdown">${head}<p class="muted">${b.total == null ? "Нет данных за период" : "Заказов за период нет"}</p></section>`;
-  // Цвет одинаков у сегмента и его плашки; имя и штуки доступны без наведения, даже у доли в 1 шт.
-  const color = (i: number): string => MODEL_COLORS[i % MODEL_COLORS.length]!;
-  const strip = `<div class="ob-stack" aria-hidden="true">${b.models.map((m, i) =>
-    `<span style="width:${m.share}%;background:${color(i)}"></span>`).join("")}</div>`;
-  const pills = `<div class="ob-pills">${b.models.map((m, i) =>
-    `<button type="button" class="ob-pill" id="${id}-button-${i}" style="--model-color:${color(i)}" aria-expanded="false" aria-controls="${id}-sku-${i}">`
-    + `<span class="ob-name">${esc(m.model)}</span><b>${F(m.units)} шт.</b></button>`).join("")}</div>`;
-  const skuPanels = b.models.map((m, i) => `<div class="ob-skus" id="${id}-sku-${i}" role="region" aria-labelledby="${id}-button-${i}" hidden>`
-    + m.skus.map((s) => `<div><span>${esc(s.offer)} <span class="muted">· SKU ${esc(s.sku)}</span></span><b>${F(s.units)} шт.</b></div>`).join("") + `</div>`).join("");
-  return `<section class="order-breakdown">${head}${strip}${pills}${skuPanels}</section>`;
-}
 
 export interface PlanBlock { html: string; css: string; js: string; warnings: string[] }
 
@@ -702,10 +685,10 @@ ${cabTxt}
 </ul></div></details>
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");
-  const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "gauge.client.js"), "utf-8") + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
+  const js = `window.PD=${JSON.stringify(DATA).replace(/</g, "\\u003c")};\n` + readFileSync(join(HERE, "plan-tab", "gauge.client.js"), "utf-8") + readFileSync(join(HERE, "plan-tab", "chart.client.js"), "utf-8") + readFileSync(join(HERE, "plan-tab", "plan-tab.client.js"), "utf-8");
   const november = novemberForecast(NOVEMBER_GROWTH, {today,last:OD_LAST,units:stU,revenue:stRev,
     covered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date)))});
-  const details=november ? novemberDetails({today,days:DAYS,plan:P,cards,ser:SER,store:STORE,views:mergedViews,
+  const details=november ? novemberDetails({today,days:DAYS,plan:P,cards,ser:SER,store:STORE,views:mergedViews,taxonomy,
     orders:ordRows.filter(r=>r.d<=OD_RAW_LAST),orderLast:OD_LAST,orderCovered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date))),
     ads:adsDaily,adsSku:asd,adsLast:AD_CAMP_LAST,adsFull:adsFullDay(adsDaily.map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,'2026-11-01',campDay,adsReceipts),
     adsCovered:new Set([...new Set(adsDaily.map(a=>String(a.d)))].filter(d=>d>='2026-10-01'&&d<='2026-11-30'&&adsFullDay(adsDaily.filter(a=>a.d===d).map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,d,campDay,adsReceipts)===d)),

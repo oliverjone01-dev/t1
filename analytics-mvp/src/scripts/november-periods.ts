@@ -27,3 +27,7 @@ export function periodProgress(period:NovemberPeriod,today:string,values:Record<
 export function unitPlan(monthGoal:number,startDay:number,endDay:number){
   return Math.round(monthGoal*endDay/30)-Math.round(monthGoal*(startDay-1)/30);
 }
+
+export function novemberGaugePeriods(){
+  return [...novemberPeriods(),{id:5,from:'2026-11-01',to:'2026-11-30',label:'Весь ноябрь',days:30}];
+}

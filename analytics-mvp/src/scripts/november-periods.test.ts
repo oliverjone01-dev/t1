@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {JSDOM,VirtualConsole} from 'jsdom';
-import {novemberPeriods,periodWindow,periodProgress} from './november-periods.js';
+import {novemberPeriods,novemberGaugePeriods,periodWindow,periodProgress} from './november-periods.js';
 import {novemberForecast,novemberForecastHtml,novemberForecastJs,novemberWeeklyData} from './november-forecast.js';
 import {NOVEMBER_GROWTH,novemberGrowthHtml} from './november-growth.js';
 import {novemberFinancePage} from './november-finance.js';
@@ -46,7 +46,7 @@ describe('weekly plan',()=>{
   expect(doc.querySelector('[data-metric=ads]')!.getAttribute('data-fact')).toBe('118998');
   expect(doc.querySelector('#nf-dial-ads .gv')!.textContent).toBe('факт');
   expect(doc.querySelector('#nf-dial-ads .gauge')!.getAttribute('data-st')).toBe('');
-  const periods=weeks.map(p=>periodProgress(p,input.today,{'2026-11-01':-50000,'2026-11-02':-24817},500000));
+  const periods=novemberGaugePeriods().map(p=>periodProgress(p,input.today,{'2026-11-01':-50000,'2026-11-02':-24817},500000));
   const msg={type:'ozon-november-weekly-finance',today:input.today,periods};
   const send=(data:unknown,source:unknown=frame.contentWindow,origin='https://dashboard.example')=>w.dispatchEvent(new w.MessageEvent('message',{data,source:source as any,origin}));
   send(msg,w);send(msg,frame.contentWindow,'https://wrong.example');send({...msg,today:'2026-11-02'});
@@ -56,10 +56,14 @@ describe('weekly plan',()=>{
   send(msg);expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('-74817');
   expect(Number(doc.querySelector('#nf-dial-net .gauge')!.getAttribute('data-pct'))).toBeLessThan(0);
   (doc.querySelector('[data-nov-week="1"]') as HTMLButtonElement).click();
-  expect(doc.querySelector('[data-nov-week="1"]')!.hasAttribute('hidden')).toBe(true);
-  expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('17');
+  expect(doc.querySelector('[data-nov-week="1"]')!.hasAttribute('hidden')).toBe(false);
+  expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('');
+  expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('');
+  expect(doc.querySelector('#november-week-state')!.textContent).toContain('08-14.11');
+  (doc.querySelector('[data-nov-week="5"]') as HTMLButtonElement).click();
   expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('-74817');
-  expect(doc.querySelector('#november-week-state')!.textContent).toContain('01-07.11');
+  expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('17');
+  expect(doc.querySelector('#nf-dial-units')!.textContent).toContain('Цель всего месяца: 450');
   expect(errors).toEqual([]);dom.window.close();
  });
  it('rolls the selected week at Moscow midnight even if the HTML build is older',()=>{
@@ -67,7 +71,7 @@ describe('weekly plan',()=>{
   const dom=new JSDOM(novemberForecastHtml(f)+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse('2026-11-07T21:00:00Z')}});
   expect(dom.window.document.querySelector('[data-nov-week="1"]')!.getAttribute('aria-pressed')).toBe('true');
   expect(dom.window.document.querySelector('[data-nov-week="1"]')!.hasAttribute('hidden')).toBe(false);
-  expect(dom.window.document.querySelector('[data-nov-week="2"]')!.hasAttribute('hidden')).toBe(true);
+  expect(dom.window.document.querySelector('[data-nov-week="2"]')!.hasAttribute('hidden')).toBe(false);
   expect(dom.window.document.querySelector('[data-metric=units]')!.hasAttribute('hidden')).toBe(true);
   expect(dom.window.document.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('');
   expect(dom.window.document.querySelector('#nf-note-units')!.textContent).toContain('Закрытых дней');dom.window.close();
@@ -127,4 +131,22 @@ it('weekly unit progress uses integer targets and aligned verdicts',()=>{
  const x=periodProgress(p,'2026-11-02',values,25,true);
  expect(x.planToDate).toBe(1);expect(x.ratio).toBe(100);expect(x.goal).toBe(6);
  expect(novemberPeriods().map(p=>periodProgress(p,'2026-12-01',{},25,true).goal!).reduce((a,b)=>a+b,0)).toBe(25);
+});
+
+it('month mode aggregates all closed November days without double counting weeks',()=>{
+ const dates=days.slice(0,9),f=novemberForecast(NOVEMBER_GROWTH,{today:'2026-11-10',last:'2026-11-09',covered:new Set(dates),units:new Map(dates.map(d=>[d,15])),revenue:new Map(dates.map(d=>[d,1020000]))})!;
+ const ads=Object.fromEntries(dates.map(d=>[d,100])),data=novemberWeeklyData(f,ads);
+ expect(data.periods).toHaveLength(6);expect(data.periods[5]!.units).toMatchObject({fact:135,goal:450,planToDate:135,ratio:100});expect(data.periods[5]!.ads.fact).toBe(900);
+ const dom=new JSDOM(novemberForecastHtml(f)+'<script>'+source+novemberForecastJs(f,ads)+'</script>',{runScripts:'dangerously'}),d=dom.window.document;
+ expect(d.querySelectorAll('[data-nov-week]:not([hidden])')).toHaveLength(6);
+ (d.querySelector('[data-nov-week="0"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('105');
+ (d.querySelector('[data-nov-week="1"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('30');
+ (d.querySelector('[data-nov-week="5"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('135');expect(d.querySelector('#nf-dial-units')!.textContent).toContain('Цель всего месяца: 450');expect(d.querySelector('#november-week-state')!.textContent).toContain('Весь ноябрь');dom.window.close();
+});
+it('month profit is computed directly for the whole window and missing days stay unknown',()=>{
+ const core=`const AN_MAXD='2026-11-30',AN_RD_FROM='2026-11-01',AN_RD_TO='2026-11-30',AN_RD_MISS=[],AN_VED_MAXD='2026-11-30';function skuAnalyticsData(p){return {grand:{amt:100,tbEst:0,n:Number(p.to.slice(8))-Number(p.from.slice(8))+1},miss:[]}}function anDerive(g){return {net:g.n*g.n,rent:null}}`;
+ const dom=new JSDOM(novemberFinancePage(core,'2026-11-30',days,'test'),{runScripts:'dangerously'}),w=dom.window as any;
+ w.renderNovemberFinance(Date.parse('2026-11-10T00:00:00Z'));const p=w.NOVEMBER_FINANCE_WEEKLY.periods;
+ expect(p).toHaveLength(6);expect(p[0].fact).toBe(49);expect(p[1].fact).toBe(4);expect(p[5]).toMatchObject({fact:81,goal:500000,planToDate:150000});expect(p[5].fact).not.toBe(p[0].fact+p[1].fact);dom.window.close();
+ const missing=new JSDOM(novemberFinancePage(core,'2026-11-30',days.filter(d=>d!=='2026-11-01'),'test'),{runScripts:'dangerously'}),m=missing.window as any;m.renderNovemberFinance(Date.parse('2026-11-10T00:00:00Z'));expect(m.NOVEMBER_FINANCE_WEEKLY.periods[5].fact).toBeNull();expect(m.NOVEMBER_FINANCE_WEEKLY.periods[1].fact).toBe(4);missing.window.close();
 });

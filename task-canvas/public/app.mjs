@@ -4,6 +4,7 @@ import { GoogleAuth } from './google-auth.mjs';
 import { SheetsApi } from './sheets-api.mjs';
 import { FIELD_NAMES, comparable } from './sync-model.mjs';
 import { dataSignature, writeBoard } from './storage.mjs';
+import {ChangeInbox, CHANGE_FIELDS} from './changes.mjs';
 const $ = selector => document.querySelector(selector);
 const STORAGE = 'gengroup.task-canvas.v1';
 const today = () => localDate();
@@ -11,11 +12,14 @@ let tasks = [], extraOwners = [], mode = 'priority', camera = { x: 32, y: 32, z:
 let history = [], future = [], layout, gesture = null, space = false, storageFailed = false, toastTimer;
 let stateLoadError = false, storageConflict = false, unsavedChanges = false;
 let cloudEngine = null, cloudCache = null, googleAuth = null, editingBase = null;
+let inbox = new ChangeInbox();
+let cloudRenderNeeded = false;
 let storedSignature = dataSignature({tasks:[],owners:[]});
 try {
   const saved = localStorage.getItem(STORAGE);
   if (saved) {
     const state = JSON.parse(saved); cloudCache=state.cloud || null; storedSignature = dataSignature(state); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
+    inbox=new ChangeInbox(state.changes);
     mode = ['priority', 'owners', 'time'].includes(state.mode) ? state.mode : 'priority';
     if (state.camera && ['x','y','z'].every(k => Number.isFinite(state.camera[k]))) camera = { x: state.camera.x, y: state.camera.y, z: Math.max(.0001, Math.min(2, state.camera.z)) };
   }
@@ -26,7 +30,7 @@ function persist() {
   if (storageConflict || stateLoadError) {
     $('#save-state').textContent = 'Не сохранено · экспортируйте копию'; return false;
   }
-  const state = { version: 1, tasks, owners: extraOwners, mode, camera, cloud:cloudEngine?.snapshot() || cloudCache };
+  const state = { version: 1, tasks, owners: extraOwners, mode, camera, cloud:cloudEngine?.snapshot() || cloudCache, changes:inbox.snapshot() };
   const result = writeBoard(localStorage, STORAGE, state, storedSignature);
   if (result.ok) {
     storedSignature = result.signature; storageFailed = false; unsavedChanges = false;
@@ -68,6 +72,8 @@ function isVisible(task) {
     (!q || [task.title, task.owner, task.ownerNote, task.direction, task.unit, task.sourceId, task.comment].some(v => (v || '').toLocaleLowerCase('ru').includes(q)));
 }
 function render() {
+  cloudRenderNeeded=false;
+  renderChanges();
   updateOptions();
   const visible = tasks.filter(isVisible);
   layout = createLayout(visible, mode, today(), [...new Set([...extraOwners,...tasks.map(t => t.owner).filter(Boolean)])]);
@@ -87,7 +93,8 @@ function render() {
     const name = task.owner || (task.ownerNote ? 'Уточнить ответственного' : 'Не назначен');
     const initials = task.owner ? task.owner.split(/\s+/).slice(0,2).map(s => s[0]).join('') : '·';
     const date = task.due ? new Date(`${task.due}T12:00:00`).toLocaleDateString('ru', { day:'numeric', month:'short' }) : 'Без срока';
-    return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. Открыть детали" class="task-card${selected === task.id ? ' selected' : ''}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px"><div class="card-top"><span class="unit-tag">${esc(task.unit || 'ЗАДАЧА')}</span><span class="card-id">${task.sourceId ? '#' + esc(task.sourceId) : ''}</span><span class="status-text"><i class="status-dot ${task.status === 'Готово' ? 'done' : task.status === 'В работе' ? 'working' : ''}"></i> ${esc(task.status || 'Не указан')}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(name)}</span><span class="date${task.due && task.due < today() && !['Готово','Отменено'].includes(task.status) ? ' overdue' : ''}">◷ ${esc(date)}</span></div></article>`;
+    const notice=inbox.get(task.id), badge=notice ? notice.kind==='new'?'Новая из таблицы':'Обновлена из таблицы' : '';
+    return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge+'. ' : ''}Открыть детали" class="task-card${selected === task.id ? ' selected' : ''}${notice ? ' unread-change '+(notice.kind==='new'?'unread-new':'unread-updated') : ''}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ''}<div class="card-top"><span class="unit-tag">${esc(task.unit || 'ЗАДАЧА')}</span><span class="card-id">${task.sourceId ? '#' + esc(task.sourceId) : ''}</span><span class="status-text"><i class="status-dot ${task.status === 'Готово' ? 'done' : task.status === 'В работе' ? 'working' : ''}"></i> ${esc(task.status || 'Не указан')}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(name)}</span><span class="date${task.due && task.due < today() && !['Готово','Отменено'].includes(task.status) ? ' overdue' : ''}">◷ ${esc(date)}</span></div></article>`;
   }).join('');
   $('#empty').hidden = tasks.length > 0;
   $('#no-results').hidden = !tasks.length || visible.length > 0;
@@ -194,6 +201,10 @@ $('#viewport').addEventListener('pointercancel', e => endGesture(e,true));
 $('#cards').addEventListener('dblclick', e => { const card = e.target.closest('[data-id]'); if(card) openTask(card.dataset.id); });
 $('#cards').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); openTask(e.target.closest('[data-id]').dataset.id); } });
 function openTask(id = null) {
+  const notice=inbox.get(id);
+  $('#editor-update').hidden=!notice;
+  $('#editor-update').textContent=notice ? `${notice.kind==='new'?'Новая задача из таблицы':'Из таблицы обновлено: '+notice.fields.map(f=>CHANGE_FIELDS[f]).join(', ')}. Отмечено просмотренным на этом устройстве.` : '';
+  if(notice) {inbox.acknowledge(id);render();persist();}
   editing = id; const task = tasks.find(t => t.id === id) || { title:'', status:'В ожидании', unit:$('#unit-filter').value, owner:'', due:'', priority:'' };
   editingBase=structuredClone(task);
   const form = $('#task-form'); form.reset();
@@ -256,6 +267,47 @@ $('#export').onclick = () => {
   toast('Копия доски скачана');
 };
 function clearFilters() { $('#search').value=''; $('#unit-filter').value=''; $('#owner-filter').value=''; $('#hide-done').checked=true; render(); }
+function renderChanges() {
+  const count=inbox.size, button=$('#changes-open');
+  button.textContent=count ? `Изменения · ${count}` : 'Изменения';
+  button.classList.toggle('has-changes',count>0);
+  button.setAttribute('aria-label',`Изменения из таблицы${count ? ', непросмотренных карточек: '+count : ''}`);
+  $('#changes-read-all').disabled=!count;
+  $('#changes-refresh').disabled=!cloudEngine?.connected || cloudEngine.busy;
+  $('#changes-refresh').textContent=cloudEngine?.busy ? 'Проверяем…' : 'Обновить сейчас';
+  $('#changes-connect').hidden=!!cloudEngine?.connected;
+  $('#changes-sync-status').textContent=$('#cloud-label').textContent;
+  const summary=count ? `Непросмотренных карточек из таблицы: ${count}` : 'Непросмотренных изменений нет';
+  if($('#changes-announcement').textContent!==summary)$('#changes-announcement').textContent=summary;
+  if(!$('#changes-dialog').open)return;
+  $('#changes-list').innerHTML=count ? inbox.entries.map(entry=>{
+    const exists=tasks.some(t=>t.id===entry.id), conflict=cloudEngine?.conflicts.some(c=>c.id===entry.id);
+    const label=entry.kind==='new'?'Новая задача':entry.kind==='removed'?'Убрана с доски':'Задача обновлена';
+    const detail=entry.kind==='removed' ? 'Строка удалена или карточка архивирована в таблице.' : entry.fields.map(f=>CHANGE_FIELDS[f]).join(', ') || 'Добавлена из таблицы.';
+    const time=entry.at ? new Date(entry.at).toLocaleString('ru',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<section class="change-item"><div class="change-item-meta"><strong>${label}</strong><time>${esc(time)}</time></div><h3>${esc(entry.title)}</h3><p>${esc(detail)}</p><button class="text-button" data-change-id="${esc(entry.id)}">${conflict ? 'Сравнить конфликтующие версии →' : exists ? 'Показать на доске →' : 'Отметить просмотренным'}</button></section>`;
+  }).join('') : '<p class="changes-empty">Все изменения просмотрены. Новые обновления появятся здесь и подсветятся на карточках.</p>';
+}
+$('#changes-open').onclick=()=>{$('#changes-dialog').showModal();renderChanges();};
+$('#changes-connect').onclick=()=>{$('#changes-dialog').close();$('#google-connect').click();};
+$('#changes-refresh').onclick=async()=>{await cloudEngine.flush();renderChanges();};
+$('#changes-read-all').onclick=()=>{inbox.clear();render();persist();};
+$('#changes-list').onclick=e=>{
+  const button=e.target.closest('[data-change-id]');if(!button)return;
+  const id=button.dataset.changeId, task=tasks.find(t=>t.id===id);
+  if(cloudEngine?.conflicts.some(c=>c.id===id)) {$('#changes-dialog').close();openConflicts();return;}
+  if(!task) {inbox.acknowledge(id);render();persist();return;}
+  $('#changes-dialog').close();clearFilters();
+  if(['Готово','Отменено'].includes(task.status))$('#hide-done').checked=false;
+  selected=id;render();
+  const p=layout.placed.get(id), rect=$('#viewport').getBoundingClientRect();
+  camera.z=Math.max(.65,Math.min(1,camera.z));
+  camera.x=(rect.width-CARD.width*camera.z)/2-p.x*camera.z;
+  camera.y=(rect.height-CARD.height*camera.z)/2-p.y*camera.z;
+  applyCamera();persist();
+  [...$('#cards').children].find(card=>card.dataset.id===id)?.focus({preventScroll:true});
+  toast('Карточка в центре. Двойной клик или Enter — просмотреть и погасить подсветку.');
+};
 $('#clear-filters').onclick = clearFilters;
 $('#reset-search').onclick = () => { clearFilters(); $('#hide-done').checked=false; render(); };
 for (const id of ['search','unit-filter','owner-filter','hide-done']) $(`#${id}`).addEventListener(id === 'search' ? 'input' : 'change',render);
@@ -307,20 +359,23 @@ function cloudState(state) {
   if(state.status==='synced' && !tasks.length) {$('#empty p').textContent='Общая доска пока пустая. Создайте первую задачу.';$('#empty-import').textContent='+ Новая задача';$('#empty-import').onclick=()=>openTask();}
   else {$('#empty p').textContent='Подключите Google Таблицу, чтобы открыть задачи на этом устройстве.';$('#empty-import').textContent='Подключить Google';$('#empty-import').onclick=()=>$('#cloud-dialog').showModal();}
   $('#google-connect').textContent=state.status==='synced'?'Google · сохранено':state.status==='syncing'?'Google · синхронизация':state.status==='conflict'?'Google · конфликт':'Подключить Google';
-  $('#cloud-status').textContent=state.message || (state.status==='synced'?'Задачи и раскладка доступны на других устройствах.':state.status==='signin'&&state.pending?`${state.pending} изменений ждут подключения. Локальная копия сохранена.`:state.status==='conflict'?`${state.conflicts.length} полей изменились в двух местах. Выберите версию.`:state.status==='pending'?`${state.pending || 1} изменений готовятся к отправке.`:'Подключите Google, чтобы синхронизировать первую вкладку таблицы.');
+  $('#cloud-status').textContent=state.message || (state.status==='synced'?'Задачи и раскладка доступны на других устройствах.':state.status==='syncing'?'Проверяем изменения в таблице и сохраняем ваши правки.':state.status==='signin'&&state.pending?`${state.pending} изменений ждут подключения. Локальная копия сохранена.`:state.status==='conflict'?`${state.conflicts.length} полей изменились в двух местах. Выберите версию.`:state.status==='pending'?`${state.pending || 1} изменений готовятся к отправке.`:'Подключите Google, чтобы синхронизировать первую вкладку таблицы.');
   $('#cloud-dot').className='local-dot '+(state.status==='synced'?'cloud-online':state.status==='local'?'':'cloud-warning');
   $('#cloud-conflicts').hidden=!state.conflicts.length;
+  renderChanges();
 }
 function businessSignature(board) {return JSON.stringify({tasks:board.tasks.map(t=>({id:t.id,...comparable(t)})),owners:board.owners});}
 function applyCloud(board,cache) {
   const changed=businessSignature({tasks,owners:extraOwners})!==businessSignature(board);
+  cloudRenderNeeded ||= JSON.stringify(tasks)!==JSON.stringify(board.tasks) || JSON.stringify(extraOwners)!==JSON.stringify(board.owners);
   tasks=board.tasks;extraOwners=board.owners;cloudCache=cache;
   if(changed) {history=[];future=[];}
   // A second local tab must refresh first; cross-device merging is handled by the sync engine.
-  persist();if(!gesture)render();
+  persist();if(!gesture && cloudRenderNeeded)render();
 }
 cloudEngine=new SyncEngine({
   api:null,getLocal:()=>({tasks,owners:extraOwners}),apply:applyCloud,onState:cloudState,cache:cloudCache,
+  onRemote:changes=>{inbox.receive(changes);if(changes.length)cloudRenderNeeded=true;},
 });
 const originalFlush=cloudEngine.flush.bind(cloudEngine);
 cloudEngine.flush=async()=>{

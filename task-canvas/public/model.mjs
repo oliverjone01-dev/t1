@@ -7,6 +7,11 @@ export const QUADRANTS = [
   { id: 'later', title: 'Отложить', subtitle: 'Не важно · не срочно', color: 'slate' },
 ];
 export const STATUSES = ['Не указан', 'В ожидании', 'В работе', 'Готово', 'Отменено'];
+export const STATUS_LANES = [
+  {id:'status:done',status:'Готово',title:'Готово',subtitle:'Завершённые задачи',color:'green',symbol:'✓'},
+  {id:'status:cancelled',status:'Отменено',title:'Отменено',subtitle:'Отменённые задачи',color:'cancelled',symbol:'×'},
+];
+export const statusGroup = task => STATUS_LANES.find(group=>group.status===task.status)?.id || null;
 export const snap = value => Math.round(value / GRID) * GRID;
 export function localDate(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -37,6 +42,7 @@ export function timeLanes(today) {
   ];
 }
 export function groupFor(task, mode, today) {
+  if(statusGroup(task))return statusGroup(task);
   if (mode === 'priority') return task.priority || 'inbox';
   if (mode === 'owners') return task.owner ? `owner:${task.owner}` : 'unassigned';
   return timeBucket(task, today);
@@ -50,6 +56,8 @@ export function createLayout(tasks, mode, today, extraOwners = []) {
        ? [{ id: 'unassigned', title: 'Без ответственного', subtitle: 'Назначьте исполнителя', color: 'slate' },
           ...[...new Set([...tasks.map(t => t.owner).filter(Boolean), ...extraOwners])].map(owner => ({ id: `owner:${owner}`, title: owner, subtitle: 'Ответственный', color: 'violet' }))]
        : timeLanes(today)).map((g, i) => ({ ...g, x: i * laneWidth, y: 0, w: 648, h: 1032 }));
+  const statusX=Math.max(...groups.map(g=>g.x+g.w))+24;
+  groups.push(...STATUS_LANES.map((group,i)=>({...group,x:statusX+i*laneWidth,y:0,w:648,h:mode==='priority'?552:1032})));
   const local = new Map();
   for (const group of groups) {
     const entries = tasks.filter(t => groupFor(t, mode, today) === group.id);
@@ -94,9 +102,14 @@ export function fitCamera(positions, width, height) {
 export function moveTask(task, mode, group, worldX, worldY, today) {
   if (mode === 'time' && group.id === 'overdue' && timeBucket(task, today) !== 'overdue') throw new Error('Прошедший срок задайте точной датой в карточке.');
   const next = structuredClone(task);
-  if (mode === 'priority') next.priority = group.id === 'inbox' ? null : group.id;
-  if (mode === 'owners') next.owner = group.id === 'unassigned' ? '' : group.id.slice(6);
-  if (mode === 'time' && group.id !== timeBucket(task, today)) next.due = group.due;
+  const terminal=STATUS_LANES.find(lane=>lane.id===group.id);
+  if(terminal)next.status=terminal.status;
+  else {
+    if(statusGroup(task))next.status='В работе';
+    if (mode === 'priority') next.priority = group.id === 'inbox' ? null : group.id;
+    if (mode === 'owners') next.owner = group.id === 'unassigned' ? '' : group.id.slice(6);
+    if (mode === 'time' && group.id !== timeBucket(task, today)) next.due = group.due;
+  }
   next.positions ||= {};
   next.positions[mode] = { group: group.id, x: Math.max(24, Math.min(group.w - CARD.width - 24, snap(worldX - group.x))), y: Math.max(96, snap(worldY - group.y)) };
   return next;

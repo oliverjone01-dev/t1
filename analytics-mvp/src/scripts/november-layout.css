@@ -45,3 +45,22 @@
 #november-plan .nf-metric .g-l2{line-height:1.5}
 @media(max-width:1000px){#november-plan .nf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){#november-plan .nf-metrics{grid-template-columns:minmax(0,1fr)}}
+
+/* The same dense tables, chart captions and model pills as October. */
+#november-plan .nd .gtbl th,#november-plan .nd .gtbl td{padding:6px 8px;vertical-align:middle;white-space:nowrap}
+#november-plan .nd .gtbl .r{text-align:right}
+#november-plan .nd .gtbl .sep{border-left:1px solid var(--soft)}
+#november-plan .nd .gtbl .grp th{text-transform:uppercase;font-size:11px;letter-spacing:.4px}
+#november-plan .nd .tbl-wrap:not(.full){max-height:340px;overflow:auto}
+#november-plan .nd .ch-h{font-size:12.5px;margin:6px 2px 0;font-weight:600}
+#november-plan .nd svg .gt{font:10.5px system-ui;fill:var(--ink3)}
+#november-plan .nd .ob-pills{max-width:none}
+#november-plan .nd .gtbl .cdet td{padding:6px 10px 10px;white-space:normal}
+#november-plan .nd-order-toggle small{color:var(--ink3);font-size:11px}
+#november-plan .nd .ob-pill{font-size:12px}
+#november-plan .nd h3.pg{font-size:12.5px;color:var(--cy);margin:14px 2px 6px}
+
+#november-plan .nd-ad-grid .wk-grid{grid-template-columns:minmax(150px,210px) repeat(6,minmax(95px,1fr));gap:0;padding:0;border-bottom:0}
+#november-plan .nd-ad-grid .wk-grid>*{padding:5px 10px;font-size:12px;font-weight:400}
+#november-plan .nd-ad-grid .wk-head>*{border-bottom:1px solid var(--soft);color:var(--ink2)}
+#november-plan .nd-ad-grid strong{font-size:11.5px;font-weight:400}

@@ -84,7 +84,7 @@ describe('November detailed blocks',()=>{
     const f=fixture();f.today='2026-11-03';f.store.orders![2]=99;const r=novemberDetails(f)!;
     const dom=new JSDOM('<html><body>'+r.html+'<script>'+r.js+'</script></body></html>',{runScripts:'dangerously'});
     const rows=[...dom.window.document.querySelectorAll('#nd-funnel-table tbody tr')];
-    expect(rows.find(r=>r.firstElementChild?.textContent==='Позиция в поиске')!.lastElementChild!.textContent).toBe('6,5');dom.window.close();
+    expect(rows.find(r=>r.firstElementChild?.textContent==='Позиция в поиске')!.children[2]!.textContent).toBe('6,5');dom.window.close();
   });
   it('executes every funnel selector, lazy order/price charts and the separate partial point',()=>{
     const f=fixture();f.partial={day:'2026-11-02',cards:[{views:20,vsearch:10,pdp:5,cart:1,units:1,pos:4,have:1,want:2}],all:{views:20,have:1,want:2},store:{views:20,have:1}};
@@ -92,7 +92,7 @@ describe('November detailed blocks',()=>{
     const dom=new JSDOM('<html><body>'+r.html+'<script>'+r.js+'</script></body></html>',{runScripts:'dangerously',virtualConsole:vc});
     const doc=dom.window.document;
     expect(doc.querySelector('#nd-funnel-chart')!.textContent).toContain('Неполный 02.11 · 1/2 SKU, вне итогов');
-    expect(doc.querySelectorAll('#nd-funnel-chart circle')).toHaveLength(2);
+    expect(doc.querySelectorAll('#nd-funnel-chart circle[data-partial-day]')).toHaveLength(1);
     for(const id of ['nd-cards','nd-metrics'])for(let i=0;i<doc.querySelectorAll('#'+id+' button').length;i++)(doc.querySelectorAll('#'+id+' button')[i] as any).click();
     (doc.querySelector('#nd-metrics button') as any).click();expect(doc.querySelector('#nd-funnel-chart h3')!.textContent).toContain('Магазин');
     const order=doc.querySelector('.nd-order-toggle') as any;order.click();expect(order.getAttribute('aria-expanded')).toBe('true');expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(false);expect(doc.querySelector('.nd-order-detail svg')).not.toBeNull();order.click();expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(true);
@@ -100,4 +100,35 @@ describe('November detailed blocks',()=>{
     expect(doc.querySelectorAll('.nd-order-chart circle')).toHaveLength(1);expect(doc.querySelectorAll('.nd-price-chart circle')).toHaveLength(2);
     expect(errors).toEqual([]);dom.window.close();
   });
+});
+
+describe('October design reused for November',()=>{
+  it('groups November models, keeps month thresholds unset and opens SKU details',()=>{
+    const f=fixture();f.taxonomy={'1':{model:'TRUBIS Wood Oval 160'}};
+    const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+    expect(doc.querySelectorAll('#november-orders thead th')).toHaveLength(7);
+    expect(doc.querySelectorAll('#november-funnel .grp th[colspan="3"]')).toHaveLength(4);
+    expect(doc.querySelector('#nd-ob0-button-0')!.textContent).toContain('TRUBIS Wood Oval 160');
+    (doc.querySelector('#nd-ob0-button-0') as any).click();expect(doc.querySelector('#nd-ob0-sku-0')!.hasAttribute('hidden')).toBe(false);
+    expect(r.data.orderSummary[0]!.goal).toBeNull();expect(r.data.orderSummary.at(-1)!.goal).toBe(450);
+    (doc.querySelector('.nd-order-toggle') as any).click();
+    expect(doc.querySelector('.nd-order-chart svg')!.getAttribute('viewBox')).toBe('0 0 900 200');
+    expect(doc.querySelector('.nd-order-chart svg')!.outerHTML).not.toContain('NaN');dom.window.close();
+  });
+  it('does not resume a cumulative November line after a missing day',()=>{
+    const f=fixture();f.today='2026-11-04';f.orderCovered.delete('2026-11-01');
+    const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+    (doc.querySelector('.nd-order-toggle') as any).click();
+    expect(doc.querySelector('.nd-order-chart path[stroke="#F59E0B"]')).toBeNull();
+    expect(doc.querySelector('.nd-order-chart')!.textContent).toContain('нет данных');dom.window.close();
+  });
+});
+
+it('keeps closed dates on the funnel when the native partial snapshot is stale',()=>{
+  const f=fixture();f.today='2026-11-05';f.store.orders![2]=99;
+  f.partial={day:'2026-11-02',cards:[{views:999,vsearch:999,have:2,want:2}],all:{},store:{}};
+  const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+  const chart=doc.querySelector('#nd-funnel-chart')!;
+  expect(chart.querySelectorAll('text')[chart.querySelectorAll('text').length-2]!.textContent).toBe('04.11');
+  expect(chart.querySelector('[data-partial-day]')).toBeNull();expect(chart.textContent).not.toContain('Неполный');dom.window.close();
 });

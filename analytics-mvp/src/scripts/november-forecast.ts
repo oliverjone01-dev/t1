@@ -39,7 +39,7 @@ function graph(f:Forecast,key:'units'|'revenue',title:string){
   for(const i of [0,6,13,20,29])svg+=`<text x="${x(i)}" y="${H-7}" text-anchor="middle">${String(i+1).padStart(2,'0')}.11</text>`;
   svg+=`<path d="${path(goalKey)}" class="nf-goal"/><path d="${path(key)}" class="nf-fact"/>`;
   for(let i=0;i<f.points.length;i++){const p=f.points[i]!;if(p[key]!=null)svg+=`<circle tabindex="0" cx="${x(i)}" cy="${y(p[key]!)}" r="4" fill="#22d3ee"><title>${p.day}: факт ${fmt(p[key]!/scale,2)}, план ${fmt(p[goalKey]/scale,2)}</title></circle>`;}
-  return `<div class="nf-chart"><h3>${title}</h3>${svg}</svg><div class="nf-legend">━ Факт закрытых дней <span>┄ План</span></div></div>`;
+  return `<div class="nf-chart" id="nf-chart-${key}"><h3>${title}</h3>${svg}</svg><div class="nf-legend">━ Факт закрытых дней <span>┄ План</span></div></div>`;
 }
 export function novemberForecastHtml(f:Forecast, body?:string){
   const initial=novemberWeeklyData(f),initialRow=initial.periods[initial.selected]!;
@@ -71,5 +71,5 @@ export function novemberWeeklyData(f:Forecast,ads:Record<string,number|null>={})
     units:periodProgress(period,f.today,units,targets.units),revenue:periodProgress(period,f.today,revenue,targets.revenue),ads:periodProgress(period,f.today,ads,null)}))};
 }
 export function novemberForecastJs(f:Forecast,ads:Record<string,number|null>={}){
-  return `window.NOVEMBER_WEEKLY=${JSON.stringify(novemberWeeklyData(f,ads)).replace(/</g,'\\u003c')};\n(function(){const periodWindow=${periodWindow.toString()};window.NOVEMBER_PERIOD_PROGRESS=${periodProgress.toString()};})();\n`+readFileSync(new URL('./november-weekly.client.js',import.meta.url),'utf8');
+  return readFileSync(new URL('./plan-tab/chart.client.js',import.meta.url),'utf8')+`window.NOVEMBER_WEEKLY=${JSON.stringify(novemberWeeklyData(f,ads)).replace(/</g,'\\u003c')};\n(function(){const periodWindow=${periodWindow.toString()};window.NOVEMBER_PERIOD_PROGRESS=${periodProgress.toString()};})();\n`+readFileSync(new URL('./november-weekly.client.js',import.meta.url),'utf8')+`\n(function(){var f=${JSON.stringify(f)};['units','revenue'].forEach(function(k){var scale=k==='units'?1:1e6;window.planChart(document.getElementById('nf-chart-'+k),{xs:f.days.map(function(d){return d.slice(8)+'.11'}),w:460,h:220,series:[{v:f.points.map(function(p){return p[k+'Plan']/scale}),color:'#22D3EE',dash:'5 4',w:1.6,name:'цель ноября'},{v:f.points.map(function(p){return p[k]==null?null:p[k]/scale}),color:'#F59E0B',w:2.6,area:true,name:'факт с 01.11'}],title:'<div class="ch-h">'+(k==='units'?'Заказы, шт.':'Оборот, млн ₽')+'</div>'});});})();`;
 }

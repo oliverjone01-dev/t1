@@ -1,37 +1,37 @@
 {
- "dateFrom": "2026-10-05",
- "dateTo": "2026-11-03",
- "generated_at": "2026-11-04T14:35:57.473Z",
+ "dateFrom": "2026-10-06",
+ "dateTo": "2026-11-04",
+ "generated_at": "2026-11-05T14:41:32.477Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2405,
-  "ad_visits_30d": 6646,
-  "yd_visits_30d": 5110,
-  "ad_leads_30d": 88
+  "direct_clicks_30d": 2328,
+  "ad_visits_30d": 6388,
+  "yd_visits_30d": 4903,
+  "ad_leads_30d": 84
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4934,
-   "users": 4302,
-   "leads": 85,
-   "contacts": 78
+   "visits": 4732,
+   "users": 4129,
+   "leads": 81,
+   "contacts": 75
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1527,
-   "users": 619,
+   "visits": 1476,
+   "users": 611,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 176,
-   "users": 129,
+   "visits": 171,
+   "users": 126,
    "leads": 2,
    "contacts": 1
   },
@@ -53,56 +53,56 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2896,
-   "leads": 45,
-   "contacts": 35
+   "visits": 2772,
+   "leads": 43,
+   "contacts": 33
   },
   {
    "utm": "genglass",
-   "visits": 1518,
+   "visits": 1469,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 709,
+   "visits": 704,
    "leads": 1,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 438,
-   "leads": 14,
-   "contacts": 18
+   "visits": 422,
+   "leads": 12,
+   "contacts": 17
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 385,
+   "visits": 358,
    "leads": 10,
    "contacts": 9
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 220,
+   "visits": 207,
    "leads": 6,
    "contacts": 6
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 153,
+   "visits": 145,
    "leads": 4,
    "contacts": 2
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 105,
+   "visits": 98,
    "leads": 3,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 45,
-   "leads": 3,
+   "visits": 40,
+   "leads": 2,
    "contacts": 3
   },
   {
@@ -256,12 +256,6 @@
    "contacts": 0
   },
   {
-   "utm": "rsya_mosc_loft_116922848",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "tm_campaign=reklama_na_transporte",
    "visits": 1,
    "leads": 0,
@@ -301,57 +295,57 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6646,
-   "users": 5048,
-   "bounce": 18.46223292,
-   "leads": 88,
-   "contacts": 79
+   "visits": 6388,
+   "users": 4865,
+   "bounce": 18.37820914,
+   "leads": 84,
+   "contacts": 76
   },
   {
    "source": "Link traffic",
-   "visits": 4723,
-   "users": 4621,
-   "bounce": 0.86809231,
+   "visits": 4589,
+   "users": 4494,
+   "bounce": 0.8716496,
    "leads": 19,
    "contacts": 23
   },
   {
    "source": "Search engine traffic",
-   "visits": 3670,
-   "users": 2881,
-   "bounce": 18.41961853,
-   "leads": 136,
-   "contacts": 129
+   "visits": 3511,
+   "users": 2769,
+   "bounce": 18.59868983,
+   "leads": 130,
+   "contacts": 124
   },
   {
    "source": "Direct traffic",
-   "visits": 2275,
-   "users": 1899,
-   "bounce": 16.35164835,
-   "leads": 47,
-   "contacts": 36
+   "visits": 2186,
+   "users": 1822,
+   "bounce": 16.51418115,
+   "leads": 45,
+   "contacts": 35
   },
   {
    "source": "Internal traffic",
-   "visits": 705,
-   "users": 361,
-   "bounce": 17.58865248,
+   "visits": 682,
+   "users": 342,
+   "bounce": 17.00879765,
    "leads": 10,
    "contacts": 5
   },
   {
    "source": "Social network traffic",
-   "visits": 26,
-   "users": 24,
-   "bounce": 50,
+   "visits": 23,
+   "users": 22,
+   "bounce": 52.17391304,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Messenger traffic",
-   "visits": 17,
+   "visits": 15,
    "users": 8,
-   "bounce": 5.88235294,
+   "bounce": 6.66666667,
    "leads": 1,
    "contacts": 1
   },

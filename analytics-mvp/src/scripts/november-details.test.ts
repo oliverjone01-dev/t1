@@ -123,3 +123,12 @@ describe('October design reused for November',()=>{
     expect(doc.querySelector('.nd-order-chart')!.textContent).toContain('нет данных');dom.window.close();
   });
 });
+
+it('keeps closed dates on the funnel when the native partial snapshot is stale',()=>{
+  const f=fixture();f.today='2026-11-05';f.store.orders![2]=99;
+  f.partial={day:'2026-11-02',cards:[{views:999,vsearch:999,have:2,want:2}],all:{},store:{}};
+  const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+  const chart=doc.querySelector('#nd-funnel-chart')!;
+  expect(chart.querySelectorAll('text')[chart.querySelectorAll('text').length-2]!.textContent).toBe('04.11');
+  expect(chart.querySelector('[data-partial-day]')).toBeNull();expect(chart.textContent).not.toContain('Неполный');dom.window.close();
+});

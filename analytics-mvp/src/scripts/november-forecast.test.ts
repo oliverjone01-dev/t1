@@ -7,7 +7,7 @@ describe('November forecast',()=>{
  it('uses only November closed facts and the approved middle forecast',()=>{
   const f=novemberForecast(goal,input())!;
   expect(f.units).toBe(4);expect(f.revenue).toBe(242964);expect(f.target).toEqual({units:409,revenue:27300000,payout:11400000});
-  expect(f.points[0]!.unitsPlan).toBeCloseTo(409/30);expect(f.points[14]!.unitsPlan).toBe(204.5);expect(f.points[29]!.unitsPlan).toBe(409);
+  expect(f.points[0]!.unitsPlan).toBe(14);expect(f.points[14]!.unitsPlan).toBe(205);expect(f.points[29]!.unitsPlan).toBe(409);
   expect(f.points[0]!.revenuePlan).toBe(910000);expect(f.points[29]!.revenuePlan).toBe(27300000);
   expect(f.points[1]!.units).toBeNull();expect(f.points).toHaveLength(30);
  });

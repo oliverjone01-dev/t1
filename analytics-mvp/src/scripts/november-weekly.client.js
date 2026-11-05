@@ -3,7 +3,7 @@
 var D=window.NOVEMBER_WEEKLY;if(!D)return;
 if(/^https?:$/.test(location.protocol)){
   var today=new Date(Date.now()+3*3600e3).toISOString().slice(0,10);
-  if(today!==D.today){D.today=today;D.periods=D.periods.map(function(row){var p=row.period;return {period:p,units:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.units,D.targets.units),revenue:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.revenue,D.targets.revenue),ads:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.ads,null)}});var current=D.periods.findIndex(function(row){return today<=row.period.to});D.selected=current<0?D.periods.length-1:current;}
+  if(today!==D.today){D.today=today;D.periods=D.periods.map(function(row){var p=row.period;return {period:p,units:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.units,D.targets.units,true),revenue:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.revenue,D.targets.revenue),ads:window.NOVEMBER_PERIOD_PROGRESS(p,today,D.daily.ads,null)}});var current=D.periods.findIndex(function(row){return today<=row.period.to});D.selected=current<0?D.periods.length-1:current;}
 }
 var selected=D.selected,finance=null,frame=document.getElementById('november-finance-frame');
 function fmt(v,n){return v==null?'нет данных':v.toLocaleString('ru-RU',{maximumFractionDigits:n==null?0:n})}

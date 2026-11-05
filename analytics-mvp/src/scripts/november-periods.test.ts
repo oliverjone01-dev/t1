@@ -112,3 +112,19 @@ it('updates stage calendar labels when opening an older build on a later Moscow 
   expect(doc.querySelector('#november-stages')!.textContent).toContain('Выполнение не подтверждено');expect(errors).toEqual([]);dom.window.close();
  }
 });
+
+it('integer unit windows sum to the month including short final week',async()=>{
+ const {unitPlan}=await import('./november-periods.js');
+ for(const goal of [1,17,25,31,57,450]){
+  const parts=novemberPeriods().map(w=>unitPlan(goal,Number(w.from.slice(8)),Number(w.to.slice(8))));
+  expect(parts.every(Number.isInteger)).toBe(true);expect(parts.reduce((a,b)=>a+b,0)).toBe(goal);
+  expect(unitPlan(goal,1,4)).toBe(Math.round(goal*4/30));expect(unitPlan(goal,8,7)).toBe(0);
+ }
+});
+
+it('weekly unit progress uses integer targets and aligned verdicts',()=>{
+ const p=novemberPeriods()[0]!,values={'2026-11-01':1};
+ const x=periodProgress(p,'2026-11-02',values,25,true);
+ expect(x.planToDate).toBe(1);expect(x.ratio).toBe(100);expect(x.goal).toBe(6);
+ expect(novemberPeriods().map(p=>periodProgress(p,'2026-12-01',{},25,true).goal!).reduce((a,b)=>a+b,0)).toBe(25);
+});

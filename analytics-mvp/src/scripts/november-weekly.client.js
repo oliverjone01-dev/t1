@@ -11,7 +11,7 @@ function draw(key,p,goal,title,unit,neutral){
   var month=selected===5;var el=document.getElementById('nf-dial-'+key),card=el.parentElement;card.hidden=p.fact==null;
   var closed=p.elapsed?'Закрыто '+p.elapsed+' из '+p.days.length+' дн. · по '+p.through.slice(8)+'.11':'Закрытых дней периода пока нет';
   var quality=p.missing.length?'Нет полного покрытия: '+p.missing.map(function(d){return d.slice(8)+'.11'}).join(', '):closed;
-  el.innerHTML=window.planGauge({title:title,val:p.fact,plan:p.planToDate,mark:100,stPct:p.ratio,neutral:neutral,neutralLabel:p.fact==null?'нет данных':'факт',
+  el.innerHTML=window.planGauge({title:title,val:p.fact,plan:month?p.goal:p.planToDate,mark:month?p.elapsed/p.days.length*100:100,stPct:p.ratio,neutral:neutral,neutralLabel:p.fact==null?'нет данных':'факт',
     l1:p.fact==null?'нет данных':fmt(p.fact)+(unit||''),
     l2:neutral?'CPC + CPO · без оценки перерасхода':p.elapsed?'План закрытых дней: '+fmt(p.planToDate)+unit:'План закрытых дней ещё не наступил',
     l3:neutral?'Лимит периода не задан':(month?'Цель всего месяца: ':'Цель всей недели: ')+fmt(p.goal)+unit});
@@ -22,7 +22,7 @@ function render(){
   var row=D.periods[selected];
   var issues=[['Заказы',row.units],['Оборот',row.revenue],['Реклама',row.ads]];if(finance)issues.push(['Прибыль',finance[selected]]);
   document.getElementById('november-week-issues').textContent=issues.filter(function(x){return x[1].missing.length}).map(function(x){return x[0]+': нет полного покрытия за '+x[1].missing.map(function(d){return d.slice(8)+'.11'}).join(', ')}).join(' · ');
-  document.getElementById('november-week-state').textContent=(selected===5?'Весь ноябрь · 01–30.11.':'Неделя '+row.period.label+'.')+(row.units.elapsed?' 100% на шкале = план уже закрытых дней выбранного периода. Полная цель '+(selected===5?'месяца':'недели')+' указана под спидометром.':' Закрытых дней пока нет. План периода: '+fmt(row.units.goal)+' шт., оборот '+fmt(row.revenue.goal)+' ₽, прибыль '+fmt(D.targets.profit*row.period.days/30)+' ₽. Факт появится после закрытия дней.');
+  document.getElementById('november-week-state').textContent=(selected===5?'Весь ноябрь · 01–30.11.':'Неделя '+row.period.label+'.')+(row.units.elapsed?(selected===5?' 100% на шкале = полная цель месяца. Белая отметка и цвет показывают темп по закрытым дням.':' 100% на шкале = план уже закрытых дней недели. Полная цель недели указана под спидометром.'):' Закрытых дней пока нет. План периода: '+fmt(row.units.goal)+' шт., оборот '+fmt(row.revenue.goal)+' ₽, прибыль '+fmt(D.targets.profit*row.period.days/30)+' ₽. Факт появится после закрытия дней.');
   Array.prototype.forEach.call(document.querySelectorAll('[data-nov-week]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.novWeek)===selected))});
   draw('units',row.units,D.targets.units,'Заказы магазина',' шт.',false);
   draw('revenue',row.revenue,D.targets.revenue,'Оборот магазина',' ₽',false);

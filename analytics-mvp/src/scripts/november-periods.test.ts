@@ -64,6 +64,7 @@ describe('weekly plan',()=>{
   expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('-74817');
   expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('17');
   expect(doc.querySelector('#nf-dial-units')!.textContent).toContain('Цель всего месяца: 450');
+  expect(Number(doc.querySelector('#nf-dial-units .gauge')!.getAttribute('data-pct'))).toBeCloseTo(17/450*100);
   expect(errors).toEqual([]);dom.window.close();
  });
  it('rolls the selected week at Moscow midnight even if the HTML build is older',()=>{
@@ -141,7 +142,7 @@ it('month mode aggregates all closed November days without double counting weeks
  expect(d.querySelectorAll('[data-nov-week]:not([hidden])')).toHaveLength(6);
  (d.querySelector('[data-nov-week="0"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('105');
  (d.querySelector('[data-nov-week="1"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('30');
- (d.querySelector('[data-nov-week="5"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('135');expect(d.querySelector('#nf-dial-units')!.textContent).toContain('Цель всего месяца: 450');expect(d.querySelector('#november-week-state')!.textContent).toContain('Весь ноябрь');dom.window.close();
+ (d.querySelector('[data-nov-week="5"]') as HTMLElement).click();expect(d.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('135');expect(d.querySelector('#nf-dial-units')!.textContent).toContain('Цель всего месяца: 450');expect(d.querySelector('#november-week-state')!.textContent).toContain('Весь ноябрь');expect(Number(d.querySelector('#nf-dial-units .gauge')!.getAttribute('data-pct'))).toBe(30);expect(d.querySelector('#nf-dial-units .gauge')!.getAttribute('data-st')).toBe('#34D399');dom.window.close();
 });
 it('month profit is computed directly for the whole window and missing days stay unknown',()=>{
  const core=`const AN_MAXD='2026-11-30',AN_RD_FROM='2026-11-01',AN_RD_TO='2026-11-30',AN_RD_MISS=[],AN_VED_MAXD='2026-11-30';function skuAnalyticsData(p){return {grand:{amt:100,tbEst:0,n:Number(p.to.slice(8))-Number(p.from.slice(8))+1},miss:[]}}function anDerive(g){return {net:g.n*g.n,rent:null}}`;

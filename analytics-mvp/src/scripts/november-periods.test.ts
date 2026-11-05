@@ -56,15 +56,19 @@ describe('weekly plan',()=>{
   send(msg);expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('-74817');
   expect(Number(doc.querySelector('#nf-dial-net .gauge')!.getAttribute('data-pct'))).toBeLessThan(0);
   (doc.querySelector('[data-nov-week="1"]') as HTMLButtonElement).click();
-  expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('');
-  expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('');
-  expect(doc.querySelector('#november-week-state')!.textContent).toContain('08-14.11');
+  expect(doc.querySelector('[data-nov-week="1"]')!.hasAttribute('hidden')).toBe(true);
+  expect(doc.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('17');
+  expect(doc.querySelector('[data-metric=net]')!.getAttribute('data-fact')).toBe('-74817');
+  expect(doc.querySelector('#november-week-state')!.textContent).toContain('01-07.11');
   expect(errors).toEqual([]);dom.window.close();
  });
  it('rolls the selected week at Moscow midnight even if the HTML build is older',()=>{
   const f=novemberForecast(NOVEMBER_GROWTH,{...input,today:'2026-11-07',last:'2026-11-06'})!;
   const dom=new JSDOM(novemberForecastHtml(f)+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse('2026-11-07T21:00:00Z')}});
   expect(dom.window.document.querySelector('[data-nov-week="1"]')!.getAttribute('aria-pressed')).toBe('true');
+  expect(dom.window.document.querySelector('[data-nov-week="1"]')!.hasAttribute('hidden')).toBe(false);
+  expect(dom.window.document.querySelector('[data-nov-week="2"]')!.hasAttribute('hidden')).toBe(true);
+  expect(dom.window.document.querySelector('[data-metric=units]')!.hasAttribute('hidden')).toBe(true);
   expect(dom.window.document.querySelector('[data-metric=units]')!.getAttribute('data-fact')).toBe('');
   expect(dom.window.document.querySelector('#nf-note-units')!.textContent).toContain('Закрытых дней');dom.window.close();
  });
@@ -77,4 +81,13 @@ describe('weekly plan',()=>{
   expect((dom.window as any).calls).toContainEqual({from:'2026-11-08',to:'2026-11-09'});
   expect(payload.periods[1].elapsed).toBe(2);expect(payload.periods[2].fact).toBeNull();dom.window.close();
  });
+});
+
+it('keeps a missing past-day warning when empty gauges are hidden, but displays genuine zeros',()=>{
+ const f=novemberForecast(NOVEMBER_GROWTH,{...input,today:'2026-11-03',covered:new Set(['2026-11-01']),units:new Map([['2026-11-01',0]])})!;
+ const dom=new JSDOM(novemberForecastHtml(f)+'<script>'+source+novemberForecastJs(f,{'2026-11-01':0,'2026-11-02':0})+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
+ expect(doc.querySelector('[data-metric=units]')!.hasAttribute('hidden')).toBe(true);
+ expect(doc.querySelector('#november-week-issues')!.textContent).toContain('02.11');
+ expect(doc.querySelector('[data-metric=ads]')!.hasAttribute('hidden')).toBe(false);
+ expect(doc.querySelector('[data-metric=ads]')!.getAttribute('data-fact')).toBe('0');dom.window.close();
 });

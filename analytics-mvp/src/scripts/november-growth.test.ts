@@ -62,3 +62,11 @@ describe('November financial progress',()=>{
   expect((dom.window as any).NOVEMBER_FINANCE.window.end).toBe('2026-11-07');dom.window.close();
  });
 });
+
+it('only exposes stages whose Moscow start date arrived, retaining their unconfirmed status',()=>{
+ for(const [date,count] of [['2026-11-02',0],['2026-11-05',2],['2026-11-06',4],['2026-11-21',7]] as const){
+  const doc=new JSDOM(novemberGrowthHtml(date,null)).window.document;
+  expect(doc.querySelectorAll('#november-stages tbody tr:not([hidden])')).toHaveLength(count);
+  expect(doc.querySelector('#november-decisions')!.textContent).toContain('Первыми проверить увеличение продаж');
+ }
+});

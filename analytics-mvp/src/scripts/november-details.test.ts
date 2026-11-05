@@ -120,7 +120,8 @@ describe('October design reused for November',()=>{
     const r=novemberDetails(f)!;const dom=new JSDOM('<body>'+r.html+'<script>'+r.js+'</script>',{runScripts:'dangerously'}),doc=dom.window.document;
     (doc.querySelector('.nd-order-toggle') as any).click();
     expect(doc.querySelector('.nd-order-chart path[stroke="#F59E0B"]')).toBeNull();
-    expect(doc.querySelector('.nd-order-chart')!.textContent).toContain('нет данных');dom.window.close();
+    expect(doc.querySelector('.nd-order-chart')!.hasAttribute('hidden')).toBe(true);
+    expect(doc.querySelector('.nd-order-row')!.textContent).toContain('нет данных');dom.window.close();
   });
 });
 
@@ -150,14 +151,25 @@ it('adds November month and weekly targets for the established card names',()=>{
  const doc=new JSDOM(r.html).window.document;
  expect(doc.querySelectorAll('#nd-order-detail-0 .nd-card-weeks tbody tr')).toHaveLength(5);
  expect(doc.querySelector('#nd-order-detail-0 .nd-card-weeks tbody tr:last-child')!.textContent).toContain('29-30.11');
- expect(doc.querySelector('#nd-order-detail-0 .nd-card-weeks tbody tr:last-child')!.textContent).toContain('период не начался');
+ expect(doc.querySelector('#nd-order-detail-0 .nd-card-weeks tbody tr:last-child')!.hasAttribute('hidden')).toBe(true);
+ expect(doc.querySelectorAll('#nd-order-detail-0 .nd-card-weeks tbody tr:not([hidden])')).toHaveLength(1);
 });
 it('colors per-group advertising against the October reference without assigning an overall cap',()=>{
  const f=fixture();f.cards[0]!.click_new=60;f.plan.min_budget_sku=100;f.plan.min_campaign_budget=140;
  const r=novemberDetails(f)!,doc=new JSDOM(r.html).window.document;
  expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.getAttribute('data-ad-status')).toBe('over');
  expect(doc.querySelector('.nd-ad-row [data-ad-status]')!.textContent).toContain('116,7%');
- expect(doc.querySelector('.nd-ad-row [data-ad-status="future"]')!.textContent).toContain('период не начался');
+ expect(doc.querySelector('.nd-ad-row [data-ad-status="future"]')!.hasAttribute('hidden')).toBe(true);
+ expect(doc.querySelectorAll('.nd-ad-row:first-of-type [data-nov-from]:not([hidden])').length).toBeLessThanOrEqual(1);
  expect(doc.querySelector('.nd-ad-row [data-ad-status="future"]')!.textContent).not.toContain('нет ориентира');
  expect(r.html).toContain('Общий CPC + CPO');
+});
+
+it('reveals exactly the started advertising weeks while preserving totals and past coverage gaps',()=>{
+ for(const [today,count] of [['2026-11-05',1],['2026-11-08',2],['2026-11-29',5],['2026-12-01',5]] as const){
+  const f=fixture();f.today=today;const r=novemberDetails(f)!,doc=new JSDOM(r.html).window.document;
+  expect(doc.querySelectorAll('.nd-ad-head:first-child [data-nov-from]:not([hidden])').length).toBe(count*doc.querySelectorAll('.nd-ad-grid').length);
+  for(const row of doc.querySelectorAll('.nd-ad-row'))expect(row.querySelectorAll('[data-nov-from]:not([hidden])')).toHaveLength(count);
+  expect(doc.querySelector('.nd-ad-grid')!.getAttribute('style')).toContain(String(count+1));
+ }
 });

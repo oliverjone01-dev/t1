@@ -1,4 +1,8 @@
 import { CARD, STATUSES, localDate, createLayout, moveTask, validateBoard, groupFor, dropTarget, fitCamera, importBoard } from './model.mjs';
+import { SyncEngine } from './sync-engine.mjs';
+import { GoogleAuth } from './google-auth.mjs';
+import { SheetsApi } from './sheets-api.mjs';
+import { FIELD_NAMES, comparable } from './sync-model.mjs';
 import { dataSignature, writeBoard } from './storage.mjs';
 const $ = selector => document.querySelector(selector);
 const STORAGE = 'gengroup.task-canvas.v1';
@@ -6,11 +10,12 @@ const today = () => localDate();
 let tasks = [], extraOwners = [], mode = 'priority', camera = { x: 32, y: 32, z: .8 }, selected = null, editing = null;
 let history = [], future = [], layout, gesture = null, space = false, storageFailed = false, toastTimer;
 let stateLoadError = false, storageConflict = false, unsavedChanges = false;
+let cloudEngine = null, cloudCache = null, googleAuth = null, editingBase = null;
 let storedSignature = dataSignature({tasks:[],owners:[]});
 try {
   const saved = localStorage.getItem(STORAGE);
   if (saved) {
-    const state = JSON.parse(saved); storedSignature = dataSignature(state); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
+    const state = JSON.parse(saved); cloudCache=state.cloud || null; storedSignature = dataSignature(state); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
     mode = ['priority', 'owners', 'time'].includes(state.mode) ? state.mode : 'priority';
     if (state.camera && ['x','y','z'].every(k => Number.isFinite(state.camera[k]))) camera = { x: state.camera.x, y: state.camera.y, z: Math.max(.0001, Math.min(2, state.camera.z)) };
   }
@@ -21,11 +26,11 @@ function persist() {
   if (storageConflict || stateLoadError) {
     $('#save-state').textContent = 'Не сохранено · экспортируйте копию'; return false;
   }
-  const state = { version: 1, tasks, owners: extraOwners, mode, camera };
+  const state = { version: 1, tasks, owners: extraOwners, mode, camera, cloud:cloudEngine?.snapshot() || cloudCache };
   const result = writeBoard(localStorage, STORAGE, state, storedSignature);
   if (result.ok) {
     storedSignature = result.signature; storageFailed = false; unsavedChanges = false;
-    $('#save-state').textContent = 'Сохранено на устройстве'; return true;
+    $('#save-state').textContent = cloudEngine?.enabled ? 'Локальная копия сохранена' : 'Сохранено на устройстве'; return true;
   }
   storageConflict = result.reason === 'conflict'; storageFailed = !storageConflict;
   $('#save-state').textContent = storageConflict ? 'Конфликт вкладок · экспортируйте копию' : 'Не сохранено · экспортируйте доску';
@@ -37,12 +42,12 @@ function savedToast(message) {
 function snapshot() { return JSON.stringify({ tasks, owners: extraOwners }); }
 function change(fn) {
   const before = snapshot(); fn();
-  if (snapshot() !== before) { history.push(before); if (history.length > 50) history.shift(); future = []; unsavedChanges = true; persist(); }
+  if (snapshot() !== before) { cloudEngine?.changed(); history.push(before); if (history.length > 50) history.shift(); future = []; unsavedChanges = true; persist(); }
   render();
 }
 function restore(from, to) {
   if (!from.length) return;
-  to.push(snapshot()); const state = JSON.parse(from.pop()); tasks = state.tasks; extraOwners = state.owners; selected = null; unsavedChanges = true; persist(); render();
+  to.push(snapshot()); const state = JSON.parse(from.pop()); tasks = state.tasks; extraOwners = state.owners; selected = null; unsavedChanges = true; cloudEngine?.changed(); persist(); render();
 }
 function updateOptions() {
   const units = [...new Set(tasks.map(t => t.unit).filter(Boolean))].sort();
@@ -190,6 +195,7 @@ $('#cards').addEventListener('dblclick', e => { const card = e.target.closest('[
 $('#cards').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); openTask(e.target.closest('[data-id]').dataset.id); } });
 function openTask(id = null) {
   editing = id; const task = tasks.find(t => t.id === id) || { title:'', status:'В ожидании', unit:$('#unit-filter').value, owner:'', due:'', priority:'' };
+  editingBase=structuredClone(task);
   const form = $('#task-form'); form.reset();
   form.elements.status.innerHTML = [...new Set([...STATUSES, ...tasks.map(t => t.status).filter(Boolean)])].map(s => `<option>${esc(s)}</option>`).join('');
   for (const key of ['title','unit','status','owner','due','priority','description','comment']) form.elements[key].value = task[key] || '';
@@ -206,7 +212,10 @@ $('#task-form').addEventListener('submit', e => {
   e.preventDefault(); const data = Object.fromEntries(new FormData(e.target)); data.title = data.title.trim(); data.owner = data.owner.trim();
   if (!data.title) { e.target.elements.title.setCustomValidity('Введите название задачи.'); e.target.elements.title.reportValidity(); return; }
   const old = tasks.find(t => t.id === editing);
-  const task = { ...(old || {id:crypto.randomUUID(),positions:{}}), ...data, priority:data.priority || null };
+  const dirty=Object.keys(data).filter(key=>String(data[key] || '')!==String(editingBase?.[key] || ''));
+  if(old && dirty.some(key=>String(old[key] || '')!==String(editingBase?.[key] || '') && String(old[key] || '')!==String(data[key] || ''))) {toast('Эти поля обновились из таблицы. Скопируйте свой текст, закройте и откройте карточку для сравнения.');return;}
+  const patch=old ? Object.fromEntries(dirty.map(key=>[key,data[key]])) : data;
+  const task = { ...(old || {id:crypto.randomUUID(),positions:{}}), ...patch };task.priority ||= null;
   if (old) {
     task.positions = structuredClone(old.positions || {});
     if (task.owner !== old.owner) delete task.positions.owners;
@@ -291,3 +300,61 @@ $('#demo').onclick = () => {
 };
 render();
 if(stateLoadError) { $('#save-state').textContent='Не удалось прочитать сохранённую доску'; toast('Сохранённые данные повреждены. Исходная копия не перезаписана.'); }
+
+function cloudState(state) {
+  const label = {local:'Локальная доска',signin:'Нужен вход Google',pending:'Ожидает отправки',syncing:'Синхронизация…',synced:'Сохранено в Google',offline:'Нет связи с Google',conflict:'Нужно сравнить версии','cache-error':'Ошибка очереди'}[state.status] || 'Google Таблица';
+  $('#cloud-label').textContent=label;
+  if(state.status==='synced' && !tasks.length) {$('#empty p').textContent='Общая доска пока пустая. Создайте первую задачу.';$('#empty-import').textContent='+ Новая задача';$('#empty-import').onclick=()=>openTask();}
+  else {$('#empty p').textContent='Подключите Google Таблицу, чтобы открыть задачи на этом устройстве.';$('#empty-import').textContent='Подключить Google';$('#empty-import').onclick=()=>$('#cloud-dialog').showModal();}
+  $('#google-connect').textContent=state.status==='synced'?'Google · сохранено':state.status==='syncing'?'Google · синхронизация':state.status==='conflict'?'Google · конфликт':'Подключить Google';
+  $('#cloud-status').textContent=state.message || (state.status==='synced'?'Задачи и раскладка доступны на других устройствах.':state.status==='signin'&&state.pending?`${state.pending} изменений ждут подключения. Локальная копия сохранена.`:state.status==='conflict'?`${state.conflicts.length} полей изменились в двух местах. Выберите версию.`:state.status==='pending'?`${state.pending || 1} изменений готовятся к отправке.`:'Подключите Google, чтобы синхронизировать первую вкладку таблицы.');
+  $('#cloud-dot').className='local-dot '+(state.status==='synced'?'cloud-online':state.status==='local'?'':'cloud-warning');
+  $('#cloud-conflicts').hidden=!state.conflicts.length;
+}
+function businessSignature(board) {return JSON.stringify({tasks:board.tasks.map(t=>({id:t.id,...comparable(t)})),owners:board.owners});}
+function applyCloud(board,cache) {
+  const changed=businessSignature({tasks,owners:extraOwners})!==businessSignature(board);
+  tasks=board.tasks;extraOwners=board.owners;cloudCache=cache;
+  if(changed) {history=[];future=[];}
+  // A second local tab must refresh first; cross-device merging is handled by the sync engine.
+  persist();if(!gesture)render();
+}
+cloudEngine=new SyncEngine({
+  api:null,getLocal:()=>({tasks,owners:extraOwners}),apply:applyCloud,onState:cloudState,cache:cloudCache,
+});
+const originalFlush=cloudEngine.flush.bind(cloudEngine);
+cloudEngine.flush=async()=>{
+  if(storageConflict || stateLoadError) {cloudEngine.disconnect();toast('Обновите вкладку после экспорта, чтобы продолжить синхронизацию.');return;}
+  if(gesture || $('#editor').open || $('#import-dialog').open) {cloudEngine.later(1500);return;}
+  return originalFlush();
+};
+$('#google-connect').onclick=()=>{
+  $('#google-error').textContent='';
+  if(cloudEngine.conflicts.length)openConflicts();else $('#cloud-dialog').showModal();
+};
+$('#google-authorize').onclick=async()=>{
+  const button=$('#google-authorize');button.disabled=true;$('#google-error').textContent='';
+  try {
+    if(!googleAuth)throw new Error('Подключение Google ещё настраивается.');
+    await googleAuth.authorize();
+    try {await cloudEngine.api.read();} catch(e) {if(e.status===403 || e.status===404) {$('#cloud-dialog').close();await googleAuth.pickFile();} else throw e;}
+    $('#cloud-dialog').close();await cloudEngine.connect();persist();
+  } catch(error) {if(!$('#cloud-dialog').open)$('#cloud-dialog').showModal();$('#google-error').textContent=error.message;}
+  finally {button.disabled=false;}
+};
+$('#google-disconnect').onclick=()=>{googleAuth?.disconnect();cloudEngine.disconnect();persist();$('#cloud-dialog').close();};
+function conflictText(value) {if(value==null)return 'Удалено / пусто';if(typeof value==='object')return value.title || JSON.stringify(value,null,2);return String(value);}
+function openConflicts() {
+  $('#conflict-list').innerHTML=cloudEngine.conflicts.map((c,i)=>`<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(FIELD_NAMES[c.field] || c.field)}</h3><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote" checked> Из таблицы</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Моя версия</span><pre>${esc(conflictText(c.local))}</pre></label></section>`).join('');
+  $('#conflicts-dialog').showModal();
+}
+$('#cloud-conflicts').onclick=openConflicts;
+$('#resolve-conflicts').onclick=()=>{
+  const choices={};cloudEngine.conflicts.forEach((c,i)=>choices[i]=document.querySelector(`input[name="conflict-${i}"]:checked`).value);
+  $('#conflicts-dialog').close();cloudEngine.resolve(choices);persist();
+};
+window.addEventListener('online',()=>{if(cloudEngine.connected)cloudEngine.flush();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden && cloudEngine.connected)cloudEngine.flush();});
+fetch('./google-config.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error();return r.json();}).then(config=>{
+  googleAuth=new GoogleAuth(config);cloudEngine.api=new SheetsApi(googleAuth);
+}).catch(()=>{$('#google-error').textContent='Не удалось загрузить настройки Google. Обновите страницу.';});

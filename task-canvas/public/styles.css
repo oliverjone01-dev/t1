@@ -985,3 +985,5 @@ a {
     min-width:70px;
   }
 }
+
+.google-button{color:#6852b1;border-color:#d5cceb}.side-bottom #cloud-conflicts{display:block;margin-bottom:12px}.cloud-warning{background:#d59a64!important}.cloud-online{background:#7cae92!important}.cloud-conflict{padding:14px 0;border-top:1px solid var(--line)}.cloud-conflict h3{font-size:12px;margin:0 0 8px}.cloud-choice{display:block;border:1px solid var(--line);padding:10px;border-radius:7px;margin-bottom:8px;cursor:pointer}.cloud-choice input{width:auto;margin-right:7px}.cloud-choice pre{font-family:inherit;font-size:11px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0;color:#554b63;max-height:140px;overflow:auto}.side-bottom #cloud-status{overflow-wrap:anywhere}@media(max-width:700px){.header-actions{gap:4px}.topbar .button{padding:9px 7px;font-size:9px}.google-button{max-width:105px;white-space:normal}}

@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {JSDOM,VirtualConsole} from 'jsdom';
 import {novemberPeriods,periodWindow,periodProgress} from './november-periods.js';
 import {novemberForecast,novemberForecastHtml,novemberForecastJs,novemberWeeklyData} from './november-forecast.js';
-import {NOVEMBER_GROWTH} from './november-growth.js';
+import {NOVEMBER_GROWTH,novemberGrowthHtml} from './november-growth.js';
 import {novemberFinancePage} from './november-finance.js';
 const weeks=novemberPeriods();
 const days=Array.from({length:30},(_,i)=>'2026-11-'+String(i+1).padStart(2,'0'));
@@ -90,4 +90,24 @@ it('keeps a missing past-day warning when empty gauges are hidden, but displays 
  expect(doc.querySelector('#november-week-issues')!.textContent).toContain('02.11');
  expect(doc.querySelector('[data-metric=ads]')!.hasAttribute('hidden')).toBe(false);
  expect(doc.querySelector('[data-metric=ads]')!.getAttribute('data-fact')).toBe('0');dom.window.close();
+});
+
+it('keeps source-gap and finance-failure warnings independent through timeout and week selection',()=>{
+ const f=novemberForecast(NOVEMBER_GROWTH,{...input,covered:new Set(['2026-11-01'])})!;let timeout:()=>void=()=>{};
+ const dom=new JSDOM(novemberForecastHtml(f,'<!-- NOVEMBER_STORE --><iframe id="november-finance-frame"></iframe>')+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse('2026-11-03T09:00:00Z');w.setTimeout=((fn:any)=>{timeout=fn;return 1}) as any;}}),doc=dom.window.document;
+ timeout();expect(doc.querySelector('#november-week-issues')!.textContent).toContain('02.11');expect(doc.querySelector('#november-finance-issue')!.textContent).toContain('не загрузился');
+ (doc.querySelector('[data-nov-week="0"]') as HTMLButtonElement).click();
+ expect(doc.querySelector('#november-week-issues')!.textContent).toContain('02.11');expect(doc.querySelector('#november-finance-issue')!.textContent).toContain('не загрузился');
+ doc.querySelector('iframe')!.dispatchEvent(new dom.window.Event('error'));expect(doc.querySelector('#november-week-issues')!.textContent).toContain('02.11');expect(doc.querySelector('#november-finance-issue')!.textContent).toContain('недоступен');dom.window.close();
+});
+
+it('updates stage calendar labels when opening an older build on a later Moscow date',()=>{
+ const f=novemberForecast(NOVEMBER_GROWTH,{...input,today:'2026-11-05'})!;
+ for(const [now,visible] of [['2026-11-07',4],['2026-12-01',7]] as const){
+  const dom=new JSDOM(novemberForecastHtml(f,novemberGrowthHtml('2026-11-05',null))+'<script>'+source+novemberForecastJs(f)+'</script>',{runScripts:'dangerously',url:'https://dashboard.example/',beforeParse(w){w.Date.now=()=>Date.parse(now+'T09:00:00Z')}}),doc=dom.window.document;
+  expect(doc.querySelectorAll('[data-nov-stage-end]:not([hidden])')).toHaveLength(visible);
+  expect(doc.querySelector('[data-nov-stage-end="2026-11-05"] .nov-stage-date')!.textContent).toBe('Срок прошёл');
+  expect(doc.querySelector('[data-nov-stage-end="2026-11-19"] .nov-stage-date')!.textContent).toBe(now==='2026-12-01'?'Срок прошёл':'Окно по плану');
+  expect(doc.querySelector('#november-stages')!.textContent).toContain('Выполнение не подтверждено');dom.window.close();
+ }
 });

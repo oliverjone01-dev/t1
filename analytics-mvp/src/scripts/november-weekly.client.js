@@ -36,11 +36,11 @@ function receive(event){
   var msg=event.data;if(!msg||msg.type!=='ozon-november-weekly-finance'||msg.today!==D.today||!Array.isArray(msg.periods)||msg.periods.length!==D.periods.length)return;
   var safe=msg.periods.every(function(p,i){var expected=D.periods[i].units;return p&&Array.isArray(p.days)&&JSON.stringify(p.days)===JSON.stringify(expected.days)&&Array.isArray(p.missing)&&p.missing.every(function(d){return expected.closed.indexOf(d)>=0})&&p.elapsed===expected.elapsed&&p.through===expected.through&&(p.fact===null||Number.isFinite(p.fact))&&p.goal===D.targets.profit*expected.days.length/30&&p.planToDate===D.targets.profit*expected.elapsed/30&&(p.ratio===null||Number.isFinite(p.ratio))&&((p.fact===null&&p.ratio===null)||(Number.isFinite(p.fact)&&p.missing.length===0&&p.elapsed>0&&p.ratio===p.fact/p.planToDate*100));});
   if(!safe)return;
-  finance=msg.periods;render();
+  finance=msg.periods;document.getElementById('november-finance-issue').textContent='';render();
 }
 window.addEventListener('message',receive);
 function request(){if(frame&&frame.contentWindow&&/^https?:$/.test(location.protocol))frame.contentWindow.postMessage({type:'ozon-november-weekly-request'},location.origin)}
-if(frame){frame.addEventListener('load',request);frame.addEventListener('error',function(){document.getElementById('november-week-issues').textContent='Финансовый расчёт недоступен. Откройте раздел 6; выполнение не рассчитано.'})}
+if(frame){frame.addEventListener('load',request);frame.addEventListener('error',function(){document.getElementById('november-finance-issue').textContent='Финансовый расчёт недоступен. Откройте раздел 6; выполнение не рассчитано.'})}
 render();request();
-if(/^https?:$/.test(location.protocol))setTimeout(function(){if(!finance)document.getElementById('november-week-issues').textContent='Финансовый расчёт не загрузился. Откройте раздел 6 или обновите страницу; выполнение не рассчитано.'},20000);
+if(/^https?:$/.test(location.protocol))setTimeout(function(){if(!finance)document.getElementById('november-finance-issue').textContent='Финансовый расчёт не загрузился. Откройте раздел 6 или обновите страницу; выполнение не рассчитано.'},20000);
 })();

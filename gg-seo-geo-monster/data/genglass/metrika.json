@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-11-04",
+ "measured": "2026-11-05",
  "visits_30d": [
-  {
-   "date": "2026-10-05",
-   "visits": 670,
-   "search_visits": 111
-  },
   {
    "date": "2026-10-06",
    "visits": 522,
@@ -151,16 +146,21 @@
    "date": "2026-11-03",
    "visits": 5,
    "search_visits": 0
+  },
+  {
+   "date": "2026-11-04",
+   "visits": 2,
+   "search_visits": 0
   }
  ],
  "top_phrases": [
   {
    "phrase": "генгласс",
-   "visits": 30
+   "visits": 29
   },
   {
    "phrase": "genglass официальный сайт",
-   "visits": 24
+   "visits": 23
   },
   {
    "phrase": "генгласс зеркала",
@@ -168,11 +168,11 @@
   },
   {
    "phrase": "genglass",
-   "visits": 7
+   "visits": 6
   },
   {
    "phrase": "дженгласс",
-   "visits": 7
+   "visits": 6
   },
   {
    "phrase": "межкомнатные перегородки",
@@ -215,10 +215,6 @@
    "visits": 4
   },
   {
-   "phrase": "genglas",
-   "visits": 3
-  },
-  {
    "phrase": "genglass официальный",
    "visits": 3
   },
@@ -232,10 +228,6 @@
   },
   {
    "phrase": "genglass.ru",
-   "visits": 3
-  },
-  {
-   "phrase": "ген гласс",
    "visits": 3
   },
   {
@@ -287,6 +279,10 @@
    "visits": 2
   },
   {
+   "phrase": "genglas",
+   "visits": 2
+  },
+  {
    "phrase": "genglass магазин",
    "visits": 2
   },
@@ -295,15 +291,15 @@
    "visits": 2
   },
   {
-   "phrase": "tubaris d100, белый",
-   "visits": 2
-  },
-  {
    "phrase": "Перегородка гармошка",
    "visits": 2
   },
   {
    "phrase": "Перегородки для зонирования пространства",
+   "visits": 2
+  },
+  {
+   "phrase": "ген гласс",
    "visits": 2
   },
   {
@@ -339,10 +335,6 @@
    "visits": 2
   },
   {
-   "phrase": "перегородки стеклянные",
-   "visits": 2
-  },
-  {
    "phrase": "раздвижной",
    "visits": 2
   },
@@ -353,24 +345,32 @@
   {
    "phrase": "стол из стекла",
    "visits": 2
+  },
+  {
+   "phrase": "стол на заказ по индивидуальным размерам",
+   "visits": 2
+  },
+  {
+   "phrase": "стол под заказ",
+   "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 426
+   "visits": 407
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 109
+   "visits": 105
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 107
+   "visits": 103
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 105
+   "visits": 103
   },
   {
    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
@@ -378,11 +378,11 @@
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 72
+   "visits": 71
   },
   {
    "url": "/product-category/tables/",
-   "visits": 72
+   "visits": 71
   },
   {
    "url": "/product-category/mirrors/",
@@ -390,50 +390,38 @@
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 44
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 37
+   "visits": 41
   },
   {
    "url": "/product-category/steklyannye-doski/",
    "visits": 37
   },
   {
-   "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
-   "visits": 36
-  },
-  {
-   "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 36
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 35
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
    "visits": 35
   },
   {
-   "url": "/product-category/mirrors/rotatable/",
-   "visits": 32
+   "url": "/stellazhi-i-polki-na-zakaz/",
+   "visits": 34
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 30
+   "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
+   "visits": 33
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 30
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "url": "/product-category/mirrors/rotatable/",
    "visits": 29
   },
   {
    "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
-   "visits": 29
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 28
   },
   {
@@ -441,28 +429,40 @@
    "visits": 27
   },
   {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "visits": 27
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 27
+  },
+  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
    "visits": 27
   },
   {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 24
-  },
-  {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 24
-  },
-  {
-   "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm/",
-   "visits": 24
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 26
   },
   {
    "url": "/blog/luchshie-varianty-zerkal-2026/",
    "visits": 23
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 22
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
+   "visits": 22
+  },
+  {
+   "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm/",
+   "visits": 22
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 21
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
@@ -473,11 +473,11 @@
    "visits": 20
   },
   {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
-   "visits": 19
+   "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka/",
+   "visits": 17
   }
  ],
  "goals": [],
- "bounce_rate": 13.6,
+ "bounce_rate": 13.5,
  "depth": 2.5
 }

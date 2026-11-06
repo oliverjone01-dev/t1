@@ -11,13 +11,13 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs";
-import { SyncEngine } from "./sync-engine.mjs";
-import { GoogleAuth } from "./google-auth.mjs";
-import { SheetsApi } from "./sheets-api.mjs";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs";
-import { dataSignature, writeBoard } from "./storage.mjs";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs";
+} from "./model.mjs?rev=20261106-feniks-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261106-feniks-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261106-feniks-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261106-feniks-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-feniks-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-feniks-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-feniks-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -25,8 +25,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs";
-import { parseAssignee } from "./people.mjs";
+} from "./editor.mjs?rev=20261106-feniks-1";
+import { parseAssignee } from "./people.mjs?rev=20261106-feniks-1";
 import {
   matchesTask,
   matchesWords,
@@ -34,8 +34,8 @@ import {
   emptyState,
   importSummary,
   demoTasks,
-} from "./ui-model.mjs";
-import { icon } from "./icons.mjs";
+} from "./ui-model.mjs?rev=20261106-feniks-1";
+import { icon } from "./icons.mjs?rev=20261106-feniks-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";

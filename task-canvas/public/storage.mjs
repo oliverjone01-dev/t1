@@ -1,4 +1,4 @@
-import { validateBoard } from './model.mjs';
+import { validateBoard } from './model.mjs?rev=20261106-feniks-1';
 export function dataSignature(state) {
   return JSON.stringify({tasks: validateBoard(state), owners: Array.isArray(state?.owners) ? state.owners : []});
 }

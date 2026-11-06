@@ -4,9 +4,9 @@ import {
   comparable,
   equal,
   SYNC_FIELDS,
-} from "./sync-model.mjs";
-import { validateBoard } from "./model.mjs";
-import { remoteChanges } from "./changes.mjs";
+} from "./sync-model.mjs?rev=20261106-feniks-1";
+import { validateBoard } from "./model.mjs?rev=20261106-feniks-1";
+import { remoteChanges } from "./changes.mjs?rev=20261106-feniks-1";
 const cleanBoard = (board) => {
   if (
     board?.owners &&

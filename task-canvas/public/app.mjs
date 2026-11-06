@@ -11,13 +11,13 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs";
-import { SyncEngine } from "./sync-engine.mjs";
-import { GoogleAuth } from "./google-auth.mjs";
-import { SheetsApi } from "./sheets-api.mjs";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs";
-import { dataSignature, writeBoard } from "./storage.mjs";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs";
+} from "./model.mjs?rev=20261106-feniks-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261106-feniks-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261106-feniks-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261106-feniks-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-feniks-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-feniks-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-feniks-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -25,8 +25,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs";
-import { parseAssignee } from "./people.mjs";
+} from "./editor.mjs?rev=20261106-feniks-1";
+import { parseAssignee } from "./people.mjs?rev=20261106-feniks-1";
 import {
   matchesTask,
   matchesWords,
@@ -34,8 +34,8 @@ import {
   emptyState,
   importSummary,
   demoTasks,
-} from "./ui-model.mjs";
-import { icon } from "./icons.mjs";
+} from "./ui-model.mjs?rev=20261106-feniks-1";
+import { icon } from "./icons.mjs?rev=20261106-feniks-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -414,6 +414,8 @@ function renderProvenance() {
   );
 }
 function renderEmpty() {
+  $("#add").classList.toggle("primary",tasks.length>0);
+  $("#add").classList.toggle("quiet",tasks.length===0);
   const state = emptyState({
     count: tasks.length,
     hasBaseline: !!cloudEngine?.base,
@@ -451,7 +453,7 @@ function cardMarkup(task) {
         .map((s) => s[0])
         .join("")
     : "·";
-  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "ЗАДАЧА")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible

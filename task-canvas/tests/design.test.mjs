@@ -42,3 +42,13 @@ test("document IDs are unique and static assets exist; all view buttons expose s
   for (const match of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g))
     assert.ok(files.includes(match[1]), match[1]);
 });
+
+test('HTML, stylesheet and every local ES-module dependency use one deployment revision',async()=>{
+  const rev=html.match(/name="application-version" content="([^"]+)"/)?.[1];assert.ok(rev);
+  for(const file of await readdir(new URL('../public/',import.meta.url))) {
+    if(!file.endsWith('.mjs'))continue;
+    const code=await readFile(new URL('../public/'+file,import.meta.url),'utf8');
+    for(const m of code.matchAll(/from\s+["'](\.\/[^"']+\.mjs)([^"']*)["']/g))assert.equal(m[2],'?rev='+rev,file+' '+m[1]);
+  }
+  assert.ok(html.includes('./app.mjs?rev='+rev));assert.ok(html.includes('./styles.css?rev='+rev));
+});

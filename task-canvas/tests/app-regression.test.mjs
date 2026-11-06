@@ -6,9 +6,9 @@ const source = await readFile(
   new URL("../public/app.mjs", import.meta.url),
   "utf8",
 );
-test("a failed new-card save leaves a draft and retries cannot create duplicate cards", () => {
+test("a failed new-card save leaves a draft and retries cannot create duplicate cards", async () => {
   // Exercise the exact shipped submit controller with storage failure, not a rewritten copy.
-  const start = source.indexOf("function submitTask("),
+  const start = source.indexOf("async function submitTask("),
     end = source.indexOf('$("#task-form").onsubmit', start);
   assert.ok(start >= 0 && end > start);
   let draftCalls = 0,
@@ -18,6 +18,7 @@ test("a failed new-card save leaves a draft and retries cannot create duplicate 
     extraOwners: [],
     editing: null,
     editingBase: {},
+    editingVersionBasis:null,
     history: [],
     crypto: { randomUUID: () => String(++creates) },
     formValues: () => ({ title: "Draft" }),
@@ -38,8 +39,8 @@ test("a failed new-card save leaves a draft and retries cannot create duplicate 
       return false;
     },
   });
-  vm.runInContext(
-    source.slice(start, end) + ";submitTask();submitTask();",
+  await vm.runInContext(
+    source.slice(start, end) + ";(async()=>{await submitTask();await submitTask();})()",
     context,
   );
   assert.equal(context.tasks.length, 0);

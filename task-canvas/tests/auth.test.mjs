@@ -78,7 +78,7 @@ test("SDK initialization failure and timeout clear the pending operation", async
   await assert.rejects(request, /не завершил вход/);
   assert.equal(slow.auth.token, null);
 });
-test("valid authorization uses only drive.file and token stays in memory until disconnect", async () => {
+test("authorization uses basic identity and only the selected Drive file and token stays in memory until disconnect", async () => {
   const h = harness();
   let config;
   h.environment.google.accounts.oauth2.initTokenClient = (c) => {
@@ -88,7 +88,7 @@ test("valid authorization uses only drive.file and token stays in memory until d
   const promise = h.auth.authorize();
   config.callback({ access_token: "FAKE_TEST_ONLY", expires_in: 3600 });
   await promise;
-  assert.equal(config.scope, "https://www.googleapis.com/auth/drive.file");
+  assert.equal(config.scope, "openid email profile https://www.googleapis.com/auth/drive.file");
   assert.equal(config.include_granted_scopes, false);
   h.auth.disconnect();
   assert.equal(h.auth.token, null);

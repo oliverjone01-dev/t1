@@ -1,3 +1,5 @@
 node_modules/
 test-results/
 *.private.json
+*-debug.log
+auth-smoke.html

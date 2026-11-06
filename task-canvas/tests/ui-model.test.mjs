@@ -7,6 +7,7 @@ import {
   cleanPreferences,
   emptyState,
   demoTasks,
+  synchronizationHint,
 } from "../public/ui-model.mjs";
 test("search matches words across fields in any order and treats ё as е", () => {
   const task = {
@@ -57,4 +58,13 @@ test("preferences recover safely and empty/loading/no source are different state
     "connect",
   );
   assert.ok(demoTasks().every((task) => task.id.startsWith("example-")));
+});
+
+test('sync failures have distinct textual hints independent of a hidden desktop sidebar',()=>{
+ assert.match(synchronizationHint({status:'signin'}),/вход Google/);
+ assert.match(synchronizationHint({status:'offline'}),/последняя копия/);
+ assert.match(synchronizationHint({status:'conflict'}),/сравнить версии/);
+ assert.match(synchronizationHint({status:'cache-error'}),/восстановления/);
+ assert.equal(synchronizationHint({status:'synced'}),'');
+ assert.equal(synchronizationHint(null),'');
 });

@@ -1,436 +1,1884 @@
-import { CARD, STATUSES, STATUS_LANES, statusGroup, localDate, createLayout, moveTask, validateBoard, groupFor, dropTarget, fitCamera, importBoard } from './model.mjs';
-import { SyncEngine } from './sync-engine.mjs';
-import { GoogleAuth } from './google-auth.mjs';
-import { SheetsApi } from './sheets-api.mjs';
-import { FIELD_NAMES, comparable } from './sync-model.mjs';
-import { dataSignature, writeBoard } from './storage.mjs';
-import {ChangeInbox, CHANGE_FIELDS} from './changes.mjs';
-const $ = selector => document.querySelector(selector);
-const STORAGE = 'gengroup.task-canvas.v1';
-const today = () => localDate();
-let tasks = [], extraOwners = [], mode = 'priority', camera = { x: 32, y: 32, z: .8 }, selected = null, editing = null;
-let history = [], future = [], layout, gesture = null, space = false, storageFailed = false, toastTimer;
-let stateLoadError = false, storageConflict = false, unsavedChanges = false;
-let cloudEngine = null, cloudCache = null, googleAuth = null, editingBase = null;
-let inbox = new ChangeInbox();
-let cloudRenderNeeded = false;
-let renderedDay = null;
-let storedSignature = dataSignature({tasks:[],owners:[]});
+import {
+  CARD,
+  STATUSES,
+  STATUS_LANES,
+  statusGroup,
+  localDate,
+  createLayout,
+  moveTask,
+  validateBoard,
+  groupFor,
+  dropTarget,
+  fitCamera,
+  importBoard,
+} from "./model.mjs";
+import { SyncEngine } from "./sync-engine.mjs";
+import { GoogleAuth } from "./google-auth.mjs";
+import { SheetsApi } from "./sheets-api.mjs";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs";
+import { dataSignature, writeBoard } from "./storage.mjs";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs";
+import {
+  DraftStore,
+  EDIT_FIELDS,
+  editorValues,
+  resumeDraft,
+  editConflicts,
+  planEdit,
+} from "./editor.mjs";
+import { parseAssignee } from "./people.mjs";
+import {
+  matchesTask,
+  matchesWords,
+  cleanPreferences,
+  emptyState,
+  importSummary,
+  demoTasks,
+} from "./ui-model.mjs";
+import { icon } from "./icons.mjs";
+const $ = (selector) => document.querySelector(selector),
+  $$ = (selector) => [...document.querySelectorAll(selector)];
+const DEMO = new URLSearchParams(location.search).get("demo") === "1";
+const STORAGE = DEMO
+    ? "gengroup.task-canvas.demo.v1"
+    : "gengroup.task-canvas.v1",
+  PREFS = "gengroup.task-canvas.preferences.v1";
+const today = () => localDate(),
+  esc = (value) =>
+    String(value ?? "").replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+const text = (selector, value) => {
+  const el = $(selector);
+  if (el.textContent !== String(value)) el.textContent = value;
+};
+let storage;
 try {
-  const saved = localStorage.getItem(STORAGE);
-  if (saved) {
-    const state = JSON.parse(saved); cloudCache=state.cloud || null; storedSignature = dataSignature(state); tasks = validateBoard(state); extraOwners = Array.isArray(state.owners) ? state.owners.filter(o => typeof o === 'string') : [];
-    inbox=new ChangeInbox(state.changes);
-    mode = ['priority', 'owners', 'time'].includes(state.mode) ? state.mode : 'priority';
-    if (state.camera && ['x','y','z'].every(k => Number.isFinite(state.camera[k]))) camera = { x: state.camera.x, y: state.camera.y, z: Math.max(.0001, Math.min(2, state.camera.z)) };
+  storage = globalThis.localStorage;
+} catch {
+  const unavailable = () => {
+    throw new Error("Хранилище браузера недоступно.");
+  };
+  storage = {
+    getItem: unavailable,
+    setItem: unavailable,
+    removeItem: unavailable,
+    key: unavailable,
+    get length() {
+      return unavailable();
+    },
+  };
+}
+const drafts = new DraftStore(storage, STORAGE),
+  memoryDrafts = new Map();
+function draftRecords() {
+  const result = drafts.list(),
+    byId = new Map(result.drafts.map((record) => [record.id, record]));
+  for (const [id, record] of memoryDrafts) byId.set(id, record);
+  return {
+    ...result,
+    drafts: [...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt),
+  };
+}
+let tasks = [],
+  extraOwners = [],
+  mode = "priority",
+  lastCanvasMode = "priority",
+  camera = { x: 32, y: 24, z: 1 },
+  selected = null,
+  editing = null,
+  editingBase = null;
+let history = [],
+  future = [],
+  layout,
+  gesture = null,
+  space = false,
+  storageFailed = false,
+  toastTimer,
+  stateLoadError = false,
+  storageConflict = false,
+  unsavedChanges = false,
+  draftFailed = false;
+let freshBoard = true;
+let cloudEngine = null,
+  cloudCache = null,
+  googleAuth = null,
+  inbox = new ChangeInbox(),
+  cloudRenderNeeded = false,
+  renderedDay = null;
+let syncState = { status: "local", pending: 0, conflicts: [], lastReadAt: 0 },
+  storedSignature = dataSignature({ tasks: [], owners: [] });
+let preferences = cleanPreferences(null),
+  importPlan = null,
+  changesSignature = "",
+  connectionAttempt = 0,
+  connecting = false;
+try {
+  const raw = storage.getItem(STORAGE);
+  if (raw) {
+    const state = JSON.parse(raw);
+    freshBoard = false;
+    storedSignature = dataSignature(state);
+    tasks = validateBoard(state);
+    extraOwners = Array.isArray(state.owners)
+      ? state.owners.filter((o) => typeof o === "string")
+      : [];
+    cloudCache = DEMO ? null : state.cloud || null;
+    inbox = new ChangeInbox(state.changes);
+    mode = ["priority", "owners", "time", "list"].includes(state.mode)
+      ? state.mode
+      : "priority";
+    lastCanvasMode = ["priority", "owners", "time"].includes(
+      state.lastCanvasMode,
+    )
+      ? state.lastCanvasMode
+      : mode === "list"
+        ? "priority"
+        : mode;
+    if (
+      state.camera &&
+      ["x", "y", "z"].every((k) => Number.isFinite(state.camera[k]))
+    )
+      camera = {
+        x: state.camera.x,
+        y: state.camera.y,
+        z: Math.max(0.0001, Math.min(2, state.camera.z)),
+      };
+  } else {
+    if (DEMO) tasks = demoTasks();
+    if (matchMedia("(max-width:767px)").matches) mode = "list";
   }
-} catch { stateLoadError = true; storageFailed = true; }
-const esc = value => String(value || '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4500); }
+} catch {
+  stateLoadError = true;
+  storageFailed = true;
+}
+try {
+  preferences = cleanPreferences(JSON.parse(storage.getItem(PREFS) || "{}"));
+} catch {}
+$$("[data-icon]").forEach((el) => (el.innerHTML = icon(el.dataset.icon)));
+$("#demo-banner").hidden = !DEMO;
+$("#google-connect").hidden = DEMO;
+$("#changes-open").hidden = DEMO;
+function toast(message) {
+  text("#toast", message);
+  $("#toast").hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => ($("#toast").hidden = true), 5000);
+}
+function renderAlert() {
+  const message = stateLoadError
+    ? "Сохранённая копия повреждена. Она не перезаписана."
+    : storageConflict
+      ? "Доска изменена в другой вкладке. Скачайте текущую копию и обновите страницу."
+      : storageFailed
+        ? "Не удалось сохранить на устройстве. Скачайте копию перед закрытием."
+        : "";
+  text("#app-alert-text", message);
+  $("#app-alert").hidden = !message;
+}
 function persist() {
   if (storageConflict || stateLoadError) {
-    $('#save-state').textContent = 'Не сохранено · экспортируйте копию'; return false;
+    text("#save-state", "Не сохранено - скачайте копию");
+    renderAlert();
+    return false;
   }
-  const state = { version: 1, tasks, owners: extraOwners, mode, camera, cloud:cloudEngine?.snapshot() || cloudCache, changes:inbox.snapshot() };
-  const result = writeBoard(localStorage, STORAGE, state, storedSignature);
+  const state = {
+    version: 1,
+    tasks,
+    owners: extraOwners,
+    mode,
+    lastCanvasMode,
+    camera,
+    cloud: DEMO ? null : cloudEngine?.snapshot() || cloudCache,
+    changes: inbox.snapshot(),
+  };
+  const result = writeBoard(storage, STORAGE, state, storedSignature);
   if (result.ok) {
-    storedSignature = result.signature; storageFailed = false; unsavedChanges = false;
-    $('#save-state').textContent = cloudEngine?.enabled ? 'Локальная копия сохранена' : 'Сохранено на устройстве'; return true;
+    storedSignature = result.signature;
+    storageFailed = false;
+    unsavedChanges = false;
+    text(
+      "#save-state",
+      DEMO
+        ? "Демонстрация на устройстве"
+        : cloudEngine?.enabled
+          ? "Локальная копия сохранена"
+          : "Сохранено на устройстве",
+    );
+    renderAlert();
+    return true;
   }
-  storageConflict = result.reason === 'conflict'; storageFailed = !storageConflict;
-  $('#save-state').textContent = storageConflict ? 'Конфликт вкладок · экспортируйте копию' : 'Не сохранено · экспортируйте доску';
+  storageConflict = result.reason === "conflict";
+  storageFailed = !storageConflict;
+  text("#save-state", "Не сохранено - скачайте копию");
+  renderAlert();
   return false;
 }
 function savedToast(message) {
-  toast(storageConflict || stateLoadError || storageFailed ? 'Изменения только в памяти. Экспортируйте доску перед закрытием.' : message);
+  toast(
+    storageConflict || stateLoadError || storageFailed
+      ? "Изменения только в памяти. Скачайте копию перед закрытием."
+      : message,
+  );
 }
-function snapshot() { return JSON.stringify({ tasks, owners: extraOwners }); }
+const snapshot = () => JSON.stringify({ tasks, owners: extraOwners });
 function change(fn) {
-  const before = snapshot(); fn();
-  if (snapshot() !== before) { cloudEngine?.changed(); history.push(before); if (history.length > 50) history.shift(); future = []; unsavedChanges = true; persist(); }
+  const before = snapshot();
+  try {
+    fn();
+    tasks = validateBoard(tasks);
+  } catch (error) {
+    const previous = JSON.parse(before);
+    tasks = previous.tasks;
+    extraOwners = previous.owners;
+    throw error;
+  }
+  let ok = true;
+  if (snapshot() !== before) {
+    history.push(before);
+    if (history.length > 50) history.shift();
+    future = [];
+    unsavedChanges = true;
+    cloudEngine?.changed();
+    ok = persist();
+  } else if (storageFailed || unsavedChanges) ok = persist();
   render();
+  return ok;
 }
 function restore(from, to) {
   if (!from.length) return;
-  to.push(snapshot()); const state = JSON.parse(from.pop()); tasks = state.tasks; extraOwners = state.owners; selected = null; unsavedChanges = true; cloudEngine?.changed(); persist(); render();
+  to.push(snapshot());
+  const state = JSON.parse(from.pop());
+  tasks = state.tasks;
+  extraOwners = state.owners;
+  selected = null;
+  unsavedChanges = true;
+  cloudEngine?.changed();
+  persist();
+  render();
+  savedToast("Изменение отменено / повторено");
+}
+function applyPreferences() {
+  document.documentElement.dataset.theme =
+    preferences.theme === "system"
+      ? matchMedia("(prefers-color-scheme:dark)").matches
+        ? "dark"
+        : "light"
+      : preferences.theme;
+  document.documentElement.dataset.density = preferences.density;
+  $("#theme-choice").value = preferences.theme;
+  $("#density-choice").value = preferences.density;
+  document.querySelector('meta[name="theme-color"]').content = getComputedStyle(
+    document.documentElement,
+  )
+    .getPropertyValue("--bg")
+    .trim();
+}
+applyPreferences();
+matchMedia("(prefers-color-scheme:dark)").addEventListener(
+  "change",
+  applyPreferences,
+);
+for (const id of ["theme-choice", "density-choice"])
+  $(`#${id}`).onchange = () => {
+    preferences = cleanPreferences({
+      theme: $("#theme-choice").value,
+      density: $("#density-choice").value,
+    });
+    applyPreferences();
+    try {
+      storage.setItem(PREFS, JSON.stringify(preferences));
+      text("#preferences-error", "");
+    } catch {
+      text(
+        "#preferences-error",
+        "Настройки применены, но не сохранились на устройстве.",
+      );
+    }
+  };
+function showDialog(id) {
+  const dialog = $("#" + id);
+  if (!dialog.open) dialog.showModal();
+}
+function closeDialog(id) {
+  if (id === "editor") saveDraft();
+  if (id === "cloud-dialog") cancelConnection();
+  $("#" + id).close();
+}
+$$("[data-close]").forEach(
+  (b) => (b.onclick = () => closeDialog(b.dataset.close)),
+);
+$$("dialog").forEach((dialog) =>
+  dialog.addEventListener("cancel", () => {
+    if (dialog.id === "editor") saveDraft();
+    if (dialog.id === "cloud-dialog") cancelConnection();
+  }),
+);
+$("#editor").addEventListener("close", () => {
+  renderDraftBanner();
+  if (cloudEngine?.connected) cloudEngine.later(250);
+});
+$("#appearance-open").onclick = () => showDialog("appearance-dialog");
+$("#help-open").onclick = () => showDialog("help-dialog");
+function placeFilters() {
+  const mobile = matchMedia("(max-width:767px)").matches;
+  const slot = $(mobile ? "#mobile-filters-slot" : "#desktop-filters-slot");
+  if ($("#filter-panel").parentElement !== slot)
+    slot.append($("#filter-panel"));
+  if (!mobile && $("#filters-dialog").open) $("#filters-dialog").close();
+}
+placeFilters();
+matchMedia("(max-width:767px)").addEventListener("change", placeFilters);
+$("#filters-open").onclick = () => showDialog("filters-dialog");
+function setOptions(select, html) {
+  if (select.dataset.options === html) return;
+  const value = select.value;
+  select.innerHTML = html;
+  select.dataset.options = html;
+  if ([...select.options].some((o) => o.value === value)) select.value = value;
 }
 function updateOptions() {
-  const units = [...new Set(tasks.map(t => t.unit).filter(Boolean))].sort();
-  const owners = [...new Set([...tasks.map(t => t.owner).filter(Boolean), ...extraOwners])].sort();
-  for (const [id, values, label] of [['unit-filter', units, 'Все юниты'], ['owner-filter', owners, 'Вся команда']]) {
-    const select = $(`#${id}`); const current = select.value;
-    select.innerHTML = `<option value="">${label}</option>` + (id === 'owner-filter' ? '<option value="__none">Без ответственного</option>' : '') + values.map(v => `<option value="${esc(id === 'owner-filter' ? 'owner:'+v : v)}">${esc(v)}</option>`).join('');
-    if ([...select.options].some(o => o.value === current)) select.value = current;
-  }
-  $('#owner-list').innerHTML = owners.map(o => `<option value="${esc(o)}"></option>`).join('');
-  $('#unit-list').innerHTML = units.map(u => `<option value="${esc(u)}"></option>`).join('');
+  const units = [...new Set(tasks.map((t) => t.unit).filter(Boolean))].sort(),
+    owners = [
+      ...new Set([
+        ...tasks.map((t) => t.owner).filter(Boolean),
+        ...extraOwners,
+      ]),
+    ].sort();
+  for (const [id, values, label] of [
+    ["unit-filter", units, "Все юниты"],
+    ["owner-filter", owners, "Вся команда"],
+  ])
+    setOptions(
+      $("#" + id),
+      `<option value="">${label}</option>` +
+        (id === "owner-filter"
+          ? '<option value="__none">Без ответственного</option>'
+          : "") +
+        values
+          .map(
+            (v) =>
+              `<option value="${esc(id === "owner-filter" ? "owner:" + v : v)}">${esc(v)}</option>`,
+          )
+          .join(""),
+    );
+  setOptions(
+    $("#owner-list"),
+    owners.map((v) => `<option value="${esc(v)}"></option>`).join(""),
+  );
+  setOptions(
+    $("#unit-list"),
+    units.map((v) => `<option value="${esc(v)}"></option>`).join(""),
+  );
 }
 function matchesFilters(task) {
-  const q = $('#search').value.toLocaleLowerCase('ru').trim();
-  return (!$('#unit-filter').value || task.unit === $('#unit-filter').value) &&
-    (!$('#owner-filter').value || ($('#owner-filter').value === '__none' ? !task.owner : `owner:${task.owner}` === $('#owner-filter').value)) &&
-    (!q || [task.title, task.owner, task.ownerNote, task.direction, task.unit, task.sourceId, task.comment].some(v => (v || '').toLocaleLowerCase('ru').includes(q)));
+  return (
+    (!$("#unit-filter").value || task.unit === $("#unit-filter").value) &&
+    (!$("#owner-filter").value ||
+      ($("#owner-filter").value === "__none"
+        ? !task.owner
+        : `owner:${task.owner}` === $("#owner-filter").value)) &&
+    matchesTask(task, $("#search").value)
+  );
 }
-function isVisible(task) {return matchesFilters(task) && (!$('#hide-done').checked || !statusGroup(task));}
+const isVisible = (task) =>
+  matchesFilters(task) && (!$("#hide-done").checked || !statusGroup(task));
+const formatDate = (value) =>
+  value
+    ? new Date(`${value}T12:00:00`).toLocaleDateString("ru", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "Без срока";
+function renderProvenance() {
+  const source = DEMO
+    ? "Демонстрационные данные"
+    : syncState.lastReadAt
+      ? "Google Таблица, первая вкладка"
+      : "Копия на этом устройстве";
+  const checked = syncState.lastReadAt
+    ? `Прочитана ${new Date(syncState.lastReadAt).toLocaleString("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.`
+    : "Дата проверки неизвестна.";
+  text(
+    "#data-freshness",
+    `Источник: ${source}. ${DEMO ? "Отдельная тестовая доска." : checked}${syncState.pending ? " Есть неотправленные изменения." : ""}`,
+  );
+}
+function renderEmpty() {
+  const state = emptyState({
+    count: tasks.length,
+    hasBaseline: !!cloudEngine?.base,
+    status: syncState.status,
+    demo: DEMO,
+  });
+  $("#empty").hidden = !state;
+  if (!state) return;
+  text("#empty-title", state.title);
+  text("#empty-copy", state.body);
+  text("#empty-import", state.label);
+  $("#empty-import").hidden = !state.action;
+  $("#empty-import").onclick = () =>
+    state.action === "create"
+      ? openTask()
+      : state.action === "examples"
+        ? (change(() => (tasks = demoTasks())), fit())
+        : showDialog("cloud-dialog");
+  $("#demo").hidden = DEMO;
+  $("#empty-import-file").hidden = !state.action;
+}
+function cardMarkup(task) {
+  const p = layout.placed.get(task.id);
+  if (!p) return "";
+  const notice = inbox.get(task.id),
+    badge = notice
+      ? notice.kind === "new"
+        ? "Новая из таблицы"
+        : "Обновлена из таблицы"
+      : "";
+  const initials = task.owner
+    ? task.owner
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((s) => s[0])
+        .join("")
+    : "·";
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "ЗАДАЧА")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+}
+function listMarkup(visible) {
+  return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
+    .map((task) => {
+      const notice = inbox.get(task.id);
+      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
+        ...new Set([...STATUSES, task.status]),
+      ]
+        .filter(Boolean)
+        .map(
+          (s) =>
+            `<option${task.status === s ? " selected" : ""}>${esc(s)}</option>`,
+        )
+        .join("")}</select></td></tr>`;
+    })
+    .join("")}</tbody></table>`;
+}
 function render() {
-  cloudRenderNeeded=false;
-  renderedDay=today();
-  document.querySelectorAll('.status-shortcut').forEach(button=>button.classList.remove('drop-target'));
+  const focusedStatus = document.activeElement?.dataset?.statusId;
+  cloudRenderNeeded = false;
+  renderedDay = today();
   renderChanges();
   updateOptions();
-  const visible = tasks.filter(isVisible);
-  const matching=tasks.filter(matchesFilters);
-  for(const lane of STATUS_LANES)$(`[data-status-count="${lane.id}"]`).textContent=matching.filter(t=>statusGroup(t)===lane.id).length;
-  layout = createLayout(visible, mode, today(), [...new Set([...extraOwners,...tasks.map(t => t.owner).filter(Boolean)])]);
-  $('#lane-jump').innerHTML = '<option value="">К дорожке…</option>' + layout.groups.map(g => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join('');
-  $('#task-count').textContent = visible.length;
+  renderDraftBanner();
+  const visible = tasks.filter(isVisible),
+    matching = tasks.filter(matchesFilters),
+    canvasMode = mode === "list" ? lastCanvasMode : mode;
+  layout = createLayout(visible, canvasMode, today(), [
+    ...new Set([...extraOwners, ...tasks.map((t) => t.owner).filter(Boolean)]),
+  ]);
+  for (const lane of STATUS_LANES)
+    text(
+      `[data-status-count="${lane.id}"]`,
+      matching.filter((t) => statusGroup(t) === lane.id).length,
+    );
+  setOptions(
+    $("#lane-jump"),
+    '<option value="">К дорожке</option>' +
+      layout.groups
+        .map((g) => `<option value="${esc(g.id)}">${esc(g.title)}</option>`)
+        .join(""),
+  );
+  text("#task-count", visible.length);
+  text(
+    "#task-scope",
+    visible.length === tasks.length
+      ? `всего задач: ${tasks.length}`
+      : `показано из ${tasks.length}`,
+  );
   const info = {
-    priority: ['МАТРИЦА ПРИОРИТЕТОВ','Что действительно важно','Перенесите карточку, чтобы изменить приоритет'],
-    owners: ['КОМАНДА И ОТВЕТСТВЕННОСТЬ','У каждой задачи — свой человек','Перенос в дорожку назначает ответственного'],
-    time: ['ПЛАНИРОВАНИЕ ПО ВРЕМЕНИ','Найдите правильный момент','Перенос меняет срок на дату дорожки'],
+    priority: ["Планирование", "Приоритеты", "Перенос меняет приоритет"],
+    owners: ["Ответственность", "Команда", "Перенос назначает ответственного"],
+    time: ["Планирование", "Сроки", "Перенос меняет дату"],
+    list: ["Все задачи", "Список", "Откройте название, чтобы изменить задачу"],
   }[mode];
-  $('#view-kicker').textContent = info[0]; $('#view-title').textContent = info[1]; $('#view-hint').textContent = info[2];
-  document.querySelectorAll('[data-mode]').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
-  $('#new-owner').hidden = mode !== 'owners';
-  $('#zones').innerHTML = layout.groups.map((g, i) => `<section class="zone ${g.color}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || (g.id === 'inbox' ? '↓' : String(i + (mode === 'priority' ? 0 : 1)).padStart(2,'0'))}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter(t => groupFor(t, mode, today()) === g.id).length}</span></div></section>`).join('');
-  $('#cards').innerHTML = visible.map(task => {
-    const p = layout.placed.get(task.id); if (!p) return '';
-    const name = task.owner || (task.ownerNote ? 'Уточнить ответственного' : 'Не назначен');
-    const initials = task.owner ? task.owner.split(/\s+/).slice(0,2).map(s => s[0]).join('') : '·';
-    const date = task.due ? new Date(`${task.due}T12:00:00`).toLocaleDateString('ru', { day:'numeric', month:'short' }) : 'Без срока';
-    const notice=inbox.get(task.id), badge=notice ? notice.kind==='new'?'Новая из таблицы':'Обновлена из таблицы' : '';
-    return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge+'. ' : ''}Открыть детали" class="task-card${selected === task.id ? ' selected' : ''}${notice ? ' unread-change '+(notice.kind==='new'?'unread-new':'unread-updated') : ''}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ''}<div class="card-top"><span class="unit-tag">${esc(task.unit || 'ЗАДАЧА')}</span><span class="card-id">${task.sourceId ? '#' + esc(task.sourceId) : ''}</span><span class="status-text"><i class="status-dot ${task.status === 'Готово' ? 'done' : task.status === 'В работе' ? 'working' : ''}"></i> ${esc(task.status || 'Не указан')}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(name)}</span><span class="date${task.due && task.due < today() && !['Готово','Отменено'].includes(task.status) ? ' overdue' : ''}">◷ ${esc(date)}</span></div></article>`;
-  }).join('');
-  $('#empty').hidden = tasks.length > 0;
-  $('#no-results').hidden = !tasks.length || visible.length > 0;
-  $('#undo').disabled = !history.length; $('#redo').disabled = !future.length;
+  text("#view-kicker", info[0]);
+  text("#view-title", info[1]);
+  text("#view-hint", info[2]);
+  $$("[data-mode]").forEach((el) => {
+    el.classList.toggle("active", el.dataset.mode === mode);
+    el.setAttribute("aria-pressed", String(el.dataset.mode === mode));
+  });
+  $("#new-owner").hidden = mode !== "owners";
+  $("#lane-jump").hidden = mode === "list";
+  $("#viewport").hidden = mode === "list";
+  $("#task-list").hidden = mode !== "list";
+  $(".canvas-footer").hidden = mode === "list";
+  $(".zoom-controls").hidden = mode === "list" || !visible.length;
+  const filterCount = [
+    $("#unit-filter").value,
+    $("#owner-filter").value,
+    $("#hide-done").checked,
+  ].filter(Boolean).length;
+  text("#filter-count", filterCount ? `Фильтры · ${filterCount}` : "Фильтры");
+  if (mode === "list") $("#task-list").innerHTML = listMarkup(visible);
+  else {
+    $("#zones").innerHTML = layout.groups
+      .map(
+        (g, i) =>
+          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor(t, canvasMode, today()) === g.id).length}</span></div></section>`,
+      )
+      .join("");
+    $("#cards").innerHTML = visible.map(cardMarkup).join("");
+  }
+  renderEmpty();
+  $("#no-results").hidden = !tasks.length || !!visible.length;
+  $("#undo").disabled = !history.length;
+  $("#redo").disabled = !future.length;
+  renderProvenance();
+  renderAlert();
   applyCamera();
+  if (focusedStatus)
+    $$("[data-status-id]")
+      .find((el) => el.dataset.statusId === focusedStatus)
+      ?.focus({ preventScroll: true });
 }
 function applyCamera() {
-  $('#world').style.transform = `translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;
-  $('#viewport').style.backgroundSize = `${24 * camera.z}px ${24 * camera.z}px`;
-  $('#viewport').style.backgroundPosition = `${camera.x}px ${camera.y}px`;
-  $('#zoom-label').textContent = `${camera.z < .01 ? (camera.z * 100).toFixed(1) : Math.round(camera.z * 100)}%`;
+  $("#world").style.transform =
+    `translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;
+  $("#viewport").style.backgroundSize = `${24 * camera.z}px ${24 * camera.z}px`;
+  $("#viewport").style.backgroundPosition = `${camera.x}px ${camera.y}px`;
+  text(
+    "#zoom-label",
+    `${camera.z < 0.01 ? (camera.z * 100).toFixed(1) : Math.round(camera.z * 100)}%`,
+  );
 }
 function zoom(factor, point) {
-  const rect = $('#viewport').getBoundingClientRect(); point ||= { x: rect.width / 2, y: rect.height / 2 };
-  const next = Math.max(.0001, Math.min(2, camera.z * factor));
-  camera.x = point.x - (point.x - camera.x) * next / camera.z;
-  camera.y = point.y - (point.y - camera.y) * next / camera.z; camera.z = next; applyCamera();
+  const rect = $("#viewport").getBoundingClientRect();
+  point ||= { x: rect.width / 2, y: rect.height / 2 };
+  const next = Math.max(0.0001, Math.min(2, camera.z * factor));
+  camera.x = point.x - ((point.x - camera.x) * next) / camera.z;
+  camera.y = point.y - ((point.y - camera.y) * next) / camera.z;
+  camera.z = next;
+  applyCamera();
 }
 function fit() {
-  if (!tasks.length) return;
-  const visible = tasks.filter(isVisible); if (!visible.length) return;
-  const positions = visible.map(t => layout.placed.get(t.id)).filter(Boolean);
-  const rect = $('#viewport').getBoundingClientRect();
-  camera = fitCamera(positions, rect.width, rect.height); applyCamera(); persist();
+  if (mode === "list") return;
+  const visible = tasks.filter(isVisible);
+  if (!visible.length) return;
+  const rect = $("#viewport").getBoundingClientRect();
+  camera = fitCamera(
+    visible.map((t) => layout.placed.get(t.id)).filter(Boolean),
+    rect.width,
+    rect.height,
+  );
+  applyCamera();
+  persist();
 }
 function worldPoint(event) {
-  const r = $('#viewport').getBoundingClientRect();
-  return { x: (event.clientX - r.left - camera.x) / camera.z, y: (event.clientY - r.top - camera.y) / camera.z };
+  const r = $("#viewport").getBoundingClientRect();
+  return {
+    x: (event.clientX - r.left - camera.x) / camera.z,
+    y: (event.clientY - r.top - camera.y) / camera.z,
+  };
 }
 function statusDropTarget(event) {
-  const button=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-status-zone]');
-  return button ? layout.groups.find(group=>group.id===button.dataset.statusZone) : null;
+  const button = document
+    .elementFromPoint(event.clientX, event.clientY)
+    ?.closest("[data-status-zone]");
+  return button
+    ? layout.groups.find((group) => group.id === button.dataset.statusZone)
+    : null;
 }
-$('#viewport').addEventListener('wheel', e => {
-  e.preventDefault();
-  if (e.ctrlKey || e.metaKey) {
-    const rect = $('#viewport').getBoundingClientRect(); zoom(Math.exp(-e.deltaY * .008), { x: e.clientX - rect.left, y: e.clientY - rect.top });
-  } else { camera.x -= e.deltaX; camera.y -= e.deltaY; applyCamera(); }
-  clearTimeout(window.cameraSave); window.cameraSave = setTimeout(persist, 250);
-}, { passive:false });
-const touches = new Map(); let pinch = null;
-$('#viewport').addEventListener('pointerdown', e => {
-  if (e.target.closest('#empty, #no-results')) return;
-  if (e.pointerType === 'touch') {
-    touches.set(e.pointerId, { x:e.clientX, y:e.clientY });
+$("#viewport").addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      const rect = $("#viewport").getBoundingClientRect();
+      zoom(Math.exp(-e.deltaY * 0.008), {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    } else {
+      camera.x -= e.deltaX;
+      camera.y -= e.deltaY;
+      applyCamera();
+    }
+    clearTimeout(window.cameraSave);
+    window.cameraSave = setTimeout(persist, 250);
+  },
+  { passive: false },
+);
+const touches = new Map();
+let pinch = null;
+$("#viewport").addEventListener("pointerdown", (e) => {
+  if (e.target.closest("#empty, #no-results")) return;
+  if (e.pointerType === "touch") {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (touches.size === 2) {
-      if (gesture?.type === 'card') { render(); }
+      if (gesture?.type === "card") {
+        render();
+      }
       gesture = null;
-      const [a,b] = [...touches.values()]; const r = $('#viewport').getBoundingClientRect();
-      pinch = { distance:Math.hypot(a.x-b.x,a.y-b.y), camera:{...camera}, center:{x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top} };
-      $('#viewport').setPointerCapture(e.pointerId); return;
+      const [a, b] = [...touches.values()];
+      const r = $("#viewport").getBoundingClientRect();
+      pinch = {
+        distance: Math.hypot(a.x - b.x, a.y - b.y),
+        camera: { ...camera },
+        center: { x: (a.x + b.x) / 2 - r.left, y: (a.y + b.y) / 2 - r.top },
+      };
+      $("#viewport").setPointerCapture(e.pointerId);
+      return;
     }
   }
   if (e.button !== 0 && e.button !== 1) return;
-  const card = e.target.closest('.task-card'); const p = worldPoint(e);
+  const card = e.target.closest(".task-card");
+  const p = worldPoint(e);
   if (card && !space && e.button === 0) {
     selected = card.dataset.id;
-    document.querySelectorAll('.task-card').forEach(c => c.classList.toggle('selected', c === card));
+    document
+      .querySelectorAll(".task-card")
+      .forEach((c) => c.classList.toggle("selected", c === card));
     const original = layout.placed.get(selected);
-    gesture = { type:'card', id:selected, pointer:e.pointerId, start:{x:e.clientX,y:e.clientY}, dx:p.x-original.x, dy:p.y-original.y, original, moved:false, card };
-    card.focus({preventScroll:true});
+    gesture = {
+      type: "card",
+      id: selected,
+      pointer: e.pointerId,
+      start: { x: e.clientX, y: e.clientY },
+      dx: p.x - original.x,
+      dy: p.y - original.y,
+      original,
+      moved: false,
+      card,
+    };
+    card.focus({ preventScroll: true });
   } else {
-    gesture = { type:'pan', pointer:e.pointerId, start:{x:e.clientX,y:e.clientY}, camera:{...camera} };
-    $('#viewport').classList.add('panning');
+    gesture = {
+      type: "pan",
+      pointer: e.pointerId,
+      start: { x: e.clientX, y: e.clientY },
+      camera: { ...camera },
+    };
+    $("#viewport").classList.add("panning");
   }
-  (gesture.type === 'card' ? card : $('#viewport')).setPointerCapture(e.pointerId);
+  (gesture.type === "card" ? card : $("#viewport")).setPointerCapture(
+    e.pointerId,
+  );
 });
-$('#viewport').addEventListener('pointermove', e => {
-  if (touches.has(e.pointerId)) touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+$("#viewport").addEventListener("pointermove", (e) => {
+  if (touches.has(e.pointerId))
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pinch && touches.size === 2) {
-    const [a,b] = [...touches.values()]; const r = $('#viewport').getBoundingClientRect();
-    const center = {x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top};
-    const z = Math.max(.0001,Math.min(2,pinch.camera.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch.distance)));
-    camera = {z,x:center.x-(pinch.center.x-pinch.camera.x)*z/pinch.camera.z,y:center.y-(pinch.center.y-pinch.camera.y)*z/pinch.camera.z}; applyCamera(); return;
+    const [a, b] = [...touches.values()];
+    const r = $("#viewport").getBoundingClientRect();
+    const center = { x: (a.x + b.x) / 2 - r.left, y: (a.y + b.y) / 2 - r.top };
+    const z = Math.max(
+      0.0001,
+      Math.min(
+        2,
+        (pinch.camera.z * Math.hypot(a.x - b.x, a.y - b.y)) /
+          Math.max(1, pinch.distance),
+      ),
+    );
+    camera = {
+      z,
+      x: center.x - ((pinch.center.x - pinch.camera.x) * z) / pinch.camera.z,
+      y: center.y - ((pinch.center.y - pinch.camera.y) * z) / pinch.camera.z,
+    };
+    applyCamera();
+    return;
   }
   if (!gesture || e.pointerId !== gesture.pointer) return;
-  if (gesture.type === 'pan') {
-    camera.x = gesture.camera.x + e.clientX - gesture.start.x; camera.y = gesture.camera.y + e.clientY - gesture.start.y; applyCamera(); return;
+  if (gesture.type === "pan") {
+    camera.x = gesture.camera.x + e.clientX - gesture.start.x;
+    camera.y = gesture.camera.y + e.clientY - gesture.start.y;
+    applyCamera();
+    return;
   }
-  if (Math.hypot(e.clientX - gesture.start.x,e.clientY - gesture.start.y) < 4 && !gesture.moved) return;
-  gesture.moved = true; gesture.card.classList.add('dragging');
-  const p = worldPoint(e); const x = p.x-gesture.dx, y = p.y-gesture.dy;
-  gesture.card.style.left = `${x}px`; gesture.card.style.top = `${y}px`;
-  const group = statusDropTarget(e) || dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
-  document.querySelectorAll('.zone').forEach(el => el.classList.toggle('drop-target', el.dataset.group === group?.id));
-  document.querySelectorAll('.status-shortcut').forEach(el=>el.classList.toggle('drop-target',el.dataset.statusZone===group?.id));
+  if (
+    Math.hypot(e.clientX - gesture.start.x, e.clientY - gesture.start.y) < 4 &&
+    !gesture.moved
+  )
+    return;
+  gesture.moved = true;
+  gesture.card.classList.add("dragging");
+  const p = worldPoint(e);
+  const x = p.x - gesture.dx,
+    y = p.y - gesture.dy;
+  gesture.card.style.left = `${x}px`;
+  gesture.card.style.top = `${y}px`;
+  const group =
+    statusDropTarget(e) ||
+    dropTarget(layout.groups, x + CARD.width / 2, y + CARD.height / 2);
+  document
+    .querySelectorAll(".zone")
+    .forEach((el) =>
+      el.classList.toggle("drop-target", el.dataset.group === group?.id),
+    );
+  document
+    .querySelectorAll(".status-shortcut")
+    .forEach((el) =>
+      el.classList.toggle("drop-target", el.dataset.statusZone === group?.id),
+    );
 });
 function endGesture(e, cancelled = false) {
   touches.delete(e.pointerId);
-  if (pinch) { if (touches.size < 2) { pinch = null; gesture = null; persist(); render(); } return; }
+  if (pinch) {
+    if (touches.size < 2) {
+      pinch = null;
+      gesture = null;
+      persist();
+      render();
+    }
+    return;
+  }
   if (!gesture || gesture.pointer !== e.pointerId) return;
-  const current = gesture; gesture = null; $('#viewport').classList.remove('panning');
-  if (current.type === 'pan') { persist(); return; }
+  const current = gesture;
+  gesture = null;
+  $("#viewport").classList.remove("panning");
+  if (current.type === "pan") {
+    persist();
+    return;
+  }
   if (current.moved && !cancelled) {
-    const p = worldPoint(e), x = p.x-current.dx, y = p.y-current.dy;
-    const shortcut=statusDropTarget(e), target = shortcut || dropTarget(layout.groups, x+CARD.width/2, y+CARD.height/2);
+    const p = worldPoint(e),
+      x = p.x - current.dx,
+      y = p.y - current.dy;
+    const shortcut = statusDropTarget(e),
+      target =
+        shortcut ||
+        dropTarget(layout.groups, x + CARD.width / 2, y + CARD.height / 2);
     if (target) {
       try {
-        const task = tasks.find(t => t.id === current.id);
-        const index=shortcut ? tasks.filter(t=>t.id!==task.id && groupFor(t,mode,today())===target.id).length : 0;
-        const next = moveTask(task,mode,target,shortcut?target.x+24+(index%2)*312:x,shortcut?target.y+96+Math.floor(index/2)*216:y,today());
-        if(statusGroup(next))$('#hide-done').checked=false;
-        change(() => tasks = tasks.map(t => t.id === current.id ? next : t));
-        const label = target.status ? `Статус: ${next.status}` : mode === 'priority' ? target.title : mode === 'owners' ? `Ответственный: ${next.owner || 'не назначен'}` : `Срок: ${next.due || 'не указан'}`;
-        savedToast(statusGroup(task) && !statusGroup(next) ? `В работе · ${label}` : label);
-      } catch (error) { toast(error.message); render(); }
-    } else { render(); toast('Поместите карточку внутрь дорожки.'); }
+        const task = tasks.find((t) => t.id === current.id);
+        const index = shortcut
+          ? tasks.filter(
+              (t) =>
+                t.id !== task.id && groupFor(t, mode, today()) === target.id,
+            ).length
+          : 0;
+        const next = moveTask(
+          task,
+          mode,
+          target,
+          shortcut ? target.x + 24 + (index % 2) * 312 : x,
+          shortcut ? target.y + 96 + Math.floor(index / 2) * 216 : y,
+          today(),
+        );
+        if (statusGroup(next)) $("#hide-done").checked = false;
+        change(
+          () => (tasks = tasks.map((t) => (t.id === current.id ? next : t))),
+        );
+        const label = target.status
+          ? `Статус: ${next.status}`
+          : mode === "priority"
+            ? target.title
+            : mode === "owners"
+              ? `Ответственный: ${next.owner || "не назначен"}`
+              : `Срок: ${next.due || "не указан"}`;
+        savedToast(
+          statusGroup(task) && !statusGroup(next)
+            ? `В работе · ${label}`
+            : label,
+        );
+      } catch (error) {
+        toast(error.message);
+        render();
+      }
+    } else {
+      render();
+      toast("Поместите карточку внутрь дорожки.");
+    }
   } else if (cancelled) render();
 }
-$('#viewport').addEventListener('pointerup', e => endGesture(e));
-$('#viewport').addEventListener('pointercancel', e => endGesture(e,true));
-$('#cards').addEventListener('dblclick', e => { const card = e.target.closest('[data-id]'); if(card) openTask(card.dataset.id); });
-$('#cards').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); openTask(e.target.closest('[data-id]').dataset.id); } });
+$("#viewport").addEventListener("pointerup", (e) => endGesture(e));
+$("#viewport").addEventListener("pointercancel", (e) => endGesture(e, true));
+$("#cards").addEventListener("dblclick", (e) => {
+  const card = e.target.closest("[data-id]");
+  if (card) openTask(card.dataset.id);
+});
+$("#cards").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.code === "Space") {
+    e.preventDefault();
+    e.stopPropagation();
+    openTask(e.target.closest("[data-id]").dataset.id);
+  }
+});
+const field = (name) => $(`#task-form [name="${name}"]`);
+const formValues = () =>
+  Object.fromEntries(EDIT_FIELDS.map((key) => [key, field(key).value]));
+function renderDraftBanner() {
+  const result = draftRecords();
+  $("#draft-banner").hidden = !result.drafts.length && !result.errors.length;
+  text(
+    "#draft-summary",
+    result.errors.length
+      ? "Часть черновиков не читается. Исходные записи оставлены на устройстве."
+      : `Несохранённые черновики: ${result.drafts.length}`,
+  );
+}
+function saveDraft() {
+  if (!$("#editor").open) return true;
+  const result = drafts.save(editing, editingBase, formValues());
+  if (result.ok) memoryDrafts.delete(editing);
+  else
+    memoryDrafts.set(editing, {
+      version: 1,
+      id: editing,
+      base: editorValues(editingBase),
+      values: formValues(),
+      updatedAt: Date.now(),
+    });
+  draftFailed = memoryDrafts.size > 0;
+  text(
+    "#draft-state",
+    result.ok
+      ? "Черновик сохраняется на этом устройстве"
+      : "Черновик только в открытом редакторе",
+  );
+  if (!result.ok)
+    text(
+      "#editor-error",
+      result.message + " Скопируйте введённый текст перед закрытием.",
+    );
+  renderDraftBanner();
+  return result.ok;
+}
+function renderEditorConflicts() {
+  const current = tasks.find((t) => t.id === editing),
+    missing = editing !== null && !current;
+  $("#save-task").hidden = missing;
+  $("#recreate-task").hidden = !missing;
+  $("#delete-task").hidden = editing === null || missing;
+  if (missing)
+    text(
+      "#editor-error",
+      "Эта задача убрана с доски. Введённый текст сохранён в черновике. Создать новую копию можно отдельной кнопкой.",
+    );
+  const conflicts = editConflicts(current, editingBase, formValues());
+  $("#editor-conflicts").innerHTML = conflicts
+    .map(
+      (c) =>
+        `<section class="notice"><strong>Две версии: ${esc(FIELD_NAMES[c.field] || c.field)}</strong><p>Из таблицы</p><pre>${esc(c.remote || "Пусто")}</pre><p>Ваш текст</p><pre>${esc(c.local || "Пусто")}</pre><div class="editor-conflict-actions"><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="remote">Взять из таблицы</button><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="local">Оставить мой текст</button></div></section>`,
+    )
+    .join("");
+  return conflicts;
+}
 function openTask(id = null) {
-  const notice=inbox.get(id);
-  $('#editor-update').hidden=!notice;
-  $('#editor-update').textContent=notice ? `${notice.kind==='new'?'Новая задача из таблицы':'Из таблицы обновлено: '+notice.fields.map(f=>CHANGE_FIELDS[f]).join(', ')}. Отмечено просмотренным на этом устройстве.` : '';
-  if(notice) {inbox.acknowledge(id);render();persist();}
-  editing = id; const task = tasks.find(t => t.id === id) || { title:'', status:'В ожидании', unit:$('#unit-filter').value, owner:'', due:'', priority:'' };
-  editingBase=structuredClone(task);
-  const form = $('#task-form'); form.reset();
-  form.elements.status.innerHTML = [...new Set([...STATUSES, ...tasks.map(t => t.status).filter(Boolean)])].map(s => `<option>${esc(s)}</option>`).join('');
-  for (const key of ['title','unit','status','owner','due','priority','description','comment']) form.elements[key].value = task[key] || '';
-  $('#editor-id').textContent = task.sourceId ? `ЗАДАЧА #${task.sourceId}` : id ? 'ЗАДАЧА' : 'НОВАЯ ЗАДАЧА';
-  $('#owner-note').textContent = task.ownerNote ? `Из таблицы: ${task.ownerNote}` : '';
-  $('#due-note').textContent = task.dueNote ? `Исходный срок: ${task.dueNote}` : '';
-  $('#source-context').textContent = [task.direction && `Направление: ${task.direction}`,task.requester && `Постановщик: ${task.requester}`,task.dependency && `Зависимости и уточнения: ${task.dependency}`].filter(Boolean).join('\n\n') || 'Дополнительного контекста нет.';
-  $('#source-link').hidden = !/^https?:\/\//.test(task.link || '');
-  if (!$('#source-link').hidden) $('#source-link').href = task.link;
-  $('#delete-task').hidden = !id;
-  $('#editor').showModal();
-}
-$('#task-form').addEventListener('submit', e => {
-  e.preventDefault(); const data = Object.fromEntries(new FormData(e.target)); data.title = data.title.trim(); data.owner = data.owner.trim();
-  if (!data.title) { e.target.elements.title.setCustomValidity('Введите название задачи.'); e.target.elements.title.reportValidity(); return; }
-  const old = tasks.find(t => t.id === editing);
-  const dirty=Object.keys(data).filter(key=>String(data[key] || '')!==String(editingBase?.[key] || ''));
-  if(old && dirty.some(key=>String(old[key] || '')!==String(editingBase?.[key] || '') && String(old[key] || '')!==String(data[key] || ''))) {toast('Эти поля обновились из таблицы. Скопируйте свой текст, закройте и откройте карточку для сравнения.');return;}
-  const patch=old ? Object.fromEntries(dirty.map(key=>[key,data[key]])) : data;
-  const task = { ...(old || {id:crypto.randomUUID(),positions:{}}), ...patch };task.priority ||= null;
-  if(statusGroup(task))$('#hide-done').checked=false;
-  if (old) {
-    task.positions = structuredClone(old.positions || {});
-    if (task.owner !== old.owner) delete task.positions.owners;
-    if (task.due !== old.due) delete task.positions.time;
-    if (task.priority !== old.priority) delete task.positions.priority;
-  }
-  change(() => tasks = old ? tasks.map(t => t.id === editing ? task : t) : [...tasks,task]);
-  $('#editor').close(); savedToast('Задача сохранена');
-});
-$('#task-form').elements.title.addEventListener('input',e => e.target.setCustomValidity(''));
-$('#delete-task').onclick = () => { change(() => tasks = tasks.filter(t => t.id !== editing)); $('#editor').close(); savedToast('Задача удалена. Можно отменить.'); };
-$('#add').onclick = () => openTask();
-$('#new-owner').onclick = () => {
-  const name = prompt('Имя ответственного для новой дорожки');
-  if (!name?.trim()) return;
-  if (extraOwners.includes(name.trim()) || tasks.some(t => t.owner === name.trim())) return toast('Такая дорожка уже есть.');
-  change(() => extraOwners.push(name.trim()));
-  const g = layout.groups.find(g => g.id === `owner:${name.trim()}`); camera.x = 30-g.x*camera.z; camera.y = 30; applyCamera(); persist();
-};
-function openImport() { $('#import-error').textContent = ''; $('#import-dialog').showModal(); }
-$('#import-open').onclick = openImport; $('#empty-import').onclick = openImport; $('#help-open').onclick = () => $('#help-dialog').showModal();
-document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $(`#${b.dataset.close}`).close());
-$('#import-file').onchange = async e => {
-  try { const file = e.target.files[0]; if (file) { if (file.size > 10 * 1024 * 1024) throw new Error('Файл больше 10 МБ.'); $('#import-text').value = await file.text(); } }
-  catch { $('#import-error').textContent = 'Не удалось прочитать файл. Попробуйте вставить текст.'; }
-};
-$('#import-submit').onclick = () => {
+  editing = id;
+  const current = tasks.find((t) => t.id === id);
+  let draft = null;
+  let draftError = "";
   try {
-    const result = importBoard($('#import-text').value, tasks, extraOwners, {replace:$('#replace-import').checked});
-    change(() => { tasks = result.tasks; extraOwners = result.owners; });
-    clearFilters(); $('#import-dialog').close(); camera = { x:32,y:24,z:.8 }; applyCamera(); persist();
-    savedToast(`Импортировано ${result.added} задач${result.skipped ? '; существующие ID пропущены' : ''}.`);
-  } catch (error) { $('#import-error').textContent = error.message; }
+    draft = memoryDrafts.get(id) || drafts.read(id);
+  } catch (error) {
+    draftError = error.message;
+  }
+  const task = current || {
+    title: "",
+    status: "В ожидании",
+    unit: $("#unit-filter").value,
+    owner: "",
+    due: "",
+    priority: "",
+  };
+  const resumed = resumeDraft(task, draft);
+  if (id !== null && !current && draft) {
+    resumed.values = draft.values;
+    resumed.base = draft.base;
+  }
+  editingBase = resumed.base;
+  $("#task-form").reset();
+  field("status").innerHTML = [
+    ...new Set([
+      ...STATUSES,
+      ...tasks.map((t) => t.status).filter(Boolean),
+      resumed.values.status,
+    ]),
+  ]
+    .filter(Boolean)
+    .map((s) => `<option>${esc(s)}</option>`)
+    .join("");
+  for (const key of EDIT_FIELDS) field(key).value = resumed.values[key];
+  text(
+    "#editor-id",
+    current?.sourceId
+      ? `Задача #${current.sourceId}`
+      : id
+        ? "Задача"
+        : "Новая задача",
+  );
+  text("#editor-title", id ? "Детали задачи" : "Новая задача");
+  text("#editor-error", draftError);
+  text(
+    "#draft-state",
+    draft
+      ? "Восстановлен черновик на этом устройстве"
+      : "Изменения до сохранения остаются в черновике",
+  );
+  text("#owner-note", task.ownerNote ? `Из таблицы: ${task.ownerNote}` : "");
+  text("#due-note", task.dueNote ? `Исходный срок: ${task.dueNote}` : "");
+  text(
+    "#source-context",
+    [
+      task.direction && `Направление: ${task.direction}`,
+      task.requester && `Постановщик: ${task.requester}`,
+      task.dependency && `Зависимости и уточнения: ${task.dependency}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n") || "Дополнительного контекста нет.",
+  );
+  $("#source-link").hidden = !/^https?:\/\//.test(task.link || "");
+  if (!$("#source-link").hidden) $("#source-link").href = task.link;
+  const notice = inbox.get(id);
+  $("#editor-update").hidden = !notice;
+  text(
+    "#editor-update",
+    notice
+      ? `${notice.kind === "new" ? "Новая задача из таблицы" : "Обновлено: " + notice.fields.map((f) => CHANGE_FIELDS[f]).join(", ")}. Отмечено просмотренным на этом устройстве.`
+      : "",
+  );
+  if (notice) {
+    inbox.acknowledge(id);
+    render();
+    persist();
+  }
+  renderEditorConflicts();
+  showDialog("editor");
+}
+$("#task-form").addEventListener("input", () => {
+  text("#editor-error", "");
+  saveDraft();
+});
+$("#task-form").addEventListener("change", saveDraft);
+$("#editor-conflicts").onclick = (e) => {
+  const button = e.target.closest("[data-editor-field]");
+  if (!button) return;
+  const key = button.dataset.editorField,
+    current = tasks.find((t) => t.id === editing);
+  if (!current) return renderEditorConflicts();
+  if (button.dataset.editorChoice === "remote")
+    field(key).value = editorValues(current)[key];
+  editingBase[key] = editorValues(current)[key];
+  text("#editor-error", "");
+  saveDraft();
+  renderEditorConflicts();
 };
-$('#export').onclick = () => {
-  const blob = new Blob([JSON.stringify({ version:1, exportedAt:new Date().toISOString(), tasks, owners:extraOwners, mode, camera }, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `gengroup-board-${today()}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
-  toast('Копия доски скачана');
+function submitTask(forceNew = false) {
+  const plan = planEdit({
+    tasks,
+    id: editing,
+    base: editingBase,
+    values: formValues(),
+    createId: () => crypto.randomUUID(),
+    forceNew,
+  });
+  if (plan.kind === "missing") {
+    saveDraft();
+    renderEditorConflicts();
+    return;
+  }
+  if (plan.kind === "conflict") {
+    text(
+      "#editor-error",
+      "Поля обновились в другом месте. Выберите версии ниже.",
+    );
+    renderEditorConflicts();
+    return;
+  }
+  if (plan.kind === "invalid") {
+    text("#editor-error", plan.message);
+    if (plan.field) field(plan.field).focus();
+    return;
+  }
+  if (statusGroup(plan.task)) $("#hide-done").checked = false;
+  const before = snapshot(),
+    undoCount = history.length;
+  const ok = change(() => (tasks = plan.tasks));
+  if (!ok) {
+    const prior = JSON.parse(before);
+    tasks = prior.tasks;
+    extraOwners = prior.owners;
+    if (history.length > undoCount) history.pop();
+    render();
+    saveDraft();
+    text(
+      "#editor-error",
+      "Не удалось сохранить доску. Черновик оставлен. Скачайте копию доски перед закрытием.",
+    );
+    return;
+  }
+  try {
+    drafts.remove(editing);
+    memoryDrafts.delete(editing);
+    draftFailed = memoryDrafts.size > 0;
+  } catch {
+    toast("Задача сохранена, но старый черновик не удалось убрать.");
+  }
+  $("#editor").close();
+  renderDraftBanner();
+  savedToast("Задача сохранена");
+}
+$("#task-form").onsubmit = (e) => {
+  e.preventDefault();
+  submitTask();
 };
-function clearFilters() { $('#search').value=''; $('#unit-filter').value=''; $('#owner-filter').value=''; $('#hide-done').checked=false; render(); }
+$("#recreate-task").onclick = () => submitTask(true);
+$("#delete-task").onclick = () => {
+  const id = editing;
+  if (!tasks.some((t) => t.id === id)) return renderEditorConflicts();
+  change(() => (tasks = tasks.filter((t) => t.id !== id)));
+  try {
+    drafts.remove(id);
+    memoryDrafts.delete(id);
+    draftFailed = memoryDrafts.size > 0;
+  } catch {}
+  $("#editor").close();
+  renderDraftBanner();
+  savedToast("Убрано с доски. Можно отменить. В таблице строка архивируется.");
+};
+$("#add").onclick = () => openTask();
+$("#task-list").onclick = (e) => {
+  const b = e.target.closest("[data-open]");
+  if (b) openTask(b.dataset.open);
+};
+$("#task-list").onchange = (e) => {
+  const id = e.target.dataset.statusId;
+  if (!id) return;
+  const status = e.target.value;
+  change(
+    () => (tasks = tasks.map((t) => (t.id === id ? { ...t, status } : t))),
+  );
+  savedToast("Статус изменён");
+};
+$("#drafts-open").onclick = () => {
+  const result = draftRecords();
+  $("#draft-list").innerHTML =
+    result.drafts
+      .map(
+        (draft, i) =>
+          `<section class="draft-item"><h3>${esc(draft.values.title || "Новая задача")}</h3><p>${esc(new Date(draft.updatedAt).toLocaleString("ru"))}${draft.id !== null && !tasks.some((t) => t.id === draft.id) ? " · Исходная задача убрана с доски" : ""}</p><button class="button quiet" data-draft="${i}">Продолжить</button> <button class="text-button" data-discard-draft="${i}">Удалить черновик</button></section>`,
+      )
+      .join("") +
+    (result.errors.length
+      ? '<p class="error">Некоторые записи повреждены. Они не были перезаписаны.</p>'
+      : "");
+  $("#draft-list").onclick = (e) => {
+    const open = e.target.closest("[data-draft]"),
+      discard = e.target.closest("[data-discard-draft]");
+    const draft =
+      result.drafts[
+        Number(open?.dataset.draft ?? discard?.dataset.discardDraft)
+      ];
+    if (!draft) return;
+    if (open) {
+      $("#drafts-dialog").close();
+      openTask(draft.id);
+    } else if (discard) {
+      try {
+        drafts.remove(draft.id);
+        memoryDrafts.delete(draft.id);
+        draftFailed = memoryDrafts.size > 0;
+        renderDraftBanner();
+        $("#drafts-open").click();
+      } catch {
+        toast("Не удалось удалить черновик.");
+      }
+    }
+  };
+  showDialog("drafts-dialog");
+};
+$("#new-owner").onclick = () => {
+  text("#owner-error", "");
+  $("#owner-name").value = "";
+  showDialog("owner-dialog");
+};
+$("#owner-form").onsubmit = (e) => {
+  e.preventDefault();
+  const name = parseAssignee($("#owner-name").value);
+  if (!name) {
+    text("#owner-error", "Укажите одного человека: имя или имя и фамилию.");
+    return;
+  }
+  if (extraOwners.includes(name) || tasks.some((t) => t.owner === name)) {
+    text("#owner-error", "Такая дорожка уже есть.");
+    return;
+  }
+  change(() => extraOwners.push(name));
+  $("#owner-dialog").close();
+  jumpToGroup(`owner:${name}`, true);
+};
+function invalidateImport() {
+  importPlan = null;
+  $("#import-preview").hidden = true;
+  $("#import-confirm-label").hidden = true;
+  $("#import-confirm").checked = false;
+  text("#import-submit", "Проверить импорт");
+}
+function openImport() {
+  text("#import-error", "");
+  invalidateImport();
+  showDialog("import-dialog");
+}
+$("#import-open").onclick = openImport;
+$("#empty-import-file").onclick = openImport;
+for (const id of ["import-text", "replace-import"])
+  $("#" + id).addEventListener(
+    id === "import-text" ? "input" : "change",
+    invalidateImport,
+  );
+$("#import-file").onchange = async (e) => {
+  invalidateImport();
+  try {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) throw new Error("Файл больше 10 МБ.");
+      $("#import-text").value = await file.text();
+    }
+  } catch (error) {
+    text(
+      "#import-error",
+      error.message || "Не удалось прочитать файл. Вставьте текст.",
+    );
+  }
+};
+$("#import-submit").onclick = () => {
+  try {
+    text("#import-error", "");
+    const source = $("#import-text").value,
+      replace = $("#replace-import").checked,
+      signature = snapshot();
+    if (
+      !importPlan ||
+      importPlan.source !== source ||
+      importPlan.replace !== replace ||
+      importPlan.signature !== signature
+    ) {
+      const result = importBoard(source, tasks, extraOwners, { replace });
+      const summary = importSummary(tasks, result.tasks);
+      importPlan = { source, replace, signature, result, summary };
+      $("#import-preview").hidden = false;
+      text(
+        "#import-preview",
+        `Добавится: ${summary.added}. Изменится: ${summary.changed}. Уберётся с доски: ${summary.removed}. После импорта: ${summary.total}.`,
+      );
+      $("#import-confirm-label").hidden = !summary.removed;
+      text(
+        "#import-confirm-text",
+        `Подтверждаю: ${summary.removed} текущих задач уберутся с доски и будут архивированы в подключённой таблице.`,
+      );
+      $("#import-confirm").checked = false;
+      text("#import-submit", "Применить импорт");
+      return;
+    }
+    if (importPlan.summary.removed && !$("#import-confirm").checked)
+      throw new Error("Подтвердите удаление задач с доски в строке выше.");
+    const plan = importPlan;
+    const ok = change(() => {
+      tasks = plan.result.tasks;
+      extraOwners = plan.result.owners;
+    });
+    if (ok) {
+      clearFilters();
+      $("#import-dialog").close();
+      invalidateImport();
+      savedToast(`Импорт применён. Всего задач: ${tasks.length}.`);
+    } else
+      text(
+        "#import-error",
+        "Импорт находится в памяти. Скачайте копию доски перед закрытием.",
+      );
+  } catch (error) {
+    text("#import-error", error.message);
+  }
+};
+function exportBoard() {
+  const blob = new Blob(
+    [
+      JSON.stringify(
+        {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          tasks,
+          owners: extraOwners,
+          mode,
+          camera,
+          drafts: draftRecords().drafts,
+        },
+        null,
+        2,
+      ),
+    ],
+    { type: "application/json" },
+  );
+  const url = URL.createObjectURL(blob),
+    link = document.createElement("a");
+  link.href = url;
+  link.download = `gengroup-${DEMO ? "demo-" : ""}board-${today()}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("Копия доски скачана");
+}
+$("#export").onclick = exportBoard;
+$("#alert-export").onclick = exportBoard;
+$("#alert-reload").onclick = () => location.reload();
+function clearFilters() {
+  $("#search").value = "";
+  $("#unit-filter").value = "";
+  $("#owner-filter").value = "";
+  $("#hide-done").checked = false;
+  render();
+}
+$("#clear-filters").onclick = clearFilters;
+$("#reset-search").onclick = clearFilters;
+for (const id of ["search", "unit-filter", "owner-filter", "hide-done"])
+  $("#" + id).addEventListener(id === "search" ? "input" : "change", render);
+function setMode(next) {
+  mode = next;
+  if (next !== "list") {
+    lastCanvasMode = next;
+    camera = { x: 32, y: 24, z: 1 };
+  }
+  render();
+  if (next !== "list") {
+    const first =
+      tasks.filter(isVisible).find((t) => !statusGroup(t)) ||
+      tasks.filter(isVisible)[0];
+    const p = layout.placed.get(first?.id),
+      g = layout.groups.find((g) => g.id === p?.group);
+    if (g) camera.x = 24 - g.x * camera.z;
+    applyCamera();
+  }
+  persist();
+}
+$$("[data-mode]").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
+function jumpToGroup(id, readable = false) {
+  if (mode === "list") setMode(lastCanvasMode);
+  if (STATUS_LANES.some((g) => g.id === id)) {
+    $("#hide-done").checked = false;
+    render();
+  }
+  const g = layout.groups.find((g) => g.id === id);
+  if (!g) return;
+  if (readable) camera.z = 1;
+  camera.x = 24 - g.x * camera.z;
+  camera.y = 24 - g.y * camera.z;
+  applyCamera();
+  persist();
+}
+function focusTask(id) {
+  clearFilters();
+  selected = id;
+  render();
+  if (mode === "list") {
+    const row = $$("[data-row]").find((el) => el.dataset.row === id);
+    row?.scrollIntoView({ block: "center" });
+    row?.querySelector("button")?.focus();
+  } else {
+    const p = layout.placed.get(id);
+    if (!p) return;
+    const r = $("#viewport").getBoundingClientRect();
+    camera = {
+      z: 1,
+      x: (r.width - CARD.width) / 2 - p.x,
+      y: (r.height - CARD.height) / 2 - p.y,
+    };
+    applyCamera();
+    persist();
+    $$(".task-card")
+      .find((el) => el.dataset.id === id)
+      ?.focus({ preventScroll: true });
+  }
+  toast(
+    "Карточка показана. Откройте детали, чтобы погасить отметку обновления.",
+  );
+}
+$("#lane-jump").onchange = (e) => jumpToGroup(e.target.value, true);
+$$("[data-status-zone]").forEach(
+  (b) => (b.onclick = () => jumpToGroup(b.dataset.statusZone, true)),
+);
+$("#undo").onclick = () => restore(history, future);
+$("#redo").onclick = () => restore(future, history);
+$("#zoom-in").onclick = () => {
+  zoom(1.2);
+  persist();
+};
+$("#zoom-out").onclick = () => {
+  zoom(1 / 1.2);
+  persist();
+};
+$("#zoom-label").onclick = () => {
+  zoom(1 / camera.z);
+  persist();
+};
+$("#fit").onclick = fit;
 function renderChanges() {
-  const count=inbox.size, button=$('#changes-open');
-  button.textContent=count ? `Изменения · ${count}` : 'Изменения';
-  button.classList.toggle('has-changes',count>0);
-  button.setAttribute('aria-label',`Изменения из таблицы${count ? ', непросмотренных карточек: '+count : ''}`);
-  $('#changes-read-all').disabled=!count;
-  $('#changes-refresh').disabled=!cloudEngine?.connected || cloudEngine.busy;
-  $('#changes-refresh').textContent=cloudEngine?.busy ? 'Проверяем…' : 'Обновить сейчас';
-  $('#changes-connect').hidden=!!cloudEngine?.connected;
-  $('#changes-sync-status').textContent=$('#cloud-label').textContent;
-  const summary=count ? `Непросмотренных карточек из таблицы: ${count}` : 'Непросмотренных изменений нет';
-  if($('#changes-announcement').textContent!==summary)$('#changes-announcement').textContent=summary;
-  if(!$('#changes-dialog').open)return;
-  $('#changes-list').innerHTML=count ? inbox.entries.map(entry=>{
-    const exists=tasks.some(t=>t.id===entry.id), conflict=cloudEngine?.conflicts.some(c=>c.id===entry.id);
-    const label=entry.kind==='new'?'Новая задача':entry.kind==='removed'?'Убрана с доски':'Задача обновлена';
-    const detail=entry.kind==='removed' ? 'Строка удалена или карточка архивирована в таблице.' : entry.fields.map(f=>CHANGE_FIELDS[f]).join(', ') || 'Добавлена из таблицы.';
-    const time=entry.at ? new Date(entry.at).toLocaleString('ru',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-    return `<section class="change-item"><div class="change-item-meta"><strong>${label}</strong><time>${esc(time)}</time></div><h3>${esc(entry.title)}</h3><p>${esc(detail)}</p><button class="text-button" data-change-id="${esc(entry.id)}">${conflict ? 'Сравнить конфликтующие версии →' : exists ? 'Показать на доске →' : 'Отметить просмотренным'}</button></section>`;
-  }).join('') : '<p class="changes-empty">Все изменения просмотрены. Новые обновления появятся здесь и подсветятся на карточках.</p>';
+  const count = inbox.size;
+  text("#changes-open", count ? `Изменения · ${count}` : "Изменения");
+  $("#changes-open").classList.toggle("has-changes", count > 0);
+  $("#changes-open").setAttribute(
+    "aria-label",
+    `Изменения из таблицы${count ? ", непросмотренных карточек: " + count : ""}`,
+  );
+  $("#changes-read-all").disabled = !count;
+  $("#changes-refresh").disabled = !cloudEngine?.connected || cloudEngine.busy;
+  text(
+    "#changes-refresh",
+    cloudEngine?.busy ? "Проверяем..." : "Обновить сейчас",
+  );
+  $("#changes-connect").hidden = !!cloudEngine?.connected;
+  text("#changes-sync-status", $("#cloud-label").textContent);
+  text(
+    "#changes-announcement",
+    count
+      ? `Непросмотренных карточек из таблицы: ${count}`
+      : "Непросмотренных изменений нет",
+  );
+  if (!$("#changes-dialog").open) return;
+  const signature = JSON.stringify([
+    inbox.entries,
+    tasks.map((t) => t.id),
+    cloudEngine?.conflicts,
+  ]);
+  if (changesSignature === signature) return;
+  changesSignature = signature;
+  $("#changes-list").innerHTML = count
+    ? inbox.entries
+        .map((entry) => {
+          const exists = tasks.some((t) => t.id === entry.id),
+            conflict = cloudEngine?.conflicts.some((c) => c.id === entry.id);
+          return `<section class="change-item"><div class="change-item-meta"><strong>${entry.kind === "new" ? "Новая задача" : entry.kind === "removed" ? "Убрана с доски" : "Задача обновлена"}</strong><time>${esc(entry.at ? new Date(entry.at).toLocaleString("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "")}</time></div><h3>${esc(entry.title)}</h3><p>${esc(entry.kind === "removed" ? "Строка удалена или карточка архивирована в таблице." : entry.fields.map((f) => CHANGE_FIELDS[f]).join(", ") || "Добавлена из таблицы.")}</p><button class="text-button" data-change-id="${esc(entry.id)}">${conflict ? "Сравнить версии" : exists ? "Показать задачу" : "Отметить просмотренным"}</button></section>`;
+        })
+        .join("")
+    : '<p class="changes-empty">Все изменения просмотрены. Новые обновления появятся здесь и на карточках.</p>';
 }
-$('#changes-open').onclick=()=>{$('#changes-dialog').showModal();renderChanges();};
-$('#changes-connect').onclick=()=>{$('#changes-dialog').close();$('#google-connect').click();};
-$('#changes-refresh').onclick=async()=>{await cloudEngine.flush();renderChanges();};
-$('#changes-read-all').onclick=()=>{inbox.clear();render();persist();};
-$('#changes-list').onclick=e=>{
-  const button=e.target.closest('[data-change-id]');if(!button)return;
-  const id=button.dataset.changeId, task=tasks.find(t=>t.id===id);
-  if(cloudEngine?.conflicts.some(c=>c.id===id)) {$('#changes-dialog').close();openConflicts();return;}
-  if(!task) {inbox.acknowledge(id);render();persist();return;}
-  $('#changes-dialog').close();clearFilters();
-  if(['Готово','Отменено'].includes(task.status))$('#hide-done').checked=false;
-  selected=id;render();
-  const p=layout.placed.get(id), rect=$('#viewport').getBoundingClientRect();
-  camera.z=Math.max(.65,Math.min(1,camera.z));
-  camera.x=(rect.width-CARD.width*camera.z)/2-p.x*camera.z;
-  camera.y=(rect.height-CARD.height*camera.z)/2-p.y*camera.z;
-  applyCamera();persist();
-  [...$('#cards').children].find(card=>card.dataset.id===id)?.focus({preventScroll:true});
-  toast('Карточка в центре. Двойной клик или Enter — просмотреть и погасить подсветку.');
+$("#changes-open").onclick = () => {
+  changesSignature = "";
+  showDialog("changes-dialog");
+  renderChanges();
 };
-$('#clear-filters').onclick = clearFilters;
-$('#reset-search').onclick = () => { clearFilters(); $('#hide-done').checked=false; render(); };
-for (const id of ['search','unit-filter','owner-filter','hide-done']) $(`#${id}`).addEventListener(id === 'search' ? 'input' : 'change',render);
-document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode=b.dataset.mode; camera={x:32,y:32,z:.8}; render(); const visible=tasks.filter(isVisible), firstTask=visible.find(t=>!statusGroup(t)) || visible[0], first=layout.placed.get(firstTask?.id); if(first) { const g=layout.groups.find(g=>g.id===first.group); camera.x=32-g.x*camera.z; } applyCamera(); persist(); });
-function jumpToGroup(id,readable=false) {
-  if(STATUS_LANES.some(g=>g.id===id)) {$('#hide-done').checked=false;render();}
-  const g=layout.groups.find(g=>g.id===id);if(!g)return;
-  if(readable)camera.z=Math.max(.8,Math.min(1,camera.z));
-  camera.x=32-g.x*camera.z;camera.y=24-g.y*camera.z;applyCamera();persist();
+$("#changes-connect").onclick = () => {
+  $("#changes-dialog").close();
+  $("#google-connect").click();
+};
+$("#changes-refresh").onclick = async () => {
+  await cloudEngine?.flush();
+  renderChanges();
+};
+$("#changes-read-all").onclick = () => {
+  inbox.clear();
+  render();
+  persist();
+};
+$("#changes-list").onclick = (e) => {
+  const b = e.target.closest("[data-change-id]");
+  if (!b) return;
+  const id = b.dataset.changeId;
+  if (cloudEngine?.conflicts.some((c) => c.id === id)) {
+    $("#changes-dialog").close();
+    openConflicts();
+    return;
+  }
+  if (!tasks.some((t) => t.id === id)) {
+    inbox.acknowledge(id);
+    render();
+    persist();
+    return;
+  }
+  $("#changes-dialog").close();
+  focusTask(id);
+};
+let commandItems = [],
+  commandIndex = 0;
+function availableCommands() {
+  return [
+    {
+      title: "Новая задача",
+      detail: "Создать карточку",
+      run: () => openTask(),
+    },
+    {
+      title: "Подключить Google / синхронизация",
+      detail: "Общая таблица",
+      run: () =>
+        DEMO
+          ? toast("Демонстрация работает отдельно от Google")
+          : $("#google-connect").click(),
+    },
+    {
+      title: "Импорт задач из копии",
+      detail: "JSON, CSV, строки таблицы",
+      run: openImport,
+    },
+    {
+      title: "Скачать резервную копию",
+      detail: "JSON на это устройство",
+      run: exportBoard,
+    },
+    ...["priority", "owners", "time", "list"].map((m, i) => ({
+      title: ["Приоритеты", "Команда и ответственные", "Сроки", "Список задач"][
+        i
+      ],
+      detail: "Вид доски",
+      run: () => setMode(m),
+    })),
+    {
+      title: "Вид и настройки темы",
+      detail: "Светлая, тёмная, системная; плотность",
+      run: () => showDialog("appearance-dialog"),
+    },
+    {
+      title: "Черновики",
+      detail: "Продолжить несохранённое",
+      run: () => $("#drafts-open").click(),
+    },
+    {
+      title: "Помощь и клавиши",
+      detail: "Работа с доской",
+      run: () => showDialog("help-dialog"),
+    },
+  ];
 }
-$('#lane-jump').onchange=e=>jumpToGroup(e.target.value);
-document.querySelectorAll('[data-status-zone]').forEach(button=>button.onclick=()=>jumpToGroup(button.dataset.statusZone,true));
-$('#undo').onclick = () => restore(history,future); $('#redo').onclick = () => restore(future,history);
-$('#zoom-in').onclick = () => { zoom(1.2); persist(); }; $('#zoom-out').onclick = () => { zoom(1/1.2); persist(); }; $('#zoom-label').onclick = () => { zoom(1/camera.z); persist(); }; $('#fit').onclick=fit;
-window.addEventListener('keydown',e => {
-  const typing = e.target.closest('input,textarea,select,[contenteditable]'); if (typing || document.querySelector('dialog[open]')) return;
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='z') { e.preventDefault(); e.shiftKey ? restore(future,history) : restore(history,future); return; }
-  if (e.code==='Space' && !e.target.closest('button,a')) { e.preventDefault(); space=true; $('#viewport').classList.add('hand'); }
-  if (e.key==='/') { e.preventDefault(); $('#search').focus(); }
-  if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase()==='f') { e.preventDefault(); fit(); }
-  if (['+','=','-'].includes(e.key)) { e.preventDefault(); zoom(e.key==='-' ? 1/1.2 : 1.2); persist(); }
-  if (e.key==='Escape') { selected=null; render(); }
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
-    e.preventDefault(); const d=e.shiftKey?160:64;
-    if (e.key==='ArrowUp') camera.y+=d; if(e.key==='ArrowDown') camera.y-=d;
-    if(e.key==='ArrowLeft') camera.x+=d; if(e.key==='ArrowRight') camera.x-=d; applyCamera(); persist();
+function renderCommands() {
+  const q = $("#command-query").value;
+  commandItems = [
+    ...availableCommands().filter((c) =>
+      matchesWords(c.title + " " + c.detail, q),
+    ),
+    ...tasks
+      .filter((t) => matchesTask(t, q))
+      .slice(0, 40)
+      .map((t) => ({
+        title: t.title,
+        detail: [t.owner || "Не назначен", t.unit, t.status]
+          .filter(Boolean)
+          .join(" · "),
+        run: () => {
+          clearFilters();
+          openTask(t.id);
+        },
+      })),
+  ];
+  commandIndex = Math.min(commandIndex, Math.max(0, commandItems.length - 1));
+  $("#command-results").innerHTML = commandItems.length
+    ? commandItems
+        .map(
+          (item, i) =>
+            `<div id="command-${i}" role="option" aria-selected="${i === commandIndex}" class="command-option" data-command="${i}"><span>${icon(i < availableCommands().length ? "command" : "grid")}</span><span><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></span></div>`,
+        )
+        .join("")
+    : "<p>Ничего не найдено. Попробуйте другие слова.</p>";
+  if (commandItems.length)
+    $("#command-query").setAttribute(
+      "aria-activedescendant",
+      `command-${commandIndex}`,
+    );
+  else $("#command-query").removeAttribute("aria-activedescendant");
+}
+function openCommands() {
+  const open = $("dialog[open]");
+  if (open) closeDialog(open.id);
+  $("#command-query").value = "";
+  commandIndex = 0;
+  renderCommands();
+  showDialog("commands-dialog");
+  $("#command-query").focus();
+}
+function runCommand(index) {
+  const item = commandItems[index];
+  if (!item) return;
+  $("#commands-dialog").close();
+  item.run();
+}
+$("#commands-open").onclick = openCommands;
+$("#command-query").oninput = () => {
+  commandIndex = 0;
+  renderCommands();
+};
+$("#command-query").onkeydown = (e) => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    commandIndex = Math.max(
+      0,
+      Math.min(
+        commandItems.length - 1,
+        commandIndex + (e.key === "ArrowDown" ? 1 : -1),
+      ),
+    );
+    renderCommands();
+    $("#command-" + commandIndex)?.scrollIntoView({ block: "nearest" });
+  }
+  if (e.key === "Enter") {
+    e.preventDefault();
+    runCommand(commandIndex);
+  }
+};
+$("#command-results").onclick = (e) => {
+  const el = e.target.closest("[data-command]");
+  if (el) runCommand(Number(el.dataset.command));
+};
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.code === "KeyK") {
+    e.preventDefault();
+    openCommands();
+    return;
+  }
+  const typing = e.target.closest("input,textarea,select,[contenteditable]");
+  if (typing || $("dialog[open]")) return;
+  if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
+    e.preventDefault();
+    e.shiftKey ? restore(future, history) : restore(history, future);
+    return;
+  }
+  if (e.code === "Space" && !e.target.closest("button,a,.task-card")) {
+    e.preventDefault();
+    space = true;
+    $("#viewport").classList.add("hand");
+  }
+  if (e.key === "/") {
+    e.preventDefault();
+    $("#search").focus();
+  }
+  if (mode === "list") return;
+  if (!e.ctrlKey && !e.metaKey && !e.altKey && e.code === "KeyF") {
+    e.preventDefault();
+    fit();
+  }
+  if (["+", "=", "-"].includes(e.key)) {
+    e.preventDefault();
+    zoom(e.key === "-" ? 1 / 1.2 : 1.2);
+    persist();
+  }
+  if (e.key === "Escape") {
+    selected = null;
+    render();
+  }
+  if (
+    ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) &&
+    e.target.closest("#viewport")
+  ) {
+    e.preventDefault();
+    const d = e.shiftKey ? 160 : 64;
+    if (e.key === "ArrowUp") camera.y += d;
+    if (e.key === "ArrowDown") camera.y -= d;
+    if (e.key === "ArrowLeft") camera.x += d;
+    if (e.key === "ArrowRight") camera.x -= d;
+    applyCamera();
+    persist();
   }
 });
-window.addEventListener('keyup',e => { if(e.code==='Space') { space=false; $('#viewport').classList.remove('hand'); } });
-window.addEventListener('blur',() => { space=false; touches.clear(); pinch=null; if(gesture) { gesture=null; render(); } $('#viewport').classList.remove('hand','panning'); });
-window.addEventListener('storage', e => {
+window.addEventListener("keyup", (e) => {
+  if (e.code === "Space") {
+    space = false;
+    $("#viewport").classList.remove("hand");
+  }
+});
+window.addEventListener("blur", () => {
+  space = false;
+  touches.clear();
+  pinch = null;
+  if (gesture) {
+    gesture = null;
+    render();
+  }
+  $("#viewport").classList.remove("hand", "panning");
+});
+window.addEventListener("storage", (e) => {
+  if (e.key?.startsWith(STORAGE + ".draft.")) {
+    renderDraftBanner();
+    return;
+  }
+  if (e.key === PREFS) {
+    try {
+      preferences = cleanPreferences(JSON.parse(e.newValue || "{}"));
+      applyPreferences();
+    } catch {}
+    return;
+  }
   if (e.key !== STORAGE && e.key !== null) return;
   try {
-    const incoming = e.newValue ? dataSignature(JSON.parse(e.newValue)) : dataSignature({tasks:[],owners:[]});
-    if (incoming === storedSignature) return; // Panning in another tab is not a data conflict.
-  } catch { /* Invalid incoming data must not overwrite the current board. */ }
-  storageConflict = true; $('#save-state').textContent = 'Доска изменена в другой вкладке';
-  toast('Доска изменена в другой вкладке. Экспортируйте текущую копию и обновите страницу.');
+    const incoming = e.newValue
+      ? dataSignature(JSON.parse(e.newValue))
+      : dataSignature({ tasks: [], owners: [] });
+    if (incoming === storedSignature) return;
+  } catch {}
+  storageConflict = true;
+  cloudEngine?.disconnect();
+  text("#save-state", "Доска изменена в другой вкладке");
+  renderAlert();
+  toast("Доска изменена в другой вкладке. Скачайте копию и обновите страницу.");
 });
-window.addEventListener('beforeunload', e => { if(unsavedChanges) { e.preventDefault(); e.returnValue=''; } });
-$('#demo').onclick = () => {
-  const example = [
-    ['Подготовить план запуска','ГГР','Иван','do','В работе'],['Согласовать материалы для команды','ГГВ','Софа','do','В ожидании'],
-    ['Обновить каталог решений','ГМ','Катя','plan','В работе'],['Продумать сценарий презентации','ГГР','Иван','plan','В ожидании'],
-    ['Собрать обратную связь','ГМ','Дима','delegate','В ожидании'],['Передать макеты в производство','ГГВ','Софа','delegate','В работе'],
-    ['Разобрать идеи на следующий месяц','ГГР','','later','В ожидании'],['Уточнить новый запрос','','',null,'Не указан'],
-  ].map(([title,unit,owner,priority,status],i) => ({ id:`example-${i}`,title,unit,owner,priority,status,due:'',description:'Пример задачи. Замените своими данными.',direction:'Пример · демонстрационные данные',positions:{} }));
-  change(() => tasks=example); fit(); toast('Демонстрационные задачи. Импортируйте свою таблицу с заменой.');
-};
-render();
-if(stateLoadError) { $('#save-state').textContent='Не удалось прочитать сохранённую доску'; toast('Сохранённые данные повреждены. Исходная копия не перезаписана.'); }
-
+window.addEventListener("beforeunload", (e) => {
+  if (unsavedChanges || draftFailed) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
 function cloudState(state) {
-  const label = {local:'Локальная доска',signin:'Нужен вход Google',pending:'Ожидает отправки',syncing:'Синхронизация…',synced:'Сохранено в Google',offline:'Нет связи с Google',conflict:'Нужно сравнить версии','cache-error':'Ошибка очереди'}[state.status] || 'Google Таблица';
-  $('#cloud-label').textContent=label;
-  if(state.status==='synced' && !tasks.length) {$('#empty p').textContent='Общая доска пока пустая. Создайте первую задачу.';$('#empty-import').textContent='+ Новая задача';$('#empty-import').onclick=()=>openTask();}
-  else {$('#empty p').textContent='Подключите Google Таблицу, чтобы открыть задачи на этом устройстве.';$('#empty-import').textContent='Подключить Google';$('#empty-import').onclick=()=>$('#cloud-dialog').showModal();}
-  $('#google-connect').textContent=state.status==='synced'?'Google · сохранено':state.status==='syncing'?'Google · синхронизация':state.status==='conflict'?'Google · конфликт':'Подключить Google';
-  $('#cloud-status').textContent=state.message || (state.status==='synced'?'Задачи и раскладка доступны на других устройствах.':state.status==='syncing'?'Проверяем изменения в таблице и сохраняем ваши правки.':state.status==='signin'&&state.pending?`${state.pending} изменений ждут подключения. Локальная копия сохранена.`:state.status==='conflict'?`${state.conflicts.length} полей изменились в двух местах. Выберите версию.`:state.status==='pending'?`${state.pending || 1} изменений готовятся к отправке.`:'Подключите Google, чтобы синхронизировать первую вкладку таблицы.');
-  $('#cloud-dot').className='local-dot '+(state.status==='synced'?'cloud-online':state.status==='local'?'':'cloud-warning');
-  $('#cloud-conflicts').hidden=!state.conflicts.length;
+  syncState = state;
+  const label =
+    {
+      local: "Локальная доска",
+      signin: "Нужен вход Google",
+      pending: "Ожидает отправки",
+      syncing: "Синхронизация...",
+      synced: "Сохранено в Google",
+      offline: "Нет связи с Google",
+      conflict: "Нужно сравнить версии",
+      "cache-error": "Ошибка очереди",
+    }[state.status] || "Google Таблица";
+  text("#cloud-label", DEMO ? "Демонстрация" : label);
+  text(
+    "#google-label",
+    state.status === "synced"
+      ? "Google · сохранено"
+      : state.status === "syncing"
+        ? "Google · проверка"
+        : state.status === "conflict"
+          ? "Google · конфликт"
+          : "Подключить Google",
+  );
+  text(
+    "#cloud-status",
+    DEMO
+      ? "Отдельные тестовые данные. Синхронизация выключена."
+      : state.message ||
+          (state.status === "synced"
+            ? "Изменения подтверждены чтением из таблицы."
+            : state.status === "syncing"
+              ? "Проверяем таблицу и сохраняем правки."
+              : state.status === "signin" && state.pending
+                ? `Изменений ждут подключения: ${state.pending}.`
+                : state.status === "conflict"
+                  ? `Полей для сравнения: ${state.conflicts.length}.`
+                  : "Подключите Google для общей работы на устройствах."),
+  );
+  for (const id of ["cloud-dot", "header-cloud-dot"])
+    $("#" + id).className =
+      "connection-dot " +
+      (state.status === "synced"
+        ? "cloud-online"
+        : ["local", "signin"].includes(state.status)
+          ? ""
+          : "cloud-warning");
+  $("#cloud-conflicts").hidden = !state.conflicts.length;
+  $("#cloud-recovery").hidden = state.status !== "cache-error";
+  $("#google-authorize").disabled =
+    connecting || state.status === "cache-error";
   renderChanges();
+  renderProvenance();
+  renderEmpty();
 }
-function businessSignature(board) {return JSON.stringify({tasks:board.tasks.map(t=>({id:t.id,...comparable(t)})),owners:board.owners});}
-function applyCloud(board,cache) {
-  const changed=businessSignature({tasks,owners:extraOwners})!==businessSignature(board);
-  cloudRenderNeeded ||= renderedDay!==today() || JSON.stringify(tasks)!==JSON.stringify(board.tasks) || JSON.stringify(extraOwners)!==JSON.stringify(board.owners);
-  tasks=board.tasks;extraOwners=board.owners;cloudCache=cache;
-  if(changed) {history=[];future=[];}
-  // A second local tab must refresh first; cross-device merging is handled by the sync engine.
-  persist();if(!gesture && cloudRenderNeeded)render();
+const businessSignature = (board) =>
+  JSON.stringify({
+    tasks: board.tasks.map((t) => ({ id: t.id, ...comparable(t) })),
+    owners: board.owners,
+  });
+function writeGuard() {
+  if (DEMO || storageConflict || stateLoadError || storageFailed)
+    throw new Error(
+      "Сохранение остановлено: сначала сохраните копию и восстановите локальное хранилище.",
+    );
 }
-cloudEngine=new SyncEngine({
-  api:null,getLocal:()=>({tasks,owners:extraOwners}),apply:applyCloud,onState:cloudState,cache:cloudCache,
-  onRemote:changes=>{inbox.receive(changes);if(changes.length)cloudRenderNeeded=true;},
+function applyCloud(board, cache) {
+  writeGuard();
+  const changed =
+    businessSignature({ tasks, owners: extraOwners }) !==
+    businessSignature(board);
+  cloudRenderNeeded ||=
+    renderedDay !== today() ||
+    JSON.stringify(tasks) !== JSON.stringify(board.tasks) ||
+    JSON.stringify(extraOwners) !== JSON.stringify(board.owners);
+  tasks = board.tasks;
+  extraOwners = board.owners;
+  cloudCache = cache;
+  if (changed) {
+    history = [];
+    future = [];
+  }
+  if ($("#editor").open) {
+    const current = tasks.find((t) => t.id === editing),
+      values = formValues(),
+      remote = editorValues(current);
+    if (current)
+      for (const key of EDIT_FIELDS)
+        if (values[key] === editorValues(editingBase)[key]) {
+          field(key).value = remote[key];
+          editingBase[key] = remote[key];
+        }
+    saveDraft();
+    renderEditorConflicts();
+  }
+  persist();
+  if (!gesture && cloudRenderNeeded) render();
+}
+cloudEngine = new SyncEngine({
+  api: null,
+  getLocal: () => ({ tasks, owners: extraOwners }),
+  apply: applyCloud,
+  onState: cloudState,
+  cache: cloudCache,
+  readOnly: DEMO,
+  onRemote: (changes) => {
+    inbox.receive(changes);
+    if (changes.length) cloudRenderNeeded = true;
+  },
 });
-const originalFlush=cloudEngine.flush.bind(cloudEngine);
-cloudEngine.flush=async()=>{
-  if(storageConflict || stateLoadError) {cloudEngine.disconnect();toast('Обновите вкладку после экспорта, чтобы продолжить синхронизацию.');return;}
-  if(gesture || $('#editor').open || $('#import-dialog').open) {cloudEngine.later(1500);return;}
+const originalFlush = cloudEngine.flush.bind(cloudEngine);
+cloudEngine.flush = async () => {
+  if (DEMO) return;
+  if (storageConflict || stateLoadError || storageFailed) {
+    cloudEngine.disconnect();
+    renderAlert();
+    return;
+  }
+  if (gesture || $("#editor").open || $("#import-dialog").open) {
+    cloudEngine.later(1500);
+    return;
+  }
   return originalFlush();
 };
-$('#google-connect').onclick=()=>{
-  $('#google-error').textContent='';
-  if(cloudEngine.conflicts.length)openConflicts();else $('#cloud-dialog').showModal();
-};
-$('#google-authorize').onclick=async()=>{
-  const button=$('#google-authorize');button.disabled=true;$('#google-error').textContent='';
-  try {
-    if(!googleAuth)throw new Error('Подключение Google ещё настраивается.');
-    await googleAuth.authorize();
-    try {await cloudEngine.api.read();} catch(e) {if(e.status===403 || e.status===404) {$('#cloud-dialog').close();await googleAuth.pickFile();} else throw e;}
-    $('#cloud-dialog').close();await cloudEngine.connect();persist();
-  } catch(error) {if(!$('#cloud-dialog').open)$('#cloud-dialog').showModal();$('#google-error').textContent=error.message;}
-  finally {button.disabled=false;}
-};
-$('#google-disconnect').onclick=()=>{googleAuth?.disconnect();cloudEngine.disconnect();persist();$('#cloud-dialog').close();};
-function conflictText(value) {if(value==null)return 'Удалено / пусто';if(typeof value==='object')return value.title || JSON.stringify(value,null,2);return String(value);}
-function openConflicts() {
-  $('#conflict-list').innerHTML=cloudEngine.conflicts.map((c,i)=>`<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(FIELD_NAMES[c.field] || c.field)}</h3><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote" checked> Из таблицы</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Моя версия</span><pre>${esc(conflictText(c.local))}</pre></label></section>`).join('');
-  $('#conflicts-dialog').showModal();
+function pendingConnection(value) {
+  connecting = value;
+  $("#google-pending").hidden = !value;
+  $("#google-cancel").hidden = !value;
+  $("#google-authorize").disabled = value || !!cloudEngine.cacheInvalid;
+  text("#google-authorize", value ? "Подключаем..." : "Войти и подключить");
 }
-$('#cloud-conflicts').onclick=openConflicts;
-$('#resolve-conflicts').onclick=()=>{
-  const choices={};cloudEngine.conflicts.forEach((c,i)=>choices[i]=document.querySelector(`input[name="conflict-${i}"]:checked`).value);
-  $('#conflicts-dialog').close();cloudEngine.resolve(choices);persist();
+function cancelConnection() {
+  connectionAttempt++;
+  googleAuth?.cancelPending();
+  pendingConnection(false);
+}
+$("#google-connect").onclick = () => {
+  text("#google-error", "");
+  if (cloudEngine.conflicts.length) openConflicts();
+  else showDialog("cloud-dialog");
 };
-window.addEventListener('online',()=>{if(cloudEngine.connected)cloudEngine.flush();});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden && cloudEngine.connected)cloudEngine.flush();});
-fetch('./google-config.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error();return r.json();}).then(config=>{
-  googleAuth=new GoogleAuth(config);cloudEngine.api=new SheetsApi(googleAuth);
-}).catch(()=>{$('#google-error').textContent='Не удалось загрузить настройки Google. Обновите страницу.';});
+$("#google-authorize").onclick = async () => {
+  if (DEMO) return;
+  const attempt = ++connectionAttempt;
+  pendingConnection(true);
+  text("#google-error", "");
+  try {
+    if (!googleAuth)
+      throw new Error(
+        "Google ещё загружается. Повторите через несколько секунд.",
+      );
+    await googleAuth.authorize();
+    if (attempt !== connectionAttempt) return;
+    try {
+      await cloudEngine.api.read();
+    } catch (error) {
+      if (error.status === 403 || error.status === 404) {
+        $("#cloud-dialog").close();
+        await googleAuth.pickFile();
+      } else throw error;
+    }
+    if (attempt !== connectionAttempt) return;
+    $("#cloud-dialog").close();
+    await cloudEngine.connect();
+    persist();
+  } catch (error) {
+    if (attempt !== connectionAttempt || error.cancelled) return;
+    showDialog("cloud-dialog");
+    text("#google-error", error.message);
+  } finally {
+    if (attempt === connectionAttempt) pendingConnection(false);
+  }
+};
+$("#google-cancel").onclick = () => {
+  cancelConnection();
+  text("#google-error", "Вход отменён. Можно подключиться позже.");
+};
+$("#google-disconnect").onclick = () => {
+  cancelConnection();
+  googleAuth?.disconnect();
+  cloudEngine.disconnect();
+  persist();
+  $("#cloud-dialog").close();
+};
+$("#cloud-reset").onclick = () => {
+  if (!$("#recovery-confirm").checked) {
+    text("#google-error", "Подтвердите пересоздание связи в строке выше.");
+    return;
+  }
+  exportBoard();
+  cancelConnection();
+  googleAuth?.disconnect();
+  cloudEngine.resetBaseline();
+  persist();
+  text(
+    "#google-error",
+    "Связь сброшена. Теперь можно снова подключить таблицу.",
+  );
+};
+$("#copy-link").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(new URL("./", location.href).href);
+    toast("Ссылка скопирована");
+  } catch {
+    text(
+      "#google-error",
+      "Скопируйте адрес доски из адресной строки браузера.",
+    );
+  }
+};
+function conflictText(value) {
+  if (value == null) return "Удалено / пусто";
+  if (typeof value === "object")
+    return value.title || JSON.stringify(value, null, 2);
+  return String(value);
+}
+function openConflicts() {
+  $("#conflict-list").innerHTML = cloudEngine.conflicts
+    .map(
+      (c, i) =>
+        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(FIELD_NAMES[c.field] || c.field)}</h3><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote" checked> Из таблицы</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Моя версия</span><pre>${esc(conflictText(c.local))}</pre></label></section>`,
+    )
+    .join("");
+  showDialog("conflicts-dialog");
+}
+$("#cloud-conflicts").onclick = openConflicts;
+$("#resolve-conflicts").onclick = () => {
+  const choices = {};
+  cloudEngine.conflicts.forEach(
+    (c, i) => (choices[i] = $(`input[name="conflict-${i}"]:checked`).value),
+  );
+  $("#conflicts-dialog").close();
+  cloudEngine.resolve(choices);
+  persist();
+};
+window.addEventListener("online", () => {
+  if (cloudEngine.connected) cloudEngine.flush();
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && cloudEngine.connected) cloudEngine.flush();
+});
+if (!DEMO)
+  fetch("./google-config.json", { cache: "no-store" })
+    .then((r) => {
+      if (!r.ok) throw new Error();
+      return r.json();
+    })
+    .then((config) => {
+      googleAuth = new GoogleAuth(config);
+      cloudEngine.api = new SheetsApi(googleAuth, undefined, writeGuard);
+    })
+    .catch(() =>
+      text(
+        "#google-error",
+        "Не удалось загрузить настройки Google. Обновите страницу.",
+      ),
+    );
+render();
+if (DEMO && freshBoard && !stateLoadError) setMode(mode);
+if (DEMO && !stateLoadError) persist();
+if (stateLoadError)
+  text("#save-state", "Не удалось прочитать сохранённую доску");

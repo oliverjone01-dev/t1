@@ -1,63 +1,762 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f6f5f2"><title>GENGROUP · Холст задач</title>
-  <link rel="stylesheet" href="./styles.css">
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="./" aria-label="Холст задач GENGROUP"><span class="brand-mark">g.</span><span>GENGROUP<small>Рабочее пространство</small></span></a>
-    <span class="header-divider"></span>
-    <div class="board-name"><strong>Холст задач</strong><span id="save-state" role="status">Сохранено на устройстве</span></div>
-    <div class="header-actions"><button id="google-connect" class="button google-button">Подключить Google</button><button id="import-open" class="button quiet">↓ Импорт</button><button id="export" class="button quiet">↑ Экспорт</button><button id="add" class="button primary">+ Задача</button></div>
-  </header>
-  <main>
-    <aside class="sidebar">
-      <div class="eyebrow">ПРОСТРАНСТВО</div>
-      <h1>Всё на<br>своих местах<span>.</span></h1>
-      <p class="intro">От общей картины<br>к следующему действию.</p>
-      <div class="side-label">Вид доски</div>
-      <nav class="views" aria-label="Вид доски">
-        <button data-mode="priority" class="view active"><span>▦</span> Приоритеты <small>01</small></button>
-        <button data-mode="owners" class="view"><span>☷</span> Команда <small>02</small></button>
-        <button data-mode="time" class="view"><span>◷</span> Сроки <small>03</small></button>
-      </nav>
-      <div class="side-label filter-label">Фильтры <button id="clear-filters" class="text-button">Сбросить</button></div>
-      <label class="filter">Юнит<select id="unit-filter"><option value="">Все юниты</option></select></label>
-      <label class="filter">Ответственный<select id="owner-filter"><option value="">Вся команда</option></select></label>
-      <label class="check"><input type="checkbox" id="hide-done"> Скрыть готовые и отменённые</label>
-      <div class="side-bottom"><div class="local-dot" id="cloud-dot"></div><strong id="cloud-label">Локальная доска</strong><p id="cloud-status">Подключите Google, чтобы задачи и раскладка были доступны на других устройствах.</p><button id="cloud-conflicts" class="text-button" hidden>Разобрать конфликты ↗</button><button id="help-open" class="text-button">Как работать с доской ↗</button></div>
-    </aside>
-    <section class="workspace" aria-label="Доска задач">
-      <div class="workspace-top"><div><div class="eyebrow" id="view-kicker">МАТРИЦА ПРИОРИТЕТОВ</div><h2 id="view-title">Что действительно важно</h2></div><div class="workspace-summary"><button id="changes-open" class="button changes-button" aria-haspopup="dialog">Изменения</button><div class="stats"><strong id="task-count">0</strong><span>задач<br>на доске</span></div></div></div>
-      <div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Найти задачу, направление, человека…" aria-label="Поиск задач"><kbd>/</kbd></label><button id="new-owner" class="button quiet" hidden>+ Ответственный</button><select id="lane-jump" aria-label="Перейти к дорожке"><option value="">К дорожке…</option></select><span id="view-hint">Перенесите карточку, чтобы изменить приоритет</span><button id="undo" class="icon-button" title="Отменить (Ctrl/Cmd+Z)" aria-label="Отменить" disabled>↶</button><button id="redo" class="icon-button" title="Повторить (Ctrl/Cmd+Shift+Z)" aria-label="Повторить" disabled>↷</button></div>
-      <nav class="status-shortcuts" aria-label="Завершённые задачи"><span>Итог задачи</span><button data-status-zone="status:done" class="status-shortcut done-shortcut" aria-label="Перейти к зоне Готово" title="Нажмите для перехода или перетащите сюда карточку">✓ Готово <b data-status-count="status:done">0</b></button><button data-status-zone="status:cancelled" class="status-shortcut cancelled-shortcut" aria-label="Перейти к зоне Отменено" title="Нажмите для перехода или перетащите сюда карточку">× Отменено <b data-status-count="status:cancelled">0</b></button><small>Перенос в эти зоны меняет статус задачи</small></nav>
-      <div id="viewport" tabindex="0" aria-label="Холст. Стрелки перемещают обзор. Плюс и минус меняют масштаб.">
-        <div id="world"><div id="zones"></div><div id="cards"></div></div>
-        <div id="empty" hidden><span>↗</span><h3>Дайте задачам место</h3><p>Подключите Google Таблицу,<br>чтобы открыть задачи на этом устройстве.</p><button id="empty-import" class="button primary">Подключить Google</button><button id="demo" class="text-button">Посмотреть на примере</button></div>
-        <div id="no-results" hidden>По этим фильтрам задач нет. <button id="reset-search" class="text-button">Сбросить фильтры</button></div>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f6f7f9" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>GENGROUP · Задачи</title>
+    <script>
+      try {
+        const p = JSON.parse(
+          localStorage.getItem("gengroup.task-canvas.preferences.v1") || "{}",
+        );
+        if (!document.documentElement.dataset.theme)
+          document.documentElement.dataset.theme =
+            p.theme === "dark" ||
+            (p.theme !== "light" &&
+              matchMedia("(prefers-color-scheme: dark)").matches)
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.density =
+          p.density === "compact" ? "compact" : "comfortable";
+      } catch {}
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Рабочая доска GENGROUP"
+        ><span class="brand-mark">g.</span
+        ><span class="brand-word">GENGROUP</span></a
+      >
+      <div class="board-name">
+        <strong>Задачи команды</strong
+        ><span id="save-state">Копия на устройстве</span>
       </div>
-      <div class="canvas-footer"><span><i class="grid-icon">⠿</i> Привязка к сетке · 24 px</span><span>Пробел + перетаскивание · перемещение холста</span><span id="selection-info">Двойной клик по карточке · детали</span></div>
-      <div class="zoom-controls"><button id="zoom-out" aria-label="Уменьшить масштаб">−</button><button id="zoom-label" title="Масштаб 100%">100%</button><button id="zoom-in" aria-label="Увеличить масштаб">+</button><span></span><button id="fit" aria-label="Показать всю доску" title="Показать всю доску (F)">⛶</button></div>
-    </section>
-  </main>
-  <dialog id="editor" class="drawer"><form id="task-form"><div class="dialog-top"><span class="eyebrow" id="editor-id">НОВАЯ ЗАДАЧА</span><button type="button" class="icon-button" data-close="editor" aria-label="Закрыть">×</button></div><h2>Детали задачи</h2>
-    <p id="editor-update" class="editor-update" hidden></p>
-    <label>Задача<textarea name="title" required rows="3" maxlength="1000"></textarea></label>
-    <div class="form-row"><label>Юнит<input name="unit" list="unit-list" maxlength="100"></label><label>Статус<select name="status"></select></label></div>
-    <label>Ответственный<input name="owner" list="owner-list" placeholder="Назначить человека" maxlength="200"></label><p id="owner-note" class="source-note"></p>
-    <div class="form-row"><label>Срок<input name="due" type="date"></label><label>Приоритет<select name="priority"><option value="">Входящие</option><option value="do">Важно · срочно</option><option value="plan">Важно · не срочно</option><option value="delegate">Не важно · срочно</option><option value="later">Не важно · не срочно</option></select></label></div><p id="due-note" class="source-note"></p>
-    <label>Ожидаемый результат<textarea name="description" rows="3"></textarea></label><label>Комментарий<textarea name="comment" rows="3"></textarea></label>
-    <details><summary>Контекст из таблицы</summary><p id="source-context"></p><a id="source-link" target="_blank" rel="noopener noreferrer" hidden>Открыть задачу ↗</a></details>
-    <div class="form-actions"><button type="button" id="delete-task" class="button danger">Удалить</button><button type="submit" class="button primary">Сохранить задачу</button></div>
-  </form></dialog>
-  <dialog id="import-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">ИМПОРТ ДАННЫХ</span><button class="icon-button" data-close="import-dialog" aria-label="Закрыть">×</button></div><h2>Из таблицы — на холст</h2><p>Скопируйте первую вкладку вместе с заголовками и вставьте ниже. Можно загрузить CSV или сохранённую доску JSON.</p><label class="file-input">Выбрать CSV / JSON<input type="file" id="import-file" accept=".json,.csv,.tsv,text/csv,application/json"></label><label class="import-label">Или вставьте строки таблицы<textarea id="import-text" rows="7" placeholder="ID ⇥ Юнит ⇥ Направление ⇥ …"></textarea></label><label class="check"><input type="checkbox" id="replace-import"> Заменить текущие задачи (можно отменить)</label><p class="source-note">Импорт не назначает приоритеты. При подключённом Google добавленные или изменённые задачи отправятся в первую вкладку. Замена доски также архивирует отсутствующие задачи после синхронизации.</p><p id="import-error" class="error" role="alert"></p><button id="import-submit" class="button primary">Добавить на доску</button></dialog>
-  <dialog id="help-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">БЫСТРЫЙ СТАРТ</span><button class="icon-button" data-close="help-dialog" aria-label="Закрыть">×</button></div><h2>Место определяет действие</h2><ol><li><strong>Приоритеты.</strong> Четыре квадрата «важно × срочно». Входящие остаются без приоритета до вашего решения.</li><li><strong>Команда.</strong> Перенесите карточку в дорожку человека, чтобы назначить его ответственным. Добавьте дорожку кнопкой «+ Ответственный».</li><li><strong>Сроки.</strong> Перенос задаёт дату: сегодня, конец этой или следующей недели. В «Позже» — понедельник через неделю. Точную дату меняйте в деталях.</li><li><strong>Навигация.</strong> Колесо / трекпад перемещают обзор; Ctrl/Cmd + колесо — зум под курсором. Пробел + мышь — рука. F — вся доска.</li><li><strong>Готово и отменено.</strong> Отдельные зоны есть во всех видах. Перенесите карточку в зону или на кнопку статуса над холстом. Срок, ответственный и приоритет сохраняются. Возврат в рабочую зону ставит «В работе». Кнопки со счётчиками также переводят обзор к нужной зоне.</li><li><strong>Карточка.</strong> Двойной клик или Enter — детали. Перетаскивание — размещение по сетке. В деталях можно менять все рабочие поля.</li><li><strong>Сохранение.</strong> Локальная копия — сразу; в Google — после подтверждённой синхронизации. Экспорт JSON — копия всей доски с позициями. Ctrl/Cmd+Z — отмена последнего изменения.</li></ol><p class="source-note">Подключите Google и выберите таблицу «ЕМО - Раюшкин 2026». Доска синхронизирует первую вкладку примерно каждые 20 секунд и после ваших правок. После перезагрузки страницы вход может потребоваться повторно. Правки без сети остаются на устройстве до подключения. Одновременные изменения одного поля требуют выбора версии; таблица не предоставляет блокировку от строго одновременной ручной правки. Экспорт сохраняет резервную копию.</p></dialog>
-  <dialog id="cloud-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">GOOGLE ТАБЛИЦА</span><button class="icon-button" data-close="cloud-dialog" aria-label="Закрыть">×</button></div><h2>Задачи на всех устройствах</h2><p>Доска связана с первой вкладкой «ЕМО - Раюшкин 2026». При первом подключении данные задач берутся из таблицы, а ваша локальная раскладка сохраняется для карточек без общей раскладки.</p><p>Войдите в Google и выберите эту таблицу. Доступ к другим файлам не запрашивается.</p><p class="source-note">До подключения правки хранятся на этом устройстве. При первой связи локальные названия, сроки и ответственные из старого снимка заменяются актуальными данными таблицы. Экспортируйте копию, если хотите сохранить старую версию.</p><p class="source-note"><a href="./privacy.html" target="_blank" rel="noopener">Как хранятся данные и доступ Google</a></p><p id="google-error" class="error" role="alert"></p><div class="form-actions"><button id="google-disconnect" class="button quiet">Отключить на устройстве</button><button id="google-authorize" class="button primary">Войти и подключить</button></div></dialog>
-  <dialog id="conflicts-dialog" class="modal"><div class="dialog-top"><span class="eyebrow">ЕСТЬ ДВЕ ВЕРСИИ</span><button class="icon-button" data-close="conflicts-dialog" aria-label="Закрыть">×</button></div><h2>Выберите, что сохранить</h2><p>Пока вы работали, эти поля изменились в таблице или на другом устройстве. Ваш вариант сохранён на этом устройстве.</p><div id="conflict-list"></div><button id="resolve-conflicts" class="button primary">Применить выбор и синхронизировать</button></dialog>
-  <dialog id="changes-dialog" class="modal changes-modal" aria-labelledby="changes-title"><div class="dialog-top"><span class="eyebrow">ИЗ GOOGLE ТАБЛИЦЫ</span><button class="icon-button" data-close="changes-dialog" aria-label="Закрыть">×</button></div><h2 id="changes-title">Что изменилось</h2><p>Новые карточки отмечены зелёным, обновлённые — янтарным. Подсветка остаётся до открытия карточки или команды «Всё просмотрено». Отметки просмотра хранятся на этом устройстве.</p><div class="changes-sync"><span id="changes-sync-status"></span><button id="changes-refresh" class="text-button">Обновить сейчас</button><button id="changes-connect" class="text-button">Подключить Google</button></div><p class="source-note">Автоматическая проверка — примерно раз в 20 секунд. Во время редактирования карточки, импорта или перетаскивания она ждёт завершения действия. Отслеживаются поля задач и раскладка; оформление ячеек не меняет карточки.</p><div id="changes-list"></div><div class="form-actions"><button id="changes-read-all" class="button quiet">Всё просмотрено</button><button class="button primary" data-close="changes-dialog">К доске</button></div></dialog>
-  <p id="changes-announcement" class="visually-hidden" role="status" aria-live="polite"></p>
-  <datalist id="owner-list"></datalist><datalist id="unit-list"></datalist>
-  <div id="toast" role="status" hidden></div><script src="https://accounts.google.com/gsi/client" async defer></script><script src="https://apis.google.com/js/api.js" async defer></script><script type="module" src="./app.mjs"></script>
-</body></html>
+      <div class="header-actions">
+        <button
+          id="commands-open"
+          class="button quiet command-button"
+          aria-label="Открыть команды и поиск"
+          title="Команды и поиск (Ctrl/Cmd+K)"
+        >
+          <span data-icon="command"></span
+          ><span class="wide-label">Команды</span
+          ><kbd class="wide-label">⌘ K</kbd>
+        </button>
+        <button
+          id="google-connect"
+          class="button google-button"
+          aria-haspopup="dialog"
+        >
+          <i id="header-cloud-dot" class="connection-dot" aria-hidden="true"></i
+          ><span id="google-label" class="wide-label">Подключить Google</span
+          ><span class="narrow-label">Google</span>
+        </button>
+        <button
+          id="appearance-open"
+          class="icon-button"
+          aria-label="Вид и настройки"
+          title="Вид и настройки"
+        >
+          <span data-icon="sun"></span>
+        </button>
+        <button id="add" class="button primary">
+          <span data-icon="plus"></span><span>Задача</span>
+        </button>
+      </div>
+    </header>
+    <div id="app-alert" class="app-alert" role="alert" hidden>
+      <span id="app-alert-text"></span
+      ><button id="alert-export" class="text-button">Скачать копию</button
+      ><button id="alert-reload" class="text-button">Обновить страницу</button>
+    </div>
+    <main id="workspace-main" tabindex="-1">
+      <aside class="sidebar" aria-label="Управление доской">
+        <h1 class="sidebar-title">Рабочая доска</h1>
+        <nav class="views" aria-label="Вид доски">
+          <button data-mode="priority" class="view active" aria-pressed="true">
+            <span data-icon="grid"></span><span>Приоритеты</span>
+          </button>
+          <button data-mode="owners" class="view" aria-pressed="false">
+            <span data-icon="team"></span><span>Команда</span>
+          </button>
+          <button data-mode="time" class="view" aria-pressed="false">
+            <span data-icon="calendar"></span><span>Сроки</span>
+          </button>
+          <button data-mode="list" class="view" aria-pressed="false">
+            <span data-icon="list"></span><span>Список</span>
+          </button>
+        </nav>
+        <div id="desktop-filters-slot">
+          <div id="filter-panel">
+            <div class="filter-heading">
+              <h2>Фильтры</h2>
+              <button id="clear-filters" class="text-button">Сбросить</button>
+            </div>
+            <label class="filter"
+              >Юнит<select id="unit-filter">
+                <option value="">Все юниты</option>
+              </select></label
+            >
+            <label class="filter"
+              >Ответственный<select id="owner-filter">
+                <option value="">Вся команда</option>
+              </select></label
+            >
+            <label class="check"
+              ><input type="checkbox" id="hide-done" /> Скрыть готовые и
+              отменённые</label
+            >
+          </div>
+        </div>
+        <div class="side-bottom">
+          <div class="connection-heading">
+            <i class="connection-dot" id="cloud-dot" aria-hidden="true"></i
+            ><strong id="cloud-label">Локальная доска</strong>
+          </div>
+          <p id="cloud-status">
+            Подключите таблицу, чтобы работать с ней на других устройствах.
+          </p>
+          <button id="cloud-conflicts" class="text-button" hidden>
+            Сравнить версии
+          </button>
+          <div class="side-tools">
+            <button id="import-open" class="text-button">
+              <span data-icon="upload"></span>Импорт</button
+            ><button id="export" class="text-button">
+              <span data-icon="download"></span>Копия</button
+            ><button id="help-open" class="text-button">
+              <span data-icon="help"></span>Помощь
+            </button>
+          </div>
+        </div>
+      </aside>
+      <section class="workspace" aria-label="Доска задач">
+        <div class="workspace-top">
+          <div class="workspace-title">
+            <div id="view-kicker" class="eyebrow">Планирование</div>
+            <h2 id="view-title">Приоритеты</h2>
+            <p id="data-freshness" class="source-meta">
+              Источник: копия на этом устройстве. Дата проверки неизвестна.
+            </p>
+          </div>
+          <div class="workspace-summary">
+            <button
+              id="changes-open"
+              class="button changes-button"
+              aria-haspopup="dialog"
+            >
+              Изменения
+            </button>
+            <div class="stats">
+              <strong id="task-count">0</strong
+              ><span id="task-scope">на устройстве</span>
+            </div>
+          </div>
+        </div>
+        <div id="demo-banner" class="notice" hidden>
+          <span
+            >Демонстрация. Эти карточки не связаны с вашей Google
+            Таблицей.</span
+          ><a id="exit-demo" href="./">Рабочая доска</a>
+        </div>
+        <div id="draft-banner" class="notice" hidden>
+          <span id="draft-summary"></span
+          ><button id="drafts-open" class="text-button">Продолжить</button>
+        </div>
+        <div class="toolbar">
+          <label class="search"
+            ><span data-icon="search"></span
+            ><input
+              id="search"
+              type="search"
+              placeholder="Задача, человек, номер или срок"
+              aria-label="Поиск задач"
+            /><kbd>/</kbd></label
+          ><button id="filters-open" class="button quiet">
+            <span data-icon="filter"></span
+            ><span id="filter-count">Фильтры</span></button
+          ><button id="new-owner" class="button quiet" hidden>
+            <span data-icon="plus"></span><span>Ответственный</span></button
+          ><select id="lane-jump" aria-label="Перейти к дорожке">
+            <option value="">К дорожке</option></select
+          ><button
+            id="undo"
+            class="icon-button"
+            title="Отменить (Ctrl/Cmd+Z)"
+            aria-label="Отменить"
+            disabled
+          >
+            <span data-icon="undo"></span></button
+          ><button
+            id="redo"
+            class="icon-button"
+            title="Повторить (Ctrl/Cmd+Shift+Z)"
+            aria-label="Повторить"
+            disabled
+          >
+            <span data-icon="redo"></span>
+          </button>
+        </div>
+        <nav class="status-shortcuts" aria-label="Завершённые задачи">
+          <span class="status-caption">Итог задачи</span
+          ><button
+            data-status-zone="status:done"
+            class="status-shortcut done-shortcut"
+            aria-label="Перейти к зоне Готово"
+            title="Открыть зону или завершить перетаскиваемую карточку"
+          >
+            <span data-icon="check"></span>Готово
+            <b data-status-count="status:done">0</b></button
+          ><button
+            data-status-zone="status:cancelled"
+            class="status-shortcut cancelled-shortcut"
+            aria-label="Перейти к зоне Отменено"
+            title="Открыть зону или отменить перетаскиваемую карточку"
+          >
+            <span data-icon="close"></span>Отменено
+            <b data-status-count="status:cancelled">0</b></button
+          ><span id="view-hint">Перенос меняет приоритет</span>
+        </nav>
+        <div class="board-area">
+          <div
+            id="viewport"
+            tabindex="0"
+            aria-label="Холст задач. Стрелки перемещают обзор. F показывает все карточки."
+          >
+            <div id="world">
+              <div id="zones"></div>
+              <div id="cards"></div>
+            </div>
+          </div>
+          <div
+            id="task-list"
+            hidden
+            role="region"
+            aria-label="Задачи списком"
+          ></div>
+          <div id="empty" class="empty-state" hidden>
+            <span id="empty-icon" class="empty-icon" data-icon="grid"></span>
+            <h3 id="empty-title">Откройте свои задачи</h3>
+            <p id="empty-copy">
+              Подключите Google Таблицу или импортируйте копию.
+            </p>
+            <div class="empty-actions">
+              <button id="empty-import" class="button primary">
+                Подключить Google</button
+              ><button id="empty-import-file" class="button quiet">
+                Импорт копии
+              </button>
+            </div>
+            <a id="demo" class="text-button" href="?demo=1"
+              >Посмотреть демонстрацию</a
+            >
+          </div>
+          <div id="no-results" class="empty-state" hidden>
+            <h3>Ничего не найдено</h3>
+            <p>
+              Попробуйте другие слова или сбросьте фильтры. Задачи остаются на
+              доске.
+            </p>
+            <button id="reset-search" class="button quiet">
+              Сбросить фильтры
+            </button>
+          </div>
+        </div>
+        <div class="canvas-footer">
+          <span>Сетка 24 px</span><span>Пробел + перетаскивание: обзор</span
+          ><span id="selection-info">Enter или двойной клик: детали</span>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoom-out" aria-label="Уменьшить масштаб">-</button
+          ><button id="zoom-label" title="Читаемый масштаб 100%">100%</button
+          ><button id="zoom-in" aria-label="Увеличить масштаб">+</button
+          ><button
+            id="fit"
+            aria-label="Показать всю доску"
+            title="Показать всю доску (F)"
+          >
+            <span data-icon="fit"></span>
+          </button>
+        </div>
+      </section>
+    </main>
+    <dialog id="editor" class="drawer" aria-labelledby="editor-title">
+      <form id="task-form">
+        <div class="dialog-top">
+          <span class="eyebrow" id="editor-id">Новая задача</span
+          ><button
+            type="button"
+            class="icon-button"
+            data-close="editor"
+            aria-label="Закрыть редактор"
+          >
+            <span data-icon="close"></span>
+          </button>
+        </div>
+        <h2 id="editor-title" tabindex="-1">Детали задачи</h2>
+        <p id="editor-update" class="notice" hidden></p>
+        <p id="draft-state" class="source-meta"></p>
+        <p id="editor-error" class="error" role="alert"></p>
+        <div id="editor-conflicts"></div>
+        <label
+          >Задача<textarea
+            name="title"
+            required
+            rows="3"
+            maxlength="1000"
+            aria-describedby="editor-error"
+          ></textarea>
+        </label>
+        <div class="form-row">
+          <label
+            >Юнит<input name="unit" list="unit-list" maxlength="100" /></label
+          ><label>Статус<select name="status"></select></label>
+        </div>
+        <label
+          >Ответственный<input
+            name="owner"
+            list="owner-list"
+            placeholder="Один человек"
+            maxlength="80"
+            aria-describedby="assignee-hint"
+        /></label>
+        <p id="assignee-hint" class="field-hint">
+          Например, Иван Раюшкин. Пояснения можно оставить в комментарии.
+        </p>
+        <p id="owner-note" class="source-note"></p>
+        <div class="form-row">
+          <label>Срок<input name="due" type="date" /></label
+          ><label
+            >Приоритет<select name="priority">
+              <option value="">Входящие</option>
+              <option value="do">Важно, срочно</option>
+              <option value="plan">Важно, не срочно</option>
+              <option value="delegate">Не важно, срочно</option>
+              <option value="later">Не важно, не срочно</option>
+            </select></label
+          >
+        </div>
+        <p id="due-note" class="source-note"></p>
+        <label
+          >Ожидаемый результат<textarea
+            name="description"
+            rows="3"
+            maxlength="20000"
+          ></textarea></label
+        ><label
+          >Комментарий<textarea
+            name="comment"
+            rows="3"
+            maxlength="20000"
+          ></textarea>
+        </label>
+        <details>
+          <summary>Контекст из таблицы</summary>
+          <p id="source-context"></p>
+          <a id="source-link" target="_blank" rel="noopener noreferrer" hidden
+            >Открыть исходную задачу</a
+          >
+        </details>
+        <div class="form-actions">
+          <button type="button" id="delete-task" class="button danger">
+            Убрать с доски</button
+          ><button
+            type="button"
+            id="recreate-task"
+            class="button primary"
+            hidden
+          >
+            Создать как новую</button
+          ><button type="submit" id="save-task" class="button primary">
+            Сохранить задачу
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="import-dialog" class="modal" aria-labelledby="import-title">
+      <div class="dialog-top">
+        <span class="eyebrow">Импорт</span
+        ><button
+          class="icon-button"
+          data-close="import-dialog"
+          aria-label="Закрыть импорт"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="import-title">Добавить задачи из копии</h2>
+      <p>
+        Загрузите JSON, CSV или вставьте строки Google Таблицы вместе с
+        заголовками. Сначала покажем, что изменится.
+      </p>
+      <label class="file-input"
+        >Файл CSV или JSON<input
+          type="file"
+          id="import-file"
+          accept=".json,.csv,.tsv,text/csv,application/json" /></label
+      ><label
+        >Или вставьте строки таблицы<textarea
+          id="import-text"
+          rows="6"
+          spellcheck="false"
+        ></textarea></label
+      ><label class="check"
+        ><input type="checkbox" id="replace-import" /> Заменить текущие
+        задачи</label
+      >
+      <div id="import-preview" class="notice" hidden></div>
+      <label id="import-confirm-label" class="check" hidden
+        ><input id="import-confirm" type="checkbox" /><span
+          id="import-confirm-text"
+        ></span
+      ></label>
+      <p class="source-note">
+        При подключённом Google применённые изменения отправятся в таблицу.
+        Убранные задачи архивируются, строки не удаляются.
+      </p>
+      <p id="import-error" class="error" role="alert"></p>
+      <button id="import-submit" class="button primary">
+        Проверить импорт
+      </button>
+    </dialog>
+    <dialog
+      id="appearance-dialog"
+      class="modal small-modal"
+      aria-labelledby="appearance-title"
+    >
+      <div class="dialog-top">
+        <span class="eyebrow">Удобный вид</span
+        ><button
+          class="icon-button"
+          data-close="appearance-dialog"
+          aria-label="Закрыть настройки"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="appearance-title">Вид и настройки</h2>
+      <label
+        >Тема<select id="theme-choice">
+          <option value="system">Как в системе</option>
+          <option value="light">Светлая</option>
+          <option value="dark">Тёмная</option>
+        </select></label
+      ><label
+        >Плотность<select id="density-choice">
+          <option value="comfortable">Обычная</option>
+          <option value="compact">Компактная</option>
+        </select></label
+      >
+      <p>
+        Настройки остаются на этом устройстве. Системные предпочтения уменьшения
+        движения и прозрачности учитываются автоматически.
+      </p>
+      <p id="preferences-error" class="error" role="alert"></p>
+      <button class="button primary" data-close="appearance-dialog">
+        Готово
+      </button>
+    </dialog>
+    <dialog
+      id="filters-dialog"
+      class="modal small-modal"
+      aria-labelledby="filters-title"
+    >
+      <div class="dialog-top">
+        <h2 id="filters-title">Фильтры</h2>
+        <button
+          class="icon-button"
+          data-close="filters-dialog"
+          aria-label="Закрыть фильтры"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <div id="mobile-filters-slot"></div>
+      <button class="button primary" data-close="filters-dialog">Готово</button>
+    </dialog>
+    <dialog
+      id="commands-dialog"
+      class="modal commands-modal"
+      aria-labelledby="commands-title"
+    >
+      <div class="dialog-top">
+        <h2 id="commands-title">Команды и задачи</h2>
+        <button
+          class="icon-button"
+          data-close="commands-dialog"
+          aria-label="Закрыть команды"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <label class="visually-hidden" for="command-query"
+        >Поиск команды или задачи</label
+      ><input
+        id="command-query"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded="true"
+        aria-controls="command-results"
+        autocomplete="off"
+        placeholder="Что хотите сделать?"
+      />
+      <div
+        id="command-results"
+        role="listbox"
+        aria-label="Результаты поиска"
+      ></div>
+      <p class="field-hint">Стрелки: выбор. Enter: открыть. Esc: закрыть.</p>
+    </dialog>
+    <dialog id="drafts-dialog" class="modal" aria-labelledby="drafts-title">
+      <div class="dialog-top">
+        <h2 id="drafts-title">Несохранённые черновики</h2>
+        <button
+          class="icon-button"
+          data-close="drafts-dialog"
+          aria-label="Закрыть черновики"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <p>
+        Текст сохранён на этом устройстве. Откройте черновик, чтобы продолжить
+        или сохранить его в задачу.
+      </p>
+      <div id="draft-list"></div>
+    </dialog>
+    <dialog
+      id="owner-dialog"
+      class="modal small-modal"
+      aria-labelledby="owner-title"
+    >
+      <form id="owner-form">
+        <div class="dialog-top">
+          <h2 id="owner-title">Новый ответственный</h2>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="owner-dialog"
+            aria-label="Закрыть добавление ответственного"
+          >
+            <span data-icon="close"></span>
+          </button>
+        </div>
+        <label
+          >Имя<input
+            id="owner-name"
+            maxlength="80"
+            required
+            autocomplete="off"
+            placeholder="Имя и фамилия"
+        /></label>
+        <p id="owner-error" class="error" role="alert"></p>
+        <button class="button primary" type="submit">Добавить дорожку</button>
+      </form>
+    </dialog>
+    <dialog id="help-dialog" class="modal" aria-labelledby="help-title">
+      <div class="dialog-top">
+        <span class="eyebrow">Помощь</span
+        ><button
+          class="icon-button"
+          data-close="help-dialog"
+          aria-label="Закрыть помощь"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="help-title">От задачи к действию</h2>
+      <ul>
+        <li>
+          <strong>Приоритеты.</strong> Перенос между квадратами меняет
+          приоритет.
+        </li>
+        <li>
+          <strong>Команда и сроки.</strong> Перенос назначает человека или дату
+          дорожки. Точную дату можно указать в деталях.
+        </li>
+        <li>
+          <strong>Готово и отменено.</strong> Перенесите карточку в зону или на
+          кнопку над холстом. Возврат в рабочую зону ставит «В работе».
+        </li>
+        <li>
+          <strong>Читаемый просмотр.</strong> «Список» показывает все поля без
+          уменьшения масштаба. На холсте Enter или двойной клик открывает
+          детали. Кнопка 100% возвращает читаемый масштаб.
+        </li>
+        <li>
+          <strong>Черновики.</strong> Закрытие редактора сохраняет введённое на
+          устройстве. Несохранённые черновики доступны над доской.
+        </li>
+        <li>
+          <strong>Сохранение.</strong> «Сохранено в Google» означает
+          подтверждённое чтением состояние. Без сети правки ждут подключения.
+          После перезагрузки может понадобиться повторный вход.
+        </li>
+      </ul>
+      <dl class="shortcuts">
+        <dt><kbd>Ctrl/Cmd K</kbd></dt>
+        <dd>Команды и поиск</dd>
+        <dt><kbd>Ctrl/Cmd Z</kbd></dt>
+        <dd>Отмена изменения</dd>
+        <dt><kbd>F</kbd></dt>
+        <dd>Обзор всех карточек</dd>
+        <dt><kbd>Пробел + мышь</kbd></dt>
+        <dd>Перемещение обзора</dd>
+        <dt><kbd>Ctrl/Cmd + колесо</kbd></dt>
+        <dd>Масштаб под курсором</dd>
+      </dl>
+      <details>
+        <summary>Общая таблица и одновременная работа</summary>
+        <p>
+          Доска проверяет первую вкладку примерно раз в 20 секунд. Во время
+          открытого редактора, импорта или перетаскивания обновление ждёт
+          завершения действия. Изменения разных полей объединяются, для
+          замеченных конфликтов предлагается выбор версии. Строго одновременная
+          правка одной ячейки или сортировка между чтением и записью не имеет
+          атомарной защиты Google Sheets. Для таких действий используйте
+          устройства последовательно.
+        </p>
+      </details>
+      <a href="./privacy.html" target="_blank" rel="noopener"
+        >Хранение данных и доступ Google</a
+      >
+    </dialog>
+    <dialog id="cloud-dialog" class="modal" aria-labelledby="cloud-title">
+      <div class="dialog-top">
+        <span class="eyebrow">Google Таблица</span
+        ><button
+          class="icon-button"
+          data-close="cloud-dialog"
+          aria-label="Закрыть подключение"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="cloud-title">Задачи на ваших устройствах</h2>
+      <p>
+        Подключается первая вкладка «ЕМО - Раюшкин 2026». Выберите этот файл в
+        Google. Доступ ко всему Диску не запрашивается.
+      </p>
+      <p class="source-note">
+        При первом подключении поля задач берутся из актуальной таблицы.
+        Локальная раскладка используется там, где общей ещё нет. Перед
+        подключением старой локальной копии можно скачать её резервный JSON.
+      </p>
+      <div id="google-pending" class="notice" hidden>
+        Завершите вход во всплывающем окне Google. Можно отменить и попробовать
+        позже.
+      </div>
+      <div id="cloud-recovery" class="notice" hidden>
+        <p>
+          Повреждена очередь синхронизации. Рабочие задачи на устройстве
+          оставлены. Скачайте копию и пересоздайте связь; при следующем
+          подключении поля будут взяты из таблицы.
+        </p>
+        <label class="check"
+          ><input type="checkbox" id="recovery-confirm" /> Понимаю, что связь
+          будет создана заново</label
+        ><button id="cloud-reset" class="button quiet">
+          Скачать копию и сбросить связь
+        </button>
+      </div>
+      <p id="google-error" class="error" role="alert"></p>
+      <div class="form-actions">
+        <button id="google-disconnect" class="button quiet">Отключить</button
+        ><button id="google-cancel" class="button quiet" hidden>
+          Отменить вход</button
+        ><button id="google-authorize" class="button primary">
+          Войти и подключить
+        </button>
+      </div>
+      <p class="field-hint">
+        Если всплывающее окно не открывается внутри приложения, откройте эту
+        страницу в обычном браузере.
+        <button id="copy-link" class="text-button">Скопировать ссылку</button>
+      </p>
+      <a href="./privacy.html" target="_blank" rel="noopener"
+        >Как хранятся данные</a
+      >
+    </dialog>
+    <dialog
+      id="conflicts-dialog"
+      class="modal"
+      aria-labelledby="conflicts-title"
+    >
+      <div class="dialog-top">
+        <span class="eyebrow">Есть две версии</span
+        ><button
+          class="icon-button"
+          data-close="conflicts-dialog"
+          aria-label="Закрыть сравнение версий"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="conflicts-title">Выберите, что сохранить</h2>
+      <p>
+        Эти поля изменились в двух местах. Обе версии доступны для сравнения.
+        Выбор применяется после нажатия кнопки внизу.
+      </p>
+      <div id="conflict-list"></div>
+      <button id="resolve-conflicts" class="button primary">
+        Применить выбор
+      </button>
+    </dialog>
+    <dialog id="changes-dialog" class="modal" aria-labelledby="changes-title">
+      <div class="dialog-top">
+        <span class="eyebrow">Из Google Таблицы</span
+        ><button
+          class="icon-button"
+          data-close="changes-dialog"
+          aria-label="Закрыть изменения"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <h2 id="changes-title">Что изменилось</h2>
+      <p>
+        Зелёная метка отмечает новую карточку, янтарная - обновлённую. Открытие
+        карточки снимает её подсветку. Отметки просмотра сохраняются на этом
+        устройстве.
+      </p>
+      <div class="changes-sync">
+        <span id="changes-sync-status"></span
+        ><button id="changes-refresh" class="text-button">
+          Обновить сейчас</button
+        ><button id="changes-connect" class="text-button">
+          Подключить Google
+        </button>
+      </div>
+      <p class="source-note">
+        Автоматическая проверка выполняется примерно раз в 20 секунд, пока доска
+        подключена. Оформление ячеек не отслеживается.
+      </p>
+      <div id="changes-list"></div>
+      <div class="form-actions">
+        <button id="changes-read-all" class="button quiet">
+          Всё просмотрено</button
+        ><button class="button primary" data-close="changes-dialog">
+          К доске
+        </button>
+      </div>
+    </dialog>
+    <p
+      id="changes-announcement"
+      class="visually-hidden"
+      role="status"
+      aria-live="polite"
+    ></p>
+    <datalist id="owner-list"></datalist><datalist id="unit-list"></datalist>
+    <div id="toast" role="status" hidden></div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

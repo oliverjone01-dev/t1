@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <meta name="application-version" content="20261106-feniks-2" />
+    <meta name="application-version" content="20261106-team-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -26,7 +26,7 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261106-feniks-2" />
+    <link rel="stylesheet" href="./styles.css?rev=20261106-team-1" />
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
@@ -616,13 +616,15 @@
       <details>
         <summary>Общая таблица и одновременная работа</summary>
         <p>
-          Доска проверяет первую вкладку примерно раз в 20 секунд. Во время
-          открытого редактора, импорта или перетаскивания обновление ждёт
-          завершения действия. Изменения разных полей объединяются, для
-          замеченных конфликтов предлагается выбор версии. Строго одновременная
-          правка одной ячейки или сортировка между чтением и записью не имеет
-          атомарной защиты Google Sheets. Для таких действий используйте
-          устройства последовательно.
+          Изменения на доске передаются команде в реальном времени через Google
+          Firestore. Разные поля объединяются автоматически. Для одного поля
+          сохраняются обе версии и предлагается выбор. Если поле снова изменится
+          во время сравнения, потребуется выбрать актуальную версию ещё раз.
+          Очередь на устройстве сохраняет правки при потере сети.
+          Google Таблица обновляется отдельно; её изменения проверяются примерно
+          раз в 30 секунд, пока открыт подключённый браузер. При прямой правке
+          таблицы во время записи доски Google Sheets не даёт атомарной защиты
+          ячейки. История правок доски сохраняется в командной базе.
         </p>
       </details>
       <a href="./privacy.html" target="_blank" rel="noopener"
@@ -707,6 +709,7 @@
         Выбор применяется после нажатия кнопки внизу.
       </p>
       <div id="conflict-list"></div>
+      <p id="conflicts-error" class="error" role="alert"></p>
       <button id="resolve-conflicts" class="button primary">
         Применить выбор
       </button>
@@ -759,6 +762,6 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261106-feniks-2"></script>
+    <script type="module" src="./app.mjs?rev=20261106-team-1"></script>
   </body>
 </html>

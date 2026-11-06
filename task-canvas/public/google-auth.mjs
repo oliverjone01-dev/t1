@@ -1,4 +1,4 @@
-import { SHEET_ID } from "./sync-model.mjs?rev=20261106-feniks-2";
+import { SHEET_ID } from "./sync-model.mjs?rev=20261106-team-1";
 const cancelled = () =>
   Object.assign(new Error("Подключение отменено."), { cancelled: true });
 export class GoogleAuth {
@@ -80,7 +80,7 @@ export class GoogleAuth {
       try {
         const client = oauth.initTokenClient({
           client_id: this.config.clientId,
-          scope: "https://www.googleapis.com/auth/drive.file",
+          scope: "openid email profile https://www.googleapis.com/auth/drive.file",
           include_granted_scopes: false,
           callback: (response) =>
             response.error || !response.access_token

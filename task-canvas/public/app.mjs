@@ -11,13 +11,18 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261106-feniks-2";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261106-feniks-2";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261106-feniks-2";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261106-feniks-2";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-feniks-2";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-feniks-2";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-feniks-2";
+} from "./model.mjs?rev=20261106-team-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261106-team-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261106-team-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261106-team-1";
+import { TeamApi } from "./team-api.mjs?rev=20261106-team-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261106-team-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261106-team-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261106-team-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261106-team-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-team-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-team-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-team-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -25,8 +30,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261106-feniks-2";
-import { parseAssignee } from "./people.mjs?rev=20261106-feniks-2";
+} from "./editor.mjs?rev=20261106-team-1";
+import { parseAssignee } from "./people.mjs?rev=20261106-team-1";
 import {
   matchesTask,
   matchesWords,
@@ -35,14 +40,14 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261106-feniks-2";
-import { icon } from "./icons.mjs?rev=20261106-feniks-2";
+} from "./ui-model.mjs?rev=20261106-team-1";
+import { icon } from "./icons.mjs?rev=20261106-team-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
 const STORAGE = DEMO
     ? "gengroup.task-canvas.demo.v1"
-    : "gengroup.task-canvas.v1",
+    : "gengroup.task-canvas.team.v2",
   PREFS = "gengroup.task-canvas.preferences.v1";
 const today = () => localDate(),
   esc = (value) =>
@@ -78,11 +83,15 @@ try {
     },
   };
 }
-const drafts = new DraftStore(storage, STORAGE),
+const drafts = DEMO
+    ? new DraftStore(storage, STORAGE)
+    : new TeamDraftStore(storage, STORAGE),
   memoryDrafts = new Map();
 function draftRecords() {
   const result = drafts.list(),
-    byId = new Map(result.drafts.map((record) => [record.id, record]));
+    byId = new Map(
+      result.drafts.map((record) => [record.key || record.id, record]),
+    );
   for (const [id, record] of memoryDrafts) byId.set(id, record);
   return {
     ...result,
@@ -96,7 +105,8 @@ let tasks = [],
   camera = { x: 32, y: 24, z: 1 },
   selected = null,
   editing = null,
-  editingBase = null;
+  editingBase = null,
+  editingVersionBasis = null;
 let history = [],
   future = [],
   layout,
@@ -123,7 +133,9 @@ let preferences = cleanPreferences(null),
   connectionAttempt = 0,
   connecting = false;
 try {
-  const raw = storage.getItem(STORAGE);
+  const raw =
+    storage.getItem(STORAGE) ||
+    (!DEMO ? storage.getItem("gengroup.task-canvas.v1") : null);
   if (raw) {
     const state = JSON.parse(raw);
     freshBoard = false;
@@ -201,7 +213,16 @@ function persist() {
     cloud: DEMO ? null : cloudEngine?.snapshot() || cloudCache,
     changes: inbox.snapshot(),
   };
-  const result = writeBoard(storage, STORAGE, state, storedSignature);
+  const result = DEMO
+    ? writeBoard(storage, STORAGE, state, storedSignature)
+    : (() => {
+        try {
+          storage.setItem(STORAGE, JSON.stringify(state));
+          return { ok: true, signature: dataSignature(state) };
+        } catch (error) {
+          return { ok: false, reason: "storage", message: error.message };
+        }
+      })();
   if (result.ok) {
     storedSignature = result.signature;
     storageFailed = false;
@@ -231,7 +252,8 @@ function savedToast(message) {
   );
 }
 const snapshot = () => JSON.stringify({ tasks, owners: extraOwners });
-function change(fn) {
+async function change(fn, versionBasis = null) {
+  const basis = cloudEngine?.managed ? cloudEngine.capture() : null;
   const before = snapshot();
   try {
     fn();
@@ -244,28 +266,113 @@ function change(fn) {
   }
   let ok = true;
   if (snapshot() !== before) {
-    history.push(before);
+    const undo = cloudEngine?.managed
+      ? {
+          before: JSON.parse(before),
+          after: JSON.parse(snapshot()),
+          basis: null,
+        }
+      : before;
+    history.push(undo);
     if (history.length > 50) history.shift();
     future = [];
     unsavedChanges = true;
-    cloudEngine?.changed();
-    ok = persist();
+    try {
+      if (cloudEngine?.managed)
+        await cloudEngine.changed({
+          basis,
+          desired: { tasks: structuredClone(tasks), owners: [...extraOwners] },
+          versionBasis,
+        });
+      else cloudEngine?.changed();
+      ok = persist();
+      if (cloudEngine?.managed) {
+        unsavedChanges = false;
+        ok = true;
+        undo.basis = cloudEngine.capture();
+      }
+    } catch (error) {
+      cloudEngine?.reproject();
+      toast(error.message);
+      ok = false;
+    }
   } else if (storageFailed || unsavedChanges) ok = persist();
   render();
   return ok;
 }
-function restore(from, to) {
+async function restore(from, to) {
   if (!from.length) return;
-  to.push(snapshot());
-  const state = JSON.parse(from.pop());
-  tasks = state.tasks;
-  extraOwners = state.owners;
-  selected = null;
-  unsavedChanges = true;
-  cloudEngine?.changed();
-  persist();
-  render();
-  savedToast("Изменение отменено / повторено");
+  if (!cloudEngine?.managed) {
+    to.push(snapshot());
+    const state = JSON.parse(from.pop());
+    tasks = state.tasks;
+    extraOwners = state.owners;
+    cloudEngine?.changed();
+    persist();
+    render();
+    return;
+  }
+  const record = from.pop(),
+    desired = { tasks: structuredClone(tasks), owners: [...extraOwners] },
+    before = new Map(record.before.tasks.map((t) => [t.id, t])),
+    after = new Map(record.after.tasks.map((t) => [t.id, t]));
+  for (const id of new Set([...before.keys(), ...after.keys()])) {
+    const b = before.get(id),
+      a = after.get(id),
+      index = desired.tasks.findIndex((t) => t.id === id);
+    if (!b && a) {
+      if (index >= 0) desired.tasks.splice(index, 1);
+      continue;
+    }
+    if (b && !a) {
+      if (index < 0) desired.tasks.push(b);
+      continue;
+    }
+    if (index < 0) continue;
+    for (const key of Object.keys(b))
+      if (JSON.stringify(b[key]) !== JSON.stringify(a[key])) {
+        if (key === "positions") {
+          for (const view of new Set([
+            ...Object.keys(b.positions),
+            ...Object.keys(a.positions),
+          ]))
+            if (
+              JSON.stringify(b.positions[view]) !==
+              JSON.stringify(a.positions[view])
+            ) {
+              if (b.positions[view])
+                desired.tasks[index].positions[view] = structuredClone(
+                  b.positions[view],
+                );
+              else delete desired.tasks[index].positions[view];
+            }
+        } else desired.tasks[index][key] = structuredClone(b[key]);
+      }
+  }
+  desired.owners = [
+    ...new Set([
+      ...desired.owners.filter(
+        (name) =>
+          !record.after.owners.includes(name) ||
+          record.before.owners.includes(name),
+      ),
+      ...record.before.owners.filter(
+        (name) => !record.after.owners.includes(name),
+      ),
+    ]),
+  ];
+  const current = { tasks: structuredClone(tasks), owners: [...extraOwners] },
+    basis = cloudEngine.capture();
+  try {
+    await cloudEngine.changed({ basis, desired, versionBasis: record.basis });
+    to.push({ before: current, after: desired, basis: cloudEngine.capture() });
+    persist();
+    render();
+    toast("Отмена сохранена. При параллельной правке появится выбор версии.");
+  } catch (error) {
+    from.push(record);
+    toast(error.message);
+  }
 }
 function applyPreferences() {
   document.documentElement.dataset.theme =
@@ -415,8 +522,8 @@ function renderProvenance() {
   );
 }
 function renderEmpty() {
-  $("#add").classList.toggle("primary",tasks.length>0);
-  $("#add").classList.toggle("quiet",tasks.length===0);
+  $("#add").classList.toggle("primary", tasks.length > 0);
+  $("#add").classList.toggle("quiet", tasks.length === 0);
   const state = emptyState({
     count: tasks.length,
     hasBaseline: !!cloudEngine?.base,
@@ -651,6 +758,7 @@ $("#viewport").addEventListener("pointerdown", (e) => {
     const original = layout.placed.get(selected);
     gesture = {
       type: "card",
+      basis: cloudEngine?.managed ? cloudEngine.capture() : null,
       id: selected,
       pointer: e.pointerId,
       start: { x: e.clientX, y: e.clientY },
@@ -730,7 +838,7 @@ $("#viewport").addEventListener("pointermove", (e) => {
       el.classList.toggle("drop-target", el.dataset.statusZone === group?.id),
     );
 });
-function endGesture(e, cancelled = false) {
+async function endGesture(e, cancelled = false) {
   touches.delete(e.pointerId);
   if (pinch) {
     if (touches.size < 2) {
@@ -775,8 +883,9 @@ function endGesture(e, cancelled = false) {
           today(),
         );
         if (statusGroup(next)) $("#hide-done").checked = false;
-        change(
+        await change(
           () => (tasks = tasks.map((t) => (t.id === current.id ? next : t))),
+          current.basis,
         );
         const label = target.status
           ? `Статус: ${next.status}`
@@ -868,18 +977,19 @@ function renderEditorConflicts() {
   $("#editor-conflicts").innerHTML = conflicts
     .map(
       (c) =>
-        `<section class="notice"><strong>Две версии: ${esc(FIELD_NAMES[c.field] || c.field)}</strong><p>Из таблицы</p><pre>${esc(c.remote || "Пусто")}</pre><p>Ваш текст</p><pre>${esc(c.local || "Пусто")}</pre><div class="editor-conflict-actions"><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="remote">Взять из таблицы</button><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="local">Оставить мой текст</button></div></section>`,
+        `<section class="notice"><strong>Две версии: ${esc(FIELD_NAMES[c.field] || c.field)}</strong><p>Общая версия</p><pre>${esc(c.remote || "Пусто")}</pre><p>Ваш текст</p><pre>${esc(c.local || "Пусто")}</pre><div class="editor-conflict-actions"><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="remote">Взять общую версию</button><button type="button" class="button quiet" data-editor-field="${c.field}" data-editor-choice="local">Оставить мой текст</button></div></section>`,
     )
     .join("");
   return conflicts;
 }
-function openTask(id = null) {
+function openTask(id = null, chosenDraft = null) {
+  editingVersionBasis = cloudEngine?.managed ? cloudEngine.capture() : null;
   editing = id;
   const current = tasks.find((t) => t.id === id);
   let draft = null;
   let draftError = "";
   try {
-    draft = memoryDrafts.get(id) || drafts.read(id);
+    draft = chosenDraft || memoryDrafts.get(id) || drafts.read(id);
   } catch (error) {
     draftError = error.message;
   }
@@ -969,11 +1079,18 @@ $("#editor-conflicts").onclick = (e) => {
   if (button.dataset.editorChoice === "remote")
     field(key).value = editorValues(current)[key];
   editingBase[key] = editorValues(current)[key];
+  if (editingVersionBasis && cloudEngine.managed) {
+    const latest = cloudEngine.capture().entries.get(editing),
+      old = editingVersionBasis.entries.get(editing);
+    const group = { owner: "assignment", due: "schedule" }[key] || key;
+    if (latest && old) old.versions[group] = latest.versions[group];
+  }
   text("#editor-error", "");
   saveDraft();
   renderEditorConflicts();
 };
-function submitTask(forceNew = false) {
+async function submitTask(forceNew = false) {
+  if (submitTask.busy) return;
   const plan = planEdit({
     tasks,
     id: editing,
@@ -1003,7 +1120,9 @@ function submitTask(forceNew = false) {
   if (statusGroup(plan.task)) $("#hide-done").checked = false;
   const before = snapshot(),
     undoCount = history.length;
-  const ok = change(() => (tasks = plan.tasks));
+  submitTask.busy = true;
+  const ok = await change(() => (tasks = plan.tasks), editingVersionBasis);
+  submitTask.busy = false;
   if (!ok) {
     const prior = JSON.parse(before);
     tasks = prior.tasks;
@@ -1033,10 +1152,16 @@ $("#task-form").onsubmit = (e) => {
   submitTask();
 };
 $("#recreate-task").onclick = () => submitTask(true);
-$("#delete-task").onclick = () => {
+$("#delete-task").onclick = async () => {
   const id = editing;
   if (!tasks.some((t) => t.id === id)) return renderEditorConflicts();
-  change(() => (tasks = tasks.filter((t) => t.id !== id)));
+  if (
+    !(await change(
+      () => (tasks = tasks.filter((t) => t.id !== id)),
+      editingVersionBasis,
+    ))
+  )
+    return;
   try {
     drafts.remove(id);
     memoryDrafts.delete(id);
@@ -1051,11 +1176,11 @@ $("#task-list").onclick = (e) => {
   const b = e.target.closest("[data-open]");
   if (b) openTask(b.dataset.open);
 };
-$("#task-list").onchange = (e) => {
+$("#task-list").onchange = async (e) => {
   const id = e.target.dataset.statusId;
   if (!id) return;
   const status = e.target.value;
-  change(
+  await change(
     () => (tasks = tasks.map((t) => (t.id === id ? { ...t, status } : t))),
   );
   savedToast("Статус изменён");
@@ -1082,10 +1207,11 @@ $("#drafts-open").onclick = () => {
     if (!draft) return;
     if (open) {
       $("#drafts-dialog").close();
-      openTask(draft.id);
+      openTask(draft.id, draft);
     } else if (discard) {
       try {
-        drafts.remove(draft.id);
+        if (drafts.discard) drafts.discard(draft);
+        else drafts.remove(draft.id);
         memoryDrafts.delete(draft.id);
         draftFailed = memoryDrafts.size > 0;
         renderDraftBanner();
@@ -1102,7 +1228,7 @@ $("#new-owner").onclick = () => {
   $("#owner-name").value = "";
   showDialog("owner-dialog");
 };
-$("#owner-form").onsubmit = (e) => {
+$("#owner-form").onsubmit = async (e) => {
   e.preventDefault();
   const name = parseAssignee($("#owner-name").value);
   if (!name) {
@@ -1113,7 +1239,7 @@ $("#owner-form").onsubmit = (e) => {
     text("#owner-error", "Такая дорожка уже есть.");
     return;
   }
-  change(() => extraOwners.push(name));
+  if (!(await change(() => extraOwners.push(name)))) return;
   $("#owner-dialog").close();
   jumpToGroup(`owner:${name}`, true);
 };
@@ -1151,7 +1277,7 @@ $("#import-file").onchange = async (e) => {
     );
   }
 };
-$("#import-submit").onclick = () => {
+$("#import-submit").onclick = async () => {
   try {
     text("#import-error", "");
     const source = $("#import-text").value,
@@ -1183,7 +1309,7 @@ $("#import-submit").onclick = () => {
     if (importPlan.summary.removed && !$("#import-confirm").checked)
       throw new Error("Подтвердите удаление задач с доски в строке выше.");
     const plan = importPlan;
-    const ok = change(() => {
+    const ok = await change(() => {
       tasks = plan.result.tasks;
       extraOwners = plan.result.owners;
     });
@@ -1355,7 +1481,9 @@ function renderChanges() {
     ? inbox.entries
         .map((entry) => {
           const exists = tasks.some((t) => t.id === entry.id),
-            conflict = cloudEngine?.conflicts.some((c) => c.id === entry.id);
+            conflict = cloudEngine?.conflicts.some(
+              (c) => (c.taskId || c.id) === entry.id,
+            );
           return `<section class="change-item"><div class="change-item-meta"><strong>${entry.kind === "new" ? "Новая задача" : entry.kind === "removed" ? "Убрана с доски" : "Задача обновлена"}</strong><time>${esc(entry.at ? new Date(entry.at).toLocaleString("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "")}</time></div><h3>${esc(entry.title)}</h3><p>${esc(entry.kind === "removed" ? "Строка удалена или карточка архивирована в таблице." : entry.fields.map((f) => CHANGE_FIELDS[f]).join(", ") || "Добавлена из таблицы.")}</p><button class="text-button" data-change-id="${esc(entry.id)}">${conflict ? "Сравнить версии" : exists ? "Показать задачу" : "Отметить просмотренным"}</button></section>`;
         })
         .join("")
@@ -1383,7 +1511,7 @@ $("#changes-list").onclick = (e) => {
   const b = e.target.closest("[data-change-id]");
   if (!b) return;
   const id = b.dataset.changeId;
-  if (cloudEngine?.conflicts.some((c) => c.id === id)) {
+  if (cloudEngine?.conflicts.some((c) => (c.taskId || c.id) === id)) {
     $("#changes-dialog").close();
     openConflicts();
     return;
@@ -1605,6 +1733,13 @@ window.addEventListener("storage", (e) => {
     return;
   }
   if (e.key !== STORAGE && e.key !== null) return;
+  if (!DEMO) {
+    cloudEngine
+      ?.ready()
+      .then(() => cloudEngine.reproject())
+      .catch((error) => toast(error.message));
+    return;
+  }
   try {
     const incoming = e.newValue
       ? dataSignature(JSON.parse(e.newValue))
@@ -1631,14 +1766,14 @@ function cloudState(state) {
       signin: "Нужен вход Google",
       pending: "Ожидает отправки",
       syncing: "Синхронизация...",
-      synced: "Сохранено в Google",
+      synced: state.managed ? "Сохранено для команды" : "Сохранено в Google",
       offline: "Нет связи с Google",
       conflict: "Нужно сравнить версии",
       "cache-error": "Ошибка очереди",
     }[state.status] || "Google Таблица";
   text("#cloud-label", DEMO ? "Демонстрация" : label);
   $("#google-connect").setAttribute("aria-label", "Google: " + label);
-  $("#google-connect").title=label;
+  $("#google-connect").title = label;
   text(
     "#google-label",
     state.status === "synced"
@@ -1655,7 +1790,15 @@ function cloudState(state) {
       ? "Отдельные тестовые данные. Синхронизация выключена."
       : state.message ||
           (state.status === "synced"
-            ? "Изменения подтверждены чтением из таблицы."
+            ? state.managed
+              ? "Командная база подтвердила правки. Таблица: " +
+                (state.sourceState?.status === "synced"
+                  ? "обновлена"
+                  : state.sourceState?.status === "signin"
+                    ? "нужен повторный вход Google"
+                    : "ожидает синхронизации") +
+                "."
+              : "Изменения подтверждены чтением из таблицы."
             : state.status === "syncing"
               ? "Проверяем таблицу и сохраняем правки."
               : state.status === "signin" && state.pending
@@ -1664,7 +1807,10 @@ function cloudState(state) {
                   ? `Полей для сравнения: ${state.conflicts.length}.`
                   : "Подключите Google для общей работы на устройствах."),
   );
-  text("#connection-explanation",label+". "+$("#cloud-status").textContent);
+  text(
+    "#connection-explanation",
+    label + ". " + $("#cloud-status").textContent,
+  );
   for (const id of ["cloud-dot", "header-cloud-dot"])
     $("#" + id).className =
       "connection-dot " +
@@ -1687,7 +1833,7 @@ const businessSignature = (board) =>
     owners: board.owners,
   });
 function writeGuard() {
-  if (DEMO || storageConflict || stateLoadError || storageFailed)
+  if (DEMO || stateLoadError || (storageConflict && !cloudEngine?.managed))
     throw new Error(
       "Сохранение остановлено: сначала сохраните копию и восстановите локальное хранилище.",
     );
@@ -1704,7 +1850,7 @@ function applyCloud(board, cache) {
   tasks = board.tasks;
   extraOwners = board.owners;
   cloudCache = cache;
-  if (changed) {
+  if (changed && !cloudEngine?.managed) {
     history = [];
     future = [];
   }
@@ -1724,7 +1870,8 @@ function applyCloud(board, cache) {
   persist();
   if (!gesture && cloudRenderNeeded) render();
 }
-cloudEngine = new SyncEngine({
+cloudEngine = new (DEMO ? SyncEngine : TeamSyncEngine)({
+  boardId: "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY",
   api: null,
   getLocal: () => ({ tasks, owners: extraOwners }),
   apply: applyCloud,
@@ -1739,12 +1886,18 @@ cloudEngine = new SyncEngine({
 const originalFlush = cloudEngine.flush.bind(cloudEngine);
 cloudEngine.flush = async () => {
   if (DEMO) return;
-  if (storageConflict || stateLoadError || storageFailed) {
+  if (
+    !cloudEngine.managed &&
+    (storageConflict || stateLoadError || storageFailed)
+  ) {
     cloudEngine.disconnect();
     renderAlert();
     return;
   }
-  if (gesture || $("#editor").open || $("#import-dialog").open) {
+  if (
+    !cloudEngine.managed &&
+    (gesture || $("#editor").open || $("#import-dialog").open)
+  ) {
     cloudEngine.later(1500);
     return;
   }
@@ -1764,7 +1917,7 @@ function cancelConnection() {
 }
 $("#google-connect").onclick = () => {
   text("#google-error", "");
-  if (cloudEngine.conflicts.length) openConflicts();
+  if (cloudEngine.connected && cloudEngine.conflicts.length) openConflicts();
   else showDialog("cloud-dialog");
 };
 $("#google-authorize").onclick = async () => {
@@ -1818,6 +1971,13 @@ $("#cloud-reset").onclick = () => {
   exportBoard();
   cancelConnection();
   googleAuth?.disconnect();
+  if (cloudEngine.managed) {
+    text(
+      "#google-error",
+      "Общая история сохранена. Подключитесь повторно; очередь правок остаётся на устройстве.",
+    );
+    return;
+  }
   cloudEngine.resetBaseline();
   persist();
   text(
@@ -1836,30 +1996,87 @@ $("#copy-link").onclick = async () => {
     );
   }
 };
+let conflictReview = [];
 function conflictText(value) {
-  if (value == null) return "Удалено / пусто";
-  if (typeof value === "object")
-    return value.title || JSON.stringify(value, null, 2);
-  return String(value);
+  if (value == null) return "Убрано с доски / пусто";
+  if (typeof value !== "object") return String(value);
+  if (value.task)
+    return (
+      (value.archived ? "В архиве\n" : "На доске\n") +
+      value.task.title +
+      "\n" +
+      (value.task.comment || "")
+    );
+  return Object.entries(value)
+    .map(
+      ([key, v]) =>
+        (FIELD_NAMES[key] ||
+          {
+            "positions.owners": "Позиция в дорожке",
+            "positions.time": "Позиция по сроку",
+            "positions.priority": "Позиция в квадрате",
+          }[key] ||
+          key) +
+        ": " +
+        (v === null
+          ? "Не указано"
+          : typeof v === "object"
+            ? JSON.stringify(v)
+            : v),
+    )
+    .join("\n");
 }
 function openConflicts() {
-  $("#conflict-list").innerHTML = cloudEngine.conflicts
+  if (cloudEngine.managed && !cloudEngine.connected) {
+    showDialog("cloud-dialog");
+    text(
+      "#google-error",
+      "Войдите в Google, чтобы сравнить актуальные версии команды.",
+    );
+    return;
+  }
+  conflictReview = structuredClone(cloudEngine.conflicts);
+  $("#conflict-list").innerHTML = conflictReview
     .map(
       (c, i) =>
-        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(FIELD_NAMES[c.field] || c.field)}</h3><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote" checked> Из таблицы</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Моя версия</span><pre>${esc(conflictText(c.local))}</pre></label></section>`,
+        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(c.fieldName || GROUP_NAMES[c.field] || FIELD_NAMES[c.field] || c.field)}</h3><p>Одно поле изменили параллельно. Обе версии сохранены в истории.</p><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote"> Текущая общая версия</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Предложенная версия${c.actor?.name ? " · " + esc(c.actor.name) : ""}</span><pre>${esc(conflictText(c.local))}</pre></label></section>`,
     )
     .join("");
+  text("#conflicts-error", "");
   showDialog("conflicts-dialog");
 }
 $("#cloud-conflicts").onclick = openConflicts;
-$("#resolve-conflicts").onclick = () => {
+$("#resolve-conflicts").onclick = async () => {
   const choices = {};
-  cloudEngine.conflicts.forEach(
-    (c, i) => (choices[i] = $(`input[name="conflict-${i}"]:checked`).value),
-  );
-  $("#conflicts-dialog").close();
-  cloudEngine.resolve(choices);
-  persist();
+  for (const [i, c] of conflictReview.entries()) {
+    const selected = $(`input[name="conflict-${i}"]:checked`);
+    if (!selected) {
+      text("#conflicts-error", "Выберите версию для каждого поля.");
+      return;
+    }
+    choices[i] = selected.value;
+  }
+  const button = $("#resolve-conflicts");
+  button.disabled = true;
+  try {
+    const result = await cloudEngine.resolve(choices, conflictReview);
+    if (result?.stale) {
+      openConflicts();
+      text(
+        "#conflicts-error",
+        "Пока вы сравнивали, задача снова изменилась. Показаны актуальные версии. Выберите заново.",
+      );
+    } else {
+      $("#conflicts-dialog").close();
+      persist();
+      cloudEngine.bridge?.wake();
+      toast("Выбранные версии сохранены для команды");
+    }
+  } catch (error) {
+    text("#conflicts-error", error.message);
+  } finally {
+    button.disabled = false;
+  }
 };
 window.addEventListener("online", () => {
   if (cloudEngine.connected) cloudEngine.flush();
@@ -1867,22 +2084,28 @@ window.addEventListener("online", () => {
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && cloudEngine.connected) cloudEngine.flush();
 });
-if (!DEMO)
-  fetch("./google-config.json", { cache: "no-store" })
-    .then((r) => {
-      if (!r.ok) throw new Error();
-      return r.json();
-    })
-    .then((config) => {
+if (!DEMO) {
+  cloudEngine.bridge = new TeamSourceBridge(cloudEngine);
+  cloudEngine.ready().catch((error) => toast(error.message));
+  Promise.all(
+    ["google-config.json", "team-config.json"].map((path) =>
+      fetch("./" + path, { cache: "no-store" }).then((r) => {
+        if (!r.ok) throw new Error("Настройки Google недоступны.");
+        return r.json();
+      }),
+    ),
+  )
+    .then(([config, team]) => {
       googleAuth = new GoogleAuth(config);
+      cloudEngine.googleAuth = googleAuth;
       cloudEngine.api = new SheetsApi(googleAuth, undefined, writeGuard);
+      cloudEngine.repository = new TeamApi({
+        config: team,
+        boardId: team.boardId,
+      });
     })
-    .catch(() =>
-      text(
-        "#google-error",
-        "Не удалось загрузить настройки Google. Обновите страницу.",
-      ),
-    );
+    .catch((error) => text("#google-error", error.message));
+}
 render();
 if (DEMO && freshBoard && !stateLoadError) setMode(mode);
 if (DEMO && !stateLoadError) persist();

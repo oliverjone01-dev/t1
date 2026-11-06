@@ -3,7 +3,7 @@ import {
   TAB_ID,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261106-feniks-2";
+} from "./sync-model.mjs?rev=20261106-team-1";
 export class SheetsApi {
   constructor(
     auth,

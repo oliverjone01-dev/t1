@@ -5,7 +5,11 @@ import {
   groupValue,
   toBoard,
 } from "./team-model.mjs?rev=20261106-team-1";
-import { equal, mergeBoards } from "./sync-model.mjs?rev=20261106-team-1";
+import {
+  equal,
+  mergeBoards,
+  comparable,
+} from "./sync-model.mjs?rev=20261106-team-1";
 import { digest } from "./team-api.mjs?rev=20261106-team-1";
 const clone = (value) => structuredClone(value);
 function copyGroup(target, source, group) {
@@ -84,7 +88,44 @@ export class TeamSourceBridge {
       for (const entry of before.entries) {
         const row = records.get(entry.task.id),
           old = entry.sheet;
-        if (!old) continue;
+        if (!old) {
+          if (row) {
+            const options = {
+              id: "source-pending",
+              actor: e.actor,
+              submittedAt: 0,
+              includeContext: true,
+            };
+            let operation;
+            if (row.archived) {
+              operation = entry.archived
+                ? null
+                : makeOperation(entry, null, options);
+              if (operation) operation.baseRevision = 0;
+            } else if (
+              !entry.archived &&
+              equal(comparable(entry.task), comparable(row.task))
+            )
+              operation = makeOperation(entry, row.task, options);
+            else
+              operation = {
+                schema: 1,
+                id: "source-pending",
+                kind: "create",
+                taskId: row.id,
+                task: row.task,
+                actor: e.actor,
+                submittedAt: 0,
+              };
+            if (operation) {
+              operation.id =
+                "source-" + (await digest({ ...operation, id: undefined }));
+              await e.repository.submit(operation);
+            }
+            observed.push({ entry, row });
+          }
+          continue;
+        }
         const present = !!row && !row.archived;
         if (old.present === present && (!present || equal(old.task, row.task)))
           continue;
@@ -94,7 +135,7 @@ export class TeamSourceBridge {
           versions: old.versions,
           revision: old.revision,
           lifeVersion: old.lifeVersion || entry.lifeVersion,
-          archived: !old.present,
+          archived: !old.present && entry.archived,
         };
         let operation = makeOperation(base, present ? row.task : null, {
           id: "source-pending",
@@ -102,7 +143,11 @@ export class TeamSourceBridge {
           submittedAt: 0,
           includeContext: true,
         });
-        if (present && !old.present)
+        if (
+          present &&
+          !old.present &&
+          !equal(comparable(entry.task), comparable(row.task))
+        )
           operation = {
             schema: 1,
             id: "source-pending",
@@ -203,6 +248,16 @@ export class TeamSourceBridge {
       }
       const target = toBoard(projected, canonical.lanes.items),
         plan = mergeBoards(source.board, target, source.board);
+      // Record observed absence before append, so a lost Sheets response cannot
+      // turn a subsequently edited row into an unobserved blind overwrite.
+      const unobserved = canonical.entries.filter(
+        (entry) => !entry.sheet && !records.has(entry.task.id),
+      );
+      if (unobserved.length)
+        await e.repository.markSheetObserved(
+          unobserved.map((entry) => checkpoint(entry, null)),
+          e.clientId,
+        );
       if (plan.writes.length || !equal(source.board.owners, target.owners)) {
         active();
         if (!(await e.repository.acquireBridge(e.clientId))) return;
@@ -219,7 +274,7 @@ export class TeamSourceBridge {
           present = !!row && !row.archived;
         if (
           entry.archived !== !present ||
-          (present && !equal(entry.task, row.task))
+          (present && !equal(comparable(entry.task), comparable(row.task)))
         )
           continue;
         const saved = entry.sheet;
@@ -229,7 +284,10 @@ export class TeamSourceBridge {
           equal(saved?.task, row?.task || entry.task)
         )
           continue;
-        acks.push(checkpoint(entry, row));
+        const ack = checkpoint(entry, row);
+        // Sheets-generated context is imported on the next versioned read.
+        ack.task = clone(entry.task);
+        acks.push(ack);
       }
       if (acks.length) await e.repository.markSheetObserved(acks, e.clientId);
       active();

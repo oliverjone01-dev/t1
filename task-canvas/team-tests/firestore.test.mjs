@@ -326,3 +326,66 @@ test("Sheets bridge imports external fields conditionally and projects team fiel
     await bridge.stop();
   }
 });
+
+test("a lost Sheet append response cannot overwrite the next manual edit of that new card", async () => {
+  const { TeamSourceBridge } = await import("../public/team-source.mjs");
+  let source = { records: [], board: { tasks: [], owners: [] } },
+    writes = 0;
+  const remote = await a.read(),
+    engine = {
+      repository: a,
+      clientId: "device-a",
+      actor: alice,
+      entries: new Map(remote.entries.map((e) => [e.task.id, e])),
+      owners: [],
+      rawConflicts: [],
+      connected: true,
+      sourceState: {},
+      status: "synced",
+      state: () => {},
+      api: {
+        read: async () => structuredClone(source),
+        write: async (snapshot, changes, owners) => {
+          writes++;
+          source.records = changes
+            .filter((c) => c.type === "upsert")
+            .map((c) => ({
+              id: c.id,
+              task: { ...c.task, sourceId: "sheet-generated" },
+              archived: false,
+              row: 3,
+            }));
+          source.board = { tasks: source.records.map((r) => r.task), owners };
+          throw new Error("Lost append response");
+        },
+      },
+    };
+  const bridge = new TeamSourceBridge(engine);
+  bridge.running = true;
+  try {
+    await bridge.tick();
+    assert.equal(writes, 1);
+    const checkpoint = (await a.read()).entries[0];
+    assert.equal(checkpoint.sheet.present, false);
+    source.records[0].task.title = "Ручная правка после потерянного ответа";
+    source.board.tasks = source.records.map((r) => r.task);
+    const latest = await a.read();
+    engine.entries = new Map(latest.entries.map((e) => [e.task.id, e]));
+    engine.rawConflicts = latest.conflicts;
+    await bridge.tick();
+    const final = await a.read();
+    assert.equal(final.entries[0].task.title, task.title);
+    assert.equal(final.conflicts.length, 1);
+    assert.equal(
+      final.conflicts[0].local.task.title,
+      "Ручная правка после потерянного ответа",
+    );
+    assert.equal(
+      source.records[0].task.title,
+      "Ручная правка после потерянного ответа",
+    );
+    assert.equal(writes, 1);
+  } finally {
+    await bridge.stop();
+  }
+});

@@ -1,5 +1,5 @@
 {
- "measured": "2026-11-02",
+ "measured": "2026-11-06",
  "phrases": [
   {
    "phrase": "полки из стекла",
@@ -42,6 +42,14 @@
    "intent": "informational"
   },
   {
+   "phrase": "стул в стиле лофт",
+   "pos": null,
+   "freq": 1655,
+   "url": "",
+   "cluster": "стул",
+   "intent": "commercial"
+  },
+  {
    "phrase": "сколько стоит установить памятник на могилу",
    "pos": null,
    "freq": 130,
@@ -55,14 +63,6 @@
    "freq": 43,
    "url": "",
    "cluster": "оформление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "серафимовское кладбище",
-   "pos": null,
-   "freq": 5612,
-   "url": "",
-   "cluster": "серафимовское",
    "intent": "commercial"
   },
   {
@@ -135,6 +135,14 @@
    "freq": 400,
    "url": "",
    "cluster": "габбро",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "надгробные памятники",
+   "pos": null,
+   "freq": 10522,
+   "url": "",
+   "cluster": "надгробные",
    "intent": "commercial"
   },
   {
@@ -335,14 +343,6 @@
    "freq": 121,
    "url": "",
    "cluster": "ковалевское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "изделия из профильной трубы",
-   "pos": null,
-   "freq": 1715,
-   "url": "",
-   "cluster": "изделия",
    "intent": "commercial"
   },
   {
@@ -626,14 +626,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "фото на памятник варианты",
-   "pos": null,
-   "freq": 612,
-   "url": "",
-   "cluster": "фото",
-   "intent": "commercial"
-  },
-  {
    "phrase": "облицовка могилы гранитной плиткой",
    "pos": null,
    "freq": 52,
@@ -800,6 +792,14 @@
    "url": "",
    "cluster": "какой",
    "intent": "informational"
+  },
+  {
+   "phrase": "mirror glass",
+   "pos": null,
+   "freq": 855,
+   "url": "",
+   "cluster": "mirror",
+   "intent": "commercial"
   }
  ]
 }

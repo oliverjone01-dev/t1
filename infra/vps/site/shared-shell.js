@@ -717,7 +717,36 @@ const trend=panel('Динамика коммуникаций','Клиентск�
    let link=summary.querySelector('a');
    if(!link){link=document.createElement('a');link.textContent='РОП GG';link.style.cssText='display:inline;color:inherit;padding:0;background:none;border:0;text-decoration:none';const text=[...summary.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&/РОП/.test(n.textContent));if(text)text.replaceWith(link);else{const span=summary.querySelector('.gg-nav-label');if(span)span.replaceChildren(link);else summary.prepend(link);}}
    link.href='/rop/#sec1';link.setAttribute('aria-label','Открыть РОП GENGLASS и раскрыть разделы');
-   summary.addEventListener('click',e=>{if(!link.contains(e.target)||e.ctrlKey||e.metaKey||e.shiftKey)return;e.preventDefault();e.stopPropagation();summary.parentElement.open=true;if(location.pathname==='/rop/'){location.hash='sec1';document.getElementById('sec1')?.scrollIntoView({block:'start'});}else location.assign('/rop/#sec1');});
+   const menu=summary.parentElement;
+   const toggle=document.createElement('button');
+   toggle.type='button';
+   toggle.className='gg-rop-menu-toggle';
+   toggle.style.cssText='position:absolute;inset:0 0 0 auto;width:36px;border:0;border-radius:6px;background:transparent;cursor:pointer';
+   summary.style.position='relative';
+   summary.append(toggle);
+   const syncToggle=()=>{
+    toggle.setAttribute('aria-expanded',String(menu.open));
+    toggle.setAttribute('aria-label',menu.open?'Свернуть пункты РОП GG':'Развернуть пункты РОП GG');
+   };
+   syncToggle();
+   menu.addEventListener('toggle',syncToggle);
+   summary.addEventListener('click',e=>{
+    if(toggle.contains(e.target)){
+     e.preventDefault();
+     e.stopPropagation();
+     menu.open=!menu.open;
+     syncToggle();
+     return;
+    }
+    if(e.ctrlKey||e.metaKey||e.shiftKey)return;
+    e.preventDefault();
+    e.stopPropagation();
+    menu.open=true;
+    if(location.pathname==='/rop/'){
+     location.hash='sec1';
+     document.getElementById('sec1')?.scrollIntoView({block:'start'});
+    }else location.assign('/rop/#sec1');
+   });
   }
   if(/Маркетплейсы/.test(label)&&!summary.dataset.ggMarketIconReady){
    summary.dataset.ggMarketIconReady='true';

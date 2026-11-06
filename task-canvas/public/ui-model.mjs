@@ -1,4 +1,4 @@
-import { comparable, equal } from "./sync-model.mjs?rev=20261106-feniks-1";
+import { comparable, equal } from "./sync-model.mjs?rev=20261106-feniks-2";
 export const normalizeQuery = (value) =>
   String(value || "")
     .toLocaleLowerCase("ru")
@@ -107,4 +107,8 @@ export function demoTasks() {
     description: "Тестовые данные демонстрации.",
     positions: {},
   }));
+}
+
+export function synchronizationHint(state) {
+  return {signin:'Нужен вход Google для обновления.',offline:'Нет связи с Google. Показана последняя копия.',conflict:'Нужно сравнить версии. Откройте Google.', 'cache-error':'Очередь повреждена. Откройте Google для восстановления.',syncing:'Проверяем Google.'}[state?.status] || '';
 }

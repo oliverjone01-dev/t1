@@ -11,13 +11,13 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261106-feniks-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261106-feniks-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261106-feniks-1";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261106-feniks-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-feniks-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-feniks-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-feniks-1";
+} from "./model.mjs?rev=20261106-feniks-2";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261106-feniks-2";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261106-feniks-2";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261106-feniks-2";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-feniks-2";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-feniks-2";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-feniks-2";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -25,8 +25,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261106-feniks-1";
-import { parseAssignee } from "./people.mjs?rev=20261106-feniks-1";
+} from "./editor.mjs?rev=20261106-feniks-2";
+import { parseAssignee } from "./people.mjs?rev=20261106-feniks-2";
 import {
   matchesTask,
   matchesWords,
@@ -34,8 +34,9 @@ import {
   emptyState,
   importSummary,
   demoTasks,
-} from "./ui-model.mjs?rev=20261106-feniks-1";
-import { icon } from "./icons.mjs?rev=20261106-feniks-1";
+  synchronizationHint,
+} from "./ui-model.mjs?rev=20261106-feniks-2";
+import { icon } from "./icons.mjs?rev=20261106-feniks-2";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -410,7 +411,7 @@ function renderProvenance() {
     : "Дата проверки неизвестна.";
   text(
     "#data-freshness",
-    `Источник: ${source}. ${DEMO ? "Отдельная тестовая доска." : checked}${syncState.pending ? " Есть неотправленные изменения." : ""}`,
+    `Источник: ${source}. ${DEMO ? "Отдельная тестовая доска." : checked}${syncState.pending ? " Есть неотправленные изменения." : ""}${!DEMO && synchronizationHint(syncState) ? " " + synchronizationHint(syncState) : ""}`,
   );
 }
 function renderEmpty() {
@@ -1636,6 +1637,8 @@ function cloudState(state) {
       "cache-error": "Ошибка очереди",
     }[state.status] || "Google Таблица";
   text("#cloud-label", DEMO ? "Демонстрация" : label);
+  $("#google-connect").setAttribute("aria-label", "Google: " + label);
+  $("#google-connect").title=label;
   text(
     "#google-label",
     state.status === "synced"
@@ -1661,6 +1664,7 @@ function cloudState(state) {
                   ? `Полей для сравнения: ${state.conflicts.length}.`
                   : "Подключите Google для общей работы на устройствах."),
   );
+  text("#connection-explanation",label+". "+$("#cloud-status").textContent);
   for (const id of ["cloud-dot", "header-cloud-dot"])
     $("#" + id).className =
       "connection-dot " +

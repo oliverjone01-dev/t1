@@ -1,37 +1,37 @@
 {
- "dateFrom": "2026-10-06",
- "dateTo": "2026-11-04",
- "generated_at": "2026-11-05T14:41:32.477Z",
+ "dateFrom": "2026-10-07",
+ "dateTo": "2026-11-05",
+ "generated_at": "2026-11-06T14:19:05.626Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2328,
-  "ad_visits_30d": 6388,
-  "yd_visits_30d": 4903,
+  "direct_clicks_30d": 2379,
+  "ad_visits_30d": 6272,
+  "yd_visits_30d": 4830,
   "ad_leads_30d": 84
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4732,
-   "users": 4129,
+   "visits": 4657,
+   "users": 4066,
    "leads": 81,
-   "contacts": 75
+   "contacts": 73
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1476,
-   "users": 611,
+   "visits": 1433,
+   "users": 600,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 171,
-   "users": 126,
+   "visits": 173,
+   "users": 132,
    "leads": 2,
    "contacts": 1
   },
@@ -53,57 +53,63 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2772,
-   "leads": 43,
-   "contacts": 33
+   "visits": 2670,
+   "leads": 42,
+   "contacts": 31
   },
   {
    "utm": "genglass",
-   "visits": 1469,
+   "visits": 1427,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 704,
-   "leads": 1,
+   "visits": 720,
+   "leads": 2,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 422,
-   "leads": 12,
-   "contacts": 17
+   "visits": 445,
+   "leads": 13,
+   "contacts": 18
   },
   {
    "utm": "peregorodki_712877525",
    "visits": 358,
-   "leads": 10,
-   "contacts": 9
+   "leads": 11,
+   "contacts": 10
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 207,
-   "leads": 6,
-   "contacts": 6
+   "visits": 189,
+   "leads": 5,
+   "contacts": 5
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 145,
-   "leads": 4,
-   "contacts": 2
+   "visits": 147,
+   "leads": 3,
+   "contacts": 1
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 98,
+   "visits": 104,
    "leads": 3,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 40,
+   "visits": 38,
    "leads": 2,
    "contacts": 3
+  },
+  {
+   "utm": "igrovaya_komnata_za_steklom",
+   "visits": 5,
+   "leads": 0,
+   "contacts": 0
   },
   {
    "utm": "populyarnye_modeli_zerkal_2026",
@@ -132,12 +138,6 @@
   {
    "utm": "stacionarnye_peregorodki",
    "visits": 3,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "igrovaya_komnata_za_steklom",
-   "visits": 2,
    "leads": 0,
    "contacts": 0
   },
@@ -295,43 +295,43 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6388,
-   "users": 4865,
-   "bounce": 18.37820914,
+   "visits": 6272,
+   "users": 4792,
+   "bounce": 18.41517857,
    "leads": 84,
-   "contacts": 76
+   "contacts": 74
   },
   {
    "source": "Link traffic",
-   "visits": 4589,
-   "users": 4494,
-   "bounce": 0.8716496,
+   "visits": 4535,
+   "users": 4440,
+   "bounce": 0.90407938,
    "leads": 19,
    "contacts": 23
   },
   {
    "source": "Search engine traffic",
-   "visits": 3511,
-   "users": 2769,
-   "bounce": 18.59868983,
-   "leads": 130,
-   "contacts": 124
+   "visits": 3469,
+   "users": 2734,
+   "bounce": 18.62208129,
+   "leads": 131,
+   "contacts": 126
   },
   {
    "source": "Direct traffic",
-   "visits": 2186,
-   "users": 1822,
-   "bounce": 16.51418115,
-   "leads": 45,
-   "contacts": 35
+   "visits": 2193,
+   "users": 1829,
+   "bounce": 16.50706794,
+   "leads": 49,
+   "contacts": 39
   },
   {
    "source": "Internal traffic",
-   "visits": 682,
-   "users": 342,
-   "bounce": 17.00879765,
+   "visits": 685,
+   "users": 343,
+   "bounce": 17.22627737,
    "leads": 10,
-   "contacts": 5
+   "contacts": 4
   },
   {
    "source": "Social network traffic",
@@ -343,11 +343,11 @@
   },
   {
    "source": "Messenger traffic",
-   "visits": 15,
-   "users": 8,
-   "bounce": 6.66666667,
-   "leads": 1,
-   "contacts": 1
+   "visits": 13,
+   "users": 7,
+   "bounce": 7.69230769,
+   "leads": 0,
+   "contacts": 0
   },
   {
    "source": "Recommendation system traffic",

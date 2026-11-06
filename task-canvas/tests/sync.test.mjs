@@ -122,3 +122,41 @@ test('default scheduling preserves the browser timer receiver',()=>{
   try {const engine=new SyncEngine({api:{},getLocal:()=>board(),apply:()=>{},onState:()=>{}});engine.connected=true;engine.later(20);}
   finally {globalThis.setTimeout=oldSet;globalThis.clearTimeout=oldClear;}
 });
+test('invalid queue persists its warning and cannot overwrite pending work before explicit reset',async()=>{
+  const h=harness(board({...task,title:'Ожидающая правка'}),board(task),{enabled:true,base:{tasks:'broken'}});
+  await assert.rejects(h.engine.connect(),/повреждена/);assert.equal(h.local.tasks[0].title,'Ожидающая правка');assert.equal(h.writes,0);
+  const restored=harness(h.local,board(task),h.engine.snapshot());await assert.rejects(restored.engine.connect(),/повреждена/);
+  restored.engine.resetBaseline();assert.equal(restored.engine.cacheInvalid,false);assert.equal(restored.engine.base,null);
+});
+test('disconnect during a read stops the pipeline before any write',async()=>{
+  const h=harness(board({...task,title:'Локально'}),board(task),{enabled:true,base:board(task)});let release;
+  h.api.read=()=>new Promise(resolve=>release=resolve);const pending=h.engine.connect();h.engine.disconnect();release({board:board(task)});await pending;
+  assert.equal(h.writes,0);assert.equal(h.local.tasks[0].title,'Локально');assert.equal(h.engine.lastReadAt,0);
+});
+test('a demo engine cannot read or write the shared source',async()=>{
+  let reads=0,writes=0;const engine=new SyncEngine({readOnly:true,api:{read(){reads++;},write(){writes++;}},getLocal:()=>board(),apply:()=>{}});
+  await assert.rejects(engine.connect(),/демонстрации/);engine.connected=true;await engine.flush();assert.equal(reads,0);assert.equal(writes,0);
+});
+test('write permission is rechecked after planning and before network transmission',async()=>{
+  let calls=0;const api=new SheetsApi({getToken:()=> 'test'},()=>{calls++;},()=>{throw new Error('Другая вкладка изменила данные');});
+  const snapshot=decodeSheet(fixture());await assert.rejects(api.write(snapshot,[{id:task.id,type:'patch',fields:['status'],task:{...task,status:'Готово'}}],[]),/Другая вкладка/);assert.equal(calls,0);
+});
+
+test('malformed conflict records cannot be restored as a writable queue',()=>{
+  for(const conflicts of [{},[null],[{id:'x',field:'unknown',local:'bad'}],[{id:'x',field:'task',remote:{id:'another',title:'Bad'}}],[{id:'x',field:'due',remote:'2026-02-31'}]]) {
+    const engine=new SyncEngine({api:null,getLocal:()=>({tasks:[],owners:[]}),apply:()=>{},cache:{base:{tasks:[],owners:[]},conflicts}});
+    assert.equal(engine.cacheInvalid,true);
+  }
+});
+
+test('a new card imported with compound owner is rejected before an API write plan is returned',()=>{
+  const snapshot=decodeSheet(fixture());
+  assert.throws(()=>buildWriteRequests(snapshot,[{id:'new',type:'upsert',task:{...task,id:'new',owner:'Иван и Софа'}}],[]),/одного ответственного/);
+});
+
+test('unknown or malformed queue envelopes never silently become a new baseline',()=>{
+  for(const cache of [false,[],{},'broken',{base:[],version:99},{base:'',enabled:true},{base:null,conflicts:'broken'}]) {
+    const h=harness(board({...task,title:'Pending'}),board(task),cache);
+    assert.equal(h.engine.cacheInvalid,true);assert.equal(h.local.tasks[0].title,'Pending');assert.equal(h.writes,0);
+  }
+});

@@ -1,3 +1,4 @@
+import {parseAssignee} from './people.mjs';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -137,8 +138,8 @@ export function parseDeadline(raw, year) {
   if (!raw || /не указан|течени|ноябр.*проверяем/i.test(raw)) return '';
   // An explicit last rescheduling arrow takes precedence; preserve original text separately.
   const tail = raw.split(/->|→/).at(-1).trim();
-  if (/\d{1,2}\.\d{1,2}(?:\.\d{4})?\s*[-–—]\s*\d{1,2}\.\d{1,2}|\d\s+[-–—]\s*\d/.test(tail)) return '';
-  const m = tail.match(/^(\d{1,2})[.\-/](\d{1,2})(?:[.\-/](\d{4}))?(?=$|\s|—|–)/);
+  if (/\d{1,2}\.\d{1,2}(?:\.\d{4})?\s*[-\u2013\u2014]\s*\d{1,2}\.\d{1,2}|\d\s+[-\u2013\u2014]\s*\d/.test(tail)) return '';
+  const m = tail.match(/^(\d{1,2})[.\-/](\d{1,2})(?:[.\-/](\d{4}))?(?=$|\s|\u2014|\u2013)/);
   if (!m) return '';
   const value = `${m[3] || year}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   const d = new Date(`${value}T12:00:00`);
@@ -149,7 +150,7 @@ export function fromSheet(rows, year = new Date().getFullYear()) {
   if (header < 0) throw new Error('Не найдены заголовки ID и Направление. Вставьте строки вместе с заголовками.');
   const headers = rows[header]; const at = (row, name) => String(row[headers.indexOf(name)] ?? '').trim();
   return rows.slice(header + 1).filter(r => at(r, 'ID') && (at(r, 'Задача') || at(r, 'Направление'))).map(row => ({
-    id: `sheet-${at(row, 'ID')}`, sourceId: at(row, 'ID'), title: at(row, 'Задача') || at(row, 'Направление'),
+    id: at(row, 'ID карточки') || `sheet-${at(row, 'ID')}`, sourceId: at(row, 'ID'), title: at(row, 'Задача') || at(row, 'Направление'),
     unit: at(row, 'Юнит').replace(/\s*\/\s*$/, ''), direction: at(row, 'Направление'),
     description: at(row, 'Ожидаемый результат'), status: at(row, 'Статус') || 'Не указан',
     owner: '', ownerNote: at(row, 'Ответственный'), due: parseDeadline(at(row, 'Срок'), year), dueNote: at(row, 'Срок'),
@@ -185,8 +186,7 @@ export function importBoard(text, currentTasks = [], currentOwners = [], { repla
   let imported = json ? validateBoard(json) : validateBoard(fromSheet(parseDelimited(text), year));
   if (!json) {
     if (!imported.length) throw new Error('В файле не нашлось задач с названием.');
-    const simpleNames = /^(Иван|Дима|Миша|Надя|Катя|Софа|Сергей|Саша Климен|Кристина|Виктория|Богдан)$/i;
-    imported = imported.map(t => ({ ...t, owner: simpleNames.test(t.ownerNote) ? t.ownerNote : '' }));
+    imported = imported.map(t => ({ ...t, owner: parseAssignee(t.ownerNote) || '' }));
   }
   const owners = Array.isArray(json?.owners) ? [...new Set(json.owners.filter(o => typeof o === 'string' && o.trim()).map(o => o.trim()))] : [];
   const ids = new Set(currentTasks.map(t => t.id));

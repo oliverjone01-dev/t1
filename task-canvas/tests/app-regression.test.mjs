@@ -14,6 +14,7 @@ test("a failed new-card save leaves a draft and retries cannot create duplicate 
   let draftCalls = 0,
     creates = 0;
   const context = vm.createContext({
+    requireEditor:()=>true,
     tasks: [],
     extraOwners: [],
     editing: null,

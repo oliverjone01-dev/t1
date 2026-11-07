@@ -11,18 +11,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261106-team-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261106-team-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261106-team-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261106-team-1";
-import { TeamApi } from "./team-api.mjs?rev=20261106-team-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261106-team-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261106-team-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261106-team-1";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261106-team-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261106-team-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261106-team-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261106-team-1";
+} from "./model.mjs?rev=20261107-view-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261107-view-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-view-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-view-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261107-view-1";
+import { remoteChanges } from "./changes.mjs?rev=20261107-view-1";
+import { TeamApi } from "./team-api.mjs?rev=20261107-view-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-view-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-view-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261107-view-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261107-view-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-view-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-view-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-view-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -30,8 +32,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261106-team-1";
-import { parseAssignee } from "./people.mjs?rev=20261106-team-1";
+} from "./editor.mjs?rev=20261107-view-1";
+import { parseAssignee } from "./people.mjs?rev=20261107-view-1";
 import {
   matchesTask,
   matchesWords,
@@ -40,8 +42,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261106-team-1";
-import { icon } from "./icons.mjs?rev=20261106-team-1";
+} from "./ui-model.mjs?rev=20261107-view-1";
+import { icon } from "./icons.mjs?rev=20261107-view-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -49,6 +51,23 @@ const STORAGE = DEMO
     ? "gengroup.task-canvas.demo.v1"
     : "gengroup.task-canvas.team.v2",
   PREFS = "gengroup.task-canvas.preferences.v1";
+const VIEW_STORAGE = "gengroup.task-canvas.public-view.v1";
+let accessMode = DEMO ? "edit" : "view",
+  viewer = null,
+  editorLocalBoard = { tasks: [], owners: [] },
+  viewerState = { status: "view-loading" },
+  viewerReadAt = 0,
+  viewerHasBaseline = false,
+  lastPublicBoard = null,
+  lastPublicChanges = [];
+const canEdit = () =>
+  DEMO || (accessMode === "edit" && !!cloudEngine?.connected);
+function requireEditor() {
+  if (canEdit()) return true;
+  showDialog("cloud-dialog");
+  text("#google-error", "Для изменения общей доски войдите через свой Google.");
+  return false;
+}
 const today = () => localDate(),
   esc = (value) =>
     String(value ?? "").replace(
@@ -176,6 +195,40 @@ try {
 try {
   preferences = cleanPreferences(JSON.parse(storage.getItem(PREFS) || "{}"));
 } catch {}
+if (!DEMO) {
+  editorLocalBoard = {
+    tasks: structuredClone(tasks),
+    owners: [...extraOwners],
+  };
+  tasks = [];
+  extraOwners = [];
+  inbox = new ChangeInbox();
+  try {
+    const saved = JSON.parse(storage.getItem(VIEW_STORAGE) || "null");
+    if (saved?.version === 1) {
+      tasks = validateBoard(saved);
+      extraOwners = Array.isArray(saved.owners)
+        ? saved.owners.filter((v) => typeof v === "string")
+        : [];
+      viewerReadAt = Number.isFinite(saved.lastReadAt) ? saved.lastReadAt : 0;
+      viewerHasBaseline = true;
+      inbox = new ChangeInbox(saved.changes);
+      if (["priority", "owners", "time", "list"].includes(saved.mode))
+        mode = saved.mode;
+      if (["priority", "owners", "time"].includes(saved.lastCanvasMode))
+        lastCanvasMode = saved.lastCanvasMode;
+      if (
+        saved.camera &&
+        ["x", "y", "z"].every((k) => Number.isFinite(saved.camera[k]))
+      )
+        camera = saved.camera;
+    }
+  } catch {}
+}
+if (!DEMO && viewerHasBaseline) {
+  lastPublicBoard = { tasks: structuredClone(tasks), owners: [...extraOwners] };
+  lastPublicChanges = inbox.snapshot();
+}
 $$("[data-icon]").forEach((el) => (el.innerHTML = icon(el.dataset.icon)));
 $("#demo-banner").hidden = !DEMO;
 $("#google-connect").hidden = DEMO;
@@ -198,6 +251,30 @@ function renderAlert() {
   $("#app-alert").hidden = !message;
 }
 function persist() {
+  if (!DEMO && accessMode !== "edit") {
+    if (accessMode === "view")
+      try {
+        storage.setItem(
+          VIEW_STORAGE,
+          JSON.stringify({
+            version: 1,
+            tasks,
+            owners: extraOwners,
+            mode,
+            lastCanvasMode,
+            camera,
+            changes: inbox.snapshot(),
+            lastReadAt: viewerReadAt,
+          }),
+        );
+      } catch {}
+    return true;
+  }
+  if (!DEMO)
+    editorLocalBoard = {
+      tasks: structuredClone(tasks),
+      owners: [...extraOwners],
+    };
   if (storageConflict || stateLoadError) {
     text("#save-state", "Не сохранено - скачайте копию");
     renderAlert();
@@ -253,6 +330,7 @@ function savedToast(message) {
 }
 const snapshot = () => JSON.stringify({ tasks, owners: extraOwners });
 async function change(fn, versionBasis = null) {
+  if (!requireEditor()) return false;
   const basis = cloudEngine?.managed ? cloudEngine.capture() : null;
   const before = snapshot();
   try {
@@ -301,6 +379,7 @@ async function change(fn, versionBasis = null) {
   return ok;
 }
 async function restore(from, to) {
+  if (!requireEditor()) return;
   if (!from.length) return;
   if (!cloudEngine?.managed) {
     to.push(snapshot());
@@ -508,6 +587,26 @@ const formatDate = (value) =>
       })
     : "Без срока";
 function renderProvenance() {
+  if (!DEMO && accessMode === "view") {
+    const checked = viewerReadAt
+      ? new Date(viewerReadAt).toLocaleString("ru", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "ещё не подтверждено";
+    text(
+      "#data-freshness",
+      (viewerState.status === "view-live"
+        ? "Актуальная общая доска. "
+        : viewerHasBaseline
+          ? "Показана последняя доступная копия. "
+          : "Подключаемся к общей доске. ") +
+        `Проверено: ${checked}. Изменения таблицы поступают через подключённого участника команды.`,
+    );
+    return;
+  }
   const source = DEMO
     ? "Демонстрационные данные"
     : syncState.lastReadAt
@@ -524,12 +623,28 @@ function renderProvenance() {
 function renderEmpty() {
   $("#add").classList.toggle("primary", tasks.length > 0);
   $("#add").classList.toggle("quiet", tasks.length === 0);
-  const state = emptyState({
-    count: tasks.length,
-    hasBaseline: !!cloudEngine?.base,
-    status: syncState.status,
-    demo: DEMO,
-  });
+  const state =
+    !DEMO && accessMode === "view" && !tasks.length
+      ? {
+          title:
+            viewerState.status === "view-loading"
+              ? "Загружаем общую доску"
+              : viewerState.status === "view-live"
+                ? "На доске пока нет задач"
+                : "Доска пока недоступна",
+          body:
+            viewerState.status === "view-live"
+              ? "Для добавления задачи войдите через свой Google."
+              : "Просмотр работает без Google-входа. Подключаемся к общей доске.",
+          action: null,
+          label: "",
+        }
+      : emptyState({
+          count: tasks.length,
+          hasBaseline: !!cloudEngine?.base,
+          status: syncState.status,
+          demo: DEMO,
+        });
   $("#empty").hidden = !state;
   if (!state) return;
   text("#empty-title", state.title);
@@ -567,7 +682,7 @@ function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
+      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" ${canEdit() ? "" : "disabled"} data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
         ...new Set([...STATUSES, task.status]),
       ]
         .filter(Boolean)
@@ -619,12 +734,15 @@ function render() {
   }[mode];
   text("#view-kicker", info[0]);
   text("#view-title", info[1]);
-  text("#view-hint", info[2]);
+  text(
+    "#view-hint",
+    canEdit() ? info[2] : "Просмотр. Откройте карточку для подробностей.",
+  );
   $$("[data-mode]").forEach((el) => {
     el.classList.toggle("active", el.dataset.mode === mode);
     el.setAttribute("aria-pressed", String(el.dataset.mode === mode));
   });
-  $("#new-owner").hidden = mode !== "owners";
+  $("#new-owner").hidden = !canEdit() || mode !== "owners";
   $("#lane-jump").hidden = mode === "list";
   $("#viewport").hidden = mode === "list";
   $("#task-list").hidden = mode !== "list";
@@ -648,8 +766,8 @@ function render() {
   }
   renderEmpty();
   $("#no-results").hidden = !tasks.length || !!visible.length;
-  $("#undo").disabled = !history.length;
-  $("#redo").disabled = !future.length;
+  $("#undo").disabled = !canEdit() || !history.length;
+  $("#redo").disabled = !canEdit() || !future.length;
   renderProvenance();
   renderAlert();
   applyCamera();
@@ -751,6 +869,11 @@ $("#viewport").addEventListener("pointerdown", (e) => {
   const card = e.target.closest(".task-card");
   const p = worldPoint(e);
   if (card && !space && e.button === 0) {
+    if (!canEdit()) {
+      selected = card.dataset.id;
+      card.focus({ preventScroll: true });
+      return;
+    }
     selected = card.dataset.id;
     document
       .querySelectorAll(".task-card")
@@ -926,6 +1049,10 @@ const field = (name) => $(`#task-form [name="${name}"]`);
 const formValues = () =>
   Object.fromEntries(EDIT_FIELDS.map((key) => [key, field(key).value]));
 function renderDraftBanner() {
+  if (!canEdit()) {
+    $("#draft-banner").hidden = true;
+    return;
+  }
   const result = draftRecords();
   $("#draft-banner").hidden = !result.drafts.length && !result.errors.length;
   text(
@@ -936,6 +1063,7 @@ function renderDraftBanner() {
   );
 }
 function saveDraft() {
+  if (!canEdit()) return true;
   if (!$("#editor").open) return true;
   const result = drafts.save(editing, editingBase, formValues());
   if (result.ok) memoryDrafts.delete(editing);
@@ -963,6 +1091,23 @@ function saveDraft() {
   return result.ok;
 }
 function renderEditorConflicts() {
+  const readOnly = !canEdit();
+  $$("#task-form input, #task-form select, #task-form textarea").forEach(
+    (control) => (control.disabled = readOnly),
+  );
+  $("#editor-signin").hidden = !readOnly;
+  if (readOnly) {
+    $("#save-task").hidden = true;
+    $("#recreate-task").hidden = true;
+    $("#delete-task").hidden = true;
+    text(
+      "#draft-state",
+      "Только просмотр. Войдите через Google, чтобы изменить задачу.",
+    );
+    $("#editor-conflicts").innerHTML = "";
+    return [];
+  }
+
   const current = tasks.find((t) => t.id === editing),
     missing = editing !== null && !current;
   $("#save-task").hidden = missing;
@@ -983,13 +1128,16 @@ function renderEditorConflicts() {
   return conflicts;
 }
 function openTask(id = null, chosenDraft = null) {
+  if (id === null && !requireEditor()) return;
   editingVersionBasis = cloudEngine?.managed ? cloudEngine.capture() : null;
   editing = id;
   const current = tasks.find((t) => t.id === id);
   let draft = null;
   let draftError = "";
   try {
-    draft = chosenDraft || memoryDrafts.get(id) || drafts.read(id);
+    draft = canEdit()
+      ? chosenDraft || memoryDrafts.get(id) || drafts.read(id)
+      : null;
   } catch (error) {
     draftError = error.message;
   }
@@ -1090,6 +1238,7 @@ $("#editor-conflicts").onclick = (e) => {
   renderEditorConflicts();
 };
 async function submitTask(forceNew = false) {
+  if (!requireEditor()) return;
   if (submitTask.busy) return;
   const plan = planEdit({
     tasks,
@@ -1153,6 +1302,7 @@ $("#task-form").onsubmit = (e) => {
 };
 $("#recreate-task").onclick = () => submitTask(true);
 $("#delete-task").onclick = async () => {
+  if (!requireEditor()) return;
   const id = editing;
   if (!tasks.some((t) => t.id === id)) return renderEditorConflicts();
   if (
@@ -1186,6 +1336,7 @@ $("#task-list").onchange = async (e) => {
   savedToast("Статус изменён");
 };
 $("#drafts-open").onclick = () => {
+  if (!requireEditor()) return;
   const result = draftRecords();
   $("#draft-list").innerHTML =
     result.drafts
@@ -1224,12 +1375,14 @@ $("#drafts-open").onclick = () => {
   showDialog("drafts-dialog");
 };
 $("#new-owner").onclick = () => {
+  if (!requireEditor()) return;
   text("#owner-error", "");
   $("#owner-name").value = "";
   showDialog("owner-dialog");
 };
 $("#owner-form").onsubmit = async (e) => {
   e.preventDefault();
+  if (!requireEditor()) return;
   const name = parseAssignee($("#owner-name").value);
   if (!name) {
     text("#owner-error", "Укажите одного человека: имя или имя и фамилию.");
@@ -1251,6 +1404,7 @@ function invalidateImport() {
   text("#import-submit", "Проверить импорт");
 }
 function openImport() {
+  if (!requireEditor()) return;
   text("#import-error", "");
   invalidateImport();
   showDialog("import-dialog");
@@ -1278,6 +1432,7 @@ $("#import-file").onchange = async (e) => {
   }
 };
 $("#import-submit").onclick = async () => {
+  if (!requireEditor()) return;
   try {
     text("#import-error", "");
     const source = $("#import-text").value,
@@ -1338,7 +1493,7 @@ function exportBoard() {
           owners: extraOwners,
           mode,
           camera,
-          drafts: draftRecords().drafts,
+          drafts: canEdit() ? draftRecords().drafts : [],
         },
         null,
         2,
@@ -1736,7 +1891,10 @@ window.addEventListener("storage", (e) => {
   if (!DEMO) {
     cloudEngine
       ?.ready()
-      .then(() => cloudEngine.reproject())
+      .then(() => {
+        if (canEdit()) cloudEngine.reproject();
+        else renderViewerState();
+      })
       .catch((error) => toast(error.message));
     return;
   }
@@ -1827,6 +1985,134 @@ function cloudState(state) {
   renderProvenance();
   renderEmpty();
 }
+function renderViewerState(state = viewerState) {
+  if (DEMO || accessMode !== "view") return;
+  viewerState = { ...viewerState, ...state };
+  const labels = {
+    "view-loading": "Загрузка доски...",
+    "view-live": "Актуальная доска · просмотр",
+    "view-offline": "Нет сети · сохранённая копия",
+    "view-error": "Просмотр не подключён",
+  };
+  const label = labels[viewerState.status] || "Просмотр доски";
+  syncState = {
+    status: viewerState.status,
+    pending: 0,
+    conflicts: [],
+    lastReadAt: viewerReadAt,
+  };
+  text("#cloud-label", label);
+  text("#google-label", "Войти для правок");
+  text("#save-state", "Только просмотр");
+  $("#google-connect").setAttribute(
+    "aria-label",
+    "Войти через Google для редактирования",
+  );
+  $("#google-connect").title = "Войти через свой Google для редактирования";
+  const pending = cloudEngine?.pending() || 0;
+  const message =
+    viewerState.status === "view-live"
+      ? "Обновления появляются автоматически. Для редактирования войдите через свой Google."
+      : viewerState.message ||
+        (viewerHasBaseline
+          ? "Подключение восстанавливается. Показана последняя подтверждённая копия."
+          : "Подключаемся к общей доске без Google-входа.");
+  text("#cloud-status", message);
+  text("#connection-explanation", label + ". " + message);
+  text(
+    "#view-access-status",
+    label +
+      ". " +
+      message +
+      (pending
+        ? " На этом устройстве есть неотправленные правки. Войдите в Google для отправки."
+        : ""),
+  );
+  $("#view-access").hidden = false;
+  $("#view-retry").hidden = !["view-error", "view-offline"].includes(
+    viewerState.status,
+  );
+  $("#google-disconnect").hidden = true;
+  $("#cloud-conflicts").hidden = true;
+  $("#cloud-recovery").hidden = true;
+  $("#google-authorize").disabled = connecting;
+  for (const id of ["cloud-dot", "header-cloud-dot"])
+    $("#" + id).className =
+      "connection-dot " +
+      (viewerState.status === "view-live" ? "cloud-online" : "cloud-warning");
+  renderProvenance();
+  renderEmpty();
+}
+function applyPublic(board, meta) {
+  if (accessMode !== "view") return;
+  inbox.receive(
+    remoteChanges(
+      viewerHasBaseline ? { tasks, owners: extraOwners } : null,
+      board,
+      { tasks, owners: extraOwners },
+    ),
+  );
+  tasks = board.tasks;
+  extraOwners = board.owners;
+  if (!meta.fromCache) {
+    viewerReadAt = Date.now();
+    viewerHasBaseline = true;
+  }
+  if ($("#editor").open) {
+    const current = tasks.find((t) => t.id === editing);
+    if (!current) {
+      $("#editor").close();
+      toast("Задача убрана с общей доски.");
+    } else {
+      for (const key of EDIT_FIELDS)
+        field(key).value = editorValues(current)[key];
+      editingBase = structuredClone(current);
+      text(
+        "#owner-note",
+        current.ownerNote ? "Из таблицы: " + current.ownerNote : "",
+      );
+      text(
+        "#due-note",
+        current.dueNote ? "Исходный срок: " + current.dueNote : "",
+      );
+      text(
+        "#source-context",
+        [
+          current.direction && "Направление: " + current.direction,
+          current.requester && "Постановщик: " + current.requester,
+          current.dependency &&
+            "Зависимости и уточнения: " + current.dependency,
+        ]
+          .filter(Boolean)
+          .join("\n\n") || "Дополнительного контекста нет.",
+      );
+      $("#source-link").hidden = !/^https?:\/\//.test(current.link || "");
+      if (!$("#source-link").hidden) $("#source-link").href = current.link;
+
+      renderEditorConflicts();
+    }
+  }
+  lastPublicBoard = { tasks: structuredClone(tasks), owners: [...extraOwners] };
+  lastPublicChanges = inbox.snapshot();
+  persist();
+  render();
+}
+function startViewer() {
+  accessMode = "view";
+  tasks = structuredClone(lastPublicBoard?.tasks || []);
+  extraOwners = [...(lastPublicBoard?.owners || [])];
+  inbox = new ChangeInbox(lastPublicChanges);
+
+  renderViewerState({ status: "view-loading", message: "" });
+  render();
+  viewer?.start();
+}
+$("#view-retry").onclick = () => viewer?.start();
+$("#view-signin").onclick = () => showDialog("cloud-dialog");
+$("#editor-signin").onclick = () => {
+  $("#editor").close();
+  showDialog("cloud-dialog");
+};
 const businessSignature = (board) =>
   JSON.stringify({
     tasks: board.tasks.map((t) => ({ id: t.id, ...comparable(t) })),
@@ -1839,6 +2125,7 @@ function writeGuard() {
     );
 }
 function applyCloud(board, cache) {
+  if (!DEMO && accessMode === "view") return;
   writeGuard();
   const changed =
     businessSignature({ tasks, owners: extraOwners }) !==
@@ -1873,9 +2160,15 @@ function applyCloud(board, cache) {
 cloudEngine = new (DEMO ? SyncEngine : TeamSyncEngine)({
   boardId: "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY",
   api: null,
-  getLocal: () => ({ tasks, owners: extraOwners }),
+  getLocal: () =>
+    !DEMO && accessMode !== "edit"
+      ? editorLocalBoard
+      : { tasks, owners: extraOwners },
   apply: applyCloud,
-  onState: cloudState,
+  onState: (state) => {
+    if (!DEMO && accessMode === "view") renderViewerState();
+    else cloudState(state);
+  },
   cache: cloudCache,
   readOnly: DEMO,
   onRemote: (changes) => {
@@ -1942,9 +2235,35 @@ $("#google-authorize").onclick = async () => {
     }
     if (attempt !== connectionAttempt) return;
     $("#cloud-dialog").close();
+    viewer?.stop();
+    accessMode = "connecting";
     await cloudEngine.connect();
+    if (attempt !== connectionAttempt) {
+      await cloudEngine.disconnect();
+      startViewer();
+      return;
+    }
+    accessMode = "edit";
+    $("#view-access").hidden = true;
+    $("#google-disconnect").hidden = false;
     persist();
+    render();
+    cloudState({
+      ...syncState,
+      ...{
+        status: cloudEngine.status,
+        conflicts: cloudEngine.conflicts,
+        pending: cloudEngine.pending(),
+        managed: true,
+        lastReadAt: cloudEngine.lastReadAt,
+        sourceState: cloudEngine.sourceState,
+      },
+    });
   } catch (error) {
+    if (accessMode === "connecting") {
+      await cloudEngine.disconnect();
+      startViewer();
+    }
     if (attempt !== connectionAttempt || error.cancelled) return;
     showDialog("cloud-dialog");
     text("#google-error", error.message);
@@ -1956,12 +2275,29 @@ $("#google-cancel").onclick = () => {
   cancelConnection();
   text("#google-error", "Вход отменён. Можно подключиться позже.");
 };
-$("#google-disconnect").onclick = () => {
+$("#google-disconnect").onclick = async () => {
   cancelConnection();
-  googleAuth?.disconnect();
-  cloudEngine.disconnect();
+  saveDraft();
+  editorLocalBoard = {
+    tasks: structuredClone(tasks),
+    owners: [...extraOwners],
+  };
   persist();
+  accessMode = "connecting";
+  googleAuth?.disconnect();
+  await cloudEngine.disconnect();
+  cloudCache = cloudEngine.snapshot();
+  // Retain the last editable copy without replacing it with public rendering.
+  try {
+    const saved = JSON.parse(storage.getItem(STORAGE) || "null");
+    if (saved) {
+      saved.cloud = cloudCache;
+      storage.setItem(STORAGE, JSON.stringify(saved));
+    }
+  } catch {}
   $("#cloud-dialog").close();
+  if ($("#editor").open) $("#editor").close();
+  startViewer();
 };
 $("#cloud-reset").onclick = () => {
   if (!$("#recovery-confirm").checked) {
@@ -2080,6 +2416,7 @@ $("#resolve-conflicts").onclick = async () => {
 };
 window.addEventListener("online", () => {
   if (cloudEngine.connected) cloudEngine.flush();
+  else if (!DEMO && accessMode === "view") viewer?.start();
 });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && cloudEngine.connected) cloudEngine.flush();
@@ -2099,14 +2436,25 @@ if (!DEMO) {
       googleAuth = new GoogleAuth(config);
       cloudEngine.googleAuth = googleAuth;
       cloudEngine.api = new SheetsApi(googleAuth, undefined, writeGuard);
+      viewer = new BoardViewer({
+        config: team,
+        boardId: team.boardId,
+        onData: applyPublic,
+        onState: renderViewerState,
+      });
+      if (accessMode === "view") viewer.start();
       cloudEngine.repository = new TeamApi({
         config: team,
         boardId: team.boardId,
       });
     })
-    .catch((error) => text("#google-error", error.message));
+    .catch((error) => {
+      text("#google-error", error.message);
+      renderViewerState({ status: "view-error", message: error.message });
+    });
 }
 render();
+if (!DEMO) renderViewerState();
 if (DEMO && freshBoard && !stateLoadError) setMode(mode);
 if (DEMO && !stateLoadError) persist();
 if (stateLoadError)

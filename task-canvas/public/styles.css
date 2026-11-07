@@ -1967,3 +1967,9 @@ summary {
 .is-loading .ui-icon {
   animation: spin 1s linear infinite;
 }
+
+.view-access { margin: 0 0 16px; }
+.view-access p { margin: 0 0 12px; }
+.view-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.view-actions .button { min-height: 44px; }
+.row-status:disabled { opacity: 1; color: var(--text); background: transparent; border-color: transparent; cursor: default; }

@@ -75,6 +75,26 @@ beforeEach(async () => {
       seedEntry(task),
     );
   });
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore(),
+      entry = seedEntry(task);
+    await sdk.setDoc(sdk.doc(db, "taskBoardViews", BOARD), {
+      schema: 1,
+      ready: true,
+    });
+    await sdk.setDoc(
+      sdk.doc(db, "taskBoardViews", BOARD, "tasks", await digest(task.id)),
+      { schema: 1, task: entry.task, revision: 1 },
+    );
+    await sdk.setDoc(sdk.doc(db, "taskBoardViews", BOARD, "meta", "lanes"), {
+      items: [],
+      revision: 1,
+    });
+    await sdk.setDoc(sdk.doc(db, "taskBoardViews", BOARD, "meta", "source"), {
+      status: "synced",
+      checkedAt: 1,
+    });
+  });
   a = api(alice, "alice@example.test");
   b = api(bob, "bob@example.test");
   ref = await a.taskRef(task.id);
@@ -388,4 +408,163 @@ test("a lost Sheet append response cannot overwrite the next manual edit of that
   } finally {
     await bridge.stop();
   }
+});
+
+test("unsigned visitors read only current public cards and cannot write through any collection", async () => {
+  const guest = env.unauthenticatedContext().firestore(),
+    publicTask = sdk.doc(
+      guest,
+      "taskBoardViews",
+      BOARD,
+      "tasks",
+      await digest(task.id),
+    );
+  const visible = (await assertSucceeds(sdk.getDoc(publicTask))).data();
+  assert.deepEqual(Object.keys(visible).sort(), ["revision", "schema", "task"]);
+  assert.equal(visible.task.title, task.title);
+  for (const path of [
+    ["taskBoardViews", BOARD],
+    ["taskBoardViews", BOARD, "meta", "lanes"],
+    ["taskBoardViews", BOARD, "meta", "source"],
+  ])
+    await assertSucceeds(sdk.getDoc(sdk.doc(guest, ...path)));
+  for (const path of [
+    ["taskBoards", BOARD],
+    ["taskBoards", BOARD, "tasks", ref.id],
+    ["taskBoards", BOARD, "tasks", ref.id, "versions", "1"],
+    ["taskBoards", BOARD, "meta", "bridgeLease"],
+    ["taskCanvasAdmins", "alice@example.test"],
+  ])
+    await assertFails(sdk.getDoc(sdk.doc(guest, ...path)));
+  for (const collection of ["tasks", "conflicts", "operations", "laneVersions"])
+    await assertFails(
+      sdk.getDocs(sdk.collection(guest, "taskBoards", BOARD, collection)),
+    );
+  await assertFails(
+    sdk.setDoc(publicTask, {
+      ...visible,
+      task: { ...visible.task, title: "Guest overwrite" },
+    }),
+  );
+  await assertFails(sdk.deleteDoc(publicTask));
+  await assertFails(
+    sdk.setDoc(sdk.doc(guest, "taskBoardViews", BOARD, "meta", "lanes"), {
+      items: ["Guest"],
+      revision: 2,
+    }),
+  );
+  await assertFails(
+    sdk.updateDoc(sdk.doc(guest, "taskBoardViews", BOARD), { ready: false }),
+  );
+  const forged = makeOperation(
+    seedEntry(task),
+    { ...seedEntry(task).task, title: "Guest edit" },
+    { id: "guest-fake-operation", actor: alice },
+  );
+  const guestApi = new TeamApi({
+    boardId: BOARD,
+    sdk,
+    db: guest,
+    user: { uid: "alice" },
+  });
+  await assert.rejects(guestApi.submit(forged));
+});
+
+test("public projection follows editor transactions live and removes archived cards without exposing history", async () => {
+  const { BoardViewer } = await import("../public/board-viewer.mjs"),
+    guest = env.unauthenticatedContext().firestore();
+  let latest,
+    errors = [],
+    waiter;
+  const viewer = new BoardViewer({
+    boardId: BOARD,
+    sdk,
+    db: guest,
+    onData: (board) => {
+      latest = board;
+      if (waiter?.predicate(board)) {
+        waiter.resolve();
+        waiter = null;
+      }
+    },
+    onState: (s) => {
+      if (s.status === "view-error") errors.push(s);
+    },
+  });
+  const until = (predicate) =>
+    predicate(latest)
+      ? Promise.resolve()
+      : new Promise((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error("Live projection timeout")),
+            7000,
+          );
+          waiter = {
+            predicate,
+            resolve: () => {
+              clearTimeout(timer);
+              resolve();
+            },
+          };
+        });
+  try {
+    await viewer.start();
+    await until((b) => b?.tasks.length === 1);
+    const entry = seedEntry(task);
+    await a.submit(op(entry, "Живая общая версия", "public-live-title"));
+    await until((b) => b?.tasks[0]?.title === "Живая общая версия");
+    await a.changeLanes({
+      schema: 1,
+      id: "public-live-lanes",
+      kind: "lanes",
+      taskId: "__lanes",
+      actor: alice,
+      add: ["Новая дорожка"],
+      remove: [],
+      submittedAt: 0,
+    });
+    await until((b) => b?.owners.includes("Новая дорожка"));
+    const current = (await sdk.getDoc(ref)).data();
+    await a.submit(
+      makeOperation(current, null, { id: "public-live-archive", actor: alice }),
+    );
+    await until((b) => b?.tasks.length === 0);
+    assert.equal(
+      (
+        await sdk.getDoc(
+          sdk.doc(guest, "taskBoardViews", BOARD, "tasks", ref.id),
+        )
+      ).exists(),
+      false,
+    );
+    assert.ok((await a.history(task.id)).length >= 2);
+    assert.equal(errors.length, 0);
+  } finally {
+    viewer.stop();
+  }
+});
+
+test("an editor cannot publish stale, extra or archived canonical data as a public task", async () => {
+  const publicTask = a.publicRef("tasks", ref.id),
+    published = (await sdk.getDoc(publicTask)).data();
+  await assertFails(sdk.setDoc(publicTask, { ...published, actor: alice }));
+  await assertFails(
+    sdk.setDoc(publicTask, {
+      ...published,
+      task: { ...published.task, title: "Not canonical" },
+    }),
+  );
+  await assertFails(sdk.deleteDoc(publicTask));
+  const request = op(
+    seedEntry(task),
+    "Without public mirror",
+    "old-editor-no-view",
+  );
+  const original = a.writeRevision.bind(a);
+  a.writeRevision = (tx, taskRef, before, after, operation) => {
+    original(tx, taskRef, before, after, operation);
+    tx.set(a.publicRef("tasks", taskRef.id), published);
+  };
+  await assert.rejects(a.submit(request));
+  assert.equal((await sdk.getDoc(ref)).data().revision, 1);
 });

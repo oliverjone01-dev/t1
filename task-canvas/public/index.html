@@ -2,7 +2,8 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <meta name="application-version" content="20261106-team-1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="application-version" content="20261107-view-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -26,7 +27,7 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261106-team-1" />
+    <link rel="stylesheet" href="./styles.css?rev=20261107-view-1" />
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
@@ -159,6 +160,18 @@
               <strong id="task-count">0</strong
               ><span id="task-scope">на устройстве</span>
             </div>
+          </div>
+        </div>
+        <div id="view-access" class="notice view-access" role="status" hidden>
+          <p id="view-access-status">
+            Подключаемся к общей доске без Google-входа.
+          </p>
+          <div class="view-actions">
+            <button id="view-signin" class="button quiet">
+              Войти для редактирования</button
+            ><button id="view-retry" class="button quiet" hidden>
+              Обновить просмотр
+            </button>
           </div>
         </div>
         <div id="demo-banner" class="notice" hidden>
@@ -365,6 +378,9 @@
             >Открыть исходную задачу</a
           >
         </details>
+        <button type="button" id="editor-signin" class="button primary" hidden>
+          Войти через Google для редактирования
+        </button>
         <div class="form-actions">
           <button type="button" id="delete-task" class="button danger">
             Убрать с доски</button
@@ -620,11 +636,11 @@
           Firestore. Разные поля объединяются автоматически. Для одного поля
           сохраняются обе версии и предлагается выбор. Если поле снова изменится
           во время сравнения, потребуется выбрать актуальную версию ещё раз.
-          Очередь на устройстве сохраняет правки при потере сети.
-          Google Таблица обновляется отдельно; её изменения проверяются примерно
-          раз в 30 секунд, пока открыт подключённый браузер. При прямой правке
-          таблицы во время записи доски Google Sheets не даёт атомарной защиты
-          ячейки. История правок доски сохраняется в командной базе.
+          Очередь на устройстве сохраняет правки при потере сети. Google Таблица
+          обновляется отдельно; её изменения проверяются примерно раз в 30
+          секунд, пока открыт подключённый браузер. При прямой правке таблицы во
+          время записи доски Google Sheets не даёт атомарной защиты ячейки.
+          История правок доски сохраняется в командной базе.
         </p>
       </details>
       <a href="./privacy.html" target="_blank" rel="noopener"
@@ -644,13 +660,14 @@
       </div>
       <h2 id="cloud-title">Задачи на ваших устройствах</h2>
       <p>
-        Подключается первая вкладка «ЕМО - Раюшкин 2026». Выберите этот файл в
-        Google. Доступ ко всему Диску не запрашивается.
+        Просмотр доступен по ссылке без входа. Для изменения задач войдите через
+        свой Google и при запросе выберите таблицу «ЕМО - Раюшкин 2026». Доступ
+        ко всему Диску не запрашивается.
       </p>
       <p class="source-note">
-        При первом подключении поля задач берутся из актуальной таблицы.
-        Локальная раскладка используется там, где общей ещё нет. Перед
-        подключением старой локальной копии можно скачать её резервный JSON.
+        Неотправленные правки и черновики остаются на этом устройстве отдельно
+        от общего просмотра. После входа доска проверит их версии перед
+        отправкой. История и сравнение конфликтов доступны после входа.
       </p>
       <div id="google-pending" class="notice" hidden>
         Завершите вход во всплывающем окне Google. Можно отменить и попробовать
@@ -762,6 +779,6 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261106-team-1"></script>
+    <script type="module" src="./app.mjs?rev=20261107-view-1"></script>
   </body>
 </html>

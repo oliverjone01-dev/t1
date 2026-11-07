@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261106-team-1";
-import { equal } from "./sync-model.mjs?rev=20261106-team-1";
+} from "./team-model.mjs?rev=20261107-view-1";
+import { equal } from "./sync-model.mjs?rev=20261107-view-1";
 export const digest = async (value) =>
   [
     ...new Uint8Array(
@@ -79,6 +79,15 @@ export class TeamApi {
       .catch(() => {})
       .then(work);
     return this.authChain;
+  }
+  publicRef(collection, id) {
+    return this.sdk.doc(
+      this.db,
+      "taskBoardViews",
+      this.boardId,
+      collection,
+      id,
+    );
   }
   actor(clientId = "") {
     return {
@@ -178,6 +187,10 @@ export class TeamApi {
   }
   writeRevision(tx, taskRef, before, after, op) {
     const s = this.sdk;
+    const view = this.publicRef("tasks", taskRef.id);
+    if (after.archived) tx.delete(view);
+    else
+      tx.set(view, { schema: 1, revision: after.revision, task: after.task });
     tx.set(taskRef, {
       ...after,
       updatedAt: s.serverTimestamp(),
@@ -368,6 +381,7 @@ export class TeamApi {
       const changed = !equal(items, [...before.items].sort()),
         revision = before.revision + (changed ? 1 : 0);
       if (changed) {
+        tx.set(this.publicRef("meta", "lanes"), { items, revision });
         tx.set(ref, {
           items,
           revision,
@@ -478,11 +492,14 @@ export class TeamApi {
     }
   }
   async sourceState(status, message = "", checkedAt = Date.now()) {
-    await this.sdk.setDoc(
+    const batch = this.sdk.writeBatch(this.db);
+    batch.set(
       this.ref("meta", "source"),
       { status, message, checkedAt },
       { merge: true },
     );
+    batch.set(this.publicRef("meta", "source"), { status, checkedAt });
+    await batch.commit();
   }
   async disconnect() {
     this.authGeneration = (this.authGeneration || 0) + 1;

@@ -168,3 +168,17 @@ test("offline edit followed by archive keeps its causal revision and never confl
   assert.equal(entry.archived, true);
   assert.equal(entry.task.title, "Правка перед архивом");
 });
+
+test('quota refusals retain one durable intent and back off from a minute to five minutes',async()=>{
+ const f=fixture(),delays=[];f.engine.enabled=true;f.engine.actor={uid:'quota-user',name:'Иван',clientId:'quota-device'};
+ await f.engine.changed({basis:f.engine.capture(),desired:{tasks:[{...task,title:'После квоты'}],owners:[]}});
+ const operation=(await f.outbox.list())[0].operation;
+ f.engine.connected=true;f.engine.schedule=(_,delay)=>{delays.push(delay);return 0};
+ let calls=0;f.engine.repository={submit:async()=>{calls++;throw Object.assign(new Error('Google quota'),{code:'resource-exhausted'})}};
+ for(let i=0;i<4;i++)await f.engine.flush();
+ assert.deepEqual(delays,[60000,120000,240000,300000]);assert.equal(calls,4);
+ const queued=await f.outbox.list();assert.equal(queued.length,1);assert.equal(queued[0].operation.id,operation.id);
+ const current=applyOperation(seedEntry(task),operation).entry;
+ f.engine.repository={submit:async()=>({changed:true}),read:async()=>({entries:[current],lanes:{items:[]},conflicts:[]})};
+ await f.engine.flush();assert.equal((await f.outbox.list()).length,0);assert.equal(f.engine.retryDelay,3000);assert.equal(f.board().tasks[0].title,'После квоты');
+});

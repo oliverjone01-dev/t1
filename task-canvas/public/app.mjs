@@ -1,5 +1,5 @@
-import {renderBoard} from './board-ui.mjs?rev=20261107-team-1';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261107-team-1';
+import {renderBoard} from './board-ui.mjs?rev=20261107-team-2';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261107-team-2';
 import {
   QUADRANTS,
   CARD,
@@ -14,20 +14,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261107-team-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261107-team-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-team-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-team-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261107-team-1";
-import { remoteChanges } from "./changes.mjs?rev=20261107-team-1";
-import { TeamApi } from "./team-api.mjs?rev=20261107-team-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-team-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-team-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261107-team-1";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261107-team-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-team-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-team-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-team-1";
+} from "./model.mjs?rev=20261107-team-2";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261107-team-2";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-team-2";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-team-2";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261107-team-2";
+import { remoteChanges } from "./changes.mjs?rev=20261107-team-2";
+import { TeamApi } from "./team-api.mjs?rev=20261107-team-2";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-team-2";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-team-2";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261107-team-2";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261107-team-2";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-team-2";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-team-2";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-team-2";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -35,8 +35,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261107-team-1";
-import { parseAssignee } from "./people.mjs?rev=20261107-team-1";
+} from "./editor.mjs?rev=20261107-team-2";
+import { parseAssignee } from "./people.mjs?rev=20261107-team-2";
 import {
   matchesTask,
   matchesWords,
@@ -45,8 +45,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261107-team-1";
-import { icon } from "./icons.mjs?rev=20261107-team-1";
+} from "./ui-model.mjs?rev=20261107-team-2";
+import { icon } from "./icons.mjs?rev=20261107-team-2";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -2333,7 +2333,7 @@ $("#google-authorize").onclick = async () => {
     }
     if (attempt !== connectionAttempt || error.cancelled) return;
     showDialog("cloud-dialog");
-    text("#google-error", error.message);
+    text("#google-error", error.code==='resource-exhausted'?'Google временно отклоняет запросы из-за квоты проекта. Показана последняя копия; неотправленные правки сохранены. Повторите вход позже.':error.message);
   } finally {
     if (attempt === connectionAttempt) pendingConnection(false);
   }
@@ -2544,7 +2544,7 @@ async function setMember(email,enabled){
  if(accessBusy)return;accessBusy=true;renderAccess();text('#access-error','Сохраняем доступ…');
  const operationId=crypto.randomUUID();
  try{accessInfo=await cloudEngine.repository.setMember(email,enabled,operationId);$('#access-email').value='';text('#access-error',enabled?'Редактор добавлен. Отправьте ему ссылку на доску.':'Доступ к редактированию отозван. Просмотр по ссылке остаётся.');}
- catch(error){text('#access-error',error.message)}finally{accessBusy=false;renderAccess()}
+ catch(error){text('#access-error',error.code==='resource-exhausted'?'Google отклонил запрос из-за квоты. Изменение списка не подтверждено. Адрес сохранён в поле; повторите позже.':error.message)}finally{accessBusy=false;renderAccess()}
 }
 $('#access-form').onsubmit=e=>{e.preventDefault();setMember($('#access-email').value,true)};
 $('#access-members').onclick=e=>{const b=e.target.closest('[data-remove-member]');if(b)setMember(b.dataset.removeMember,false)};

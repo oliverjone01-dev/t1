@@ -4,13 +4,13 @@ import {
   GROUPS,
   groupValue,
   toBoard,
-} from "./team-model.mjs?rev=20261107-team-1";
+} from "./team-model.mjs?rev=20261107-team-2";
 import {
   equal,
   mergeBoards,
   comparable,
-} from "./sync-model.mjs?rev=20261107-team-1";
-import { digest } from "./team-api.mjs?rev=20261107-team-1";
+} from "./sync-model.mjs?rev=20261107-team-2";
+import { digest } from "./team-api.mjs?rev=20261107-team-2";
 const clone = (value) => structuredClone(value);
 function copyGroup(target, source, group) {
   for (const path of GROUPS[group]) {
@@ -27,8 +27,12 @@ function copyGroup(target, source, group) {
   }
 }
 export class TeamSourceBridge {
-  constructor(engine) {
+  constructor(engine,{now=()=>Date.now()}={}) {
     this.engine = engine;
+    this.now=now;
+    this.lastPublishedAt=0;
+    this.lastPublishedStatus=null;
+    this.retryDelay=30000;
     this.running = false;
     this.busy = false;
     this.generation = 0;
@@ -293,8 +297,16 @@ export class TeamSourceBridge {
       }
       if (acks.length) await e.repository.markSheetObserved(acks, e.clientId);
       active();
-      e.sourceState = { status: "synced", checkedAt: Date.now(), message: "" };
-      await e.repository.sourceState("synced");
+      const checkedAt=this.now();
+      e.sourceState = { status: "synced", checkedAt, message: "" };
+      // Business changes still publish immediately. An unchanged Sheet poll
+      // needs a heartbeat only every five minutes, rather than two writes and
+      // a public notification on every 30-second read.
+      if(observed.length||acks.length||plan.writes.length||newOwners.length||this.lastPublishedStatus!=="synced"||checkedAt-this.lastPublishedAt>=300000){
+        await e.repository.sourceState("synced","",checkedAt);
+        this.lastPublishedAt=checkedAt;this.lastPublishedStatus="synced";
+      }
+      this.retryDelay=30000;
       e.state(e.status, e.message);
     } catch (error) {
       if (generation !== this.generation) return;
@@ -304,16 +316,17 @@ export class TeamSourceBridge {
         checkedAt: e.sourceState.checkedAt || 0,
       };
       e.state(e.status, e.message);
-      try {
-        await e.repository.sourceState(
-          e.sourceState.status,
-          error.message,
-          e.sourceState.checkedAt,
-        );
-      } catch {}
+      if(error.code==='resource-exhausted')this.retryDelay=Math.min(300000,this.retryDelay*2);
+      // A quota refusal cannot be reported through another write to that quota.
+      if(error.code!=='resource-exhausted' && (this.lastPublishedStatus!==e.sourceState.status || this.now()-this.lastPublishedAt>=300000)){
+        try {
+          await e.repository.sourceState(e.sourceState.status,error.message,e.sourceState.checkedAt);
+          this.lastPublishedAt=this.now();this.lastPublishedStatus=e.sourceState.status;
+        } catch {}
+      }
     } finally {
       this.busy = false;
-      this.later();
+      this.later(this.retryDelay);
     }
   }
 }

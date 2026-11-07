@@ -1,5 +1,5 @@
-import { firebaseSdk } from "./team-api.mjs?rev=20261107-team-1";
-import { validateBoard } from "./model.mjs?rev=20261107-team-1";
+import { firebaseSdk } from "./team-api.mjs?rev=20261107-team-2";
+import { validateBoard } from "./model.mjs?rev=20261107-team-2";
 export function readPublicEntry(value) {
   if (
     value?.schema !== 1 ||

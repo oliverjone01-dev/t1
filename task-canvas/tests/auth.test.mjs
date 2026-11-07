@@ -93,3 +93,9 @@ test("authorization uses basic identity and only the selected Drive file and tok
   h.auth.disconnect();
   assert.equal(h.auth.token, null);
 });
+
+test('background mode requests Google identity without a Drive file permission',async()=>{
+ let requested;
+ const auth=new GoogleAuth({clientId:'fixture',identityOnly:true},{environment:{google:{accounts:{oauth2:{initTokenClient:config=>({requestAccessToken:()=>{requested=config;config.callback({access_token:'fixture-token',expires_in:3600})}})}}}}});
+ await auth.authorize();assert.equal(requested.scope,'openid email profile');assert.equal(requested.scope.includes('drive.file'),false);auth.disconnect();
+});

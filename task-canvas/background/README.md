@@ -1,0 +1,23 @@
+# Background Sheet bridge (Google Apps Script, no billing required)
+
+The private standalone script reuses the browser's TeamSourceBridge, TeamApi and conflict model through a Firestore REST adapter. Timer executions use the owner's Google-managed OAuth grant; no service account, refresh token, private key, web app endpoint or public script deployment is created. The manifest requests drive.file (the selected spreadsheet), datastore (the owner's IAM-authorized Firestore), script.external_request, script.scriptapp and userinfo.email. Associate the script with the existing GCP project so its restricted Drive file grant applies to the same selected file.
+
+A clock runs every five minutes. Google may delay clock triggers. Slow runs increase their next-run interval to keep this worker's target runtime below an hour/day; consumer accounts share Google's 90-minute trigger runtime quota across their scripts. Firestore's existing free quotas still apply. Quota errors retain the last complete cache cursor, write a private retry status and retry after 5–15 minutes; they do not overwrite Sheet data. Existing board edits remain in its durable outbox until confirmed.
+
+## Build and install
+
+`npm ci --ignore-scripts && npm run build:background` produces `dist/Code.gs` and `dist/appsscript.json`. Use a **private standalone** Apps Script project owned by the board owner, not a script bound to the publicly editable Sheet. Select standard GCP project number 1077689803989. Paste the bundle and exact manifest. Google authorization must be completed by the owner when requested.
+
+Run `prepareBackgroundSync` to validate the pinned first Sheet tab and owner and install one idempotent clock trigger. The prepared timer is inert until activated. Deploy the included Firestore browser-lease fence and set private root `backgroundProtocol:1` via the IAM administrator. Run `activateBackgroundSync` after the frontend and fence are live. It atomically pins the private script ID in the canonical root and publishes only provider/interval in the public root. A 150-second grace interval drains the previous browser lease/in-flight request before the first background write.
+
+`checkBackgroundSync` prints the timer count, last tick, last result and sanitized timing counters. `stopBackgroundSync` holds the same script lock, disables the worker and removes only its own timer. Reconnect the owner in the board if returning to the legacy browser bridge. Changing the Google owner or copying the script does not create an authorized worker; the root owner, private script ID, enabled flag and protocol are checked every run. Keep the script private: its owner token has IAM access to the project's database and bypasses client Firestore Rules.
+
+## Data and concurrency
+
+- A compressed, chunked Script Cache snapshot keeps all canonical records, including archives. Cache eviction causes a complete bootstrap, never a truncated board. Cache chunks precede the manifest. Cursor and data advance together only after a successful run.
+- Warm executions query only tasks updated since the previous **server** read timestamp with an overlap. Checkpoint-only writes do not change business updatedAt; the single worker updates them in its own cache. Browser checkpoint writes and leases are denied while background mode is enabled, even from old pages. Normal team task writes remain allowed.
+- Firestore transactions use the original revision/receipt/history/public-projection code. Lost replies are idempotent; competing edits become the same selectable field conflicts as browser edits. The Sheet bridge retains unresolved source alternatives until a person chooses a version.
+- Object-map comparison ignores serialization key order. A regression reproduced two unnecessary checkpoints for one unchanged row before this fix; after the fix there are none. Array order remains significant.
+- Google Sheets offers no atomic compare-and-set against a human editing the same cells during a projection write. The existing Sheet re-read/conditional import semantics and immutable Firestore alternatives remain; this change does not invent stronger Sheet transactions.
+
+The runtime HTTP allowlist pins the GCP project and spreadsheet. Tokens exist only in the execution's memory and are never included in state, cache, logs or the repository. The script has a 100-second cooperative run budget, a cross-execution lock and retry backoff. Apps Script clocks and free quotas are not an availability SLA.

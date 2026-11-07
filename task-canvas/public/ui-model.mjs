@@ -1,4 +1,4 @@
-import { comparable, equal } from "./sync-model.mjs?rev=20261107-team-2";
+import { comparable, equal } from "./sync-model.mjs?rev=20261108-bg-1";
 export const normalizeQuery = (value) =>
   String(value || "")
     .toLocaleLowerCase("ru")

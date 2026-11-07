@@ -173,3 +173,11 @@ test('team ranks round-trip through Sheet service JSON and the protocol fence to
  assert.equal(sent.requests[0].updateCells.fields,'userEnteredValue');
  sent=null;await api.ensureTeamProtocol(snapshot);assert.equal(sent,null);
 });
+
+test('structural equality ignores map key order at every depth but keeps meaningful array order',async()=>{
+ const {equal}=await import('../public/sync-model.mjs');
+ assert.equal(equal({b:2,a:{y:1,x:0}},{a:{x:0,y:1},b:2}),true);
+ assert.equal(equal({a:undefined},{}),true);assert.equal(equal(null,undefined),true);
+ assert.equal(equal([1,2],[2,1]),false);assert.equal(equal({a:null},{}),false);
+ assert.equal(equal({positions:{priority:{group:'do',order:'a1V',x:24,y:96}}},{positions:{priority:{x:24,y:96,order:'a1V',group:'do'}}}),true);
+});

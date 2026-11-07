@@ -1,5 +1,5 @@
-import { firebaseSdk } from "./team-api.mjs?rev=20261107-team-2";
-import { validateBoard } from "./model.mjs?rev=20261107-team-2";
+import { firebaseSdk } from "./team-api.mjs?rev=20261108-bg-1";
+import { validateBoard } from "./model.mjs?rev=20261108-bg-1";
 export function readPublicEntry(value) {
   if (
     value?.schema !== 1 ||
@@ -49,7 +49,7 @@ export class BoardViewer {
           throw new Error("Общий просмотр ещё подготавливается.");
         const fromCache = Object.values(caches).some(Boolean),
           board = { tasks: state.tasks, owners: state.lanes.items || [] };
-        if(fromCache){this.onState({status:"view-offline",source:state.source});return;}
+        if(fromCache){this.onState({status:"view-offline",source:state.source,background:state.root.background});return;}
         this.onData(board, {
           fromCache,
           source: state.source || { status: "pending", checkedAt: 0 },
@@ -57,6 +57,7 @@ export class BoardViewer {
         this.onState({
           status: fromCache ? "view-offline" : "view-live",
           source: state.source,
+          background: state.root.background,
         });
       };
       const watch = (ref, key, convert) =>

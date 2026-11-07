@@ -4,13 +4,13 @@ import {
   GROUPS,
   groupValue,
   toBoard,
-} from "./team-model.mjs?rev=20261107-team-2";
+} from "./team-model.mjs?rev=20261108-bg-1";
 import {
   equal,
   mergeBoards,
   comparable,
-} from "./sync-model.mjs?rev=20261107-team-2";
-import { digest } from "./team-api.mjs?rev=20261107-team-2";
+} from "./sync-model.mjs?rev=20261108-bg-1";
+import { digest } from "./team-api.mjs?rev=20261108-bg-1";
 const clone = (value) => structuredClone(value);
 function copyGroup(target, source, group) {
   for (const path of GROUPS[group]) {
@@ -38,6 +38,7 @@ export class TeamSourceBridge {
     this.generation = 0;
   }
   start() {
+    if(this.engine.accessRoot?.background?.enabled)return;
     if(this.engine.accessRoot?.ownerEmail && this.engine.actor.email?.toLowerCase()!==this.engine.accessRoot.ownerEmail)return;
     this.running = true;
     this.generation++;
@@ -62,6 +63,7 @@ export class TeamSourceBridge {
   async tick() {
     const e = this.engine,
       generation = this.generation;
+    if(e.accessRoot?.background?.enabled){this.running=false;return;}
     if (!this.running || this.busy || !e.connected) return;
     this.busy = true;
     const active = () => {

@@ -1,5 +1,5 @@
-import {renderBoard} from './board-ui.mjs?rev=20261107-team-2';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261107-team-2';
+import {renderBoard} from './board-ui.mjs?rev=20261108-bg-1';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-bg-1';
 import {
   QUADRANTS,
   CARD,
@@ -14,20 +14,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261107-team-2";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261107-team-2";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-team-2";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-team-2";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261107-team-2";
-import { remoteChanges } from "./changes.mjs?rev=20261107-team-2";
-import { TeamApi } from "./team-api.mjs?rev=20261107-team-2";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-team-2";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-team-2";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261107-team-2";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261107-team-2";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-team-2";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-team-2";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-team-2";
+} from "./model.mjs?rev=20261108-bg-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261108-bg-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-bg-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-bg-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261108-bg-1";
+import { remoteChanges } from "./changes.mjs?rev=20261108-bg-1";
+import { TeamApi } from "./team-api.mjs?rev=20261108-bg-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-bg-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-bg-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261108-bg-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261108-bg-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-bg-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-bg-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-bg-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -35,8 +35,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261107-team-2";
-import { parseAssignee } from "./people.mjs?rev=20261107-team-2";
+} from "./editor.mjs?rev=20261108-bg-1";
+import { parseAssignee } from "./people.mjs?rev=20261108-bg-1";
 import {
   matchesTask,
   matchesWords,
@@ -45,8 +45,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261107-team-2";
-import { icon } from "./icons.mjs?rev=20261107-team-2";
+} from "./ui-model.mjs?rev=20261108-bg-1";
+import { icon } from "./icons.mjs?rev=20261108-bg-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -650,7 +650,9 @@ function renderProvenance() {
         : viewerHasBaseline
           ? "Показана последняя доступная копия. "
           : "Подключаемся к общей доске. ") +
-        `Проверено: ${checked}. Изменения таблицы поступают через подключённого участника команды.`,
+        `Проверено: ${checked}. `+(viewerState.background?.provider==='apps-script'
+          ? (viewerState.source?.status==='synced'?'Таблица проверяется в фоне, обычно раз в 5 минут.':viewerState.source?.status==='signin'?'Фоновому обмену нужно повторное разрешение владельца.':'Фоновый обмен с таблицей ожидает восстановления связи.')
+          : 'Изменения таблицы поступают через подключённого участника команды.'),
     );
     return;
   }
@@ -2015,7 +2017,7 @@ function cloudState(state) {
                 (state.sourceState?.status === "synced"
                   ? "обновлена"
                   : state.sourceState?.status === "signin"
-                    ? "нужен повторный вход Google"
+                    ? (cloudEngine.accessRoot?.background?.enabled?"фоновому обмену нужно разрешение владельца":"нужен повторный вход Google")
                     : "ожидает синхронизации") +
                 "."
               : "Изменения подтверждены чтением из таблицы."
@@ -2286,13 +2288,14 @@ $("#google-authorize").onclick = async () => {
       throw new Error(
         "Google ещё загружается. Повторите через несколько секунд.",
       );
+    googleAuth.config.identityOnly=viewerState.background?.provider==='apps-script';
     await googleAuth.authorize();
     if (attempt !== connectionAttempt) return;
     // Team membership is checked before asking for any Drive file. Team editors
     // work with the canonical board; only the owner's session bridges Sheets.
     await cloudEngine.repository.authenticate(googleAuth.getToken());
     const access=await cloudEngine.repository.accessInfo();
-    if(access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase()){
+    if(!access.background?.enabled && access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase()){
       try { await cloudEngine.api.read(); }
       catch(error){
         if(error.status===403||error.status===404){$("#cloud-dialog").close();await googleAuth.pickFile();}

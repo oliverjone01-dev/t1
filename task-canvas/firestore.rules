@@ -5,9 +5,10 @@ service cloud.firestore {
    return request.auth != null && request.auth.token.email_verified == true && request.auth.token.firebase.sign_in_provider == 'google.com';
   }
   function admin() {return googleUser() && exists(/databases/$(database)/documents/taskCanvasAdmins/$(request.auth.token.email));}
+  function owner(board) {return googleUser() && get(/databases/$(database)/documents/taskBoards/$(board)).data.ownerEmail == request.auth.token.email.lower();}
   function access(board) {
    let root = get(/databases/$(database)/documents/taskBoards/$(board)).data;
-   return googleUser() && board == '1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY' && root.ready == true && (admin() || root.sharingMode == 'google-link' || request.auth.token.email in root.members);
+   return googleUser() && board == '1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY' && root.ready == true && (root.ownerEmail == request.auth.token.email.lower() || request.auth.token.email.lower() in root.members);
   }
   function publicBoard(board) {
    return board == '1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY' && get(/databases/$(database)/documents/taskBoardViews/$(board)).data.ready == true;
@@ -24,13 +25,18 @@ service cloud.firestore {
   function versionAfter(board,key,revision) {return getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)/versions/$(revision)).data;}
   function heldLease(board) {
    let lease = get(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease).data;
-   return lease.protocol==2 && lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
+   return lease.protocol==3 && lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
   }
   match /taskCanvasAdmins/{email} {allow get: if googleUser() && email == request.auth.token.email;allow list, write: if false;}
   match /taskBoards/{board} {
-   allow get: if access(board) || admin();
+   allow get: if access(board);
    allow list, create, delete: if false;
-   allow update: if admin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharingMode','members']) && request.resource.data.sharingMode in ['google-link','members'] && request.resource.data.members is list;
+   allow update: if owner(board) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members','accessRevision','lastAccessEvent']) && request.resource.data.members is list && request.resource.data.members.size()<=200 && request.resource.data.accessRevision==resource.data.accessRevision+1 && getAfter(/databases/$(database)/documents/taskBoards/$(board)/accessEvents/$(request.resource.data.lastAccessEvent)).data.before==resource.data.members && getAfter(/databases/$(database)/documents/taskBoards/$(board)/accessEvents/$(request.resource.data.lastAccessEvent)).data.after==request.resource.data.members;
+   match /accessEvents/{event} {
+    allow read: if owner(board);
+    allow create: if owner(board) && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.revision==getAfter(/databases/$(database)/documents/taskBoards/$(board)).data.accessRevision && event==getAfter(/databases/$(database)/documents/taskBoards/$(board)).data.lastAccessEvent && request.resource.data.after==getAfter(/databases/$(database)/documents/taskBoards/$(board)).data.members && request.resource.data.before==get(/databases/$(database)/documents/taskBoards/$(board)).data.members;
+    allow update,delete: if false;
+   }
    match /tasks/{key} {
     allow read: if access(board);
     allow create: if access(board) && validEntry(request.resource.data) && request.resource.data.revision==1 && actorOK(request.resource.data.actor) && request.resource.data.updatedAt==request.time && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && versionAfter(board,key,'1').after.task==request.resource.data.task && versionAfter(board,key,'1').before==null && publishedTask(board,key,request.resource.data);
@@ -48,7 +54,7 @@ service cloud.firestore {
    match /operations/{operation} {
     allow get: if access(board);
     allow list, update, delete: if false;
-    allow create: if access(board) && request.resource.data.schema==1 && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.digest is string && request.resource.data.digest.matches('^[0-9a-f]{64}$') && request.resource.data.request is map && request.resource.data.result is map;
+    allow create: if access(board) && request.resource.data.schema==1 && request.resource.data.protocol==3 && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.digest is string && request.resource.data.digest.matches('^[0-9a-f]{64}$') && request.resource.data.request is map && request.resource.data.result is map;
    }
    match /conflicts/{conflict} {
     allow read: if access(board);
@@ -59,7 +65,7 @@ service cloud.firestore {
    match /meta/{meta} {
     allow read: if access(board);
     allow create, update: if access(board) && (
-     (meta=='bridgeLease' && request.resource.data.protocol==2 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=2 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
+     (meta=='bridgeLease' && request.resource.data.protocol==3 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=3 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
      || (meta=='source' && heldLease(board) && request.resource.data.status is string && request.resource.data.message is string && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/source).data == {'status':request.resource.data.status,'checkedAt':request.resource.data.checkedAt})
      || (meta=='lanes' && request.resource.data.items is list && request.resource.data.revision==resource.data.revision+1 && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && getAfter(/databases/$(database)/documents/taskBoards/$(board)/laneVersions/$(string(request.resource.data.revision))).data.after==request.resource.data.items && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/lanes).data == {'items':request.resource.data.items,'revision':request.resource.data.revision})
     );

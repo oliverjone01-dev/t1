@@ -33,7 +33,7 @@ const api = (who, email) =>
     boardId: BOARD,
     sdk,
     db: env.authenticatedContext(who.uid, claims(email)).firestore(),
-    user: { uid: who.uid },
+    user: { uid: who.uid, email },
   });
 const op = (entry, title, id, actor = alice, more = {}) =>
   makeOperation(entry, { ...entry.task, title, ...more }, { id, actor });
@@ -59,8 +59,10 @@ beforeEach(async () => {
     const db = context.firestore();
     await sdk.setDoc(sdk.doc(db, "taskBoards", BOARD), {
       ready: true,
-      sharingMode: "google-link",
-      members: [],
+      sharingMode: "members",
+      ownerEmail: "alice@example.test",
+      accessRevision: 0,
+      members: ["bob@example.test"],
     });
     await sdk.setDoc(sdk.doc(db, "taskCanvasAdmins", "alice@example.test"), {
       enabled: true,
@@ -205,12 +207,7 @@ test("authentication, fixed board and shared membership are enforced at the serv
     })
     .firestore();
   await assertFails(sdk.getDoc(sdk.doc(wrongProvider, "taskBoards", BOARD)));
-  await assertSucceeds(
-    sdk.updateDoc(a.root(), {
-      sharingMode: "members",
-      members: ["alice@example.test"],
-    }),
-  );
+  await assertSucceeds(a.setMember("bob@example.test",false,"remove-bob"));
   await assertFails(sdk.getDoc(b.root()));
   await assertFails(sdk.updateDoc(b.root(), { sharingMode: "google-link" }));
   await assertFails(
@@ -588,7 +585,7 @@ test("an obsolete Sheet bridge cannot renew its lease or block the current brows
   assert.equal(await b.acquireBridge("current-page"), true);
   assert.equal(
     (await sdk.getDoc(b.ref("meta", "bridgeLease"))).data().protocol,
-    2,
+    3,
   );
   await assertFails(
     sdk.updateDoc(ref, {
@@ -601,4 +598,36 @@ test("an obsolete Sheet bridge cannot renew its lease or block the current brows
       },
     }),
   );
+});
+
+test('only owner can manage members; concurrent deltas and lost responses preserve the list',async()=>{
+ await assert.rejects(b.setMember('other@example.test',true,'member-escalation'));
+ await assertFails(sdk.updateDoc(b.root(),{ownerEmail:'bob@example.test'}));
+ await assertFails(sdk.updateDoc(a.root(),{ownerEmail:'other@example.test'}));
+ await assert.rejects(a.setMember('alice@example.test',false,'remove-owner'));
+ await Promise.all([a.setMember('charlie@example.test',true,'add-charlie'),a.setMember('dana@example.test',true,'add-dana')]);
+ const once=await a.setMember('eve@example.test',true,'lost-acl-response');
+ const twice=await a.setMember('eve@example.test',true,'lost-acl-response');
+ assert.equal(once.accessRevision,twice.accessRevision);
+ assert.deepEqual(twice.members,['bob@example.test','charlie@example.test','dana@example.test','eve@example.test']);
+ await assert.rejects(a.setMember('different@example.test',true,'lost-acl-response'));
+ const audit=await sdk.getDocs(sdk.collection(a.db,'taskBoards',BOARD,'accessEvents'));
+ assert.equal(audit.size,3);
+ await assertFails(sdk.getDocs(sdk.collection(b.db,'taskBoards',BOARD,'accessEvents')));
+});
+test('a Google outsider including a legacy admin has only public read; revocation denies existing credentials',async()=>{
+ const outsider=api({uid:'outsider'},'outsider@example.test');
+ await env.withSecurityRulesDisabled(async c=>sdk.setDoc(sdk.doc(c.firestore(),'taskCanvasAdmins','outsider@example.test'),{enabled:true}));
+ await assertFails(sdk.getDoc(outsider.root()));
+ await assertFails(outsider.submit({...op(seedEntry(task),'Wrong','outsider-op'),actor:outsider.actor('outside')}));
+ await assertSucceeds(sdk.getDocs(sdk.collection(outsider.db,'taskBoardViews',BOARD,'tasks')));
+ await a.setMember('bob@example.test',false,'revoke-member');
+ await assertFails(b.submit(op(seedEntry(task),'Revoked','revoked-op',bob)));
+ await assertFails(sdk.getDocs(sdk.collection(b.db,'taskBoards',BOARD,'conflicts')));
+ await assertSucceeds(sdk.getDocs(sdk.collection(b.db,'taskBoardViews',BOARD,'tasks')));
+});
+test('old receipt and lease protocols cannot strip durable ranks',async()=>{
+ await assertFails(sdk.setDoc(a.ref('operations','old-client'),{schema:1,actor:alice,createdAt:sdk.serverTimestamp(),digest:'a'.repeat(64),request:{},result:{}}));
+ await assertFails(sdk.setDoc(a.ref('meta','bridgeLease'),{protocol:2,uid:alice.uid,holder:'old-page',acquiredAt:sdk.serverTimestamp()}));
+ assert.equal(await a.acquireBridge('current-client'),true);
 });

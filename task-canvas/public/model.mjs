@@ -1,4 +1,4 @@
-import {parseAssignee} from './people.mjs?rev=20261107-view-1';
+import {parseAssignee} from './people.mjs?rev=20261107-team-1';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -173,6 +173,10 @@ export function validateBoard(value) {
     for (const mode of ['priority','owners','time']) {
       const p = t.positions?.[mode];
       if (p && typeof p.group === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y)) result.positions[mode] = { group: mode === 'owners' && p.group === result.owner && result.owner ? `owner:${result.owner}` : p.group, x: Math.max(0, Math.min(100000, p.x)), y: Math.max(0, Math.min(100000, p.y)) };
+    }
+    for (const mode of ['priority','owners','time']) {
+      const p=t.positions?.[mode];
+      if(result.positions[mode] && typeof p.order==='string' && /^[a-zA-Z0-9]{2,512}$/.test(p.order)) result.positions[mode].order=p.order;
     }
     return result;
   });

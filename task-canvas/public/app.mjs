@@ -1,4 +1,7 @@
+import {renderBoard} from './board-ui.mjs?rev=20261107-team-1';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261107-team-1';
 import {
+  QUADRANTS,
   CARD,
   STATUSES,
   STATUS_LANES,
@@ -11,20 +14,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261107-view-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261107-view-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-view-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-view-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261107-view-1";
-import { remoteChanges } from "./changes.mjs?rev=20261107-view-1";
-import { TeamApi } from "./team-api.mjs?rev=20261107-view-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-view-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-view-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261107-view-1";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261107-view-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-view-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-view-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-view-1";
+} from "./model.mjs?rev=20261107-team-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261107-team-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261107-team-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261107-team-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261107-team-1";
+import { remoteChanges } from "./changes.mjs?rev=20261107-team-1";
+import { TeamApi } from "./team-api.mjs?rev=20261107-team-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261107-team-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261107-team-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261107-team-1";
+import { SheetsApi } from "./sheets-api.mjs?rev=20261107-team-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261107-team-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261107-team-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261107-team-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -32,8 +35,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261107-view-1";
-import { parseAssignee } from "./people.mjs?rev=20261107-view-1";
+} from "./editor.mjs?rev=20261107-team-1";
+import { parseAssignee } from "./people.mjs?rev=20261107-team-1";
 import {
   matchesTask,
   matchesWords,
@@ -42,8 +45,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261107-view-1";
-import { icon } from "./icons.mjs?rev=20261107-view-1";
+} from "./ui-model.mjs?rev=20261107-team-1";
+import { icon } from "./icons.mjs?rev=20261107-team-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -62,6 +65,50 @@ let accessMode = DEMO ? "edit" : "view",
   lastPublicChanges = [];
 const canEdit = () =>
   DEMO || (accessMode === "edit" && !!cloudEngine?.connected);
+let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
+function selectTask(id,range=false){
+  if(!canEdit())return;
+  if(range && selectionAnchor){
+    const task=tasks.find(t=>t.id===id), group=task&&groupFor(task,'priority',today());
+    const ids=ordered(tasks.filter(t=>isVisible(t)&&groupFor(t,'priority',today())===group),'priority',today()).map(t=>t.id);
+    const a=ids.indexOf(selectionAnchor), b=ids.indexOf(id);
+    if(a>=0&&b>=0)ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>selectedIds.add(x));
+    else selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
+  }else selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
+  selectionAnchor=id;render();
+}
+function renderMatrix(){
+  const visible=tasks.filter(isVisible), ids=new Set(visible.map(t=>t.id));
+  selectedIds=new Set([...selectedIds].filter(id=>ids.has(id)));
+  if(!canEdit())selectedIds.clear();
+  renderBoard($('#board-ui'),{active:mode==='priority',busy:matrixMutationBusy,tasks:visible,today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
+    notices:Object.fromEntries(visible.filter(t=>inbox.get(t.id)).map(t=>[t.id,inbox.get(t.id).kind])),
+    onOpen:openTask,onSelect:selectTask,
+    onSelectGroup:(ids,enabled)=>{for(const id of ids)enabled?selectedIds.add(id):selectedIds.delete(id);render()},
+    onClear:()=>{selectedIds.clear();render()},
+    onDragStart:(ids)=>{selectedIds=new Set(ids);matrixBasis=cloudEngine?.managed?cloudEngine.capture():null;matrixDragging=true},
+    onDragCancel:()=>{matrixBasis=null;matrixDragging=false;render()},
+    onMove:moveSelection,onEdge:moveSelectionEdge});
+}
+async function moveSelection(ids,groupId,beforeId=null){
+  const basis=matrixBasis;matrixBasis=null;matrixDragging=false;
+  if(!requireEditor()||matrixMutationBusy)return;
+  const group=[{id:'inbox'},...QUADRANTS,...STATUS_LANES].find(g=>g.id===groupId);
+  if(!group)return;
+  matrixMutationBusy=true;renderMatrix();
+  try{
+    const ok=await change(()=>{tasks=reorderTasks(tasks,ids,group,beforeId,today())},basis);
+    if(!ok)return;
+    if(groupId.startsWith('status:')){$('#hide-done').checked=false;selectedIds.clear();}
+    render();savedToast(`Перемещено задач: ${ids.length}`);
+  }catch(error){toast(error.message)}finally{matrixMutationBusy=false;render()}
+}
+async function moveSelectionEdge(edge){
+  const ids=[...selectedIds],groups=new Set(tasks.filter(t=>selectedIds.has(t.id)).map(t=>groupFor(t,'priority',today())));
+  if(groups.size!==1){toast('Для изменения очередности выберите задачи одного квадрата.');return}
+  const group=[...groups][0], rest=ordered(tasks.filter(t=>!selectedIds.has(t.id)&&groupFor(t,'priority',today())===group),'priority',today());
+  await moveSelection(ids,group,edge==='start'?rest[0]?.id||null:null);
+}
 function requireEditor() {
   if (canEdit()) return true;
   showDialog("cloud-dialog");
@@ -676,13 +723,13 @@ function cardMarkup(task) {
         .map((s) => s[0])
         .join("")
     : "·";
-  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" ${canEdit() ? "" : "disabled"} data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
+      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" ${canEdit() ? "" : "disabled"} data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
         ...new Set([...STATUSES, task.status]),
       ]
         .filter(Boolean)
@@ -695,6 +742,8 @@ function listMarkup(visible) {
     .join("")}</tbody></table>`;
 }
 function render() {
+  if(matrixDragging)return;
+  document.body.dataset.boardMode=mode;
   const focusedStatus = document.activeElement?.dataset?.statusId;
   cloudRenderNeeded = false;
   renderedDay = today();
@@ -727,7 +776,7 @@ function render() {
       : `показано из ${tasks.length}`,
   );
   const info = {
-    priority: ["Планирование", "Приоритеты", "Перенос меняет приоритет"],
+    priority: ["Планирование", "Приоритеты", "Выделяйте задачи и переносите за ручку ⠿"],
     owners: ["Ответственность", "Команда", "Перенос назначает ответственного"],
     time: ["Планирование", "Сроки", "Перенос меняет дату"],
     list: ["Все задачи", "Список", "Откройте название, чтобы изменить задачу"],
@@ -743,11 +792,11 @@ function render() {
     el.setAttribute("aria-pressed", String(el.dataset.mode === mode));
   });
   $("#new-owner").hidden = !canEdit() || mode !== "owners";
-  $("#lane-jump").hidden = mode === "list";
-  $("#viewport").hidden = mode === "list";
+  $("#lane-jump").hidden = mode === "list" || mode === "priority";
+  $("#viewport").hidden = mode === "list" || mode === "priority";
   $("#task-list").hidden = mode !== "list";
-  $(".canvas-footer").hidden = mode === "list";
-  $(".zoom-controls").hidden = mode === "list" || !visible.length;
+  $(".canvas-footer").hidden = mode === "list" || mode === "priority";
+  $(".zoom-controls").hidden = mode === "list" || mode === "priority" || !visible.length;
   const filterCount = [
     $("#unit-filter").value,
     $("#owner-filter").value,
@@ -764,6 +813,7 @@ function render() {
       .join("");
     $("#cards").innerHTML = visible.map(cardMarkup).join("");
   }
+  renderMatrix();
   renderEmpty();
   $("#no-results").hidden = !tasks.length || !!visible.length;
   $("#undo").disabled = !canEdit() || !history.length;
@@ -868,6 +918,7 @@ $("#viewport").addEventListener("pointerdown", (e) => {
   if (e.button !== 0 && e.button !== 1) return;
   const card = e.target.closest(".task-card");
   const p = worldPoint(e);
+  if(card && canEdit() && (e.ctrlKey||e.metaKey||e.shiftKey)){e.preventDefault();selectTask(card.dataset.id,e.shiftKey);return;}
   if (card && !space && e.button === 0) {
     if (!canEdit()) {
       selected = card.dataset.id;
@@ -875,9 +926,11 @@ $("#viewport").addEventListener("pointerdown", (e) => {
       return;
     }
     selected = card.dataset.id;
+    if(!selectedIds.has(selected))selectedIds=new Set([selected]);
+    renderMatrix();
     document
       .querySelectorAll(".task-card")
-      .forEach((c) => c.classList.toggle("selected", c === card));
+      .forEach((c) => c.classList.toggle("selected", selectedIds.has(c.dataset.id)));
     const original = layout.placed.get(selected);
     gesture = {
       type: "card",
@@ -1007,7 +1060,12 @@ async function endGesture(e, cancelled = false) {
         );
         if (statusGroup(next)) $("#hide-done").checked = false;
         await change(
-          () => (tasks = tasks.map((t) => (t.id === current.id ? next : t))),
+          () => (tasks = tasks.map((t) => {
+            if(!selectedIds.has(t.id))return t;
+            if(t.id===current.id)return next;
+            const offset=[...selectedIds].indexOf(t.id);
+            return moveTask(t,mode,target,x+(offset%2)*312,y+Math.floor(offset/2)*216,today());
+          })),
           current.basis,
         );
         const label = target.status
@@ -1543,6 +1601,7 @@ function setMode(next) {
 }
 $$("[data-mode]").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 function jumpToGroup(id, readable = false) {
+  if(mode==='priority'){ $("#hide-done").checked=false;matrixFocus={id,stamp:Date.now()};render();return;}
   if (mode === "list") setMode(lastCanvasMode);
   if (STATUS_LANES.some((g) => g.id === id)) {
     $("#hide-done").checked = false;
@@ -1564,6 +1623,9 @@ function focusTask(id) {
     const row = $$("[data-row]").find((el) => el.dataset.row === id);
     row?.scrollIntoView({ block: "center" });
     row?.querySelector("button")?.focus();
+  } else if(mode==='priority'){
+    const task=tasks.find(t=>t.id===id);matrixFocus={id:groupFor(task,'priority',today()),stamp:Date.now()};render();
+    setTimeout(()=>{const el=$$('[data-matrix-task]').find(el=>el.dataset.matrixTask===id);el?.scrollIntoView({block:'center'});el?.querySelector('.matrix-title')?.focus()},80);
   } else {
     const p = layout.placed.get(id);
     if (!p) return;
@@ -1831,7 +1893,7 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     $("#search").focus();
   }
-  if (mode === "list") return;
+  if (mode === "list" || mode === "priority" || e.target.closest("#board-ui")) return;
   if (!e.ctrlKey && !e.metaKey && !e.altKey && e.code === "KeyF") {
     e.preventDefault();
     fit();
@@ -2166,6 +2228,7 @@ cloudEngine = new (DEMO ? SyncEngine : TeamSyncEngine)({
       : { tasks, owners: extraOwners },
   apply: applyCloud,
   onState: (state) => {
+    if(state.status==='access-denied'&&accessMode==='edit')queueMicrotask(revokeEditor);
     if (!DEMO && accessMode === "view") renderViewerState();
     else cloudState(state);
   },
@@ -2225,13 +2288,16 @@ $("#google-authorize").onclick = async () => {
       );
     await googleAuth.authorize();
     if (attempt !== connectionAttempt) return;
-    try {
-      await cloudEngine.api.read();
-    } catch (error) {
-      if (error.status === 403 || error.status === 404) {
-        $("#cloud-dialog").close();
-        await googleAuth.pickFile();
-      } else throw error;
+    // Team membership is checked before asking for any Drive file. Team editors
+    // work with the canonical board; only the owner's session bridges Sheets.
+    await cloudEngine.repository.authenticate(googleAuth.getToken());
+    const access=await cloudEngine.repository.accessInfo();
+    if(access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase()){
+      try { await cloudEngine.api.read(); }
+      catch(error){
+        if(error.status===403||error.status===404){$("#cloud-dialog").close();await googleAuth.pickFile();}
+        else throw error;
+      }
     }
     if (attempt !== connectionAttempt) return;
     $("#cloud-dialog").close();
@@ -2244,6 +2310,7 @@ $("#google-authorize").onclick = async () => {
       return;
     }
     accessMode = "edit";
+    $("#access-dialog").open && openAccess();
     $("#view-access").hidden = true;
     $("#google-disconnect").hidden = false;
     persist();
@@ -2333,34 +2400,29 @@ $("#copy-link").onclick = async () => {
   }
 };
 let conflictReview = [];
-function conflictText(value) {
+function conflictText(value, taskId="") {
   if (value == null) return "Убрано с доски / пусто";
   if (typeof value !== "object") return String(value);
   if (value.task)
     return (
       (value.archived ? "В архиве\n" : "На доске\n") +
-      value.task.title +
-      "\n" +
-      (value.task.comment || "")
+      value.task.title + "\n" + [value.task.status,value.task.owner,value.task.due].filter(Boolean).join(" · ") +
+      "\n" + (value.task.comment || "")
     );
-  return Object.entries(value)
-    .map(
-      ([key, v]) =>
-        (FIELD_NAMES[key] ||
-          {
-            "positions.owners": "Позиция в дорожке",
-            "positions.time": "Позиция по сроку",
-            "positions.priority": "Позиция в квадрате",
-          }[key] ||
-          key) +
-        ": " +
-        (v === null
-          ? "Не указано"
-          : typeof v === "object"
-            ? JSON.stringify(v)
-            : v),
-    )
-    .join("\n");
+  return Object.entries(value).map(([key,v])=>{
+    const label=FIELD_NAMES[key]||{'positions.owners':'Позиция в дорожке','positions.time':'Позиция по сроку','positions.priority':'Очередность в квадрате'}[key]||key;
+    if(key==='priority')return label+': '+(QUADRANTS.find(q=>q.id===v)?.title||'Входящие');
+    if(key.startsWith('positions.')&&v){
+      const view=key.split('.')[1],group=[{id:'inbox',title:'Входящие'},...QUADRANTS,...STATUS_LANES].find(g=>g.id===v.group)?.title||v.group;
+      if(view==='priority'&&v.order){
+        const neighbours=ordered(tasks.filter(t=>t.id!==taskId&&groupFor(t,view,today())===v.group),view,today());
+        const before=neighbours.filter(t=>orderKey(t,view,today())<v.order).at(-1),after=neighbours.find(t=>orderKey(t,view,today())>v.order);
+        return label+': '+group+'\n'+(before?'После «'+before.title+'»':'В начале квадрата')+(after?'\nПеред «'+after.title+'»':'');
+      }
+      return label+': '+group+' · '+v.x+', '+v.y;
+    }
+    return label+': '+(v==null?'Не указано':typeof v==='object'?JSON.stringify(v):v);
+  }).join('\n');
 }
 function openConflicts() {
   if (cloudEngine.managed && !cloudEngine.connected) {
@@ -2375,7 +2437,7 @@ function openConflicts() {
   $("#conflict-list").innerHTML = conflictReview
     .map(
       (c, i) =>
-        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(c.fieldName || GROUP_NAMES[c.field] || FIELD_NAMES[c.field] || c.field)}</h3><p>Одно поле изменили параллельно. Обе версии сохранены в истории.</p><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote"> Текущая общая версия</span><pre>${esc(conflictText(c.remote))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Предложенная версия${c.actor?.name ? " · " + esc(c.actor.name) : ""}</span><pre>${esc(conflictText(c.local))}</pre></label></section>`,
+        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(c.fieldName || GROUP_NAMES[c.field] || FIELD_NAMES[c.field] || c.field)}</h3><p>Одно поле изменили параллельно. Обе версии сохранены в истории.</p><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote"> Текущая общая версия</span><pre>${esc(conflictText(c.remote,c.taskId))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Предложенная версия${c.actor?.name ? " · " + esc(c.actor.name) : ""}</span><pre>${esc(conflictText(c.local,c.taskId))}</pre></label></section>`,
     )
     .join("");
   text("#conflicts-error", "");
@@ -2459,3 +2521,37 @@ if (DEMO && freshBoard && !stateLoadError) setMode(mode);
 if (DEMO && !stateLoadError) persist();
 if (stateLoadError)
   text("#save-state", "Не удалось прочитать сохранённую доску");
+
+// Selection is transient; it never changes another device's view.
+$('#task-list').addEventListener('click',e=>{const el=e.target.closest('[data-select]');if(el)selectTask(el.dataset.select,e.shiftKey)});
+let accessBusy=false, accessInfo=null;
+function renderAccess(){
+ const actor=cloudEngine.repository?.actor(), info=accessInfo;
+ const owner=!!actor?.email && actor.email.toLowerCase()===info?.ownerEmail;
+ $('#access-form').hidden=!owner;
+ $('#access-signin').hidden=canEdit();
+ $('#access-members').innerHTML=info?`<div class="access-member"><span>${esc(info.ownerEmail)}<br><small>Владелец · управляет доступом</small></span></div>`+info.members.map(email=>`<div class="access-member"><span>${esc(email)}<br><small>Редактор</small></span>${owner?`<button class="button quiet" data-remove-member="${esc(email)}" ${accessBusy?'disabled':''}>Убрать</button>`:''}</div>`).join(''): '<p class="access-intro">Войдите аккаунтом команды, чтобы увидеть список редакторов.</p>';
+ $('#access-form').querySelector('button').disabled=accessBusy;
+}
+async function openAccess(){
+ accessInfo=null;text('#access-error','');showDialog('access-dialog');renderAccess();
+ if(!canEdit()||DEMO)return;
+ try{accessInfo=await cloudEngine.repository.accessInfo();renderAccess()}catch(error){text('#access-error',error.message)}
+}
+$('#access-open').onclick=openAccess;
+$('#access-signin').onclick=()=>{closeDialog('access-dialog');showDialog('cloud-dialog')};
+async function setMember(email,enabled){
+ if(accessBusy)return;accessBusy=true;renderAccess();text('#access-error','Сохраняем доступ…');
+ const operationId=crypto.randomUUID();
+ try{accessInfo=await cloudEngine.repository.setMember(email,enabled,operationId);$('#access-email').value='';text('#access-error',enabled?'Редактор добавлен. Отправьте ему ссылку на доску.':'Доступ к редактированию отозван. Просмотр по ссылке остаётся.');}
+ catch(error){text('#access-error',error.message)}finally{accessBusy=false;renderAccess()}
+}
+$('#access-form').onsubmit=e=>{e.preventDefault();setMember($('#access-email').value,true)};
+$('#access-members').onclick=e=>{const b=e.target.closest('[data-remove-member]');if(b)setMember(b.dataset.removeMember,false)};
+async function revokeEditor(){
+ if(accessMode!=='edit')return;
+ saveDraft();editorLocalBoard={tasks:structuredClone(tasks),owners:[...extraOwners]};persist();
+ accessMode='view';selectedIds.clear();matrixDragging=false;
+ $('#editor').open&&$('#editor').close();$('#access-dialog').open&&$('#access-dialog').close();
+ await cloudEngine.disconnect();startViewer();toast('Право редактирования отозвано. Неотправленные правки сохранены на устройстве.');
+}

@@ -3,7 +3,7 @@ import {
   TAB_ID,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261107-view-1";
+} from "./sync-model.mjs?rev=20261107-team-1";
 export class SheetsApi {
   constructor(
     auth,
@@ -92,6 +92,12 @@ export class SheetsApi {
       title: tab.title,
       rowCount: tab.gridProperties.rowCount,
     });
+  }
+  async ensureTeamProtocol(snapshot) {
+    const cell=snapshot.rows?.[2]?.[17];
+    if((cell?.formattedValue||cell?.userEnteredValue?.stringValue)==='Позиции · команда v3')return;
+    this.beforeWrite();
+    await this.request(':batchUpdate',{requests:[{updateCells:{range:{sheetId:TAB_ID,startRowIndex:2,endRowIndex:3,startColumnIndex:17,endColumnIndex:18},rows:[{values:[{userEnteredValue:{stringValue:'Позиции · команда v3'}}]}],fields:'userEnteredValue'}}]});
   }
   async write(snapshot, writes, owners) {
     const requests = buildWriteRequests(snapshot, writes, owners);

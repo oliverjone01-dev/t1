@@ -4,13 +4,13 @@ import {
   GROUPS,
   groupValue,
   toBoard,
-} from "./team-model.mjs?rev=20261107-view-1";
+} from "./team-model.mjs?rev=20261107-team-1";
 import {
   equal,
   mergeBoards,
   comparable,
-} from "./sync-model.mjs?rev=20261107-view-1";
-import { digest } from "./team-api.mjs?rev=20261107-view-1";
+} from "./sync-model.mjs?rev=20261107-team-1";
+import { digest } from "./team-api.mjs?rev=20261107-team-1";
 const clone = (value) => structuredClone(value);
 function copyGroup(target, source, group) {
   for (const path of GROUPS[group]) {
@@ -34,6 +34,7 @@ export class TeamSourceBridge {
     this.generation = 0;
   }
   start() {
+    if(this.engine.accessRoot?.ownerEmail && this.engine.actor.email?.toLowerCase()!==this.engine.accessRoot.ownerEmail)return;
     this.running = true;
     this.generation++;
     this.later(0);
@@ -82,6 +83,7 @@ export class TeamSourceBridge {
       };
       let source = await e.api.read();
       active();
+      if(e.api.ensureTeamProtocol){await e.api.ensureTeamProtocol(source);active();}
       const records = new Map(source.records.map((row) => [row.id, row])),
         current = new Map(before.entries.map((row) => [row.task.id, row]));
       const observed = [];

@@ -7,10 +7,10 @@ import {
   GROUPS,
   groupValue,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261107-view-1";
-import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261107-view-1";
-import { remoteChanges } from "./changes.mjs?rev=20261107-view-1";
-import { TeamOutbox } from "./team-outbox.mjs?rev=20261107-view-1";
+} from "./team-model.mjs?rev=20261107-team-1";
+import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261107-team-1";
+import { remoteChanges } from "./changes.mjs?rev=20261107-team-1";
+import { TeamOutbox } from "./team-outbox.mjs?rev=20261107-team-1";
 const clone = (v) => structuredClone(v),
   id = () => crypto.randomUUID();
 export class TeamSyncEngine {
@@ -312,6 +312,7 @@ export class TeamSyncEngine {
       this.queue = await this.outbox.list();
       const remote = await this.repository.read();
       if (generation !== this.generation) return;
+      this.accessRoot = remote.root;
       this.accept(remote, false);
       this.connected = true;
       // Convert the old local copy once; unversioned changes remain explicit conflicts, never blind overwrites.
@@ -340,6 +341,7 @@ export class TeamSyncEngine {
         (data) => {
           if (generation !== this.generation) return;
           try {
+            this.accessRoot = data.root;
             this.accept(data, !data.fromCache);
             if (!data.fromCache)
               this.state(
@@ -355,7 +357,7 @@ export class TeamSyncEngine {
         },
         (error) => {
           if (generation === this.generation)
-            this.state("offline", error.message);
+            this.state(error.code === "permission-denied" ? "access-denied" : "offline", error.message);
         },
       );
       this.channel ??=
@@ -459,7 +461,7 @@ export class TeamSyncEngine {
         );
       }
     } catch (error) {
-      if (generation === this.generation) this.state("offline", error.message);
+      if (generation === this.generation) this.state(error.code === "permission-denied" ? "access-denied" : "offline", error.message);
     } finally {
       this.busy = false;
       this.state(this.status, this.message);

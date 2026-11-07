@@ -24,7 +24,7 @@ service cloud.firestore {
   function versionAfter(board,key,revision) {return getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)/versions/$(revision)).data;}
   function heldLease(board) {
    let lease = get(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease).data;
-   return lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
+   return lease.protocol==2 && lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
   }
   match /taskCanvasAdmins/{email} {allow get: if googleUser() && email == request.auth.token.email;allow list, write: if false;}
   match /taskBoards/{board} {
@@ -59,7 +59,7 @@ service cloud.firestore {
    match /meta/{meta} {
     allow read: if access(board);
     allow create, update: if access(board) && (
-     (meta=='bridgeLease' && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
+     (meta=='bridgeLease' && request.resource.data.protocol==2 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=2 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
      || (meta=='source' && heldLease(board) && request.resource.data.status is string && request.resource.data.message is string && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/source).data == {'status':request.resource.data.status,'checkedAt':request.resource.data.checkedAt})
      || (meta=='lanes' && request.resource.data.items is list && request.resource.data.revision==resource.data.revision+1 && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && getAfter(/databases/$(database)/documents/taskBoards/$(board)/laneVersions/$(string(request.resource.data.revision))).data.after==request.resource.data.items && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/lanes).data == {'items':request.resource.data.items,'revision':request.resource.data.revision})
     );

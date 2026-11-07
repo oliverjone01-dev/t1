@@ -431,12 +431,14 @@ export class TeamApi {
           lease = doc.exists() ? doc.data() : null;
         if (
           lease &&
+          lease.protocol === 2 &&
           lease.holder !== clientId &&
           Date.now() - (lease.acquiredAt?.toMillis?.() || 0) < 120000
         )
           return false;
         tx.set(ref, {
           holder: clientId,
+          protocol: 2,
           uid: this.user.uid,
           acquiredAt: s.serverTimestamp(),
         });

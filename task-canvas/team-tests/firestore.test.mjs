@@ -568,3 +568,37 @@ test("an editor cannot publish stale, extra or archived canonical data as a publ
   await assert.rejects(a.submit(request));
   assert.equal((await sdk.getDoc(ref)).data().revision, 1);
 });
+
+test("an obsolete Sheet bridge cannot renew its lease or block the current browser", async () => {
+  const lease = a.ref("meta", "bridgeLease");
+  await env.withSecurityRulesDisabled(async (c) =>
+    sdk.setDoc(sdk.doc(c.firestore(), lease.path), {
+      uid: alice.uid,
+      holder: "old-page",
+      acquiredAt: sdk.serverTimestamp(),
+    }),
+  );
+  await assertFails(
+    sdk.setDoc(lease, {
+      uid: alice.uid,
+      holder: "old-page",
+      acquiredAt: sdk.serverTimestamp(),
+    }),
+  );
+  assert.equal(await b.acquireBridge("current-page"), true);
+  assert.equal(
+    (await sdk.getDoc(b.ref("meta", "bridgeLease"))).data().protocol,
+    2,
+  );
+  await assertFails(
+    sdk.updateDoc(ref, {
+      sheet: {
+        present: true,
+        task: seedEntry(task).task,
+        versions: seedEntry(task).versions,
+        revision: 1,
+        observer: "old-page",
+      },
+    }),
+  );
+});

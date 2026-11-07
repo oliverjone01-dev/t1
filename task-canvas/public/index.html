@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261107-view-1" />
+    <meta name="application-version" content="20261107-team-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -27,7 +27,8 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261107-view-1" />
+    <link rel="stylesheet" href="./styles.css?rev=20261107-team-1" />
+    <link rel="stylesheet" href="./board-ui.css?rev=20261107-team-1" />
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
@@ -60,6 +61,7 @@
           ><span id="google-label" class="wide-label">Подключить Google</span
           ><span class="narrow-label">Google</span>
         </button>
+        <button id="access-open" class="button quiet" aria-haspopup="dialog">Доступ</button>
         <button
           id="appearance-open"
           class="icon-button"
@@ -168,7 +170,7 @@
           </p>
           <div class="view-actions">
             <button id="view-signin" class="button quiet">
-              Войти для редактирования</button
+              Войти</button
             ><button id="view-retry" class="button quiet" hidden>
               Обновить просмотр
             </button>
@@ -239,6 +241,7 @@
           ><span id="view-hint">Перенос меняет приоритет</span>
         </nav>
         <div class="board-area">
+          <div id="board-ui"></div>
           <div
             id="viewport"
             tabindex="0"
@@ -661,8 +664,8 @@
       <h2 id="cloud-title">Задачи на ваших устройствах</h2>
       <p>
         Просмотр доступен по ссылке без входа. Для изменения задач войдите через
-        свой Google и при запросе выберите таблицу «ЕМО - Раюшкин 2026». Доступ
-        ко всему Диску не запрашивается.
+        свой Google-аккаунт команды. Владелец добавляет редакторов через «Доступ».
+        Только владелец подключает таблицу «ЕМО - Раюшкин 2026» для синхронизации.
       </p>
       <p class="source-note">
         Неотправленные правки и черновики остаются на этом устройстве отдельно
@@ -779,6 +782,14 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261107-view-1"></script>
+    <script type="module" src="./app.mjs?rev=20261107-team-1"></script>
+    <dialog id="access-dialog" aria-labelledby="access-title">
+      <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
+      <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>
+      <div id="access-members" class="access-list"></div>
+      <form id="access-form" class="access-add" hidden><input id="access-email" type="email" required maxlength="254" autocomplete="off" placeholder="name@gmail.com" aria-label="Google-адрес редактора"/><button class="button primary" type="submit">Добавить</button></form>
+      <p id="access-error" class="access-error" role="status"></p>
+      <button id="access-signin" class="button primary">Войти через Google</button>
+    </dialog>
   </body>
 </html>

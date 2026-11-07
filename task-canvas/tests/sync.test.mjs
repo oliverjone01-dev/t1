@@ -160,3 +160,16 @@ test('unknown or malformed queue envelopes never silently become a new baseline'
     assert.equal(h.engine.cacheInvalid,true);assert.equal(h.local.tasks[0].title,'Pending');assert.equal(h.writes,0);
   }
 });
+
+test('team ranks round-trip through Sheet service JSON and the protocol fence touches only R3',async()=>{
+ const snapshot=fixture();snapshot.rows[2][17]={formattedValue:'Позиции · команда v3'};
+ snapshot.rows[3][17]={formattedValue:JSON.stringify({priority:{group:'do',x:24,y:96,order:'a1V'}})};
+ const decoded=decodeSheet(snapshot);
+ assert.equal(decoded.records[0].task.positions.priority.order,'a1V');
+ let sent;
+ const api=new SheetsApi({getToken:()=> 'fixture-token'},async(url,request)=>{sent=JSON.parse(request.body);return {ok:true,json:async()=>({})}});
+ await api.ensureTeamProtocol(fixture());
+ assert.deepEqual(sent.requests[0].updateCells.range,{sheetId:TAB_ID,startRowIndex:2,endRowIndex:3,startColumnIndex:17,endColumnIndex:18});
+ assert.equal(sent.requests[0].updateCells.fields,'userEnteredValue');
+ sent=null;await api.ensureTeamProtocol(snapshot);assert.equal(sent,null);
+});

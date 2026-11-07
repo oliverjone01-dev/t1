@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261107-view-1";
-import { equal } from "./sync-model.mjs?rev=20261107-view-1";
+} from "./team-model.mjs?rev=20261107-team-1";
+import { equal } from "./sync-model.mjs?rev=20261107-team-1";
 export const digest = async (value) =>
   [
     ...new Uint8Array(
@@ -22,9 +22,7 @@ export const digest = async (value) =>
     .join("");
 const safeError = (error) => {
   if (error?.code === "permission-denied")
-    return new Error(
-      "Нет доступа к командной доске. Изменения остались в очереди.",
-    );
+    return Object.assign(new Error("Этот Google-аккаунт не входит в команду. Попросите владельца добавить ваш адрес в разделе «Доступ». Неотправленные правки сохранены на устройстве."), {code:"permission-denied"});
   if (error?.code === "resource-exhausted")
     return new Error(
       "Достигнут лимит Google. Изменения остались в очереди; повторим отправку позже.",
@@ -93,6 +91,7 @@ export class TeamApi {
     return {
       uid: this.user.uid,
       name: this.user.displayName || "Участник команды",
+      email: this.user.email || "",
       clientId,
     };
   }
@@ -101,6 +100,32 @@ export class TeamApi {
   }
   ref(collection, id) {
     return this.sdk.doc(this.db, "taskBoards", this.boardId, collection, id);
+  }
+  async accessInfo() {
+    try { const doc=await this.sdk.getDocFromServer(this.root());return doc.data(); }
+    catch(error){throw safeError(error)}
+  }
+  async setMember(email, enabled, operationId=crypto.randomUUID()) {
+    email=String(email).trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length>254) throw new Error("Укажите корректный Google-адрес.");
+    const s=this.sdk, event=this.ref("accessEvents",operationId), actor=this.actor();
+    return this.transact(async tx=>{
+      const [root,receipt]=await Promise.all([tx.get(this.root()),tx.get(event)]);
+      if(receipt.exists()) {
+        if(receipt.data().email!==email || receipt.data().enabled!==enabled) throw new Error("Этот ID уже использован для другого изменения доступа.");
+        return root.data();
+      }
+      const data=root.data();
+      if(data.ownerEmail!==actor.email.toLowerCase()) throw new Error("Управлять доступом может только владелец доски.");
+      if(email===data.ownerEmail) throw new Error("Доступ владельца сохраняется постоянно.");
+      const members=new Set(data.members||[]);
+      enabled ? members.add(email) : members.delete(email);
+      if(members.size>200) throw new Error("В списке может быть до 200 редакторов.");
+      const after=[...members].sort(), revision=data.accessRevision+1;
+      tx.update(this.root(),{members:after,accessRevision:revision,lastAccessEvent:operationId});
+      tx.set(event,{email,enabled,before:data.members,after,revision,actor,createdAt:s.serverTimestamp()});
+      return {...data,members:after,accessRevision:revision};
+    },this.root(),"accessRevision");
   }
   async taskRef(id) {
     return this.ref("tasks", await digest(id));
@@ -217,9 +242,9 @@ export class TeamApi {
       createdAt: s.serverTimestamp(),
     });
   }
-  async transact(work, watchedRef) {
+  async transact(work, watchedRef, revisionField="revision") {
     let observed = watchedRef
-      ? (await this.sdk.getDoc(watchedRef)).data()?.revision
+      ? (await this.sdk.getDoc(watchedRef)).data()?.[revisionField]
       : null;
     for (let attempt = 0; ; attempt++) {
       try {
@@ -234,7 +259,7 @@ export class TeamApi {
         // the stale precondition. Retry only after a readable newer task revision.
         if (error.code === "permission-denied") {
           if (!watchedRef) throw error;
-          const current = (await this.sdk.getDoc(watchedRef)).data()?.revision;
+          const current = (await this.sdk.getDocFromServer(watchedRef)).data()?.[revisionField];
           if (current === observed) throw error;
           observed = current;
         }
@@ -279,6 +304,7 @@ export class TeamApi {
           revision: result.entry?.revision || 0,
         };
         tx.set(receipt, {
+          protocol: 3,
           schema: 1,
           digest: hash,
           taskId: op.taskId,
@@ -344,6 +370,7 @@ export class TeamApi {
             resolvedAt: s.serverTimestamp(),
           });
         tx.set(receipt, {
+          protocol: 3,
           schema: 1,
           digest: hash,
           taskId: conflict.taskId,
@@ -399,6 +426,7 @@ export class TeamApi {
       }
       const ack = { changed, revision, conflictIds: [] };
       tx.set(receipt, {
+        protocol: 3,
         schema: 1,
         digest: hash,
         taskId: "__lanes",
@@ -431,14 +459,14 @@ export class TeamApi {
           lease = doc.exists() ? doc.data() : null;
         if (
           lease &&
-          lease.protocol === 2 &&
+          lease.protocol === 3 &&
           lease.holder !== clientId &&
           Date.now() - (lease.acquiredAt?.toMillis?.() || 0) < 120000
         )
           return false;
         tx.set(ref, {
           holder: clientId,
-          protocol: 2,
+          protocol: 3,
           uid: this.user.uid,
           acquiredAt: s.serverTimestamp(),
         });

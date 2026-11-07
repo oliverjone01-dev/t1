@@ -1,0 +1,7 @@
+{
+  "timeZone": "Europe/Moscow",
+  "runtimeVersion": "V8",
+  "exceptionLogging": "STACKDRIVER",
+  "oauthScopes": ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/datastore", "https://www.googleapis.com/auth/script.external_request", "https://www.googleapis.com/auth/script.scriptapp", "https://www.googleapis.com/auth/userinfo.email"],
+  "urlFetchWhitelist": ["https://firestore.googleapis.com/v1/projects/my-project-1539119750357/databases/(default)/documents", "https://sheets.googleapis.com/v4/spreadsheets/1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY"]
+}

@@ -631,3 +631,14 @@ test('old receipt and lease protocols cannot strip durable ranks',async()=>{
  await assertFails(sdk.setDoc(a.ref('meta','bridgeLease'),{protocol:2,uid:alice.uid,holder:'old-page',acquiredAt:sdk.serverTimestamp()}));
  assert.equal(await a.acquireBridge('current-client'),true);
 });
+
+test('background handoff fences every browser Sheet writer while team task editing remains allowed',async()=>{
+ assert.equal(await a.acquireBridge('old-browser'),true);
+ await env.withSecurityRulesDisabled(async c=>sdk.updateDoc(sdk.doc(c.firestore(),'taskBoards',BOARD),{background:{enabled:true,provider:'apps-script',scriptId:'private-worker',protocol:1}}));
+ assert.equal(await a.acquireBridge('old-browser'),false);
+ assert.equal(await b.acquireBridge('new-browser'),false);
+ await assertFails(sdk.updateDoc(ref,{sheetAck:'late-browser-checkpoint'}));
+ await assertFails(sdk.updateDoc(a.root(),{background:{enabled:false}}));
+ await assertSucceeds(b.submit(op(seedEntry(task),'Команда продолжает работу','background-team-edit',bob)));
+ const anonymous=env.unauthenticatedContext().firestore();await assertSucceeds(sdk.getDocs(sdk.collection(anonymous,'taskBoardViews',BOARD,'tasks')));
+});

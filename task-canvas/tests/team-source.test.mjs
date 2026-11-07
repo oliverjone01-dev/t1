@@ -19,3 +19,15 @@ test('a source quota refusal does not issue a second failing status write and re
  assert.deepEqual(f.delays,[60000,120000,240000,300000]);assert.equal(f.calls.length,0);assert.equal(f.engine.sourceState.status,'offline');
  f.engine.api.read=async()=>({records:[],board:{tasks:[],owners:[]}});await f.bridge.tick();assert.equal(f.delays.at(-1),30000);assert.equal(f.calls.length,1);
 });
+
+test('a different Firestore object-key order never turns an unchanged Sheet row into checkpoint writes',async()=>{
+ const {seedEntry}=await import('../public/team-model.mjs');
+ const entry=seedEntry({id:'stable',title:'Одна задача',status:'В работе',positions:{},priority:'do'});
+ entry.sheet={present:true,task:Object.fromEntries(Object.entries(entry.task).reverse()),revision:1,versions:entry.versions,lifeVersion:entry.lifeVersion};
+ const f=fixture();f.engine.entries=new Map([[entry.task.id,entry]]);
+ f.engine.api.read=async()=>({records:[{id:entry.task.id,task:structuredClone(entry.task),archived:false}],board:{tasks:[structuredClone(entry.task)],owners:[]}});
+ let checkpoints=0,fullReads=0;
+ f.engine.repository.read=async()=>{fullReads++;return {entries:[entry],lanes:{items:[]},conflicts:[]}};
+ f.engine.repository.markSheetObserved=async rows=>{checkpoints+=rows.length};
+ await f.bridge.tick();assert.equal(f.engine.sourceState.status,'synced');assert.equal(checkpoints,0);assert.equal(fullReads,0);
+});

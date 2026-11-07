@@ -23,9 +23,13 @@ service cloud.firestore {
   }
   function validEntry(data) {return data.schema==1 && data.revision is int && data.revision>0 && data.archived is bool && data.lifeVersion is string && data.lastOperationId is string && data.versions is map && validTask(data.task);}
   function versionAfter(board,key,revision) {return getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)/versions/$(revision)).data;}
+  function clientBridge(board) {
+   let root = get(/databases/$(database)/documents/taskBoards/$(board)).data;
+   return !('background' in root) || root.background.enabled != true;
+  }
   function heldLease(board) {
    let lease = get(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease).data;
-   return lease.protocol==3 && lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
+   return clientBridge(board) && lease.protocol==3 && lease.uid==request.auth.uid && lease.acquiredAt+duration.value(120,'s')>request.time;
   }
   match /taskCanvasAdmins/{email} {allow get: if googleUser() && email == request.auth.token.email;allow list, write: if false;}
   match /taskBoards/{board} {
@@ -65,7 +69,7 @@ service cloud.firestore {
    match /meta/{meta} {
     allow read: if access(board);
     allow create, update: if access(board) && (
-     (meta=='bridgeLease' && request.resource.data.protocol==3 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=3 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
+     (meta=='bridgeLease' && clientBridge(board) && request.resource.data.protocol==3 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=3 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
      || (meta=='source' && heldLease(board) && request.resource.data.status is string && request.resource.data.message is string && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/source).data == {'status':request.resource.data.status,'checkedAt':request.resource.data.checkedAt})
      || (meta=='lanes' && request.resource.data.items is list && request.resource.data.revision==resource.data.revision+1 && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && getAfter(/databases/$(database)/documents/taskBoards/$(board)/laneVersions/$(string(request.resource.data.revision))).data.after==request.resource.data.items && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/lanes).data == {'items':request.resource.data.items,'revision':request.resource.data.revision})
     );

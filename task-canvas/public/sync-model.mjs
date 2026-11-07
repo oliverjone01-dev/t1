@@ -2,8 +2,8 @@ import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261107-team-2";
-import { parseAssignee } from "./people.mjs?rev=20261107-team-2";
+} from "./model.mjs?rev=20261108-bg-1";
+import { parseAssignee } from "./people.mjs?rev=20261108-bg-1";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const SERVICE_HEADERS = [
@@ -57,8 +57,16 @@ export const COLUMNS = {
   priority: 16,
   positions: 17,
 };
-export const equal = (a, b) =>
-  JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+// Firestore map field order is not significant. Preserve array order and the
+// original JSON treatment of undefined, but never manufacture a Sheet edit
+// merely because the server serialized map keys in a different order.
+const canonical = value => {
+  if(value && typeof value.toJSON==='function')return canonical(value.toJSON());
+  if(Array.isArray(value))return value.map(canonical);
+  if(value && typeof value==='object')return Object.fromEntries(Object.keys(value).filter(k=>value[k]!==undefined&&typeof value[k]!=='function'&&typeof value[k]!=='symbol').sort().map(k=>[k,canonical(value[k])]));
+  return value;
+};
+export const equal = (a,b) => JSON.stringify(canonical(a??null))===JSON.stringify(canonical(b??null));
 export const comparable = (t) =>
   t
     ? Object.fromEntries(

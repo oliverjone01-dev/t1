@@ -2526,7 +2526,7 @@ if (stateLoadError)
 $('#task-list').addEventListener('click',e=>{const el=e.target.closest('[data-select]');if(el)selectTask(el.dataset.select,e.shiftKey)});
 let accessBusy=false, accessInfo=null;
 function renderAccess(){
- const actor=cloudEngine.repository?.actor(), info=accessInfo;
+ const actor=canEdit()?cloudEngine.repository?.actor():null, info=accessInfo;
  const owner=!!actor?.email && actor.email.toLowerCase()===info?.ownerEmail;
  $('#access-form').hidden=!owner;
  $('#access-signin').hidden=canEdit();
@@ -2551,7 +2551,7 @@ $('#access-members').onclick=e=>{const b=e.target.closest('[data-remove-member]'
 async function revokeEditor(){
  if(accessMode!=='edit')return;
  saveDraft();editorLocalBoard={tasks:structuredClone(tasks),owners:[...extraOwners]};persist();
- accessMode='view';selectedIds.clear();matrixDragging=false;
+ accessMode='view';selectedIds.clear();matrixDragging=false;googleAuth?.disconnect();
  $('#editor').open&&$('#editor').close();$('#access-dialog').open&&$('#access-dialog').close();
  await cloudEngine.disconnect();startViewer();toast('Право редактирования отозвано. Неотправленные правки сохранены на устройстве.');
 }

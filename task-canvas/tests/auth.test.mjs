@@ -99,3 +99,10 @@ test('background mode requests Google identity without a Drive file permission',
  const auth=new GoogleAuth({clientId:'fixture',identityOnly:true},{environment:{google:{accounts:{oauth2:{initTokenClient:config=>({requestAccessToken:()=>{requested=config;config.callback({access_token:'fixture-token',expires_in:3600})}})}}}}});
  await auth.authorize();assert.equal(requested.scope,'openid email profile');assert.equal(requested.scope.includes('drive.file'),false);auth.disconnect();
 });
+
+test('personal mode verifies the Google profile directly without a Firebase session and refuses unverified identity',async()=>{
+ const h=harness();h.auth.token='fixture';h.auth.expiresAt=Date.now()+60000;
+ const profile=await h.auth.profile(async(url,options)=>{assert.equal(url,'https://www.googleapis.com/oauth2/v3/userinfo');assert.equal(options.headers.Authorization,'Bearer fixture');return {ok:true,json:async()=>({email:'owner@example.test',email_verified:true})}});
+ assert.equal(profile.email,'owner@example.test');
+ await assert.rejects(h.auth.profile(async()=>({ok:true,json:async()=>({email:'owner@example.test',email_verified:false})})),/не подтвердил/);
+});

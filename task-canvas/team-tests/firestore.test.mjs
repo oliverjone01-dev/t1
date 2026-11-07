@@ -642,3 +642,14 @@ test('background handoff fences every browser Sheet writer while team task editi
  await assertSucceeds(b.submit(op(seedEntry(task),'Команда продолжает работу','background-team-edit',bob)));
  const anonymous=env.unauthenticatedContext().firestore();await assertSucceeds(sdk.getDocs(sdk.collection(anonymous,'taskBoardViews',BOARD,'tasks')));
 });
+
+test('Sheet-only mode freezes Firestore edits without deleting tasks, history or members; switching back restores editing',async()=>{
+ await env.withSecurityRulesDisabled(async c=>sdk.updateDoc(sdk.doc(c.firestore(),'taskBoards',BOARD),{storageMode:'sheets'}));
+ await assertFails(a.submit(op(seedEntry(task),'Old owner tab','mode-owner-denied')));
+ await assertFails(b.submit(op(seedEntry(task),'Old team tab','mode-member-denied',bob)));
+ await assertSucceeds(sdk.getDoc(ref));
+ await assertFails(sdk.updateDoc(a.root(),{storageMode:'firestore'}));
+ assert.deepEqual((await sdk.getDoc(a.root())).data().members,['bob@example.test']);
+ await env.withSecurityRulesDisabled(async c=>sdk.updateDoc(sdk.doc(c.firestore(),'taskBoards',BOARD),{storageMode:'firestore'}));
+ await assertSucceeds(a.submit(op(seedEntry(task),'Resumed','mode-resumed')));
+});

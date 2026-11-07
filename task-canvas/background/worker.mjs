@@ -1,6 +1,7 @@
 import {TeamApi} from '../public/team-api.mjs';
 import {TeamSourceBridge} from '../public/team-source.mjs';
 import {SheetsApi} from '../public/sheets-api.mjs';
+import {modePending} from '../public/storage-mode.mjs';
 import {FirestoreRest} from './firestore-rest.mjs';
 export const CONFIG=Object.freeze({project:'my-project-1539119750357',board:'1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY',protocol:1,intervalMinutes:5});
 export function installPolyfills(g){
@@ -38,15 +39,26 @@ export function createWorker(g,{now=()=>Date.now(),logger=m=>console.log(m)}={})
    async acquireBridge(holder){return rest.transaction(async tx=>{await tx.get(this.ref('meta','bridgeLease'));tx.set(this.ref('meta','bridgeLease'),{holder,protocol:4,uid:actor.uid,acquiredAt:sdk.serverTimestamp()});return true})}
    async sourceState(status,message='',checkedAt=now()){await super.sourceState(status,message,checkedAt);props.setProperty('sourcePublished',JSON.stringify({status,checkedAt}))}
   }
-  class BackgroundSheets extends SheetsApi {async request(path,body){return request(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.board}`+path,body)}}
+  class BackgroundSheets extends SheetsApi {
+   async request(path,body){return request(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.board}`+path,body)}
+   async write(snapshot,writes,owners){
+    const control=await this.readStorageControl();
+    if(control.request.mode!=='firestore'||(this.expectedEpoch&&control.request.epoch!==this.expectedEpoch))throw new Error('Storage mode changed; Sheet projection paused.');
+    return super.write(snapshot,writes,owners);
+   }
+  }
   return {rest,repository:new BackgroundRepository({boardId:CONFIG.board,sdk,db:{},user:{uid:actor.uid,email:owner(),displayName:actor.name}}),sheets:new BackgroundSheets(null),stats};
  }
  async function probe(){const c=connection(),root=await c.rest.get(c.rest.ref(rootPath));if(!root.exists()||root.data().ownerEmail!==owner())throw new Error('Only the board owner can configure background sync.');const sheet=await c.sheets.read();return {c,root,sheet}}
  async function prepare(){
   let sheet,ownerCheck='confirmed';try{({sheet}=await probe())}catch(error){if(error.code!=='resource-exhausted')throw error;sheet=await connection().sheets.read();ownerCheck='deferred-quota';}
   const existing=g.ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==='syncTasksInBackground'&&String(t.getEventType())==='CLOCK');
-  if(!existing.length)g.ScriptApp.newTrigger('syncTasksInBackground').timeBased().everyMinutes(5).create();
-  for(const t of existing.slice(1))g.ScriptApp.deleteTrigger(t);
+  // One cheap Sheet control check/minute; Firestore exchange stays five minutes.
+  // Rebuild only when upgrading the timer, then retain the one existing clock.
+  if(props.getProperty('timerProtocol')!=='2'||!existing.length){
+   for(const t of existing)g.ScriptApp.deleteTrigger(t);
+   g.ScriptApp.newTrigger('syncTasksInBackground').timeBased().everyMinutes(1).create();props.setProperty('timerProtocol','2');
+  }else for(const t of existing.slice(1))g.ScriptApp.deleteTrigger(t);
   props.setProperty('prepared',JSON.stringify({scriptId,owner:owner(),ownerCheck,protocol:1,at:now()}));
   const result={status:'prepared',scriptId,ownerCheck,intervalMinutes:5,sheetTitle:sheet.title};logger(JSON.stringify(result));return result;
  }
@@ -62,8 +74,25 @@ export function createWorker(g,{now=()=>Date.now(),logger=m=>console.log(m)}={})
   const lock=g.LockService.getScriptLock();if(!lock.tryLock(1))return {status:'busy'};
   const start=now();props.setProperty('lastTick',String(start));let c,status='error',result;
   try{
-   const next=Number(props.getProperty('nextRunAt')||0);if(next>start)return {status:'backoff',nextRunAt:next};
+   const prepared=JSON.parse(props.getProperty('prepared')||'null');
+   if(prepared?.owner!==owner()||prepared?.scriptId!==scriptId)throw new Error('Worker owner is not prepared.');
    const packed=new PackedCache(g.CacheService.getScriptCache(),g.Utilities),seed=packed.read();c=connection(start+100000,seed?.scriptId===scriptId?seed.snapshot:null);
+   const control=await c.sheets.readStorageControl(),requested=control.request;
+   if(props.getProperty('requestedEpoch')!==requested.epoch){props.setProperty('requestedEpoch',requested.epoch);props.deleteProperty('nextRunAt')}
+   const mirror=async mode=>{
+    await c.rest.commit([c.rest.write(c.rest.ref(rootPath),{storageMode:mode,storageEpoch:requested.epoch},'update'),c.rest.write(c.rest.ref(`taskBoardViews/${CONFIG.board}`),{storageMode:mode,storageEpoch:requested.epoch},'update')]);
+   };
+   const acknowledge=async()=>{
+    const latest=await c.sheets.readStorageControl();
+    if(latest.request.epoch!==requested.epoch)throw new Error('Storage request superseded; will retry the latest choice.');
+    await c.sheets.acknowledgeStorageMode(requested);props.setProperty('modeAck',requested.epoch);
+   };
+   if(requested.mode==='sheets'){
+    if(modePending(control)||props.getProperty('modeAck')!==requested.epoch){await mirror('sheets');await acknowledge();}
+    props.setProperty('quotaAttempts','0');status='sheets-only';result={status,at:now(),mode:'sheets',calls:c.stats.calls};return result;
+   }
+   const next=Number(props.getProperty('nextRunAt')||0);if(next>start)return {status:'backoff',nextRunAt:next};
+   c.sheets.expectedEpoch=requested.epoch;
    const root=await c.rest.get(c.rest.ref(rootPath)),data=root.data(),bg=data?.background;
    if(data?.ownerEmail!==owner())throw new Error('The trigger owner no longer owns the board.');
    if(!bg?.enabled||bg.provider!=='apps-script'||bg.scriptId!==scriptId||bg.protocol!==1)return {status:'disabled'};
@@ -74,6 +103,7 @@ export function createWorker(g,{now=()=>Date.now(),logger=m=>console.log(m)}={})
    const last=JSON.parse(props.getProperty('sourcePublished')||'null');bridge.lastPublishedAt=last?.checkedAt||0;bridge.lastPublishedStatus=last?.status||null;
    await bridge.tick();
    if(engine.sourceState.status!=='synced')throw Object.assign(new Error(engine.sourceState.message||'Source sync failed'),{code:engine.sourceState.message?.includes('quota')?'resource-exhausted':'unavailable'});
+   if(modePending(control)){await mirror('firestore');await acknowledge();}
    packed.write({scriptId,snapshot:c.rest.snapshot()});props.setProperty('quotaAttempts','0');status='synced';result={status,at:now(),calls:c.stats.calls,records:c.rest.tasks.size};return result;
   }catch(error){
    status=error.code==='resource-exhausted'?'quota-wait':'error';const attempts=Math.min(6,Number(props.getProperty('quotaAttempts')||0)+1);props.setProperty('quotaAttempts',String(attempts));

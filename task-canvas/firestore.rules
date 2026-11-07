@@ -10,6 +10,10 @@ service cloud.firestore {
    let root = get(/databases/$(database)/documents/taskBoards/$(board)).data;
    return googleUser() && board == '1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY' && root.ready == true && (root.ownerEmail == request.auth.token.email.lower() || request.auth.token.email.lower() in root.members);
   }
+  function writable(board) {
+   let root=get(/databases/$(database)/documents/taskBoards/$(board)).data;
+   return access(board) && (!('storageMode' in root) || root.storageMode!='sheets');
+  }
   function publicBoard(board) {
    return board == '1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY' && get(/databases/$(database)/documents/taskBoardViews/$(board)).data.ready == true;
   }
@@ -43,41 +47,41 @@ service cloud.firestore {
    }
    match /tasks/{key} {
     allow read: if access(board);
-    allow create: if access(board) && validEntry(request.resource.data) && request.resource.data.revision==1 && actorOK(request.resource.data.actor) && request.resource.data.updatedAt==request.time && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && versionAfter(board,key,'1').after.task==request.resource.data.task && versionAfter(board,key,'1').before==null && publishedTask(board,key,request.resource.data);
-    allow update: if access(board) && (
+    allow create: if writable(board) && validEntry(request.resource.data) && request.resource.data.revision==1 && actorOK(request.resource.data.actor) && request.resource.data.updatedAt==request.time && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && versionAfter(board,key,'1').after.task==request.resource.data.task && versionAfter(board,key,'1').before==null && publishedTask(board,key,request.resource.data);
+    allow update: if writable(board) && (
      (validEntry(request.resource.data) && request.resource.data.revision==resource.data.revision+1 && request.resource.data.task.id==resource.data.task.id && actorOK(request.resource.data.actor) && request.resource.data.updatedAt==request.time && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['task','revision','versions','archived','lifeVersion','lastOperationId','updatedAt','actor']) && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && versionAfter(board,key,string(request.resource.data.revision)).before.task==resource.data.task && versionAfter(board,key,string(request.resource.data.revision)).after.task==request.resource.data.task && publishedTask(board,key,request.resource.data))
      || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sheet','sheetAck']) && heldLease(board) && request.resource.data.sheet.observer==get(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease).data.holder)
     );
     allow delete: if false;
     match /versions/{revision} {
      allow read: if access(board);
-     allow create: if access(board) && request.resource.data.revision==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.revision && revision==string(request.resource.data.revision) && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.after.task==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task && request.resource.data.operationId==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.lastOperationId && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && (!exists(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)) ? request.resource.data.before==null : request.resource.data.before.task==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task);
+     allow create: if writable(board) && request.resource.data.revision==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.revision && revision==string(request.resource.data.revision) && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.after.task==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task && request.resource.data.operationId==getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.lastOperationId && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && (!exists(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)) ? request.resource.data.before==null : request.resource.data.before.task==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task);
      allow update, delete: if false;
     }
    }
    match /operations/{operation} {
     allow get: if access(board);
     allow list, update, delete: if false;
-    allow create: if access(board) && request.resource.data.schema==1 && request.resource.data.protocol==3 && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.digest is string && request.resource.data.digest.matches('^[0-9a-f]{64}$') && request.resource.data.request is map && request.resource.data.result is map;
+    allow create: if writable(board) && request.resource.data.schema==1 && request.resource.data.protocol==3 && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.digest is string && request.resource.data.digest.matches('^[0-9a-f]{64}$') && request.resource.data.request is map && request.resource.data.result is map;
    }
    match /conflicts/{conflict} {
     allow read: if access(board);
-    allow create: if access(board) && request.resource.data.status=='open' && request.resource.data.id==conflict && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.group in ['task','title','unit','direction','description','comment','status','assignment','schedule','priority','context'] && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && receipt(board,request.resource.data.operationId).taskId==request.resource.data.taskId;
-    allow update: if access(board) && resource.data.status=='open' && request.resource.data.status=='resolved' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','resolution','resolvedAt']) && actorOK(request.resource.data.resolution.actor) && request.resource.data.resolvedAt==request.time && receipt(board,request.resource.data.resolution.operationId).actor.uid==request.auth.uid && request.resource.data.resolution.choice in ['local','remote'] && (resource.data.group=='task' ? request.resource.data.resolution.observedVersion==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(resource.data.taskKey)).data.lastOperationId : request.resource.data.resolution.observedVersion==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(resource.data.taskKey)).data.versions[resource.data.group]);
+    allow create: if writable(board) && request.resource.data.status=='open' && request.resource.data.id==conflict && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && request.resource.data.group in ['task','title','unit','direction','description','comment','status','assignment','schedule','priority','context'] && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && receipt(board,request.resource.data.operationId).taskId==request.resource.data.taskId;
+    allow update: if writable(board) && resource.data.status=='open' && request.resource.data.status=='resolved' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','resolution','resolvedAt']) && actorOK(request.resource.data.resolution.actor) && request.resource.data.resolvedAt==request.time && receipt(board,request.resource.data.resolution.operationId).actor.uid==request.auth.uid && request.resource.data.resolution.choice in ['local','remote'] && (resource.data.group=='task' ? request.resource.data.resolution.observedVersion==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(resource.data.taskKey)).data.lastOperationId : request.resource.data.resolution.observedVersion==get(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(resource.data.taskKey)).data.versions[resource.data.group]);
     allow delete: if false;
    }
    match /meta/{meta} {
     allow read: if access(board);
-    allow create, update: if access(board) && (
+    allow create, update: if writable(board) && (
      (meta=='bridgeLease' && clientBridge(board) && request.resource.data.protocol==3 && request.resource.data.uid==request.auth.uid && request.resource.data.holder is string && request.resource.data.acquiredAt==request.time && (!exists(/databases/$(database)/documents/taskBoards/$(board)/meta/bridgeLease) || !('protocol' in resource.data) || resource.data.protocol!=3 || resource.data.holder==request.resource.data.holder || resource.data.acquiredAt+duration.value(120,'s')<=request.time))
      || (meta=='source' && heldLease(board) && request.resource.data.status is string && request.resource.data.message is string && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/source).data == {'status':request.resource.data.status,'checkedAt':request.resource.data.checkedAt})
      || (meta=='lanes' && request.resource.data.items is list && request.resource.data.revision==resource.data.revision+1 && receipt(board,request.resource.data.lastOperationId).actor.uid==request.auth.uid && getAfter(/databases/$(database)/documents/taskBoards/$(board)/laneVersions/$(string(request.resource.data.revision))).data.after==request.resource.data.items && getAfter(/databases/$(database)/documents/taskBoardViews/$(board)/meta/lanes).data == {'items':request.resource.data.items,'revision':request.resource.data.revision})
     );
-    allow delete: if access(board) && meta=='bridgeLease' && resource.data.uid==request.auth.uid;
+    allow delete: if writable(board) && meta=='bridgeLease' && resource.data.uid==request.auth.uid;
    }
    match /laneVersions/{revision} {
     allow read: if access(board);
-    allow create: if access(board) && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && request.resource.data.revision==getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.revision && request.resource.data.after==getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.items && request.resource.data.before==get(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.items;
+    allow create: if writable(board) && actorOK(request.resource.data.actor) && request.resource.data.createdAt==request.time && receipt(board,request.resource.data.operationId).actor.uid==request.auth.uid && request.resource.data.revision==getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.revision && request.resource.data.after==getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.items && request.resource.data.before==get(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.items;
     allow update, delete: if false;
    }
   }
@@ -88,12 +92,12 @@ service cloud.firestore {
    allow list, write: if false;
    match /tasks/{key} {
     allow read: if publicBoard(board) || access(board);
-    allow create, update: if access(board) && getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.archived == false && request.resource.data == {'schema':1,'revision':getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.revision,'task':getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task};
-    allow delete: if access(board) && getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.archived == true;
+    allow create, update: if writable(board) && getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.archived == false && request.resource.data == {'schema':1,'revision':getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.revision,'task':getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.task};
+    allow delete: if writable(board) && getAfter(/databases/$(database)/documents/taskBoards/$(board)/tasks/$(key)).data.archived == true;
    }
    match /meta/{meta} {
     allow read: if meta in ['lanes','source'] && (publicBoard(board) || access(board));
-    allow create, update: if access(board) && (
+    allow create, update: if writable(board) && (
      (meta=='lanes' && request.resource.data == {'items':getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.items,'revision':getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/lanes).data.revision})
      || (meta=='source' && heldLease(board) && request.resource.data == {'status':getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/source).data.status,'checkedAt':getAfter(/databases/$(database)/documents/taskBoards/$(board)/meta/source).data.checkedAt})
     );

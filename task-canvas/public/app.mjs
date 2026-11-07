@@ -1,5 +1,7 @@
-import {renderBoard} from './board-ui.mjs?rev=20261108-bg-1';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-bg-1';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261108-mode-1';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261108-mode-1';
+import {renderBoard} from './board-ui.mjs?rev=20261108-mode-1';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-mode-1';
 import {
   QUADRANTS,
   CARD,
@@ -14,20 +16,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261108-bg-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261108-bg-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-bg-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-bg-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261108-bg-1";
-import { remoteChanges } from "./changes.mjs?rev=20261108-bg-1";
-import { TeamApi } from "./team-api.mjs?rev=20261108-bg-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-bg-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-bg-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261108-bg-1";
-import { SheetsApi } from "./sheets-api.mjs?rev=20261108-bg-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-bg-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-bg-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-bg-1";
+} from "./model.mjs?rev=20261108-mode-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261108-mode-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-mode-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-mode-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261108-mode-1";
+import { remoteChanges } from "./changes.mjs?rev=20261108-mode-1";
+import { TeamApi } from "./team-api.mjs?rev=20261108-mode-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-mode-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-mode-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261108-mode-1";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261108-mode-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-mode-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-mode-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-mode-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -35,8 +37,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261108-bg-1";
-import { parseAssignee } from "./people.mjs?rev=20261108-bg-1";
+} from "./editor.mjs?rev=20261108-mode-1";
+import { parseAssignee } from "./people.mjs?rev=20261108-mode-1";
 import {
   matchesTask,
   matchesWords,
@@ -45,16 +47,25 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261108-bg-1";
-import { icon } from "./icons.mjs?rev=20261108-bg-1";
+} from "./ui-model.mjs?rev=20261108-mode-1";
+import { icon } from "./icons.mjs?rev=20261108-mode-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
+const MODE_KEY='gengroup.task-canvas.storage-mode.v1';
+const publicSheets=new PublicSheetsApi();
+let modeBootstrap=null,storageControl=structuredClone(LEGACY_CONTROL),modeReadError='';
+if(!DEMO){
+ try{modeBootstrap=await publicSheets.read();storageControl=modeBootstrap.control;localStorage.setItem(MODE_KEY,JSON.stringify(storageControl))}
+ catch(error){modeReadError=error.message;try{const cached=JSON.parse(localStorage.getItem(MODE_KEY)||'null');if(cached?.ack&&Object.hasOwn(MODES,cached.ack.mode))storageControl=cached}catch{}}
+}
+const STORAGE_MODE=DEMO?'demo':storageControl.ack.mode;
+const SHEETS_ONLY=STORAGE_MODE==='sheets';
 const STORAGE = DEMO
     ? "gengroup.task-canvas.demo.v1"
-    : "gengroup.task-canvas.team.v2",
+    : SHEETS_ONLY ? "gengroup.task-canvas.sheets.v1" : "gengroup.task-canvas.team.v2",
   PREFS = "gengroup.task-canvas.preferences.v1";
-const VIEW_STORAGE = "gengroup.task-canvas.public-view.v1";
+const VIEW_STORAGE = SHEETS_ONLY?"gengroup.task-canvas.sheet-view.v1":"gengroup.task-canvas.public-view.v1";
 let accessMode = DEMO ? "edit" : "view",
   viewer = null,
   editorLocalBoard = { tasks: [], owners: [] },
@@ -64,7 +75,7 @@ let accessMode = DEMO ? "edit" : "view",
   lastPublicBoard = null,
   lastPublicChanges = [];
 const canEdit = () =>
-  DEMO || (accessMode === "edit" && !!cloudEngine?.connected);
+  DEMO || (accessMode === "edit" && !!cloudEngine?.connected && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
 function selectTask(id,range=false){
   if(!canEdit())return;
@@ -201,7 +212,7 @@ let preferences = cleanPreferences(null),
 try {
   const raw =
     storage.getItem(STORAGE) ||
-    (!DEMO ? storage.getItem("gengroup.task-canvas.v1") : null);
+    (!DEMO&&!SHEETS_ONLY ? storage.getItem("gengroup.task-canvas.v1") : null);
   if (raw) {
     const state = JSON.parse(raw);
     freshBoard = false;
@@ -337,7 +348,7 @@ function persist() {
     cloud: DEMO ? null : cloudEngine?.snapshot() || cloudCache,
     changes: inbox.snapshot(),
   };
-  const result = DEMO
+  const result = DEMO||SHEETS_ONLY
     ? writeBoard(storage, STORAGE, state, storedSignature)
     : (() => {
         try {
@@ -650,7 +661,9 @@ function renderProvenance() {
         : viewerHasBaseline
           ? "Показана последняя доступная копия. "
           : "Подключаемся к общей доске. ") +
-        `Проверено: ${checked}. `+(viewerState.background?.provider==='apps-script'
+        `Проверено: ${checked}. `+(SHEETS_ONLY
+          ? 'Источник — Google Таблица. Проверяем автоматически раз в 30 секунд.'
+          : viewerState.background?.provider==='apps-script'
           ? (viewerState.source?.status==='synced'?'Таблица проверяется в фоне, обычно раз в 5 минут.':viewerState.source?.status==='signin'?'Фоновому обмену нужно повторное разрешение владельца.':'Фоновый обмен с таблицей ожидает восстановления связи.')
           : 'Изменения таблицы поступают через подключённого участника команды.'),
     );
@@ -1953,6 +1966,7 @@ window.addEventListener("storage", (e) => {
   }
   if (e.key !== STORAGE && e.key !== null) return;
   if (!DEMO) {
+    if(SHEETS_ONLY){storageConflict=true;cloudEngine?.disconnect();renderAlert();return;}
     cloudEngine
       ?.ready()
       .then(() => {
@@ -2221,11 +2235,11 @@ function applyCloud(board, cache) {
   persist();
   if (!gesture && cloudRenderNeeded) render();
 }
-cloudEngine = new (DEMO ? SyncEngine : TeamSyncEngine)({
+cloudEngine = new (DEMO || SHEETS_ONLY ? SyncEngine : TeamSyncEngine)({
   boardId: "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY",
   api: null,
   getLocal: () =>
-    !DEMO && accessMode !== "edit"
+    !DEMO && accessMode !== "edit" && !(SHEETS_ONLY&&accessMode==='connecting')
       ? editorLocalBoard
       : { tasks, owners: extraOwners },
   apply: applyCloud,
@@ -2288,14 +2302,21 @@ $("#google-authorize").onclick = async () => {
       throw new Error(
         "Google ещё загружается. Повторите через несколько секунд.",
       );
-    googleAuth.config.identityOnly=viewerState.background?.provider==='apps-script';
+    googleAuth.config.identityOnly=!SHEETS_ONLY&&viewerState.background?.provider==='apps-script';
     await googleAuth.authorize();
     if (attempt !== connectionAttempt) return;
     // Team membership is checked before asking for any Drive file. Team editors
     // work with the canonical board; only the owner's session bridges Sheets.
-    await cloudEngine.repository.authenticate(googleAuth.getToken());
-    const access=await cloudEngine.repository.accessInfo();
-    if(!access.background?.enabled && access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase()){
+    let access;
+    if(SHEETS_ONLY){
+      const profile=await googleAuth.profile();
+      if(profile.email.toLowerCase()!==MODE_OWNER)throw new Error('Личный режим: редактирует владелец доски. Для коллег доступен просмотр по ссылке.');
+      access={ownerEmail:MODE_OWNER};
+    }else{
+      await cloudEngine.repository.authenticate(googleAuth.getToken());
+      access=await cloudEngine.repository.accessInfo();
+    }
+    if(!access.background?.enabled && (SHEETS_ONLY||access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase())){
       try { await cloudEngine.api.read(); }
       catch(error){
         if(error.status===403||error.status===404){$("#cloud-dialog").close();await googleAuth.pickFile();}
@@ -2305,6 +2326,7 @@ $("#google-authorize").onclick = async () => {
     if (attempt !== connectionAttempt) return;
     $("#cloud-dialog").close();
     viewer?.stop();
+    if(SHEETS_ONLY){tasks=structuredClone(editorLocalBoard.tasks);extraOwners=[...editorLocalBoard.owners];}
     accessMode = "connecting";
     await cloudEngine.connect();
     if (attempt !== connectionAttempt) {
@@ -2324,7 +2346,7 @@ $("#google-authorize").onclick = async () => {
         status: cloudEngine.status,
         conflicts: cloudEngine.conflicts,
         pending: cloudEngine.pending(),
-        managed: true,
+        managed: !!cloudEngine.managed,
         lastReadAt: cloudEngine.lastReadAt,
         sourceState: cloudEngine.sourceState,
       },
@@ -2440,7 +2462,7 @@ function openConflicts() {
   $("#conflict-list").innerHTML = conflictReview
     .map(
       (c, i) =>
-        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(c.fieldName || GROUP_NAMES[c.field] || FIELD_NAMES[c.field] || c.field)}</h3><p>Одно поле изменили параллельно. Обе версии сохранены в истории.</p><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote"> Текущая общая версия</span><pre>${esc(conflictText(c.remote,c.taskId))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Предложенная версия${c.actor?.name ? " · " + esc(c.actor.name) : ""}</span><pre>${esc(conflictText(c.local,c.taskId))}</pre></label></section>`,
+        `<section class="cloud-conflict"><h3>${esc(c.title)} · ${esc(c.fieldName || GROUP_NAMES[c.field] || FIELD_NAMES[c.field] || c.field)}</h3><p>Одно поле изменили параллельно. ${cloudEngine.managed?'Обе версии сохранены в истории.':'Обе версии сохранены в очереди этого устройства.'}</p><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="remote"> Текущая общая версия</span><pre>${esc(conflictText(c.remote,c.taskId))}</pre></label><label class="cloud-choice"><span><input type="radio" name="conflict-${i}" value="local"> Предложенная версия${c.actor?.name ? " · " + esc(c.actor.name) : ""}</span><pre>${esc(conflictText(c.local,c.taskId))}</pre></label></section>`,
     )
     .join("");
   text("#conflicts-error", "");
@@ -2471,7 +2493,7 @@ $("#resolve-conflicts").onclick = async () => {
       $("#conflicts-dialog").close();
       persist();
       cloudEngine.bridge?.wake();
-      toast("Выбранные версии сохранены для команды");
+      toast(SHEETS_ONLY?"Выбранные версии отправлены в Google Таблицу":"Выбранные версии сохранены для команды");
     }
   } catch (error) {
     text("#conflicts-error", error.message);
@@ -2487,8 +2509,7 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden && cloudEngine.connected) cloudEngine.flush();
 });
 if (!DEMO) {
-  cloudEngine.bridge = new TeamSourceBridge(cloudEngine);
-  cloudEngine.ready().catch((error) => toast(error.message));
+  if(!SHEETS_ONLY){cloudEngine.bridge = new TeamSourceBridge(cloudEngine);cloudEngine.ready().catch((error) => toast(error.message));}
   Promise.all(
     ["google-config.json", "team-config.json"].map((path) =>
       fetch("./" + path, { cache: "no-store" }).then((r) => {
@@ -2500,15 +2521,15 @@ if (!DEMO) {
     .then(([config, team]) => {
       googleAuth = new GoogleAuth(config);
       cloudEngine.googleAuth = googleAuth;
-      cloudEngine.api = new SheetsApi(googleAuth, undefined, writeGuard);
-      viewer = new BoardViewer({
+      cloudEngine.api = new (SHEETS_ONLY?DirectSheetsApi:SheetsApi)(googleAuth, undefined, writeGuard);
+      viewer = SHEETS_ONLY ? new SheetViewer({api:publicSheets,initial:modeBootstrap,onData:applyPublic,onState:renderViewerState,onControl:observeStorageControl}) : new BoardViewer({
         config: team,
         boardId: team.boardId,
         onData: applyPublic,
         onState: renderViewerState,
       });
       if (accessMode === "view") viewer.start();
-      cloudEngine.repository = new TeamApi({
+      if(!SHEETS_ONLY)cloudEngine.repository = new TeamApi({
         config: team,
         boardId: team.boardId,
       });
@@ -2518,6 +2539,7 @@ if (!DEMO) {
       renderViewerState({ status: "view-error", message: error.message });
     });
 }
+if(SHEETS_ONLY){text('#cloud-title','Личная доска · Google Таблица');text('#cloud-mode-note','Правки до отправки и черновики сохраняются на этом устройстве. История версий таблицы доступна в Google. Общая история Firestore в личном режиме не ведётся.');text('#cloud-mode-description','Вы редактируете через свой Google, коллеги смотрят по ссылке без входа. Карточки и порядок сохраняются прямо в таблице. Firestore в этом режиме не используется.');}
 render();
 if (!DEMO) renderViewerState();
 if (DEMO && freshBoard && !stateLoadError) setMode(mode);
@@ -2538,6 +2560,7 @@ function renderAccess(){
 }
 async function openAccess(){
  accessInfo=null;text('#access-error','');showDialog('access-dialog');renderAccess();
+ if(SHEETS_ONLY){accessInfo={ownerEmail:MODE_OWNER,members:[]};renderAccess();$('#access-form').hidden=true;text('#access-error','Личный режим: вы редактируете доску, коллеги смотрят по ссылке. Права на саму Google Таблицу управляются в Google.');return;}
  if(!canEdit()||DEMO)return;
  try{accessInfo=await cloudEngine.repository.accessInfo();renderAccess()}catch(error){text('#access-error',error.message)}
 }
@@ -2558,3 +2581,50 @@ async function revokeEditor(){
  $('#editor').open&&$('#editor').close();$('#access-dialog').open&&$('#access-dialog').close();
  await cloudEngine.disconnect();startViewer();toast('Право редактирования отозвано. Неотправленные правки сохранены на устройстве.');
 }
+
+let modeBusy=false,modeMonitor=null,modeReloading=false;
+function renderStorageMode(){
+ $('#storage-open').hidden=DEMO;
+ text('#storage-label',SHEETS_ONLY?'Google Таблица':'Firestore');
+ const pending=modePending(storageControl),target=storageControl.request.mode;
+ text('#storage-current','Сейчас: '+MODES[storageControl.ack.mode]);
+ text('#storage-state',pending?'Переключаем на «'+MODES[target]+'». Дождитесь подтверждения фонового обработчика; обычно до минуты. При исчерпанной квоте включение Firestore подождёт её сброса.':modeReadError||'Режим сохранён в таблице и действует на всех устройствах.');
+ for(const input of $$('[name="storage-choice"]')){if(!$('#storage-dialog').open)input.checked=input.value===storageControl.ack.mode;input.disabled=modeBusy||pending;}
+ $('#storage-apply').disabled=modeBusy||pending||DEMO;
+ text('#storage-apply',modeBusy?'Сохраняем…':pending?'Переключение…':'Сохранить режим');
+ $('#storage-cancel-change').hidden=!pending;$('#storage-cancel-change').disabled=modeBusy;text('#storage-cancel-change','Остаться в режиме «'+MODES[storageControl.ack.mode]+'»');
+}
+function observeStorageControl(control){
+ storageControl=control;modeReadError='';try{storage.setItem(MODE_KEY,JSON.stringify(control))}catch{}
+ renderStorageMode();
+ if(modePending(control)){
+   if(accessMode==='edit'){saveDraft();persist();cloudEngine?.disconnect();selectedIds.clear();render();}
+   return;
+ }
+ if(control.ack.mode!==STORAGE_MODE&&!modeReloading){
+   if(cloudEngine?.pending()){modeReadError='Есть неотправленные правки текущего режима. Они сохранены на устройстве. Скачайте копию перед переходом.';renderStorageMode();return;}
+   modeReloading=true;persist();location.reload();
+ }
+}
+async function monitorStorageMode(){
+ try{observeStorageControl(await publicSheets.control())}catch(error){modeReadError=error.message;renderStorageMode()}
+ modeMonitor=setTimeout(monitorStorageMode,30000);
+}
+$('#storage-open').onclick=()=>{renderStorageMode();for(const input of $$('[name="storage-choice"]'))input.checked=input.value===storageControl.ack.mode;showDialog('storage-dialog')};
+async function changeStorageMode(target,cancelPending=false){
+ if(!Object.hasOwn(MODES,target)||(target===storageControl.ack.mode&&!modePending(storageControl)))return closeDialog('storage-dialog');
+ modeBusy=true;modeReadError='';renderStorageMode();
+ try{
+  if(cloudEngine?.pending()){await cloudEngine.flush();if(cloudEngine.pending())throw new Error('Есть неотправленные правки. Сначала дождитесь их сохранения или скачайте копию; переключение их не удаляет.');}
+  if(!googleAuth)throw new Error('Google ещё загружается. Повторите через несколько секунд.');
+  googleAuth.config.identityOnly=false;await googleAuth.authorize();
+  const profile=await googleAuth.profile();if(profile.email.toLowerCase()!==MODE_OWNER)throw new Error('Режим хранения меняет владелец доски.');
+  const api=new SheetsApi(googleAuth),current=await api.readStorageControl();
+  if(modePending(current)&&(!cancelPending||target!==current.ack.mode))throw new Error('Предыдущее переключение ещё не завершено.');
+  saveDraft();persist();const request=await api.requestStorageMode(target,profile.email);observeStorageControl({...current,request});
+  clearTimeout(modeMonitor);modeMonitor=setTimeout(monitorStorageMode,1500);
+ }catch(error){modeReadError=error.message}finally{modeBusy=false;renderStorageMode()}
+}
+$('#storage-apply').onclick=()=>changeStorageMode($('[name="storage-choice"]:checked')?.value);
+$('#storage-cancel-change').onclick=()=>changeStorageMode(storageControl.ack.mode,true);
+renderStorageMode();if(!DEMO)modeMonitor=setTimeout(monitorStorageMode,30000);

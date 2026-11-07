@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261107-team-1";
-import { equal } from "./sync-model.mjs?rev=20261107-team-1";
+} from "./team-model.mjs?rev=20261107-team-2";
+import { equal } from "./sync-model.mjs?rev=20261107-team-2";
 export const digest = async (value) =>
   [
     ...new Uint8Array(
@@ -24,9 +24,7 @@ const safeError = (error) => {
   if (error?.code === "permission-denied")
     return Object.assign(new Error("Этот Google-аккаунт не входит в команду. Попросите владельца добавить ваш адрес в разделе «Доступ». Неотправленные правки сохранены на устройстве."), {code:"permission-denied"});
   if (error?.code === "resource-exhausted")
-    return new Error(
-      "Достигнут лимит Google. Изменения остались в очереди; повторим отправку позже.",
-    );
+    return Object.assign(new Error("Достигнут лимит Google. Изменения остались в очереди; повторим отправку позже."),{code:"resource-exhausted"});
   return error;
 };
 export async function firebaseSdk() {
@@ -125,7 +123,7 @@ export class TeamApi {
       tx.update(this.root(),{members:after,accessRevision:revision,lastAccessEvent:operationId});
       tx.set(event,{email,enabled,before:data.members,after,revision,actor,createdAt:s.serverTimestamp()});
       return {...data,members:after,accessRevision:revision};
-    },this.root(),"accessRevision");
+    },this.root(),"accessRevision").catch(error=>{throw safeError(error)});
   }
   async taskRef(id) {
     return this.ref("tasks", await digest(id));

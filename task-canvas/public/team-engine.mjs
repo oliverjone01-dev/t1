@@ -7,10 +7,10 @@ import {
   GROUPS,
   groupValue,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261107-team-1";
-import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261107-team-1";
-import { remoteChanges } from "./changes.mjs?rev=20261107-team-1";
-import { TeamOutbox } from "./team-outbox.mjs?rev=20261107-team-1";
+} from "./team-model.mjs?rev=20261107-team-2";
+import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261107-team-2";
+import { remoteChanges } from "./changes.mjs?rev=20261107-team-2";
+import { TeamOutbox } from "./team-outbox.mjs?rev=20261107-team-2";
 const clone = (v) => structuredClone(v),
   id = () => crypto.randomUUID();
 export class TeamSyncEngine {
@@ -47,6 +47,7 @@ export class TeamSyncEngine {
     this.history = [];
     this.generation = 0;
     this.busy = false;
+    this.retryDelay=3000;
     this.connected = false;
     this.enabled = !!cache?.enabled;
     this.status = this.enabled ? "signin" : "local";
@@ -451,6 +452,7 @@ export class TeamSyncEngine {
       }
       this.queue = await this.outbox.list();
       if (generation === this.generation) {
+        this.retryDelay=3000;
         if (hadWork) await this.refresh();
         this.state(
           this.conflicts.length
@@ -461,11 +463,12 @@ export class TeamSyncEngine {
         );
       }
     } catch (error) {
+      if(error.code==='resource-exhausted')this.retryDelay=Math.min(300000,Math.max(60000,this.retryDelay*2));
       if (generation === this.generation) this.state(error.code === "permission-denied" ? "access-denied" : "offline", error.message);
     } finally {
       this.busy = false;
       this.state(this.status, this.message);
-      if (this.pending()) this.later(3000);
+      if (this.pending()) this.later(this.retryDelay);
     }
   }
   async resolve(choices, review = this.conflicts) {

@@ -1,37 +1,37 @@
 {
- "dateFrom": "2026-10-07",
- "dateTo": "2026-11-05",
- "generated_at": "2026-11-06T14:19:05.626Z",
+ "dateFrom": "2026-10-08",
+ "dateTo": "2026-11-06",
+ "generated_at": "2026-11-07T13:05:58.158Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2379,
-  "ad_visits_30d": 6272,
-  "yd_visits_30d": 4830,
-  "ad_leads_30d": 84
+  "direct_clicks_30d": 2474,
+  "ad_visits_30d": 6335,
+  "yd_visits_30d": 4881,
+  "ad_leads_30d": 88
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4657,
-   "users": 4066,
-   "leads": 81,
-   "contacts": 73
+   "visits": 4701,
+   "users": 4108,
+   "leads": 85,
+   "contacts": 74
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1433,
-   "users": 600,
+   "visits": 1445,
+   "users": 609,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 173,
-   "users": 132,
+   "visits": 180,
+   "users": 163,
    "leads": 2,
    "contacts": 1
   },
@@ -53,37 +53,37 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2670,
-   "leads": 42,
-   "contacts": 31
+   "visits": 2675,
+   "leads": 45,
+   "contacts": 33
   },
   {
    "utm": "genglass",
-   "visits": 1427,
+   "visits": 1439,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 720,
+   "visits": 784,
    "leads": 2,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 445,
-   "leads": 13,
-   "contacts": 18
+   "visits": 444,
+   "leads": 12,
+   "contacts": 17
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 358,
-   "leads": 11,
+   "visits": 347,
+   "leads": 13,
    "contacts": 10
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 189,
+   "visits": 183,
    "leads": 5,
    "contacts": 5
   },
@@ -95,19 +95,19 @@
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 104,
+   "visits": 106,
    "leads": 3,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 38,
+   "visits": 34,
    "leads": 2,
    "contacts": 3
   },
   {
    "utm": "igrovaya_komnata_za_steklom",
-   "visits": 5,
+   "visits": 8,
    "leads": 0,
    "contacts": 0
   },
@@ -124,12 +124,6 @@
    "contacts": 0
   },
   {
-   "utm": "_bbr_mirors",
-   "visits": 3,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "peregorodki_v_inter'ere",
    "visits": 3,
    "leads": 0,
@@ -138,6 +132,12 @@
   {
    "utm": "stacionarnye_peregorodki",
    "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "_bbr_mirors",
+   "visits": 2,
    "leads": 0,
    "contacts": 0
   },
@@ -295,41 +295,41 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6272,
-   "users": 4792,
-   "bounce": 18.41517857,
-   "leads": 84,
-   "contacts": 74
+   "visits": 6335,
+   "users": 4851,
+   "bounce": 18.32675612,
+   "leads": 88,
+   "contacts": 75
   },
   {
    "source": "Link traffic",
-   "visits": 4535,
-   "users": 4440,
-   "bounce": 0.90407938,
-   "leads": 19,
-   "contacts": 23
+   "visits": 4537,
+   "users": 4451,
+   "bounce": 0.99184483,
+   "leads": 18,
+   "contacts": 22
   },
   {
    "source": "Search engine traffic",
-   "visits": 3469,
-   "users": 2734,
-   "bounce": 18.62208129,
-   "leads": 131,
-   "contacts": 126
+   "visits": 3437,
+   "users": 2712,
+   "bounce": 18.59179517,
+   "leads": 129,
+   "contacts": 125
   },
   {
    "source": "Direct traffic",
-   "visits": 2193,
-   "users": 1829,
-   "bounce": 16.50706794,
+   "visits": 2165,
+   "users": 1802,
+   "bounce": 17.27482679,
    "leads": 49,
    "contacts": 39
   },
   {
    "source": "Internal traffic",
-   "visits": 685,
-   "users": 343,
-   "bounce": 17.22627737,
+   "visits": 692,
+   "users": 346,
+   "bounce": 16.90751445,
    "leads": 10,
    "contacts": 4
   },
@@ -343,9 +343,9 @@
   },
   {
    "source": "Messenger traffic",
-   "visits": 13,
-   "users": 7,
-   "bounce": 7.69230769,
+   "visits": 12,
+   "users": 6,
+   "bounce": 8.33333333,
    "leads": 0,
    "contacts": 0
   },

@@ -1973,3 +1973,9 @@ summary {
 .view-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .view-actions .button { min-height: 44px; }
 .row-status:disabled { opacity: 1; color: var(--text); background: transparent; border-color: transparent; cursor: default; }
+
+.storage-options{border:0;padding:0;margin:24px 0;display:grid;gap:12px}.storage-options legend{font-weight:600;margin-bottom:12px}.storage-option{display:flex;align-items:flex-start;gap:12px;padding:18px;border:1px solid var(--line);border-radius:16px;cursor:pointer;transition:background .18s,border-color .18s}.storage-option:has(input:checked){border-color:var(--primary);background:color-mix(in srgb,var(--primary) 7%,transparent)}.storage-option input{margin-top:4px;accent-color:var(--primary)}.storage-option span{display:grid;gap:8px}.storage-option small{font-size:13px;line-height:1.55;color:var(--muted)}.storage-option:has(input:focus-visible){outline:2px solid var(--primary);outline-offset:3px}@media(max-width:767px){#storage-open{font-size:13px;padding:7px}}
+.storage-option input{flex:0 0 18px;width:18px;height:18px;min-height:0;padding:0;margin:4px 0 0;box-shadow:none}.storage-option strong{text-align:left}.storage-option span{min-width:0}
+@media(max-width:767px){#storage-open{min-width:40px;max-width:94px;white-space:normal;line-height:1.15;padding:6px}.storage-option{padding:14px;gap:10px}.storage-options{margin:16px 0}}
+.storage-option{margin-bottom:0}#storage-dialog .form-actions{position:sticky;bottom:-24px;background:var(--raised);padding:16px 0 0}#storage-dialog #storage-state{font-size:13px;line-height:1.5}
+@media(max-width:767px){.topbar{align-items:flex-start}.topbar .brand{align-self:flex-start}.header-actions{flex:1;min-width:0;flex-wrap:wrap;justify-content:flex-end}}

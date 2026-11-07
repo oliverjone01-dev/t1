@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261108-bg-1" />
+    <meta name="application-version" content="20261108-mode-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -27,8 +27,8 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261108-bg-1" />
-    <link rel="stylesheet" href="./board-ui.css?rev=20261108-bg-1" />
+    <link rel="stylesheet" href="./styles.css?rev=20261108-mode-1" />
+    <link rel="stylesheet" href="./board-ui.css?rev=20261108-mode-1" />
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
@@ -61,6 +61,7 @@
           ><span id="google-label" class="wide-label">Подключить Google</span
           ><span class="narrow-label">Google</span>
         </button>
+        <button id="storage-open" class="button quiet" aria-haspopup="dialog"><span id="storage-label">Хранение</span></button>
         <button id="access-open" class="button quiet" aria-haspopup="dialog">Доступ</button>
         <button
           id="appearance-open"
@@ -639,9 +640,10 @@
           Firestore. Разные поля объединяются автоматически. Для одного поля
           сохраняются обе версии и предлагается выбор. Если поле снова изменится
           во время сравнения, потребуется выбрать актуальную версию ещё раз.
-          Очередь на устройстве сохраняет правки при потере сети. Google Таблица
-          обновляется отдельно; её изменения проверяются примерно раз в 30
-          секунд, пока открыт подключённый браузер. При прямой правке таблицы во
+          Очередь на устройстве сохраняет правки при потере сети. В личном режиме изменения сохраняются прямо в Google Таблице,
+          просмотр проверяется раз в 30 секунд. В командном режиме фоновый
+          обмен с таблицей выполняется обычно раз в пять минут даже при
+          закрытых браузерах. При прямой правке таблицы во
           время записи доски Google Sheets не даёт атомарной защиты ячейки.
           История правок доски сохраняется в командной базе.
         </p>
@@ -649,6 +651,18 @@
       <a href="./privacy.html" target="_blank" rel="noopener"
         >Хранение данных и доступ Google</a
       >
+    </dialog>
+    <dialog id="storage-dialog" class="modal" aria-labelledby="storage-title">
+      <div class="dialog-top"><span class="eyebrow">Данные и доступ</span><button class="icon-button" data-close="storage-dialog" aria-label="Закрыть выбор хранения"><span data-icon="close"></span></button></div>
+      <h2 id="storage-title">Как сохранять доску</h2>
+      <p id="storage-current"></p>
+      <fieldset class="storage-options"><legend>Режим работы</legend>
+        <label class="storage-option"><input type="radio" name="storage-choice" value="sheets"><span><strong>Google Таблица · личная доска</strong><small>Вы редактируете, коллеги смотрят по ссылке. Карточки, статусы и порядок - в таблице. Обновление просмотра раз в 30 секунд. Без Firestore и его квот.</small></span></label>
+        <label class="storage-option"><input type="radio" name="storage-choice" value="firestore"><span><strong>Командный · Firestore</strong><small>Одновременные правки, общая история и выбор конфликтующих версий. Обмен с таблицей работает в фоне. Действуют бесплатные квоты Google.</small></span></label>
+      </fieldset>
+      <p class="field-hint">Задачи, расположение и история Firestore при переключении не удаляются. Неотправленные правки остаются в своём режиме. Изменять режим может владелец через Google. Права на саму таблицу управляются отдельно в Google.</p>
+      <p id="storage-state" class="notice" role="status" aria-live="polite"></p>
+      <div class="form-actions"><button id="storage-cancel-change" class="button quiet" hidden>Остаться в текущем режиме</button><button id="storage-apply" class="button primary">Сохранить режим</button></div>
     </dialog>
     <dialog id="cloud-dialog" class="modal" aria-labelledby="cloud-title">
       <div class="dialog-top">
@@ -662,12 +676,12 @@
         </button>
       </div>
       <h2 id="cloud-title">Задачи на ваших устройствах</h2>
-      <p>
+      <p id="cloud-mode-description">
         Просмотр доступен по ссылке без входа. Для изменения задач войдите через
         свой Google-аккаунт команды. Владелец добавляет редакторов через «Доступ».
         Когда фоновый обмен включён, таблица обновляется по расписанию даже при закрытой доске. До его включения таблицу подключает владелец.
       </p>
-      <p class="source-note">
+      <p class="source-note" id="cloud-mode-note">
         Неотправленные правки и черновики остаются на этом устройстве отдельно
         от общего просмотра. После входа доска проверит их версии перед
         отправкой. История и сравнение конфликтов доступны после входа.
@@ -782,7 +796,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261108-bg-1"></script>
+    <script type="module" src="./app.mjs?rev=20261108-mode-1"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

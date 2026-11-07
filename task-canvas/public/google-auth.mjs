@@ -1,4 +1,4 @@
-import { SHEET_ID } from "./sync-model.mjs?rev=20261108-bg-1";
+import { SHEET_ID } from "./sync-model.mjs?rev=20261108-mode-1";
 const cancelled = () =>
   Object.assign(new Error("Подключение отменено."), { cancelled: true });
 export class GoogleAuth {
@@ -98,6 +98,11 @@ export class GoogleAuth {
         finish(error);
       }
     });
+  }
+  async profile(fetcher=(...args)=>fetch(...args)) {
+    const r=await fetcher('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+this.getToken()},cache:'no-store',redirect:'error'});
+    const profile=await r.json();if(!r.ok||profile.email_verified!==true||typeof profile.email!=='string')throw new Error('Google не подтвердил аккаунт владельца.');
+    return profile;
   }
   async pickFile() {
     const { gapi, google } = this.env,

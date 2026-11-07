@@ -1,4 +1,4 @@
-import {parseAssignee} from './people.mjs?rev=20261108-bg-1';
+import {parseAssignee} from './people.mjs?rev=20261108-mode-1';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [

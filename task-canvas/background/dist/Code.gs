@@ -27,7 +27,7 @@ var TaskCanvasBackground = (() => {
     stop: () => stop
   });
 
-  // public/people.mjs?rev=20261108-bg-1
+  // public/people.mjs?rev=20261108-mode-1
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -38,7 +38,7 @@ var TaskCanvasBackground = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261108-bg-1
+  // public/model.mjs?rev=20261108-mode-1
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0417\u0430\u043F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -106,7 +106,7 @@ var TaskCanvasBackground = (() => {
     });
   }
 
-  // public/sync-model.mjs?rev=20261108-bg-1
+  // public/sync-model.mjs?rev=20261108-mode-1
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var SERVICE_HEADERS = [
@@ -438,7 +438,7 @@ var TaskCanvasBackground = (() => {
     return requests;
   }
 
-  // public/team-model.mjs?rev=20261108-bg-1
+  // public/team-model.mjs?rev=20261108-mode-1
   var TEAM_SCHEMA = 1;
   var GROUPS = {
     title: ["title"],
@@ -1193,7 +1193,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/team-api.mjs?rev=20261108-bg-1
+  // public/team-api.mjs?rev=20261108-mode-1
   var digest2 = async (value) => [
     ...new Uint8Array(
       await crypto.subtle.digest(
@@ -1496,6 +1496,31 @@ var TaskCanvasBackground = (() => {
     }
   };
 
+  // public/storage-mode.mjs?rev=20261108-mode-1
+  var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
+  var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
+  function parseModeCell(text) {
+    if (!text) return null;
+    let v;
+    try {
+      v = JSON.parse(text);
+    } catch {
+      throw new Error("\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u0430 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430 \u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F. \u041F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435 \u0438 \u0437\u0430\u043F\u0438\u0441\u044C \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u044B.");
+    }
+    if (v?.schema !== 1 || !Object.hasOwn(MODES, v.mode) || typeof v.epoch !== "string" || !v.epoch || v.epoch.length > 100 || !Number.isFinite(v.at)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430 \u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F. \u0417\u0430\u043F\u0438\u0441\u044C \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430.");
+    return v;
+  }
+  function readModeControl(rows) {
+    const text = (c) => String(c?.formattedValue ?? c?.userEnteredValue?.stringValue ?? "");
+    const request = parseModeCell(text(rows?.[1]?.[16])), ack = parseModeCell(text(rows?.[1]?.[17]));
+    if (!request && !ack) return structuredClone(LEGACY_CONTROL);
+    if (!request || !ack) throw new Error("\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430 \u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0430. \u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u044B.");
+    return { request, ack };
+  }
+  function modeWriteRequest(column, value, tabId) {
+    return { updateCells: { range: { sheetId: tabId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: column, endColumnIndex: column + 1 }, rows: [{ values: [{ userEnteredValue: { stringValue: JSON.stringify(value) } }] }], fields: "userEnteredValue" } };
+  }
+
   // public/sheets-api.mjs
   var SheetsApi = class {
     constructor(auth, fetcher = (...args) => fetch(...args), beforeWrite = () => {
@@ -1572,6 +1597,20 @@ var TaskCanvasBackground = (() => {
         rowCount: tab.gridProperties.rowCount
       });
     }
+    async readStorageControl() {
+      const data = await this.request(":getByDataFilter?fields=sheets(data(startRow,startColumn,rowData(values(formattedValue,userEnteredValue))))", { dataFilters: [{ gridRange: { sheetId: TAB_ID, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 16, endColumnIndex: 18 } }], includeGridData: true });
+      const grid = data.sheets?.[0]?.data?.[0], rows = [[], []];
+      for (const [i, cell] of (grid?.rowData?.[0]?.values || []).entries()) rows[1][(grid.startColumn ?? 16) + i] = cell;
+      return readModeControl(rows);
+    }
+    async requestStorageMode(mode, by) {
+      const value = { schema: 1, mode, epoch: crypto.randomUUID(), at: Date.now(), by };
+      await this.request(":batchUpdate", { requests: [modeWriteRequest(16, value, TAB_ID)] });
+      return value;
+    }
+    async acknowledgeStorageMode(request) {
+      await this.request(":batchUpdate", { requests: [modeWriteRequest(17, { schema: 1, mode: request.mode, epoch: request.epoch, at: Date.now() }, TAB_ID)] });
+    }
     async ensureTeamProtocol(snapshot) {
       const cell = snapshot.rows?.[2]?.[17];
       if ((cell?.formattedValue || cell?.userEnteredValue?.stringValue) === "\u041F\u043E\u0437\u0438\u0446\u0438\u0438 \xB7 \u043A\u043E\u043C\u0430\u043D\u0434\u0430 v3") return;
@@ -1585,6 +1624,11 @@ var TaskCanvasBackground = (() => {
       await this.request(":batchUpdate", { requests });
     }
   };
+
+  // public/storage-mode.mjs
+  var MODES2 = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
+  var LEGACY_CONTROL2 = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
+  var modePending = (control) => control.request.epoch !== control.ack.epoch || control.request.mode !== control.ack.mode;
 
   // background/firestore-rest.mjs
   var STAMP = Object.freeze({ __serverTimestamp: true });
@@ -1850,6 +1894,11 @@ var TaskCanvasBackground = (() => {
         async request(path, body) {
           return request(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.board}` + path, body);
         }
+        async write(snapshot, writes, owners) {
+          const control = await this.readStorageControl();
+          if (control.request.mode !== "firestore" || this.expectedEpoch && control.request.epoch !== this.expectedEpoch) throw new Error("Storage mode changed; Sheet projection paused.");
+          return super.write(snapshot, writes, owners);
+        }
       }
       return { rest, repository: new BackgroundRepository({ boardId: CONFIG.board, sdk, db: {}, user: { uid: actor.uid, email: owner(), displayName: actor.name } }), sheets: new BackgroundSheets(null), stats };
     }
@@ -1869,8 +1918,11 @@ var TaskCanvasBackground = (() => {
         ownerCheck = "deferred-quota";
       }
       const existing = g.ScriptApp.getProjectTriggers().filter((t) => t.getHandlerFunction() === "syncTasksInBackground" && String(t.getEventType()) === "CLOCK");
-      if (!existing.length) g.ScriptApp.newTrigger("syncTasksInBackground").timeBased().everyMinutes(5).create();
-      for (const t of existing.slice(1)) g.ScriptApp.deleteTrigger(t);
+      if (props.getProperty("timerProtocol") !== "2" || !existing.length) {
+        for (const t of existing) g.ScriptApp.deleteTrigger(t);
+        g.ScriptApp.newTrigger("syncTasksInBackground").timeBased().everyMinutes(1).create();
+        props.setProperty("timerProtocol", "2");
+      } else for (const t of existing.slice(1)) g.ScriptApp.deleteTrigger(t);
       props.setProperty("prepared", JSON.stringify({ scriptId, owner: owner(), ownerCheck, protocol: 1, at: now() }));
       const result = { status: "prepared", scriptId, ownerCheck, intervalMinutes: 5, sheetTitle: sheet.title };
       logger(JSON.stringify(result));
@@ -1897,10 +1949,37 @@ var TaskCanvasBackground = (() => {
       props.setProperty("lastTick", String(start));
       let c, status = "error", result;
       try {
-        const next = Number(props.getProperty("nextRunAt") || 0);
-        if (next > start) return { status: "backoff", nextRunAt: next };
+        const prepared = JSON.parse(props.getProperty("prepared") || "null");
+        if (prepared?.owner !== owner() || prepared?.scriptId !== scriptId) throw new Error("Worker owner is not prepared.");
         const packed = new PackedCache(g.CacheService.getScriptCache(), g.Utilities), seed = packed.read();
         c = connection(start + 1e5, seed?.scriptId === scriptId ? seed.snapshot : null);
+        const control = await c.sheets.readStorageControl(), requested = control.request;
+        if (props.getProperty("requestedEpoch") !== requested.epoch) {
+          props.setProperty("requestedEpoch", requested.epoch);
+          props.deleteProperty("nextRunAt");
+        }
+        const mirror = async (mode) => {
+          await c.rest.commit([c.rest.write(c.rest.ref(rootPath), { storageMode: mode, storageEpoch: requested.epoch }, "update"), c.rest.write(c.rest.ref(`taskBoardViews/${CONFIG.board}`), { storageMode: mode, storageEpoch: requested.epoch }, "update")]);
+        };
+        const acknowledge = async () => {
+          const latest = await c.sheets.readStorageControl();
+          if (latest.request.epoch !== requested.epoch) throw new Error("Storage request superseded; will retry the latest choice.");
+          await c.sheets.acknowledgeStorageMode(requested);
+          props.setProperty("modeAck", requested.epoch);
+        };
+        if (requested.mode === "sheets") {
+          if (modePending(control) || props.getProperty("modeAck") !== requested.epoch) {
+            await mirror("sheets");
+            await acknowledge();
+          }
+          props.setProperty("quotaAttempts", "0");
+          status = "sheets-only";
+          result = { status, at: now(), mode: "sheets", calls: c.stats.calls };
+          return result;
+        }
+        const next = Number(props.getProperty("nextRunAt") || 0);
+        if (next > start) return { status: "backoff", nextRunAt: next };
+        c.sheets.expectedEpoch = requested.epoch;
         const root = await c.rest.get(c.rest.ref(rootPath)), data = root.data(), bg = data?.background;
         if (data?.ownerEmail !== owner()) throw new Error("The trigger owner no longer owns the board.");
         if (!bg?.enabled || bg.provider !== "apps-script" || bg.scriptId !== scriptId || bg.protocol !== 1) return { status: "disabled" };
@@ -1918,6 +1997,10 @@ var TaskCanvasBackground = (() => {
         bridge.lastPublishedStatus = last?.status || null;
         await bridge.tick();
         if (engine.sourceState.status !== "synced") throw Object.assign(new Error(engine.sourceState.message || "Source sync failed"), { code: engine.sourceState.message?.includes("quota") ? "resource-exhausted" : "unavailable" });
+        if (modePending(control)) {
+          await mirror("firestore");
+          await acknowledge();
+        }
         packed.write({ scriptId, snapshot: c.rest.snapshot() });
         props.setProperty("quotaAttempts", "0");
         status = "synced";

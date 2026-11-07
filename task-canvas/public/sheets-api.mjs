@@ -3,7 +3,8 @@ import {
   TAB_ID,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261108-bg-1";
+} from "./sync-model.mjs?rev=20261108-mode-1";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261108-mode-1';
 export class SheetsApi {
   constructor(
     auth,
@@ -93,6 +94,19 @@ export class SheetsApi {
       rowCount: tab.gridProperties.rowCount,
     });
   }
+  async readStorageControl() {
+    const data=await this.request(':getByDataFilter?fields=sheets(data(startRow,startColumn,rowData(values(formattedValue,userEnteredValue))))',{dataFilters:[{gridRange:{sheetId:TAB_ID,startRowIndex:1,endRowIndex:2,startColumnIndex:16,endColumnIndex:18}}],includeGridData:true});
+    const grid=data.sheets?.[0]?.data?.[0],rows=[[],[]];
+    for(const [i,cell] of (grid?.rowData?.[0]?.values||[]).entries())rows[1][(grid.startColumn??16)+i]=cell;
+    return readModeControl(rows);
+  }
+  async requestStorageMode(mode,by) {
+    const value={schema:1,mode,epoch:crypto.randomUUID(),at:Date.now(),by};
+    await this.request(':batchUpdate',{requests:[modeWriteRequest(16,value,TAB_ID)]});return value;
+  }
+  async acknowledgeStorageMode(request) {
+    await this.request(':batchUpdate',{requests:[modeWriteRequest(17,{schema:1,mode:request.mode,epoch:request.epoch,at:Date.now()},TAB_ID)]});
+  }
   async ensureTeamProtocol(snapshot) {
     const cell=snapshot.rows?.[2]?.[17];
     if((cell?.formattedValue||cell?.userEnteredValue?.stringValue)==='Позиции · команда v3')return;
@@ -104,5 +118,12 @@ export class SheetsApi {
     if (!requests.length) return;
     this.beforeWrite();
     await this.request(":batchUpdate", { requests });
+  }
+}
+
+export class DirectSheetsApi extends SheetsApi {
+  async write(snapshot,writes,owners){
+    assertSheetWriter(await this.readStorageControl());
+    return super.write(snapshot,writes,owners);
   }
 }

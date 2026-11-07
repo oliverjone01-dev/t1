@@ -36,22 +36,41 @@ test('a failed delta request cannot advance the cache cursor',async()=>{
  const rest=new FirestoreRest({...CONFIG,seed:{cursor:'prior',tasks:[]},request:()=>{throw Object.assign(new Error('quota'),{code:'resource-exhausted'})}});
  await assert.rejects(rest.refresh());assert.equal(rest.snapshot().cursor,'prior');
 });
-function harness({quota=false,enabled=false,owner='owner@example.test',script='private-script'}={}){
- const propsData=new Map(),cache=memory(),logs=[],stats={calls:0,releases:0};let clock=1000000;
+function harness({quota=false,enabled=false,owner='owner@example.test',script='private-script',mode='firestore',pending=false}={}){
+ const propsData=new Map([['prepared',JSON.stringify({scriptId:script,owner:'owner@example.test'})]]),cache=memory(),logs=[],stats={calls:0,releases:0};let clock=1000000;let ack=pending?'old':'current';
  const props={getProperty:k=>propsData.get(k)||null,setProperty:(k,v)=>propsData.set(k,v),deleteProperty:k=>propsData.delete(k)};
- const g={Utilities:U,ScriptApp:{getScriptId:()=>script,getOAuthToken:()=> 'private-token',getProjectTriggers:()=>[]},PropertiesService:{getScriptProperties:()=>props},CacheService:{getScriptCache:()=>cache},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock:()=>stats.releases++})},Session:{getEffectiveUser:()=>({getEmail:()=>owner})},UrlFetchApp:{fetch:()=>{
-  stats.calls++;if(quota)return {getResponseCode:()=>429,getContentText:()=> 'Quota exceeded'};
+ const g={Utilities:U,ScriptApp:{getScriptId:()=>script,getOAuthToken:()=> 'private-token',getProjectTriggers:()=>[]},PropertiesService:{getScriptProperties:()=>props},CacheService:{getScriptCache:()=>cache},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock:()=>stats.releases++})},Session:{getEffectiveUser:()=>({getEmail:()=>owner})},UrlFetchApp:{fetch:(url,options)=>{
+  stats.calls++;
+  if(url.includes('sheets.googleapis.com')){
+   if(url.includes(':getByDataFilter'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify({sheets:[{data:[{startRow:1,startColumn:16,rowData:[{values:[{formattedValue:JSON.stringify({schema:1,mode,epoch:'current',at:0})},{formattedValue:JSON.stringify({schema:1,mode:pending&&ack==='old'?'firestore':mode,epoch:ack,at:0})}]}]}]}]})};
+   ack='current';return {getResponseCode:()=>200,getContentText:()=> '{}'};
+  }
+  if(quota)return {getResponseCode:()=>429,getContentText:()=> 'Quota exceeded'};
   return {getResponseCode:()=>200,getContentText:()=>JSON.stringify({fields:{ownerEmail:{stringValue:'owner@example.test'},background:encode({enabled,provider:'apps-script',scriptId:'another-script',protocol:1,startAfter:0})}})};
  }}};
  return {g,worker:createWorker(g,{now:()=>clock,logger:m=>logs.push(m)}),props,stats,logs,advance:ms=>clock+=ms};
 }
 test('a copied script or disabled worker cannot acquire a lease or write the sheet',async()=>{
  for(const options of [{enabled:false},{enabled:true},{owner:'intruder@example.test'}]){
-  const f=harness(options),result=await f.worker.run();assert.ok(['disabled','error'].includes(result.status));assert.equal(f.stats.calls,1);assert.equal(f.stats.releases,1);
+  const f=harness(options),result=await f.worker.run();assert.ok(['disabled','error'].includes(result.status));assert.equal(f.stats.calls,options.owner?0:2);assert.equal(f.stats.releases,1);
  }
 });
 test('quota refusal leaves a durable retry time; subsequent trigger exits without Google calls',async()=>{
- const f=harness({quota:true});const result=await f.worker.run();assert.equal(result.status,'quota-wait');assert.equal(f.stats.calls,1);assert.equal(f.props.getProperty('lastTick'),'1000000');
- const second=await f.worker.run();assert.equal(second.status,'backoff');assert.equal(f.stats.calls,1);
- f.advance(300001);await f.worker.run();assert.equal(f.stats.calls,2);assert.equal(JSON.parse(f.props.getProperty('lastRun')).nextRunAt,1900001);assert.ok(f.logs.every(s=>!s.includes('private-token')));
+ const f=harness({quota:true});const result=await f.worker.run();assert.equal(result.status,'quota-wait');assert.equal(f.stats.calls,2);assert.equal(f.props.getProperty('lastTick'),'1000000');
+ const second=await f.worker.run();assert.equal(second.status,'backoff');assert.equal(f.stats.calls,3);
+ f.advance(300001);await f.worker.run();assert.equal(f.stats.calls,5);assert.equal(JSON.parse(f.props.getProperty('lastRun')).nextRunAt,1900001);assert.ok(f.logs.every(s=>!s.includes('private-token')));
+});
+
+test('Sheet-only handoff needs no Firestore read and steady Sheet-only clocks make zero Firestore calls',async()=>{
+ const f=harness({mode:'sheets',pending:true});
+ const first=await f.worker.run();assert.equal(first.status,'sheets-only');assert.equal(f.stats.calls,4);assert.equal(f.props.getProperty('modeAck'),'current');
+ const next=await f.worker.run();assert.equal(next.status,'sheets-only');assert.equal(f.stats.calls,5);
+});
+
+test('Apps Script manifest explicitly allows colon RPC paths used for transactions and Sheet writes',async()=>{
+ const {readFile}=await import('node:fs/promises'),manifest=JSON.parse(await readFile(new URL('../background/appsscript.json',import.meta.url),'utf8'));
+ const firestore=`https://firestore.googleapis.com/v1/projects/${CONFIG.project}/databases/(default)/documents`,sheet=`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.board}`;
+ for(const method of ['beginTransaction','batchGet','commit','rollback'])assert.ok(manifest.urlFetchWhitelist.includes(firestore+':'+method));
+ for(const method of ['getByDataFilter','batchUpdate'])assert.ok(manifest.urlFetchWhitelist.includes(sheet+':'+method));
+ assert.ok(manifest.oauthScopes.includes('https://www.googleapis.com/auth/drive.file'));assert.ok(!manifest.oauthScopes.includes('https://www.googleapis.com/auth/drive'));
 });

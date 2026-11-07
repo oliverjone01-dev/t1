@@ -4,13 +4,13 @@ import {
   GROUPS,
   groupValue,
   toBoard,
-} from "./team-model.mjs?rev=20261106-team-1";
+} from "./team-model.mjs?rev=20261107-view-1";
 import {
   equal,
   mergeBoards,
   comparable,
-} from "./sync-model.mjs?rev=20261106-team-1";
-import { digest } from "./team-api.mjs?rev=20261106-team-1";
+} from "./sync-model.mjs?rev=20261107-view-1";
+import { digest } from "./team-api.mjs?rev=20261107-view-1";
 const clone = (value) => structuredClone(value);
 function copyGroup(target, source, group) {
   for (const path of GROUPS[group]) {

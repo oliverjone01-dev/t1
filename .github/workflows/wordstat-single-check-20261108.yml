@@ -1,0 +1,46 @@
+name: Wordstat single phrase check 20261108
+on:
+  push:
+    paths:
+      - '.github/workflows/wordstat-single-check-20261108.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: One Wordstat request
+        env:
+          YANDEX_OAUTH_TOKEN: ${{ secrets.YANDEX_OAUTH_TOKEN }}
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          (async () => {
+            const token = process.env.YANDEX_OAUTH_TOKEN;
+            let report = {phrase:'поминки в москве',regions:[213],devices:['desktop','phone','tablet'],checked_at:new Date().toISOString(),endpoint:'https://api.wordstat.yandex.net/v1/topRequests'};
+            if (!token) {
+              report.error = 'YANDEX_OAUTH_TOKEN secret is not configured or unavailable';
+            } else {
+              try {
+                const response = await fetch(report.endpoint,{method:'POST',headers:{'Content-Type':'application/json;charset=utf-8',Authorization:'Bearer '+token},body:JSON.stringify({phrase:report.phrase,regions:report.regions,devices:report.devices,numPhrases:20}),signal:AbortSignal.timeout(45000)});
+                report.http_status=response.status;
+                const raw=await response.text();
+                try {
+                  const j=JSON.parse(raw);
+                  report.response={totalCount:j.totalCount,total_count:j.total_count,topRequests:j.topRequests,results:j.results,associations:j.associations,error:j.error,message:j.message,code:j.code};
+                } catch { report.response_type=response.headers.get('content-type'); report.error='Response is not JSON'; }
+              } catch(e){ report.error=e.message; }
+            }
+            const serialized=JSON.stringify(report,null,2).split(token || '\u0000').join('[REDACTED]');
+            fs.writeFileSync('wordstat-result.json',serialized);
+            console.log(serialized);
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'### Wordstat: поминки в Москве\n\n'+serialized+'\n');
+          })();
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wordstat-single-result-20261108
+          path: wordstat-result.json

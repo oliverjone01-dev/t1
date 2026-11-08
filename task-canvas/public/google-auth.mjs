@@ -1,4 +1,4 @@
-import { SHEET_ID } from "./sync-model.mjs?rev=20261108-mode-1";
+import { SHEET_ID } from "./sync-model.mjs?rev=20261108-ui-1";
 const cancelled = () =>
   Object.assign(new Error("Подключение отменено."), { cancelled: true });
 export class GoogleAuth {

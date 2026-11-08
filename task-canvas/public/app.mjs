@@ -1,7 +1,7 @@
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261108-mode-1';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261108-mode-1';
-import {renderBoard} from './board-ui.mjs?rev=20261108-mode-1';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-mode-1';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261108-ui-1';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261108-ui-1';
+import {renderBoard} from './board-ui.mjs?rev=20261108-ui-1';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-ui-1';
 import {
   QUADRANTS,
   CARD,
@@ -16,20 +16,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261108-mode-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261108-mode-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-mode-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-mode-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261108-mode-1";
-import { remoteChanges } from "./changes.mjs?rev=20261108-mode-1";
-import { TeamApi } from "./team-api.mjs?rev=20261108-mode-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-mode-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-mode-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261108-mode-1";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261108-mode-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-mode-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-mode-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-mode-1";
+} from "./model.mjs?rev=20261108-ui-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261108-ui-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-ui-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-ui-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261108-ui-1";
+import { remoteChanges } from "./changes.mjs?rev=20261108-ui-1";
+import { TeamApi } from "./team-api.mjs?rev=20261108-ui-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-ui-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-ui-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261108-ui-1";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261108-ui-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-ui-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-ui-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-ui-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -37,8 +37,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261108-mode-1";
-import { parseAssignee } from "./people.mjs?rev=20261108-mode-1";
+} from "./editor.mjs?rev=20261108-ui-1";
+import { parseAssignee } from "./people.mjs?rev=20261108-ui-1";
 import {
   matchesTask,
   matchesWords,
@@ -47,8 +47,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261108-mode-1";
-import { icon } from "./icons.mjs?rev=20261108-mode-1";
+} from "./ui-model.mjs?rev=20261108-ui-1";
+import { icon } from "./icons.mjs?rev=20261108-ui-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -644,7 +644,19 @@ const formatDate = (value) =>
         year: "numeric",
       })
     : "Без срока";
+function renderSourceBadge(){
+ $('#cloud-status').hidden=!DEMO&&accessMode==='view';
+ const viewing=accessMode==='view',status=DEMO?'demo':viewing?viewerState.status:syncState.status;
+ const stamp=viewing?viewerReadAt:syncState.lastReadAt,at=stamp?new Date(stamp).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
+ const labels={'view-live':'Просмотр','view-loading':'Подключение','view-offline':'Копия','view-error':'Нет связи',synced:'Сохранено',syncing:'Сохраняем',pending:'Есть правки',signin:'Нужен вход',offline:'Нет связи',conflict:'Конфликт','cache-error':'Ошибка очереди',local:'На устройстве',demo:'Демонстрация'};
+ const ok=['view-live','synced','demo'].includes(status),label=labels[status]||'Подключение';
+ text('#source-summary',label+(at&&['view-live','synced','view-offline'].includes(status)?' · '+at:''));
+ $('#source-info').dataset.state=ok?'ready':['view-loading','syncing'].includes(status)?'loading':'warning';
+ $('#source-info').setAttribute('aria-label',label+'. Открыть состояние сохранения и доступа');
+ $('#summary-dot').className='connection-dot '+(ok?'cloud-online':'cloud-warning');
+}
 function renderProvenance() {
+  renderSourceBadge();
   if (!DEMO && accessMode === "view") {
     const checked = viewerReadAt
       ? new Date(viewerReadAt).toLocaleString("ru", {
@@ -2099,9 +2111,7 @@ function renderViewerState(state = viewerState) {
   text("#connection-explanation", label + ". " + message);
   text(
     "#view-access-status",
-    label +
-      ". " +
-      message +
+    message +
       (pending
         ? " На этом устройстве есть неотправленные правки. Войдите в Google для отправки."
         : ""),
@@ -2186,7 +2196,8 @@ function startViewer() {
   viewer?.start();
 }
 $("#view-retry").onclick = () => viewer?.start();
-$("#view-signin").onclick = () => showDialog("cloud-dialog");
+$("#source-info").onclick=()=>showDialog("source-dialog");
+$("#view-signin").onclick = () => {closeDialog("source-dialog");showDialog("cloud-dialog")};
 $("#editor-signin").onclick = () => {
   $("#editor").close();
   showDialog("cloud-dialog");
@@ -2450,6 +2461,7 @@ function conflictText(value, taskId="") {
   }).join('\n');
 }
 function openConflicts() {
+  if($("#source-dialog").open)closeDialog("source-dialog");
   if (cloudEngine.managed && !cloudEngine.connected) {
     showDialog("cloud-dialog");
     text(
@@ -2559,6 +2571,7 @@ function renderAccess(){
  $('#access-form').querySelector('button').disabled=accessBusy;
 }
 async function openAccess(){
+ $('#appearance-dialog').open&&closeDialog('appearance-dialog');
  accessInfo=null;text('#access-error','');showDialog('access-dialog');renderAccess();
  if(SHEETS_ONLY){accessInfo={ownerEmail:MODE_OWNER,members:[]};renderAccess();$('#access-form').hidden=true;text('#access-error','Личный режим: вы редактируете доску, коллеги смотрят по ссылке. Права на саму Google Таблицу управляются в Google.');return;}
  if(!canEdit()||DEMO)return;
@@ -2610,7 +2623,7 @@ async function monitorStorageMode(){
  try{observeStorageControl(await publicSheets.control())}catch(error){modeReadError=error.message;renderStorageMode()}
  modeMonitor=setTimeout(monitorStorageMode,30000);
 }
-$('#storage-open').onclick=()=>{renderStorageMode();for(const input of $$('[name="storage-choice"]'))input.checked=input.value===storageControl.ack.mode;showDialog('storage-dialog')};
+$('#storage-open').onclick=()=>{closeDialog('appearance-dialog');renderStorageMode();for(const input of $$('[name="storage-choice"]'))input.checked=input.value===storageControl.ack.mode;showDialog('storage-dialog')};
 async function changeStorageMode(target,cancelPending=false){
  if(!Object.hasOwn(MODES,target)||(target===storageControl.ack.mode&&!modePending(storageControl)))return closeDialog('storage-dialog');
  modeBusy=true;modeReadError='';renderStorageMode();

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261108-mode-1" />
+    <meta name="application-version" content="20261108-ui-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -27,8 +27,8 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261108-mode-1" />
-    <link rel="stylesheet" href="./board-ui.css?rev=20261108-mode-1" />
+    <link rel="stylesheet" href="./styles.css?rev=20261108-ui-1" />
+    <link rel="stylesheet" href="./board-ui.css?rev=20261108-ui-1" />
   </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
@@ -38,7 +38,7 @@
         ><span class="brand-word">GENGROUP</span></a
       >
       <div class="board-name">
-        <strong>Задачи команды</strong
+        <strong>Задачи</strong
         ><span id="save-state">Копия на устройстве</span>
       </div>
       <div class="header-actions">
@@ -48,9 +48,7 @@
           aria-label="Открыть команды и поиск"
           title="Команды и поиск (Ctrl/Cmd+K)"
         >
-          <span data-icon="command"></span
-          ><span class="wide-label">Команды</span
-          ><kbd class="wide-label">⌘ K</kbd>
+          <span data-icon="command"></span><kbd class="wide-label">⌘ K</kbd>
         </button>
         <button
           id="google-connect"
@@ -61,8 +59,6 @@
           ><span id="google-label" class="wide-label">Подключить Google</span
           ><span class="narrow-label">Google</span>
         </button>
-        <button id="storage-open" class="button quiet" aria-haspopup="dialog"><span id="storage-label">Хранение</span></button>
-        <button id="access-open" class="button quiet" aria-haspopup="dialog">Доступ</button>
         <button
           id="appearance-open"
           class="icon-button"
@@ -71,7 +67,7 @@
         >
           <span data-icon="sun"></span>
         </button>
-        <button id="add" class="button quiet">
+        <button id="add" class="button primary">
           <span data-icon="plus"></span><span>Задача</span>
         </button>
       </div>
@@ -121,16 +117,6 @@
           </div>
         </div>
         <div class="side-bottom">
-          <div class="connection-heading">
-            <i class="connection-dot" id="cloud-dot" aria-hidden="true"></i
-            ><strong id="cloud-label">Локальная доска</strong>
-          </div>
-          <p id="cloud-status">
-            Подключите таблицу, чтобы работать с ней на других устройствах.
-          </p>
-          <button id="cloud-conflicts" class="text-button" hidden>
-            Сравнить версии
-          </button>
           <div class="side-tools">
             <button id="import-open" class="text-button">
               <span data-icon="upload"></span>Импорт</button
@@ -143,40 +129,6 @@
         </div>
       </aside>
       <section class="workspace" aria-label="Доска задач">
-        <div class="workspace-top">
-          <div class="workspace-title">
-            <div id="view-kicker" class="eyebrow">Планирование</div>
-            <h2 id="view-title">Приоритеты</h2>
-            <p id="data-freshness" class="source-meta">
-              Источник: копия на этом устройстве. Дата проверки неизвестна.
-            </p>
-          </div>
-          <div class="workspace-summary">
-            <button
-              id="changes-open"
-              class="button changes-button"
-              aria-haspopup="dialog"
-            >
-              Изменения
-            </button>
-            <div class="stats">
-              <strong id="task-count">0</strong
-              ><span id="task-scope">на устройстве</span>
-            </div>
-          </div>
-        </div>
-        <div id="view-access" class="notice view-access" role="status" hidden>
-          <p id="view-access-status">
-            Подключаемся к общей доске без Google-входа.
-          </p>
-          <div class="view-actions">
-            <button id="view-signin" class="button quiet">
-              Войти</button
-            ><button id="view-retry" class="button quiet" hidden>
-              Обновить просмотр
-            </button>
-          </div>
-        </div>
         <div id="demo-banner" class="notice" hidden>
           <span
             >Демонстрация. Эти карточки не связаны с вашей Google
@@ -188,15 +140,16 @@
           ><button id="drafts-open" class="text-button">Продолжить</button>
         </div>
         <div class="toolbar">
+          <div class="toolbar-heading"><span id="view-kicker" class="visually-hidden">Планирование</span><h2 id="view-title">Приоритеты</h2><span class="stats"><strong id="task-count">0</strong><span id="task-scope" class="visually-hidden">на устройстве</span></span></div>
           <label class="search"
             ><span data-icon="search"></span
             ><input
               id="search"
               type="search"
-              placeholder="Задача, человек, номер или срок"
+              placeholder="Поиск задач"
               aria-label="Поиск задач"
             /><kbd>/</kbd></label
-          ><button id="filters-open" class="button quiet">
+          ><button id="filters-open" class="button quiet" aria-label="Открыть фильтры">
             <span data-icon="filter"></span
             ><span id="filter-count">Фильтры</span></button
           ><button id="new-owner" class="button quiet" hidden>
@@ -220,6 +173,7 @@
           >
             <span data-icon="redo"></span>
           </button>
+          <div class="toolbar-actions"><button id="source-info" class="source-summary-button" aria-haspopup="dialog" title="Источник, сохранение и доступ"><i id="summary-dot" class="connection-dot" aria-hidden="true"></i><span id="source-summary">Подключение</span></button><button id="changes-open" class="button changes-button" aria-haspopup="dialog">Изменения</button></div>
         </div>
         <nav class="status-shortcuts" aria-label="Завершённые задачи">
           <span class="status-caption">Итог задачи</span
@@ -479,6 +433,9 @@
         Настройки остаются на этом устройстве. Системные предпочтения уменьшения
         движения и прозрачности учитываются автоматически.
       </p>
+      <div class="settings-links">        <button id="storage-open" class="button quiet" aria-haspopup="dialog"><span id="storage-label">Хранение</span></button>
+        <button id="access-open" class="button quiet" aria-haspopup="dialog">Доступ</button>
+      </div>
       <p id="preferences-error" class="error" role="alert"></p>
       <button class="button primary" data-close="appearance-dialog">
         Готово
@@ -595,8 +552,7 @@
       <h2 id="help-title">От задачи к действию</h2>
       <ul>
         <li>
-          <strong>Приоритеты.</strong> Перенос между квадратами меняет
-          приоритет.
+          <strong>Приоритеты.</strong> Карточки выстроены в сетку. Тяните за ручку, чтобы менять очередность или квадрат. Выделите несколько карточек для массового переноса. Размер карточек меняется кнопкой рядом с переключателем «Карточки / Обзор».
         </li>
         <li>
           <strong>Команда и сроки.</strong> Перенос назначает человека или дату
@@ -607,9 +563,7 @@
           кнопку над холстом. Возврат в рабочую зону ставит «В работе».
         </li>
         <li>
-          <strong>Читаемый просмотр.</strong> «Список» показывает все поля без
-          уменьшения масштаба. На холсте Enter или двойной клик открывает
-          детали. Кнопка 100% возвращает читаемый масштаб.
+          <strong>Обзор всей доски.</strong> В приоритетах включите «Обзор»: издалека видны нагрузка, ответственные и сроки, при приближении появляются карточки. Колесо перемещает обзор, Ctrl/Cmd + колесо меняет масштаб под курсором. Кнопка с углами показывает все зоны, нажатие на название зоны открывает её задачи. «Список» показывает задачи без уменьшения.
         </li>
         <li>
           <strong>Черновики.</strong> Закрытие редактора сохраняет введённое на
@@ -627,7 +581,7 @@
         <dt><kbd>Ctrl/Cmd Z</kbd></dt>
         <dd>Отмена изменения</dd>
         <dt><kbd>F</kbd></dt>
-        <dd>Обзор всех карточек</dd>
+        <dd>Вписать всю доску в режиме «Обзор» или на холсте дорожек</dd>
         <dt><kbd>Пробел + мышь</kbd></dt>
         <dd>Перемещение обзора</dd>
         <dt><kbd>Ctrl/Cmd + колесо</kbd></dt>
@@ -651,6 +605,30 @@
       <a href="./privacy.html" target="_blank" rel="noopener"
         >Хранение данных и доступ Google</a
       >
+    </dialog>
+    <dialog id="source-dialog" class="modal small-modal" aria-labelledby="source-title"><div class="dialog-top"><span class="eyebrow">Состояние доски</span><button class="icon-button" data-close="source-dialog" aria-label="Закрыть состояние доски"><span data-icon="close"></span></button></div><h2 id="source-title">Сохранение и доступ</h2>
+          <div class="connection-heading">
+            <i class="connection-dot" id="cloud-dot" aria-hidden="true"></i
+            ><strong id="cloud-label">Локальная доска</strong>
+          </div>
+          <p id="cloud-status">
+            Подключите таблицу, чтобы работать с ней на других устройствах.
+          </p>
+          <button id="cloud-conflicts" class="text-button" hidden>
+            Сравнить версии
+          </button>
+      <p id="data-freshness" class="source-meta">Источник: копия на этом устройстве. Дата проверки неизвестна.</p>        <div id="view-access" class="notice view-access" role="status" hidden>
+          <p id="view-access-status">
+            Подключаемся к общей доске без Google-входа.
+          </p>
+          <div class="view-actions">
+            <button id="view-signin" class="button quiet">
+              Войти</button
+            ><button id="view-retry" class="button quiet" hidden>
+              Обновить просмотр
+            </button>
+          </div>
+        </div>
     </dialog>
     <dialog id="storage-dialog" class="modal" aria-labelledby="storage-title">
       <div class="dialog-top"><span class="eyebrow">Данные и доступ</span><button class="icon-button" data-close="storage-dialog" aria-label="Закрыть выбор хранения"><span data-icon="close"></span></button></div>
@@ -796,7 +774,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261108-mode-1"></script>
+    <script type="module" src="./app.mjs?rev=20261108-ui-1"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

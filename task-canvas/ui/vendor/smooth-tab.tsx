@@ -64,9 +64,8 @@ const VELOCITY_WINDOW = 100;
 // A panel one full width away sits at this opacity, so the neighbour reads
 // as "next" while it slides in.
 const NEIGHBOUR_OPACITY = 0.35;
-// Just under critical damping: a firm settle, a hint of overshoot only after
-// a fast flick.
-const SPRING = { type: "spring", stiffness: 420, damping: 38 } as const;
+// Settle without overshoot; reduced motion jumps to the selected position.
+const SPRING = { type: "tween", duration: .2, ease: [.22, 1, .36, 1] } as const;
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 interface TabRect {
@@ -385,13 +384,11 @@ export default function SmoothTab({
       target.current = index;
       anim.current?.stop();
       anim.current = null;
-      if (opts.instant) {
+      if (opts.instant || reducedMotion.current) {
         progress.jump(index);
         return;
       }
-      anim.current = reducedMotion.current
-        ? animate(progress, index, { duration: 0.15, ease: EASE_OUT })
-        : animate(progress, index, { ...SPRING, velocity: opts.velocity ?? 0 });
+      anim.current = animate(progress, index, { ...SPRING });
     },
     [progress]
   );
@@ -429,7 +426,7 @@ export default function SmoothTab({
     }
     e.preventDefault();
     tabRefs.current[next]?.focus();
-    // A held key repeats faster than any spring settles: jump instead.
+    // A held key repeats faster than the transition: jump instead.
     select(next, { instant: e.repeat });
   };
 
@@ -517,7 +514,7 @@ export default function SmoothTab({
     if (!cancelled && Math.abs(vx) > SWIPE_VELOCITY) {
       next = vx < 0 ? Math.floor(p) + 1 : Math.ceil(p) - 1;
     }
-    // The spring starts at the finger's speed, so the hand-off is seamless.
+    // Release selects the next tab; settling uses the same short tween.
     select(next, { velocity: (-vx * 1000) / current.width });
   };
 

@@ -17,12 +17,14 @@ export function Overview({groups,itemsFor,today,onOpen,onFocus}:any){
   if(e.target.closest('.map-controls'))return;
   const point=local(e);points.current.set(e.pointerId,point);
   if(points.current.size===2){const[a,b]=[...points.current.values()],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};gesture.current={pinch:true,distance:Math.hypot(a.x-b.x,a.y-b.y),camera:cameraRef.current,mid};moved.current=true;stage.current?.setPointerCapture(e.pointerId);setPanning(true);return}
+  const grid=e.target.closest('.map-task-grid');
+  if(e.pointerType==='touch'&&grid&&!hand&&!space.current){gesture.current={point,pointer:e.pointerId,scroll:grid,scrollTop:grid.scrollTop,scrollLeft:grid.scrollLeft};moved.current=false;return}
   if(e.button===1||space.current||hand||!e.target.closest('button')){e.preventDefault();gesture.current={point,camera:cameraRef.current,pointer:e.pointerId};moved.current=false;stage.current?.setPointerCapture(e.pointerId);setPanning(true);stage.current?.focus({preventScroll:true})}
  };
  const move=(e:any)=>{
   if(!points.current.has(e.pointerId))return;const point=local(e);points.current.set(e.pointerId,point);const g=gesture.current;if(!g)return;
   if(g.pinch&&points.current.size===2){const[a,b]=[...points.current.values()],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clampMapZoom(g.camera.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,g.distance)),next=zoomMapAt(g.camera,z,g.mid);update({...next,x:next.x+mid.x-g.mid.x,y:next.y+mid.y-g.mid.y});return}
-  if(g.pointer!==e.pointerId)return;const dx=point.x-g.point.x,dy=point.y-g.point.y;if(Math.abs(dx)+Math.abs(dy)>5)moved.current=true;update({...g.camera,x:g.camera.x+dx,y:g.camera.y+dy});
+  if(g.pointer!==e.pointerId)return;const dx=point.x-g.point.x,dy=point.y-g.point.y;if(Math.abs(dx)+Math.abs(dy)>5)moved.current=true;if(g.scroll){g.scroll.scrollTop=g.scrollTop-dy;g.scroll.scrollLeft=g.scrollLeft-dx;return}update({...g.camera,x:g.camera.x+dx,y:g.camera.y+dy});
  };
  const end=(e:any)=>{points.current.delete(e.pointerId);if(stage.current?.hasPointerCapture(e.pointerId))stage.current.releasePointerCapture(e.pointerId);gesture.current=null;setPanning(false);setTimeout(()=>{moved.current=false},0)};
  const detailed=camera.z>=.82;

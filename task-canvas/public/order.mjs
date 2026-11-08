@@ -5,7 +5,9 @@ import {groupFor, moveTask} from './model.mjs?rev=20261109-productivity-1';
 // or rewrites somebody else's task merely to establish an initial order.
 export function orderKey(task, mode, today) {
   const p = task.positions?.[mode];
-  if (p?.group === groupFor(task, mode, today) && typeof p.order === 'string') return p.order;
+  // A calendar queue must survive the day moving from today to overdue.
+  // Explicit date edits already clear/reassign positions.time.
+  if ((mode === 'time' || p?.group === groupFor(task, mode, today)) && typeof p?.order === 'string') return p.order;
   const y = Math.round(p?.y || 96), x = Math.round(p?.x || 24);
   const suffix = [...new TextEncoder().encode(task.id)].map(v=>v.toString(16).padStart(2,'0')).join('');
   return 'b00' + String(y * 100001 + x).padStart(11,'0') + suffix + 'V';

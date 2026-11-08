@@ -1,9 +1,9 @@
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Minus,Plus,Scan,Hand,Maximize2,GripVertical} from 'lucide-react';
+import {Minus,Plus,Scan,Hand,Maximize2,GripVertical,Star} from 'lucide-react';
 import {useDroppable,useDndContext} from '@dnd-kit/core';
 import {SortableContext,useSortable,verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {LiquidGlassCard} from './vendor/liquid-glass-card';
-import {PrioritySignals} from './priority-signals';
+import {PrioritySignals,PriorityEmblem} from './priority-signals';
 import {fitMap,focusMapZone,zoomMapAt,clampMapZoom,overviewLayout,groupDigest} from '../public/board-camera.mjs';
 import {edgeVelocity} from '../public/overview-dnd.mjs';
 
@@ -14,8 +14,9 @@ function MapTask({task,props,selection,drag,drop,overId,hand}:any){
  return <article ref={setNodeRef} data-map-task={task.id} className={`map-task ${chosen?'chosen':''} ${isDragging?'dragging':''} ${insert?(drop.after?'insert-after':'insert-before'):''}`}>
    <div className="map-task-copy">
     <button className="map-task-title" aria-label={`Открыть: ${task.title}`} title={task.title} onClick={e=>{if(props.editable&&(e.ctrlKey||e.metaKey||e.shiftKey))props.onSelect(task.id,e.shiftKey);else props.onOpen(task.id)}}>{task.title}</button>
-    <span className="map-task-meta" title={`${task.owner||'Не назначен'} · ${task.due||'Без срока'}`}><span>{task.owner||'Не назначен'}</span>{task.due&&<time className={task.due<props.today&&!['Готово','Отменено'].includes(task.status)?'overdue':''}>{new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00'))}</time>}{props.notices[task.id]&&<i className="map-task-notice" title={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'} aria-label={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'}/>}</span>
+    <span className="map-task-meta" title={`${task.owner||'Не назначен'} · ${task.due||'Без срока'}`}><span>{props.avatars[task.owner]&&<img className="map-avatar" src={props.avatars[task.owner]} alt="" loading="lazy"/>}{task.owner||'Не назначен'}</span>{task.due&&<time className={task.due<props.today&&!['Готово','Отменено'].includes(task.status)?'overdue':''}>{new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00'))}</time>}{props.notices[task.id]&&<i className="map-task-notice" title={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'} aria-label={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'}/>}</span>
    </div>
+   <button className="task-pin-icon map-pin" aria-label={`${props.pins.includes(task.id)?'Убрать из избранного':'В избранное'}: ${task.title}`} aria-pressed={props.pins.includes(task.id)} disabled={!!drag||hand} onClick={()=>props.onPin(task.id)}><Star size={14}/></button>
    {props.editable&&<div className="map-task-actions"><label className="map-task-check"><input type="checkbox" aria-label={`Выбрать: ${task.title}`} checked={chosen} disabled={props.busy||!!drag} onChange={()=>props.onSelect(task.id)}/></label><button className="map-task-grip" aria-label={`Переместить в обзоре: ${task.title}`} title="Тяните для переноса. Пробел и стрелки - с клавиатуры." {...attributes} {...listeners}><GripVertical size={16}/></button></div>}
  </article>;
 }
@@ -24,7 +25,7 @@ function MapZone({group,items,props,selection,drag,drop,overId,hand,camera,summa
  const active=drop?.group===group.id;
  const digest=groupDigest(items,props.today),width=group.w*camera.z,height=group.h*camera.z;
  return <section ref={setNodeRef} data-priority={group.id} className={`map-zone-label ${summary?'is-summary':'has-tasks'} ${active?'drop-active':''} ${width<220?'small-zone':''}`} aria-label={`Обзор: ${group.title}`} style={{left:camera.x+group.x*camera.z,top:camera.y+group.y*camera.z,width,height,'--map-title-size':`${Math.max(12,Math.min(15,11+camera.z*2))}px`} as React.CSSProperties}>
-  <header className="map-zone-head"><button className="map-zone-heading" onClick={onFocus} disabled={!!drag} title="Приблизить квадрат, оставаясь в обзоре"><span>{group.title}</span><b>{items.length}</b><Maximize2 size={13}/></button><PrioritySignals group={group}/></header>
+  <header className="map-zone-head"><button className="map-zone-heading" onClick={onFocus} disabled={!!drag} title="Приблизить квадрат, оставаясь в обзоре"><PriorityEmblem id={group.id}/><span>{group.title}</span><b>{items.length}</b><Maximize2 size={13}/></button><PrioritySignals group={group}/></header>
   {summary?<div className="map-digest"><div className="map-owners">{digest.owners.slice(0,width<220?1:group.id==='inbox'||group.id.startsWith('status:')?1:3).map(([name,count])=><div key={name}><span>{name}</span><b>{count}</b><i style={{width:`${Math.round(Number(count)/Math.max(1,items.length)*100)}%`}}/></div>)}{!items.length&&<span className="map-no-tasks">Нет задач</span>}</div><div className="map-deadlines">{digest.overdue>0?<span className="overdue">Просрочено {digest.overdue}</span>:<span>Со сроком {digest.scheduled}</span>}<span>Без срока {items.length-digest.scheduled}</span></div></div>
   :<div className={`map-task-grid ${overId==='zone:'+group.id?'insert-end':''}`} onScroll={onScroll}>
     <SortableContext id={'overview:'+group.id} items={items.map(t=>t.id)} strategy={verticalListSortingStrategy}>{items.map(task=><MapTask key={task.id} {...{task,props,selection,drag,drop,overId,hand}}/>)}</SortableContext>

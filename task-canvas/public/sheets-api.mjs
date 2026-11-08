@@ -3,8 +3,8 @@ import {
   TAB_ID,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261108-ui-2";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261108-ui-2';
+} from "./sync-model.mjs?rev=20261109-productivity-1";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-productivity-1';
 export class SheetsApi {
   constructor(
     auth,

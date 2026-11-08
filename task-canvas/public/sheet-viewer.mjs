@@ -1,5 +1,5 @@
-import {SHEET_ID,TAB_ID,decodeSheet} from './sync-model.mjs?rev=20261108-ui-2';
-import {readModeControl} from './storage-mode.mjs?rev=20261108-ui-2';
+import {SHEET_ID,TAB_ID,decodeSheet} from './sync-model.mjs?rev=20261109-productivity-1';
+import {readModeControl} from './storage-mode.mjs?rev=20261109-productivity-1';
 // CSV export retains minority cell types, blank rows, multiline text and literal
 // JSON. Visualization queries infer column types and can silently drop values.
 export function parseCsv(text){

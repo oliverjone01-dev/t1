@@ -218,6 +218,12 @@ jobs:
       # gg-plan-radar-v2-src/ и в _site не попадает. Страховка та же, что у академии:
       # фамилия ростера в открытом тексте = стоп всей публикации, поэтому шаг БЕЗ
       # continue-on-error - утечка важнее аптайма.
+      - name: Task board employee directory (marketing and PTO)
+        continue-on-error: true # Original task names remain usable if Bitrix is unavailable.
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+        run: node task-canvas/tools/fetch-directory.mjs _site/tasks
+
       - name: Build PLAN radar (/plan/ + sealed /plan/v2/)
         run: |
           set -euo pipefail

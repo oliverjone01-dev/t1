@@ -11,9 +11,9 @@ export function resolvePerson(owner,people){
  return matches.length===1?matches[0]:null;
 }
 export class Directory {
- people=[];status='loading';updatedAt='';
- constructor({fetcher=fetch}={}){this.fetcher=fetcher}
- async load(){try{const response=await this.fetcher('./directory.json',{credentials:'omit',cache:'no-cache'});if(!response.ok)throw new Error();const data=await response.json();this.people=cleanDirectory(data);this.updatedAt=data.updatedAt||'';this.status=this.people.length?'ready':'empty'}catch{this.status='unavailable'}return this}
+ people=[];departments=[];status='loading';updatedAt='';
+ constructor({fetcher=globalThis.fetch.bind(globalThis)}={}){this.fetcher=fetcher}
+ async load(){try{const response=await this.fetcher('./directory.json',{credentials:'omit',cache:'no-cache'});if(!response.ok)throw new Error();const data=await response.json();this.people=cleanDirectory(data);this.departments=(Array.isArray(data.departments)?data.departments:[]).filter(d=>d&&typeof d.name==='string').map(d=>d.name.trim()).filter(Boolean);this.updatedAt=data.updatedAt||'';this.status=this.people.length?'ready':'empty'}catch{this.status='unavailable'}return this}
  resolve(owner){return resolvePerson(owner,this.people)}
  name(owner){return this.resolve(owner)?.name||owner||''}
  avatar(owner){return this.resolve(owner)?.avatar||''}

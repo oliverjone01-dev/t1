@@ -1,7 +1,11 @@
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261108-ui-2';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261108-ui-2';
-import {renderBoard} from './board-ui.mjs?rev=20261108-ui-2';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261108-ui-2';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-productivity-1';
+import {Directory} from './directory.mjs?rev=20261109-productivity-1';
+import {installCalendar} from './calendar.mjs?rev=20261109-productivity-1';
+import {installProductivity} from './productivity.mjs?rev=20261109-productivity-1';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-productivity-1';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-productivity-1';
+import {renderBoard} from './board-ui.mjs?rev=20261109-productivity-1';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-productivity-1';
 import {
   QUADRANTS,
   CARD,
@@ -16,20 +20,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261108-ui-2";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261108-ui-2";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261108-ui-2";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261108-ui-2";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261108-ui-2";
-import { remoteChanges } from "./changes.mjs?rev=20261108-ui-2";
-import { TeamApi } from "./team-api.mjs?rev=20261108-ui-2";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261108-ui-2";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261108-ui-2";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261108-ui-2";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261108-ui-2";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261108-ui-2";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261108-ui-2";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261108-ui-2";
+} from "./model.mjs?rev=20261109-productivity-1";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261109-productivity-1";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-productivity-1";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-productivity-1";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261109-productivity-1";
+import { remoteChanges } from "./changes.mjs?rev=20261109-productivity-1";
+import { TeamApi } from "./team-api.mjs?rev=20261109-productivity-1";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-productivity-1";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-productivity-1";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261109-productivity-1";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-productivity-1";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-productivity-1";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-productivity-1";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-productivity-1";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -37,8 +41,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261108-ui-2";
-import { parseAssignee } from "./people.mjs?rev=20261108-ui-2";
+} from "./editor.mjs?rev=20261109-productivity-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-productivity-1";
 import {
   matchesTask,
   matchesWords,
@@ -47,8 +51,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261108-ui-2";
-import { icon } from "./icons.mjs?rev=20261108-ui-2";
+} from "./ui-model.mjs?rev=20261109-productivity-1";
+import { icon } from "./icons.mjs?rev=20261109-productivity-1";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -76,6 +80,9 @@ let accessMode = DEMO ? "edit" : "view",
   lastPublicChanges = [];
 const canEdit = () =>
   DEMO || (accessMode === "edit" && !!cloudEngine?.connected && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
+const directory=new Directory();
+const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
+let productivity=null,calendar=null;
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
 function selectTask(id,range=false){
   if(!canEdit())return;
@@ -92,9 +99,9 @@ function renderMatrix(){
   const visible=tasks.filter(isVisible), ids=new Set(visible.map(t=>t.id));
   selectedIds=new Set([...selectedIds].filter(id=>ids.has(id)));
   if(!canEdit())selectedIds.clear();
-  renderBoard($('#board-ui'),{active:mode==='priority',busy:matrixMutationBusy,tasks:visible,today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
+  renderBoard($('#board-ui'),{active:mode==='priority',busy:matrixMutationBusy,tasks:visible.map(t=>({...t,owner:personName(t.owner)})),avatars:Object.fromEntries(directory.people.filter(p=>directory.resolve(p.name)?.id===p.id).map(p=>[p.name,p.avatar])),today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
     notices:Object.fromEntries(visible.filter(t=>inbox.get(t.id)).map(t=>[t.id,inbox.get(t.id).kind])),
-    onOpen:openTask,onSelect:selectTask,
+    onOpen:openTask,onSelect:selectTask,pins:productivity?.pins()||[],onPin:id=>productivity?.togglePin(id),onBulkEdit:()=>productivity?.openBulk(),
     onSelectGroup:(ids,enabled)=>{for(const id of ids)enabled?selectedIds.add(id):selectedIds.delete(id);render()},
     onClear:()=>{selectedIds.clear();render()},
     onDragStart:(ids)=>{selectedIds=new Set(ids);matrixBasis=cloudEngine?.managed?cloudEngine.capture():null;matrixDragging=true},
@@ -223,14 +230,14 @@ try {
       : [];
     cloudCache = DEMO ? null : state.cloud || null;
     inbox = new ChangeInbox(state.changes);
-    mode = ["priority", "owners", "time", "list"].includes(state.mode)
+    mode = ["priority", "owners", "time", "list", "calendar"].includes(state.mode)
       ? state.mode
       : "priority";
     lastCanvasMode = ["priority", "owners", "time"].includes(
       state.lastCanvasMode,
     )
       ? state.lastCanvasMode
-      : mode === "list"
+      : ["list","calendar"].includes(mode)
         ? "priority"
         : mode;
     if (
@@ -271,7 +278,7 @@ if (!DEMO) {
       viewerReadAt = Number.isFinite(saved.lastReadAt) ? saved.lastReadAt : 0;
       viewerHasBaseline = true;
       inbox = new ChangeInbox(saved.changes);
-      if (["priority", "owners", "time", "list"].includes(saved.mode))
+      if (["priority", "owners", "time", "list", "calendar"].includes(saved.mode))
         mode = saved.mode;
       if (["priority", "owners", "time"].includes(saved.lastCanvasMode))
         lastCanvasMode = saved.lastCanvasMode;
@@ -588,14 +595,16 @@ function setOptions(select, html) {
   const value = select.value;
   select.innerHTML = html;
   select.dataset.options = html;
+  if (value && select.tagName === "SELECT" && ["owner-filter","unit-filter"].includes(select.id) && ![...select.options].some(o=>o.value===value)) select.add(new Option(value.replace(/^owner:/, "")+" · нет на доске",value));
   if ([...select.options].some((o) => o.value === value)) select.value = value;
 }
 function updateOptions() {
   const units = [...new Set(tasks.map((t) => t.unit).filter(Boolean))].sort(),
     owners = [
       ...new Set([
-        ...tasks.map((t) => t.owner).filter(Boolean),
-        ...extraOwners,
+        ...tasks.map((t) => personName(t.owner)).filter(Boolean),
+        ...extraOwners.map(personName),
+        ...directory.names(),
       ]),
     ].sort();
   for (const [id, values, label] of [
@@ -630,8 +639,8 @@ function matchesFilters(task) {
     (!$("#owner-filter").value ||
       ($("#owner-filter").value === "__none"
         ? !task.owner
-        : `owner:${task.owner}` === $("#owner-filter").value)) &&
-    matchesTask(task, $("#search").value)
+        : personName(task.owner) === personName($("#owner-filter").value.replace(/^owner:/,"")))) &&
+    matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (productivity?.matches(task)??true)
   );
 }
 const isVisible = (task) =>
@@ -750,13 +759,13 @@ function cardMarkup(task) {
         .map((s) => s[0])
         .join("")
     : "·";
-  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${esc(initials)}</span><span class="owner-name">${esc(task.owner || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span><span class="status-text"><i class="status-dot ${task.status === "Готово" ? "done" : task.status === "Отменено" ? "cancelled" : task.status === "В работе" ? "working" : ""}"></i>${esc(task.status || "Не указан")}</span></div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-row="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${esc(task.owner || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" ${canEdit() ? "" : "disabled"} data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
+      return `<tr role="row" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус"><select class="row-status" ${canEdit() ? "" : "disabled"} data-status-id="${esc(task.id)}" aria-label="Статус: ${esc(task.title)}">${[
         ...new Set([...STATUSES, task.status]),
       ]
         .filter(Boolean)
@@ -777,11 +786,11 @@ function render() {
   renderChanges();
   updateOptions();
   renderDraftBanner();
-  const visible = tasks.filter(isVisible),
+  const visible = productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),
     matching = tasks.filter(matchesFilters),
-    canvasMode = mode === "list" ? lastCanvasMode : mode;
-  layout = createLayout(visible, canvasMode, today(), [
-    ...new Set([...extraOwners, ...tasks.map((t) => t.owner).filter(Boolean)]),
+    canvasMode = ["list","calendar"].includes(mode) ? lastCanvasMode : mode;
+  layout = createLayout(visible.map(t=>({...t,owner:personName(t.owner)})), canvasMode, today(), [
+    ...new Set([...extraOwners.map(personName), ...tasks.map((t) => personName(t.owner)).filter(Boolean)]),
   ]);
   for (const lane of STATUS_LANES)
     text(
@@ -806,6 +815,7 @@ function render() {
     priority: ["Планирование", "Приоритеты", "Выделяйте задачи и переносите за ручку ⠿"],
     owners: ["Ответственность", "Команда", "Перенос назначает ответственного"],
     time: ["Планирование", "Сроки", "Перенос меняет дату"],
+    calendar: ["Планирование", "Календарь", "Выберите период или откройте задачу"],
     list: ["Все задачи", "Список", "Откройте название, чтобы изменить задачу"],
   }[mode];
   text("#view-kicker", info[0]);
@@ -819,15 +829,16 @@ function render() {
     el.setAttribute("aria-pressed", String(el.dataset.mode === mode));
   });
   $("#new-owner").hidden = !canEdit() || mode !== "owners";
-  $("#lane-jump").hidden = mode === "list" || mode === "priority";
-  $("#viewport").hidden = mode === "list" || mode === "priority";
+  $("#lane-jump").hidden = ["list","calendar"].includes(mode) || mode === "priority";
+  $("#viewport").hidden = ["list","calendar"].includes(mode) || mode === "priority";
   $("#task-list").hidden = mode !== "list";
-  $(".canvas-footer").hidden = mode === "list" || mode === "priority";
-  $(".zoom-controls").hidden = mode === "list" || mode === "priority" || !visible.length;
+  $(".canvas-footer").hidden = ["list","calendar"].includes(mode) || mode === "priority";
+  $(".zoom-controls").hidden = ["list","calendar"].includes(mode) || mode === "priority" || !visible.length;
   const filterCount = [
     $("#unit-filter").value,
     $("#owner-filter").value,
     $("#hide-done").checked,
+    productivity?.filterActive(),
   ].filter(Boolean).length;
   text("#filter-count", filterCount ? `Фильтры · ${filterCount}` : "Фильтры");
   if (mode === "list") $("#task-list").innerHTML = listMarkup(visible);
@@ -835,14 +846,17 @@ function render() {
     $("#zones").innerHTML = layout.groups
       .map(
         (g, i) =>
-          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor(t, canvasMode, today()) === g.id).length}</span></div></section>`,
+          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor({...t,owner:personName(t.owner)}, canvasMode, today()) === g.id).length}</span></div></section>`,
       )
       .join("");
     $("#cards").innerHTML = visible.map(cardMarkup).join("");
   }
   renderMatrix();
+  productivity?.render();
+  calendar?.render();
   renderEmpty();
-  $("#no-results").hidden = !tasks.length || !!visible.length;
+  $("#no-results").hidden = mode==='calendar' || !tasks.length || !!visible.length;
+  if(mode==='calendar')$("#empty").hidden=true;
   $("#undo").disabled = !canEdit() || !history.length;
   $("#redo").disabled = !canEdit() || !future.length;
   renderProvenance();
@@ -873,7 +887,7 @@ function zoom(factor, point) {
   applyCamera();
 }
 function fit() {
-  if (mode === "list") return;
+  if (["list","calendar"].includes(mode)) return;
   const visible = tasks.filter(isVisible);
   if (!visible.length) return;
   const rect = $("#viewport").getBoundingClientRect();
@@ -1213,6 +1227,7 @@ function renderEditorConflicts() {
   return conflicts;
 }
 function openTask(id = null, chosenDraft = null) {
+  productivity?.beforeOpen(id);
   if (id === null && !requireEditor()) return;
   editingVersionBasis = cloudEngine?.managed ? cloudEngine.capture() : null;
   editing = id;
@@ -1297,10 +1312,13 @@ function openTask(id = null, chosenDraft = null) {
   }
   renderEditorConflicts();
   showDialog("editor");
+  productivity?.editorOpened(id);
+  renderOwnerProfile();
 }
 $("#task-form").addEventListener("input", () => {
   text("#editor-error", "");
   saveDraft();
+  renderOwnerProfile();
 });
 $("#task-form").addEventListener("change", saveDraft);
 $("#editor-conflicts").onclick = (e) => {
@@ -1380,6 +1398,7 @@ async function submitTask(forceNew = false) {
   $("#editor").close();
   renderDraftBanner();
   savedToast("Задача сохранена");
+  return true;
 }
 $("#task-form").onsubmit = (e) => {
   e.preventDefault();
@@ -1598,6 +1617,7 @@ $("#export").onclick = exportBoard;
 $("#alert-export").onclick = exportBoard;
 $("#alert-reload").onclick = () => location.reload();
 function clearFilters() {
+  productivity?.reset();
   $("#search").value = "";
   $("#unit-filter").value = "";
   $("#owner-filter").value = "";
@@ -1610,12 +1630,12 @@ for (const id of ["search", "unit-filter", "owner-filter", "hide-done"])
   $("#" + id).addEventListener(id === "search" ? "input" : "change", render);
 function setMode(next) {
   mode = next;
-  if (next !== "list") {
+  if (!["list","calendar"].includes(next)) {
     lastCanvasMode = next;
     camera = { x: 32, y: 24, z: 1 };
   }
   render();
-  if (next !== "list") {
+  if (!["list","calendar"].includes(next)) {
     const first =
       tasks.filter(isVisible).find((t) => !statusGroup(t)) ||
       tasks.filter(isVisible)[0];
@@ -1773,6 +1793,7 @@ let commandItems = [],
   commandIndex = 0;
 function availableCommands() {
   return [
+    ...(productivity?.commands()||[]),
     {
       title: "Новая задача",
       detail: "Создать карточку",
@@ -1796,8 +1817,8 @@ function availableCommands() {
       detail: "JSON на это устройство",
       run: exportBoard,
     },
-    ...["priority", "owners", "time", "list"].map((m, i) => ({
-      title: ["Приоритеты", "Команда и ответственные", "Сроки", "Список задач"][
+    ...["priority", "owners", "time", "list", "calendar"].map((m, i) => ({
+      title: ["Приоритеты", "Команда и ответственные", "Сроки", "Список задач", "Календарь задач"][
         i
       ],
       detail: "Вид доски",
@@ -1920,7 +1941,7 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     $("#search").focus();
   }
-  if (mode === "list" || mode === "priority" || e.target.closest("#board-ui")) return;
+  if (["list","calendar"].includes(mode) || mode === "priority" || e.target.closest("#board-ui")) return;
   if (!e.ctrlKey && !e.metaKey && !e.altKey && e.code === "KeyF") {
     e.preventDefault();
     fit();
@@ -2073,6 +2094,8 @@ function cloudState(state) {
     connecting || state.status === "cache-error";
   renderChanges();
   renderProvenance();
+  productivity?.render();
+  calendar?.render();
   renderEmpty();
 }
 function renderViewerState(state = viewerState) {
@@ -2129,6 +2152,8 @@ function renderViewerState(state = viewerState) {
       "connection-dot " +
       (viewerState.status === "view-live" ? "cloud-online" : "cloud-warning");
   renderProvenance();
+  productivity?.render();
+  calendar?.render();
   renderEmpty();
 }
 function applyPublic(board, meta) {
@@ -2552,6 +2577,28 @@ if (!DEMO) {
     });
 }
 if(SHEETS_ONLY){text('#cloud-title','Личная доска · Google Таблица');text('#cloud-mode-note','Правки до отправки и черновики сохраняются на этом устройстве. История версий таблицы доступна в Google. Общая история Firestore в личном режиме не ведётся.');text('#cloud-mode-description','Вы редактируете через свой Google, коллеги смотрят по ссылке без входа. Карточки и порядок сохраняются прямо в таблице. Firestore в этом режиме не используется.');}
+productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,canEdit,requireEditor,personName,
+ tasks:()=>tasks,mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
+ visible:()=>productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),unread:id=>inbox.get(id),
+ render,setMode,clearFilters,openTask,saveDraft,submitTask,field,
+ loaded:()=>DEMO||viewerState.status==='view-live'||syncState.status==='synced',
+ capture:()=>cloudEngine?.managed?cloudEngine.capture():null,
+ commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),
+ selectAll:ids=>{ids.forEach(id=>selectedIds.add(id));render()},
+ clearSelection:()=>{selectedIds.clear();render()},
+ hasNewDraft:()=>{try{return !!(memoryDrafts.get(null)||drafts.read(null))}catch{return true}},
+});
+calendar=installCalendar({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...t,owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
+ createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
+});
+installPlanningDrag({tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit,selection:()=>[...selectedIds],toast,
+ capture:()=>cloudEngine?.managed?cloudEngine.capture():null,start:()=>{matrixDragging=true},cancel:()=>{matrixDragging=false;render()},
+ commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),manualOrder:()=>productivity.manualOrder(),
+});
+$('#owner-note').insertAdjacentHTML('afterend','<div id="owner-profile" class="owner-profile" hidden></div>');
+function renderOwnerProfile(){const input=field('owner'),person=directory.resolve(input.value),box=$('#owner-profile');if(!box)return;box.hidden=!person;if(!person)return;box.innerHTML=`${person.avatar?`<img src="${esc(person.avatar)}" alt="">`:''}<span><strong>${esc(person.name)}</strong><small>${esc(person.department)} · Bitrix24</small></span>${canEdit()&&input.value!==person.name?'<button type="button" class="text-button" id="use-full-name">Использовать полное имя</button>':''}`;const button=$('#use-full-name');if(button)button.onclick=()=>{input.value=person.name;saveDraft();renderOwnerProfile()};}
+$('#source-dialog').insertAdjacentHTML('beforeend','<p id="directory-state" class="source-meta"></p>');
+if(!DEMO)directory.load().then(()=>{text('#directory-state',directory.status==='ready'?`Сотрудники маркетинга и ПТО: ${directory.people.length}. Имена и фото из Bitrix24; обновлено ${new Date(directory.updatedAt).toLocaleDateString('ru')}.`:'Справочник сотрудников пока недоступен. Показаны имена из таблицы.');render();if($('#editor').open)renderOwnerProfile()});
 render();
 if (!DEMO) renderViewerState();
 if (DEMO && freshBoard && !stateLoadError) setMode(mode);

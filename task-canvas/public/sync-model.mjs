@@ -2,8 +2,8 @@ import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261108-ui-2";
-import { parseAssignee } from "./people.mjs?rev=20261108-ui-2";
+} from "./model.mjs?rev=20261109-productivity-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-productivity-1";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const SERVICE_HEADERS = [

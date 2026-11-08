@@ -18,6 +18,8 @@
   --primary: #1d4ed8;
   --primary-soft: #eaf0ff;
   --focus: #2563eb;
+  --importance-ink: #3561c9;
+  --urgency-ink: #7b3bc4;
   --success: #246342;
   --success-soft: #eaf5ed;
   --success-edge: #3d8560;
@@ -57,6 +59,8 @@
   --primary: #a5c2ff;
   --primary-soft: #22385d;
   --focus: #9abaff;
+  --importance-ink: #a5c2ff;
+  --urgency-ink: #d3b4ff;
   --success: #a2e3ba;
   --success-soft: #1b3326;
   --success-edge: #85c39d;

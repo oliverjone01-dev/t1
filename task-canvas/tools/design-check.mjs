@@ -42,6 +42,17 @@ export function designCheck(css, copy = "") {
         issues.push(`contrast-${index}-${a}-${b}`);
     }
   }
+  // Reference palette roles must remain readable on their actual tinted zones.
+  const blend=(a,b,p)=>'#'+[0,1,2].map(i=>Math.round(parseInt(a.slice(1+i*2,3+i*2),16)*p+parseInt(b.slice(1+i*2,3+i*2),16)*(1-p)).toString(16).padStart(2,'0')).join('');
+  for(const [index,block] of blocks.entries()){
+    if(!block)continue;
+    const tokens=Object.fromEntries([...block.matchAll(/--([\w-]+):\s*(#[a-f\d]{6})(?![a-f\d])/gi)].map(m=>[m[1],m[2]]));
+    for(const name of ['importance-ink','urgency-ink']){
+      if(!tokens[name]||!tokens.subtle){issues.push('priority-token-'+index+'-'+name);continue;}
+      const bg=blend(tokens[name],tokens.subtle,.07);
+      if(contrast(tokens[name],bg)<4.5||contrast(tokens[name],blend(tokens[name],tokens.panel,.07))<4.5||contrast(tokens.muted,bg)<4.5)issues.push('priority-contrast-'+index+'-'+name);
+    }
+  }
   if ([...css.matchAll(/font-size:\s*([\d.]+)px/g)].some((m) => +m[1] < 11))
     issues.push("font-floor");
   if (/[\u2013\u2014]/u.test(css + copy)) issues.push("long-dash");

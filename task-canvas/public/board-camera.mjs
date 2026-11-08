@@ -19,3 +19,7 @@ export function groupDigest(items,today){
  const owners=new Map();for(const task of items){const name=task.owner||'Не назначен';owners.set(name,(owners.get(name)||0)+1)}
  return {owners:[...owners].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru')),overdue:items.filter(t=>t.due&&t.due<today&&!['Готово','Отменено'].includes(t.status)).length,scheduled:items.filter(t=>t.due).length};
 }
+export function focusMapZone(zone,width,height,padding=24){
+ const z=clampMapZoom(Math.min((Math.max(1,width)-padding*2)/zone.w,(Math.max(1,height)-padding*2)/zone.h,1.4));
+ return {x:(width-zone.w*z)/2-zone.x*z,y:(height-zone.h*z)/2-zone.y*z,z};
+}

@@ -1,5 +1,5 @@
-import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261108-ui-1';
-import {groupFor, moveTask} from './model.mjs?rev=20261108-ui-1';
+import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261108-ui-2';
+import {groupFor, moveTask} from './model.mjs?rev=20261108-ui-2';
 
 // Legacy coordinates are stable implicit ranks. Reading a board never migrates
 // or rewrites somebody else's task merely to establish an initial order.

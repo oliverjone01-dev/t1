@@ -17,6 +17,8 @@ test("design guard rejects deliberately broken colors, sizes, motion and viewpor
     css.replace("--muted: #596575", "--muted: #cccccc"),
     css.replace("--text: #f3f6fb", "--text: #454545"),
     css + "p{font-size:8px}",
+    css.replace("--importance-ink: #3561c9", "--importance-ink: #cccccc"),
+    css.replace("--urgency-ink: #7b3bc4", "--urgency-ink: #cccccc"),
     css.replaceAll("prefers-reduced-motion", "removed-motion"),
     css.replaceAll("forced-colors", "removed-colors"),
     css + "a{transition:width 1s}",

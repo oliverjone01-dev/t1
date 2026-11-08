@@ -1,6 +1,6 @@
 import React,{useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
-import {MotionConfig,motion,AnimatePresence} from 'motion/react';
+import {MotionConfig,motion,AnimatePresence,useReducedMotion} from 'motion/react';
 import {DndContext,PointerSensor,KeyboardSensor,useSensors,useSensor,useDroppable,DragOverlay,closestCorners,closestCenter,pointerWithin} from '@dnd-kit/core';
 import {SortableContext,useSortable,rectSortingStrategy,sortableKeyboardCoordinates} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
@@ -59,6 +59,7 @@ function Panel({group,items,props,selection,focus,setFocus,overId,drag}:any){
  </section>
 }
 function Board(props:any){
+ const reduceMotion=useReducedMotion();
  const [focus,setFocus]=useState('overview'),[surface,setSurface]=useState('work'),[cardScale,setCardScale]=useState(()=>{try{return Math.max(80,Math.min(120,Number(localStorage.getItem('gengroup.task-canvas.card-size.v1'))||100))}catch{return 100}}),[drag,setDrag]=useState<any>(null),[overId,setOverId]=useState<any>(null),[drop,setDrop]=useState<any>(null),[summary,setSummary]=useState(false);
  const pointer=useRef<any>(null),keyboardTarget=useRef<any>(null);
  const selection=new Set(props.selection);
@@ -116,7 +117,7 @@ function Board(props:any){
     <div className={`matrix-panels ${currentFocus==='overview'?'':'focused'}`}>{zones.map(group=><Panel key={group.id} group={group} items={groupItems(group)} props={props} selection={selection} focus={currentFocus!=='overview'} setFocus={setFocus} overId={overId} drag={drag}/>)}</div>
    </>}
   </div>
-  <DragOverlay dropAnimation={{duration:170,easing:'cubic-bezier(.2,.8,.2,1)'}}>{drag&&(surface!=='map'||drag.point)&&<div className="matrix-drag-preview"><GripVertical size={20}/><strong>{drag.ids.length>1?`${drag.ids.length} задач`:props.tasks.find(t=>t.id===drag.id)?.title}</strong><span>Выберите место вставки</span></div>}</DragOverlay>
+  <DragOverlay dropAnimation={reduceMotion?null:{duration:170,easing:'cubic-bezier(.2,.8,.2,1)'}}>{drag&&(surface!=='map'||drag.point)&&<div className="matrix-drag-preview"><GripVertical size={20}/><strong>{drag.ids.length>1?`${drag.ids.length} задач`:props.tasks.find(t=>t.id===drag.id)?.title}</strong><span>Выберите место вставки</span></div>}</DragOverlay>
  </DndContext>}
  <AnimatePresence>{props.active&&props.editable&&!drag&&selection.size>0&&<motion.div className="matrix-bulk" initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} exit={{opacity:0,y:8}} transition={{duration:.18}}><LiquidGlassCard className="matrix-bulk-glass" glassSize="sm"><div className="matrix-bulk-content"><strong>Выбрано: {selection.size}</strong><div className="matrix-bulk-order"><button disabled={props.busy} title="В начало квадрата" aria-label="Переместить выбранные в начало" onClick={()=>props.onEdge('start')}><ArrowUp size={18}/></button><button disabled={props.busy} title="В конец квадрата" aria-label="Переместить выбранные в конец" onClick={()=>props.onEdge('end')}><ArrowDown size={18}/></button></div><select disabled={props.busy} aria-label="Перенести выбранные в квадрат" value="" onChange={e=>{if(e.target.value)move(e.target.value)}}><option value="">В квадрат…</option>{GROUPS.slice(0,5).map(g=><option key={g.id} value={g.id}>{g.title}</option>)}</select><button disabled={props.busy} className="bulk-done" onClick={()=>move('status:done')}><Check size={17}/>Готово</button><button disabled={props.busy} className="bulk-cancel" onClick={()=>move('status:cancelled')}><X size={17}/>Отменено</button><button className="matrix-icon" aria-label="Снять выделение" onClick={props.onClear}><X size={18}/></button></div></LiquidGlassCard></motion.div>}</AnimatePresence>
  </div></MotionConfig>

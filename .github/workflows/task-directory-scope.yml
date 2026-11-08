@@ -1,0 +1,30 @@
+name: Task directory scope check
+on:
+  push:
+    branches: [codex/task-directory-pto]
+    paths: [.github/workflows/task-directory-scope.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect relevant department names only
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+        run: |
+          node --input-type=module <<'NODE'
+          try {
+            const base=process.env.B24_WEBHOOK_URL?.trim();
+            if(!base||!/^https:\/\/[\w.-]+\/rest\/\d+\/[\w-]+\/?$/.test(base))throw Error();
+            const departments=[];let start=0;
+            for(let i=0;i<40;i++){
+              const r=await fetch(base.replace(/\/?$/,'/')+'department.get.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({start,START:start}),signal:AbortSignal.timeout(20000)});
+              if(!r.ok)throw Error();const data=await r.json();if(data.error||!Array.isArray(data.result))throw Error();
+              departments.push(...data.result);if(data.next===undefined)break;
+              if(!Number.isFinite(+data.next)||+data.next<=start)throw Error();start=+data.next;
+            }
+            const candidates=departments.filter(d=>/маркетинг|marketing|[пpр][тt][оo]|техн|проект|конструк|смет|инжен|расч[её]т|производ/iu.test(d.NAME||''));
+            console.log(JSON.stringify({total:departments.length,candidates:candidates.map(d=>({id:String(d.ID),name:String(d.NAME),parent:String(d.PARENT||'')}))}));
+          } catch {console.error('Department scope inspection unavailable');process.exitCode=1}
+          NODE

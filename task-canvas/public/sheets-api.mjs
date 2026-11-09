@@ -5,8 +5,8 @@ import {
   combineSheets,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-telegram-tabs-1';
+} from "./sync-model.mjs?rev=20261109-weekly-1";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-weekly-1';
 export class SheetsApi {
   constructor(
     auth,

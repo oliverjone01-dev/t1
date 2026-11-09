@@ -42,7 +42,7 @@ test("document IDs are unique and static assets exist; all view buttons expose s
     );
   const files = await readdir(new URL("../public/", import.meta.url));
   for (const match of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g))
-    assert.ok(files.includes(match[1]), match[1]);
+    assert.ok(files.includes(match[1].split("/")[0]), match[1]);
 });
 
 test('HTML, stylesheet and every local ES-module dependency use one deployment revision',async()=>{

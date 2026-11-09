@@ -58,6 +58,18 @@ def accept(previous, incoming, now=None, backfill_since=None):
             if backfill_since and stamp.astimezone(ZoneInfo('Europe/Moscow')).date().isoformat() < backfill_since:
                 raise ValueError('Competitor outside backfill window')
             result['competitors'] = new
+    if 'cpo' in incoming:
+        new = incoming['cpo']; old_cpo = previous.get('cpo')
+        if new != old_cpo:
+            stamp = dt.datetime.fromisoformat(new['captured_at'].replace('Z', '+00:00'))
+            settings_stamp = dt.datetime.fromisoformat(new['settings']['captured_at'].replace('Z', '+00:00'))
+            if any(not -dt.timedelta(minutes=5) <= now-t <= dt.timedelta(hours=3) for t in [stamp, settings_stamp]):
+                raise ValueError('CPO source and settings must be freshly collected (three hours)')
+            if old_cpo and (new['from'] != old_cpo['from'] or new['to'] < old_cpo['to'] or stamp <= dt.datetime.fromisoformat(old_cpo['captured_at'].replace('Z', '+00:00'))):
+                raise ValueError('Cannot shrink or roll back CPO coverage')
+            result['cpo'] = new
+    if previous.get('cpo') and changed and ('cpo' not in incoming or incoming['cpo'] == previous['cpo']):
+        raise ValueError('Updated funnel requires a fresh CPO capture')
     return result, changed
 
 

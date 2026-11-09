@@ -1,3 +1,4 @@
+import {cpoSkuRows,cpoSettingsHtml,readCpo} from "./ozon/cpo-capture.js";
 // Версии дашборда "вид Кати" на наших живых данных OZON:
 //   katya.html        - обзор (шаблон v55: KPI, план-факт, структура, рентабельность, ABC, сезонность)
 //   katya-tovary.html - товары и заказы (шаблон v63: таблица моделей с раскрытием, тепловая карта)
@@ -1325,7 +1326,7 @@ const EXTRA_CSS = `
 .vf-conv b{color:#cfe8ef;font-size:12.5px}
 @media (max-width:700px){.kt-kpi{grid-template-columns:repeat(2,1fr)}.periods{flex-wrap:wrap}.main{padding:10px}}
 `;
-const sourceHealthHtml = IS_OZON ? healthHtml(dp("")) : "";
+const sourceHealthHtml = IS_OZON ? healthHtml(dp(""))+cpoSettingsHtml(dp) : "";
 function kshell(title: string, activeKey: string, body: string, pageJs: string, liveDay = ''): string {
   const snapTo = maxD;
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2542,8 +2543,7 @@ renderTop=function(){
   // нет -> CPO по нему остаётся в «Общих», настройка не меняется (по требованию Ивана).
   const anCpoSku: Record<string, any[]> = {};
   try {
-    for (const l of ndLines(dp("cpo_sku_daily.ndjson"))) {
-      const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
+    for (const r of cpoSkuRows(dp,ndLines(dp("cpo_sku_daily.ndjson")).map(l=>JSON.parse(l)))) { const sk = String(r.sku || ""); if (!sk) continue;
       (anCpoSku[sk] ||= []).push([r.d, Math.round(r.sp || 0)]);
     }
   } catch { /* нет файла - CPO по SKU не разнесён, остаётся в «Общих» */ }
@@ -2745,6 +2745,8 @@ renderTop=function(){
   }
 
   const anOrders: any[] = [];
+  const cpoAggregate=IS_OZON?readCpo(dp):null;
+  const cpoUnallocatedDays=new Set(cpoAggregate?.order_days.map(r=>r.d)??[]);
   // Оценка сборов у заказов В ПУТИ (Иван 25.09.2026, п. 2.1, вариант 2). OZON начисляет комиссию,
   // логистику и прочие сборы только при доставке, поэтому у летящего заказа их нет и «К выплате»
   // равнялось 100% выручки. Теперь сборы летящего заказа оцениваются долей от выручки по его артикулу:
@@ -2803,7 +2805,7 @@ renderTop=function(){
         const cShip = Math.round(delivByOrder[r.order]?.ship || 0);
         if (!(cDel || cOth || cCom || cPrt || cAmt || cShip)) continue;
         anOrders.push({ order: r.order, d: r.d, st, sk, scheme: String(r.scheme || ""), cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
-          units: 0, dlv: 0, acc: 0, com: cCom, del: cDel, acq: 0, sto: 0, oth: cOth, prt: cPrt, adv: 0, ship: cShip, dinc: 0, amt: cAmt, amtS: 0, ret: 0, cc: 0, noCs: false,
+          cpoMissing:cpoUnallocatedDays.has(r.d)?1:0, units: 0, dlv: 0, acc: 0, com: cCom, del: cDel, acq: 0, sto: 0, oth: cOth, prt: cPrt, adv: 0, ship: cShip, dinc: 0, amt: cAmt, amtS: 0, ret: 0, cc: 0, noCs: false,
           // OZON отменил, а в ведомости есть факт доставки (Иван 30.09: 0124897454-1219-1/-1220-1 - «так и пиши»)
           ledDlv: delivByOrder[r.order]?.dFact ? 1 : 0 });
         continue;
@@ -2847,7 +2849,7 @@ renderTop=function(){
         // нулевой комиссией. Белым такой заказ выглядел бы как полный факт, а «К выплате» в нём может быть завышен.
         nNoFee: noCom ? 1 : 0, // возврат OZON обнуляет комиссию сам - это не пропуск
         paid: (r.paid == null ? null : Math.round(Number(r.paid) - (r.revenue > 0 ? Number(r.paid) * Math.min(1, retAmt / r.revenue) : 0))), // оплата покупателя за вычетом возврата
-        adv, ship: Math.round(dl.ship), led: delivByOrder[ord] ? 1 : 0, dinc: 0, // led: заказ есть в ведомости (Иван 30.09: есть, но пусто - 0; нет - «нет в ведомости»)
+        cpoMissing:cpoUnallocatedDays.has(r.d)?1:0, adv, ship: Math.round(dl.ship), led: delivByOrder[ord] ? 1 : 0, dinc: 0, // led: заказ есть в ведомости (Иван 30.09: есть, но пусто - 0; нет - «нет в ведомости»)
          // дост.покуп добирается глобально в render (кабинетный ряд)
         amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
         // Вернувшаяся штука приходит обратно на склад - её СС не расход (аудит: июль 72 649 ₽,
@@ -2992,7 +2994,7 @@ renderTop=function(){
   const mkPageJs = (card: boolean) => `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_FINFIX=${J(anFinFix)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_SHIPPEND=${J(shipAcc.pending.map(([d, v]) => [d, Math.round(v)]))};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DINCACC=${J(IS_OZON ? anDincAcc : anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};${card ? "const AN_CPC=" + J(cpcCard) + ";" : ""}
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_SHIPPEND=${J(shipAcc.pending.map(([d, v]) => [d, Math.round(v)]))};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DINCACC=${J(IS_OZON ? anDincAcc : anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_CPO_UNALLOCATED_DAYS=${J([...cpoUnallocatedDays])};const AN_CPO_UNALLOCATED_MONTHS=${J(cpoAggregate?.miss.map(r=>r.month)??[])};const AN_DELIV_CITYPL=${J(delivCityPl)};${card ? "const AN_CPC=" + J(cpcCard) + ";" : ""}
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -3239,6 +3241,7 @@ function anDerive(x){
   return {fees:fees,gp:gp,adm:adm,tax:tax,net:net,rent:rent};
 }
 function anCells(x){
+  var incomplete=function(td){return x.cpoMissing?'<td class="r cpo-missing" title="CPO за эти даты есть в агрегате, но точной разбивки по отправлениям нет. Не является нулевым расходом или подтверждённой прибылью">нет данных</td>':td;};
   var _dv=anDerive(x),fees=_dv.fees,gp=_dv.gp,adm=_dv.adm,tax=_dv.tax,net=_dv.net,rent=_dv.rent;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
@@ -3272,7 +3275,7 @@ function anCells(x){
   var eAll=(x.eCom||0)+(x.eDel||0)+(x.eOth||0)+(x.ePrt||0);
   var prtCell=(x.prt!=null)?ES(x.prt,x.ePrt):'';
   var mid=${IS_OZON}
-    ? ES(x.del,x.eDel)+R(x.acq)+R(x.sto)+ES(x.oth,x.eOth)+prtCell+R(x.adv)
+    ? ES(x.del,x.eDel)+R(x.acq)+R(x.sto)+ES(x.oth,x.eOth)+prtCell+incomplete(R(x.adv))
     : R(x.del)+R(x.acq)+R(x.sto)+R(x.cof)+R(x.promo)+R(x.oth);
   // «Доставлено» - только в блоке по заказам (там x.dlv определён); в таблице по артикулам колонки нет.
   var dlvCell=(x.dlv!=null)?('<td class="r">'+(x.dlv?fmtRu(x.dlv):'—')+'</td>'):'';
@@ -3288,7 +3291,7 @@ function anCells(x){
   // Доставлен (не возврат), а комиссии нет - оранжевым с пунктиром (не оценка, а возможно неполный факт).
   var comCell=ES(x.com,x.eCom);
   if(EST&&(x.nNoFee||0)>0&&!Math.round(x.eCom||0))comCell='<td class="r an-nofee" title="'+(x.order?NOFEE_TIP:('Доставленных заказов без начисленной комиссии: '+x.nNoFee+'. '+NOFEE_TIP))+'">'+(x.com?fmtRu(Math.round(x.com)):'—')+'</td>';
-  return I(x.units)+dlvCell+R(x.acc)+comCell+mid+ES(fees,eAll,'В том числе оценка сборов')+ES(x.amt,-eAll,'В том числе за вычетом оценки сборов')+shipCell+incCell+R(x.cc)+EF(P(gp))+EF(R(adm))+tbCell+taxCell+EF(P(net))+EF(PC(rent))+cityCell;
+  return I(x.units)+dlvCell+R(x.acc)+comCell+mid+incomplete(ES(fees,eAll,'В том числе оценка сборов'))+incomplete(ES(x.amt,-eAll,'В том числе за вычетом оценки сборов'))+shipCell+incCell+R(x.cc)+incomplete(EF(P(gp)))+incomplete(EF(R(adm)))+tbCell+taxCell+incomplete(EF(P(net)))+incomplete(EF(PC(rent)))+cityCell;
 }
 var skuGrandLast=null;
 // Расчёт таблицы «Аналитика по артикулам (за выбранный период)» без отрисовки: строки артикулов по
@@ -3442,7 +3445,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,led:s.led,ledDlv:s.ledDlv,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
+    var o={cpoMissing:s.cpoMissing||0,order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,led:s.led,ledDlv:s.ledDlv,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -3491,9 +3494,9 @@ ${card ? CPC_CARD_CHECK : ""}  // «Доставка покупателя» (д�
   // остаются в данных для сверки, но в отображение по заказу не подмешиваются.
   // База АДМ строки заказа (п. 2.4, вариант Б) - её «К выплате» после всех доборов, отрицательная -
   // ноль: заказ, где сборы съели выручку, и отменённый заказ АДМ не уменьшают.
-  for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);}
+  for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);if(AN_CPO_UNALLOCATED_DAYS.indexOf(rows[r0].d)>=0||AN_CPO_UNALLOCATED_MONTHS.indexOf(String(rows[r0].d).slice(0,7))>=0)rows[r0].cpoMissing=1;}
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
-  var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','nNoFee','estNoCom','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
+  var SUMK=['cpoMissing','units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','nNoFee','estNoCom','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
   if(!cats.length){el.innerHTML='<tr><td colspan="26" class="kt-note">нет заказов за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';

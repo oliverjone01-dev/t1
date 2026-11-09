@@ -1,3 +1,4 @@
+import {cpoSettingsHtml} from "./ozon/cpo-capture.js";
 // Вкладка «Тесты» (OZON): A/B по рекламе - ставка и соинвест.
 // Источники:
 //   tools/tests/tests.json           - определения тестов (гипотеза, группы, правило, даты);
@@ -3652,7 +3653,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
   + `<span style="color:#5d7484;margin-left:8px">${NOVEMBER?'история тестов по':'тесты по'} ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
-  + healthHtml(dp(""))
+  + healthHtml(dp(""))+cpoSettingsHtml(dp)
   + `<div class="wrap">${GAP_NOTICE}<div class="h1row"><h1>${NOVEMBER?'Тесты · план на ноябрь':'Тесты · A/B по рекламе'}</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
   // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.

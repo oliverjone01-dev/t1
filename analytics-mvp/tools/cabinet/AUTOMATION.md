@@ -70,3 +70,40 @@ fails closed, including changes to API inputs or builders. Reprepare and rerun
 checks once. The publisher does not dispatch orders while snapshots is active.
 The watchdog ignores skipped deployment runs and reports blocked/overdue
 active workflows instead of waiting silently forever; it never cancels them.
+
+## CPO: native archive to privacy-safe aggregates
+
+In the configured in-app Ozon browser, collect «Оплата за заказ → Все товары»:
+closed-day exports «по заказам» and «по товарам» for exactly the same window.
+The second export currently contains daily totals, not SKU rows. Also observe
+current active state, bid and promoted-product count; do not infer them from
+«Выбранные товары». Settings are read-only. Do not backdate today's bid.
+
+Retain native paired files in a PRIVATE archive as `NAME.orders.xlsx` and
+`NAME.daily.xlsx`. Recover the latest fourteen closed days on every run and
+retain older pairs since the first aggregate. The adapter replaces overlapping
+export windows and rejects duplicates, missing days, changed headers, invalid
+amounts and differences between native daily/order totals. Raw files and order
+identifiers never enter Git. If a report is unavailable, retain last-good data
+and show the missed source; do not fabricate zeros.
+
+After preparing the normal funnel/catalog JSON, augment that same package:
+
+    python3 -B tools/cabinet/cpo_capture.py --archive PRIVATE_ARCHIVE \
+      --data data --previous PREPARED/cabinet_capture.json \
+      --captured-at ISO_TIMESTAMP --settings PRIVATE_SETTINGS.json \
+      --out NEW_PREPARED_DIRECTORY
+
+Settings JSON has only `captured_at`, `scope:"all"`, `active` (boolean),
+`bid_percent`, `promoted_products`, `products_period_from` and
+`products_period_to` (the selected UI dates for that count). The observation timestamp belongs to the
+visible settings, not to publication. Run using current main data. The output
+is submitted with existing `submit_capture.py`. Once CPO is active, updated
+funnel packages require refreshed CPO, preventing silent stale advertising.
+The server verifies current orders input hash and campaign daily spend before
+publishing. A concurrent orders update requires re-preparation, not a bypass.
+The same campaign reader drives Report and Cards. CPO revenue is grouped by
+order creation date, excludes cancelled postings and is recalculated locally
+on each capture. No per-order links are published; affected per-order expense
+and profit cells explicitly show missing detail. Retain private archive for
+future reconciliation and rejoin on late statuses.

@@ -76,6 +76,7 @@ jobs:
           done
           node --import tsx tools/cabinet/verify_dashboard.ts "$DATA_DIR" "$OUT_DIR"
           node --import tsx tools/cabinet/verify_supplements.ts "$DATA_DIR" "$OUT_DIR"
+          node --import tsx tools/cabinet/verify_cpo.ts "$DATA_DIR" "$OUT_DIR" data/cabinet_capture.json
       - name: Publish only the validated capture against the checked main commit
         run: python3 -B tools/cabinet/publish_capture.py "$CHECKED_HEAD" "$RUNNER_TEMP/merged.json" data/cabinet_capture.json
       - name: Refresh Pages after the validated data commit

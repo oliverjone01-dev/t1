@@ -64,7 +64,7 @@ export function supplements(dir:string):{catalogs:Catalog[];competitors:any|null
 export function catalogGaps(catalogs:Catalog[]){
  const rows=new Map<string,any>();
  for(const c of [...catalogs].sort((a,b)=>Date.parse(a.captured_at)-Date.parse(b.captured_at)))for(const r of c.items){
-  rows.set(c.day+'|'+r.art,{date:c.day,art:r.art,sku:r.sku,gap_pct:r.gap_pct,site_to_seller:r.cap&&r.buyer!==null?r.buyer/r.cap:null,cap:r.cap,buyer:r.buyer,src:'catalog_realization',oa_used:false,ts:c.captured_at});
+  rows.set(c.day+'|'+r.art,{date:c.day,art:r.art,sku:r.sku,gap_pct:r.gap_pct,site_to_seller:r.cap&&r.buyer!==null?r.buyer/r.cap:null,cap:r.cap,buyer:r.buyer,src:'catalog_realization',price_basis:'realization',ts:c.captured_at});
  }
  return [...rows.values()];
 }

@@ -78,6 +78,8 @@ jobs:
           node --import tsx tools/cabinet/verify_supplements.ts "$DATA_DIR" "$OUT_DIR"
       - name: Publish only the validated capture against the checked main commit
         run: python3 -B tools/cabinet/publish_capture.py "$CHECKED_HEAD" "$RUNNER_TEMP/merged.json" data/cabinet_capture.json
+      - name: Refresh Pages after the validated data commit
+        run: gh workflow run deploy-pages.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Continue the API chain unless it is already collecting
         run: |
           set -euo pipefail

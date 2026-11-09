@@ -1,10 +1,10 @@
-import {packedPositions} from './task-signals.mjs?rev=20261109-signals-1';
+import {packedPositions} from './task-signals.mjs?rev=20261109-gantt-1';
 import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261109-signals-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-signals-1";
+} from "./model.mjs?rev=20261109-gantt-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-gantt-1";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const TELEGRAM_TAB_ID = 1478506234;
@@ -28,6 +28,7 @@ export const SYNC_FIELDS = [
   "priority",
   "positions",
   "importance",
+  "start",
   "closedAt",
   "archiveKind",
 ];
@@ -41,7 +42,7 @@ export const FIELD_NAMES = {
   due: "Срок",
   comment: "Комментарий",
   priority: "Приоритет",
-  importance: "Важность",closedAt:"Дата завершения",archiveKind:"Архив статуса",
+  importance: "Срочность",start:"Начало",closedAt:"Дата завершения",archiveKind:"Архив статуса",
   positions: "Расположение",
   task: "Задача целиком",
 };
@@ -61,7 +62,7 @@ export const COLUMNS = {
   owner: 10,
   due: 11,
   priority: 16,
-  positions: 17,importance:17,closedAt:17,archiveKind:17,
+  positions: 17,start:17,importance:17,closedAt:17,archiveKind:17,
 };
 // Firestore map field order is not significant. Preserve array order and the
 // original JSON treatment of undefined, but never manufacture a Sheet edit
@@ -142,7 +143,7 @@ export function decodeSheet(sheet, year = new Date().getFullYear()) {
       throw new Error(`Неизвестный приоритет в строке ${index + 1}.`);
     try {
       task.positions = raw[17] ? JSON.parse(raw[17]) : {};
-      const meta=task.positions._task||{};task.importance=meta.importance||0;task.closedAt=meta.closedAt||'';task.archiveKind=meta.archiveKind||'';delete task.positions._task;
+      const meta=task.positions._task||{};task.start = meta.start || "";task.importance = meta.importance || 0;task.closedAt=meta.closedAt||'';task.archiveKind=meta.archiveKind||'';delete task.positions._task;
     } catch {
       throw new Error(`Повреждены позиции карточки в строке ${index + 1}.`);
     }
@@ -307,7 +308,7 @@ export function mergeBoards(base, local, remote) {
   };
 }
 export function cellValue(field, value, task) {
-  if(task&&["positions","importance","closedAt","archiveKind"].includes(field))return JSON.stringify(packedPositions(task));
+  if(task&&["positions","start","importance","closedAt","archiveKind"].includes(field))return JSON.stringify(packedPositions(task));
   if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
   if (field === "positions") return JSON.stringify(value || {});
   if (field === "due") return value ? value.split("-").reverse().join(".") : "";

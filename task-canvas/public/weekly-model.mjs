@@ -1,7 +1,7 @@
 // Pure weekly accounting shared by the browser and the private Google worker.
 export const SNAPSHOT_TAB=1909260101, EVENT_TAB=1909260102;
 export const SNAPSHOT_TITLE='План-факт · снимки', EVENT_TITLE='План-факт · события';
-export const FIELDS=['title','owner','ownerNote','due','status','unit','comment','description','archived','importance','closedAt','archiveKind'];
+export const FIELDS=['title','owner','ownerNote','due','status','unit','comment','description','archived','importance','start','closedAt','archiveKind'];
 export const day=at=>new Date(new Date(at).getTime()+10800000).toISOString().slice(0,10);
 export function shift(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*86400000).toISOString().slice(0,10)}
 export function weekOf(at){const d=day(at);return shift(d,-((new Date(d+'T12:00:00Z').getUTCDay()+6)%7))}

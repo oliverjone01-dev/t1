@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-11-09T07:58:31.345Z",
+  "generated_at": "2026-11-09T17:00:12.967Z",
   "today": "2026-11-09",
   "periods": [
     {
@@ -558,11 +558,11 @@
     "fee_source": {
       "orders_from_netting": 1690,
       "orders_from_commissions": 350,
-      "accruals_from_netting": 68841920,
+      "accruals_from_netting": 69192350,
       "accruals_from_commissions": 0,
       "fees_from_netting": 37237927.32,
       "fees_from_commissions": 0,
-      "rate_netting": 54.1,
+      "rate_netting": 53.8,
       "rate_order": null,
       "by_month": {
         "2026-01": {
@@ -658,26 +658,26 @@
         "2026-10": {
           "orders_netting": 142,
           "orders_order": 37,
-          "accruals_netting": 7612739,
+          "accruals_netting": 7726837,
           "accruals_order": 0,
           "fees_netting": 4877555.67,
           "fees_order": 0,
-          "rate_netting": 64.1,
+          "rate_netting": 63.1,
           "rate_order": null
         },
         "2026-11": {
           "orders_netting": 54,
           "orders_order": 17,
-          "accruals_netting": 509699,
+          "accruals_netting": 746031,
           "accruals_order": 0,
           "fees_netting": 62907.5,
           "fees_order": 0,
-          "rate_netting": 12.3,
+          "rate_netting": 8.4,
           "rate_order": null
         }
       },
       "gaps": [],
-      "accruals_total": 68841920,
+      "accruals_total": 69192350,
       "pct_accruals_from_commissions": 0,
       "months_mostly_commissions": [],
       "gaps_named": [],
@@ -699,16 +699,16 @@
         "orders": 462,
         "rows": 657,
         "revenue": 23816414,
-        "delivered": 278,
-        "payout": 4495078,
+        "delivered": 279,
+        "payout": 4545550,
         "skus": 94
       },
       "74986385": {
         "orders": 1578,
         "rows": 2552,
         "revenue": 93611318,
-        "delivered": 1074,
-        "payout": 27108915,
+        "delivered": 1078,
+        "payout": 27408873,
         "skus": 338
       }
     },

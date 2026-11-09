@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-03T17:56:55.484417+03:00",
-  "through": "2026-11-02",
+  "loaded_at": "2026-11-09T20:00:01.373137+03:00",
+  "through": "2026-11-08",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
     "tabs": {
@@ -11,21 +11,21 @@
     }
   },
   "window_from": "2026-10-03",
-  "rows": 668,
+  "rows": 684,
   "source_counts": {
     "active": {
-      "market_rows": 31,
+      "market_rows": 52,
       "historical_rows": 6,
-      "accepted_rows": 12,
-      "missing_cost_rows": 0,
+      "accepted_rows": 24,
+      "missing_cost_rows": 1,
       "unrecognized_offer_rows": 2,
-      "future_rows": 12,
+      "future_rows": 21,
       "undated_rows": 1
     },
     "archive": {
-      "market_rows": 533,
+      "market_rows": 537,
       "historical_rows": 474,
-      "accepted_rows": 58,
+      "accepted_rows": 62,
       "missing_cost_rows": 0,
       "undated_rows": 1
     }
@@ -40,5 +40,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "d4f88e46b139243e8e88d7e28435aa274f62ccd9e178fc1127f741ea8971f56c"
+  "csv_sha256": "e507e26296468a2ad70b202b8df38d65b5a96caa4dcfb5a898cff18515a8cd04"
 }

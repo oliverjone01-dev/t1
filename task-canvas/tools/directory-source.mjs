@@ -1,3 +1,5 @@
+// Confirmed by the board owner; the second Екатерина belongs to PTO.
+export const CONFIRMED_OWNER_ALIASES=Object.freeze({'Катя':'6491'});
 export function departmentScope(departments){
  // The owner confirmed Bitrix department 189 (Конструкторский отдел) is PTO.
  const roots=departments.filter(d=>String(d.ID)==='189'||/маркетинг|marketing|(?:^|[^а-я])пто(?:$|[^а-я])|производственно[ -]?техническ/i.test(d.NAME||''));

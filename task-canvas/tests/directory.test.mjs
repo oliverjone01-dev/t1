@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {cleanDirectory,resolvePerson,Directory} from '../public/directory.mjs';
-import {departmentScope,publicPerson,safePhotoURL} from '../tools/directory-source.mjs';
+import {departmentScope,publicPerson,safePhotoURL,CONFIRMED_OWNER_ALIASES} from '../tools/directory-source.mjs';
 const people=[{id:'1',name:'Екатерина Иванова',first:'Екатерина',last:'Иванова',avatar:'avatars/1.jpg'},{id:'2',name:'Иван Петров',first:'Иван',last:'Петров'}];
 test('employee matching is exact or unique; ambiguous names never guess',()=>{assert.equal(resolvePerson('Катя',people)?.id,'1');assert.equal(resolvePerson('Иванова Екатерина',people)?.id,'1');assert.equal(resolvePerson('Катя',[...people,{id:'3',first:'Екатерина',last:'Другая',name:'Екатерина Другая'}]),null);assert.equal(resolvePerson('Катя дизайнер',people),null);assert.equal(resolvePerson('',people),null)});
 test('nickname plus exact surname resolves uniquely in either name order',()=>{
@@ -15,6 +15,13 @@ test('avatar download only permits approved HTTPS photo hosts, no REST/auth path
 test('directory network failure preserves task names and never blocks board',async()=>{const d=new Directory({fetcher:async()=>{throw new Error('offline')}});await d.load();assert.equal(d.status,'unavailable');assert.equal(d.name('Катя'),'Катя');assert.equal(d.avatar('Катя'),'')});
 test('directory reports actual department coverage rather than claiming missing PTO',async()=>{const d=new Directory({fetcher:async()=>({ok:true,json:async()=>({version:1,people,departments:[{id:'73',name:' Отдел Маркетинга '},null,{name:7}]})})});await d.load();assert.equal(d.status,'ready');assert.deepEqual(d.departments,['Отдел Маркетинга']);assert.equal(d.name('Катя'),'Екатерина Иванова')});
 test('default fetch retains the browser global receiver',async(t)=>{t.mock.method(globalThis,'fetch',async function(){assert.equal(this,globalThis);return {ok:true,json:async()=>({version:1,people})}});const d=await new Directory().load();assert.equal(d.status,'ready');assert.equal(d.people.length,2)});
+test('confirmed Katya stays Mashkova and never switches to a namesake if she leaves the directory',async()=>{
+ const staff=[{id:'6491',first:'Екатерина',last:'Машкова',name:'Екатерина Машкова',avatar:'avatars/6491.jpg'},{id:'5221',first:'Екатерина',last:'Кужлева',name:'Екатерина Кужлева'}];
+ const payload={version:1,people:staff,ownerAliases:CONFIRMED_OWNER_ALIASES};
+ const d=await new Directory({fetcher:async()=>({ok:true,json:async()=>payload})}).load();
+ assert.equal(d.name(' Катя '),'Екатерина Машкова');assert.equal(d.avatar('Катя'),'avatars/6491.jpg');assert.equal(d.resolve('Екатерина Кужлева')?.id,'5221');
+ payload.people=staff.slice(1);await d.load();assert.equal(d.resolve('Катя'),null);assert.equal(d.name('Катя'),'Катя');
+});
 test('confirmed PTO department includes its staff and descendants without other production departments',()=>{
  const departments=[{ID:'73',NAME:'Отдел Маркетинга',PARENT:'1'},{ID:189,NAME:'Конструкторский отдел ',PARENT:'1'},{ID:'191',NAME:'Расчёты',PARENT:189},{ID:'61',NAME:'Производство',PARENT:'1'},{ID:'173',NAME:'Оптовый отдел ',PARENT:'155'}];
  const {ids,roots}=departmentScope(departments);

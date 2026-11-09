@@ -1,7 +1,7 @@
-import {ordered,orderKey} from './order.mjs?rev=20261109-productivity-1';
-import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261109-productivity-1';
-import {parseAssignee} from './people.mjs?rev=20261109-productivity-1';
-import {normalizeQuery} from './ui-model.mjs?rev=20261109-productivity-1';
+import {ordered,orderKey} from './order.mjs?rev=20261109-directory-2';
+import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261109-directory-2';
+import {parseAssignee} from './people.mjs?rev=20261109-directory-2';
+import {normalizeQuery} from './ui-model.mjs?rev=20261109-directory-2';
 
 export const FOCUS = [['all','Все задачи'],['today','Сегодня'],['overdue','Просрочено'],['week','Ближайшие 7 дней'],['unassigned','Без ответственного'],['undated','Без срока'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['owner','По ответственному'],['title','По названию']];

@@ -1,14 +1,15 @@
-import {installGantt} from './gantt.mjs?rev=20261109-gantt-1';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261109-gantt-1';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261109-gantt-1';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-gantt-1';
-import {Directory} from './directory.mjs?rev=20261109-gantt-1';
-import {installCalendar} from './calendar.mjs?rev=20261109-gantt-1';
-import {installProductivity} from './productivity.mjs?rev=20261109-gantt-1';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-gantt-1';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-gantt-1';
-import {renderBoard} from './board-ui.mjs?rev=20261109-gantt-1';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-gantt-1';
+import {installPriorityEditor} from './priority-editor.mjs?rev=20261109-priority-2';
+import {installGantt} from './gantt.mjs?rev=20261109-priority-2';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261109-priority-2';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261109-priority-2';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-priority-2';
+import {Directory} from './directory.mjs?rev=20261109-priority-2';
+import {installCalendar} from './calendar.mjs?rev=20261109-priority-2';
+import {installProductivity} from './productivity.mjs?rev=20261109-priority-2';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-priority-2';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-priority-2';
+import {renderBoard} from './board-ui.mjs?rev=20261109-priority-2';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-priority-2';
 import {
   QUADRANTS,
   CARD,
@@ -23,20 +24,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261109-gantt-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261109-gantt-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-gantt-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-gantt-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261109-gantt-1";
-import { remoteChanges } from "./changes.mjs?rev=20261109-gantt-1";
-import { TeamApi } from "./team-api.mjs?rev=20261109-gantt-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-gantt-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-gantt-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261109-gantt-1";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-gantt-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-gantt-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-gantt-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-gantt-1";
+} from "./model.mjs?rev=20261109-priority-2";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261109-priority-2";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-priority-2";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-priority-2";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261109-priority-2";
+import { remoteChanges } from "./changes.mjs?rev=20261109-priority-2";
+import { TeamApi } from "./team-api.mjs?rev=20261109-priority-2";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-priority-2";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-priority-2";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261109-priority-2";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-priority-2";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-priority-2";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-priority-2";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-priority-2";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -44,8 +45,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261109-gantt-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-gantt-1";
+} from "./editor.mjs?rev=20261109-priority-2";
+import { parseAssignee } from "./people.mjs?rev=20261109-priority-2";
 import {
   matchesTask,
   matchesWords,
@@ -54,8 +55,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261109-gantt-1";
-import { icon } from "./icons.mjs?rev=20261109-gantt-1";
+} from "./ui-model.mjs?rev=20261109-priority-2";
+import { icon } from "./icons.mjs?rev=20261109-priority-2";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -85,7 +86,7 @@ const canEdit = () =>
   DEMO || (accessMode === "edit" && !!cloudEngine?.connected && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
 const directory=new Directory();
 const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
-let productivity=null,calendar=null,gantt=null;
+let productivity=null,calendar=null,gantt=null,priorityEditor=null;
 let registryWeek="",archiveScope="",signalState=new Map();
 const effectiveTask=t=>observedTask(t,signalState.get(t.id));
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
@@ -104,7 +105,7 @@ function renderMatrix(){
   const visible=tasks.filter(isVisible), ids=new Set(visible.map(t=>t.id));
   selectedIds=new Set([...selectedIds].filter(id=>ids.has(id)));
   if(!canEdit())selectedIds.clear();
-  renderBoard($('#board-ui'),{active:mode==='priority',busy:matrixMutationBusy,tasks:visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})),avatars:Object.fromEntries(directory.people.filter(p=>directory.resolve(p.name)?.id===p.id).map(p=>[p.name,p.avatar])),today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
+  renderBoard($('#board-ui'),{active:mode==='priority',openId:$('#editor').open?editing:null,busy:matrixMutationBusy,tasks:visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})),avatars:Object.fromEntries(directory.people.filter(p=>directory.resolve(p.name)?.id===p.id).map(p=>[p.name,p.avatar])),today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
     notices:Object.fromEntries(visible.filter(t=>inbox.get(t.id)).map(t=>[t.id,inbox.get(t.id).kind])),
     onImportance:(id,value)=>change(()=>{tasks=tasks.map(t=>t.id===id?{...t,importance:Number(value)}:t)}),onStatus:setTaskStatus,onOpen:openTask,onSelect:selectTask,pins:productivity?.pins()||[],onPin:id=>productivity?.togglePin(id),onBulkEdit:()=>productivity?.openBulk(),
     onSelectGroup:(ids,enabled)=>{for(const id of ids)enabled?selectedIds.add(id):selectedIds.delete(id);render()},
@@ -565,7 +566,8 @@ for (const id of ["theme-choice", "density-choice"])
   };
 function showDialog(id) {
   const dialog = $("#" + id);
-  if (!dialog.open) dialog.showModal();
+  if(id === "editor" && priorityEditor) priorityEditor.open();
+  else if (!dialog.open) dialog.showModal();
 }
 function closeDialog(id) {
   if (id === "editor") saveDraft();
@@ -582,6 +584,7 @@ $$("dialog").forEach((dialog) =>
   }),
 );
 $("#editor").addEventListener("close", () => {
+  if($("#editor").open)return;
   renderDraftBanner();
   if (cloudEngine?.connected) cloudEngine.later(250);
 });
@@ -1230,6 +1233,8 @@ function renderEditorConflicts() {
   return conflicts;
 }
 function openTask(id = null, chosenDraft = null) {
+  if(submitTask.busy)return;
+  if($("#editor").open)saveDraft();
   productivity?.beforeOpen(id);
   if (id === null && !requireEditor()) return;
   editingVersionBasis = cloudEngine?.managed ? cloudEngine.capture() : null;
@@ -1632,6 +1637,7 @@ $("#reset-search").onclick = clearFilters;
 for (const id of ["search", "unit-filter", "owner-filter", "hide-done"])
   $("#" + id).addEventListener(id === "search" ? "input" : "change", render);
 function setMode(next) {
+  if($("#editor").open){saveDraft();$("#editor").close();}
   mode = next;
   if (!["list","calendar","gantt"].includes(next)) {
     lastCanvasMode = next;
@@ -2594,6 +2600,7 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
  hasNewDraft:()=>{try{return !!(memoryDrafts.get(null)||drafts.read(null))}catch{return true}},
 });
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
+priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 gantt=installGantt({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 calendar=installCalendar({esc,today,setStatus:setTaskStatus,setWeek:value=>{registryWeek=value;$("#registry-week").value=value;render()},mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},

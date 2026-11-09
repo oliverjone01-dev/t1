@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261109-gantt-1";
-import { equal } from "./sync-model.mjs?rev=20261109-gantt-1";
+} from "./team-model.mjs?rev=20261109-priority-2";
+import { equal } from "./sync-model.mjs?rev=20261109-priority-2";
 export const digest = async (value) =>
   [
     ...new Uint8Array(

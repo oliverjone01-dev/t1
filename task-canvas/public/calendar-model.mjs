@@ -1,5 +1,5 @@
-import {ordered} from './order.mjs?rev=20261109-gantt-1';
-import {localDate,shiftDate,statusGroup} from './model.mjs?rev=20261109-gantt-1';
+import {ordered} from './order.mjs?rev=20261109-priority-2';
+import {localDate,shiftDate,statusGroup} from './model.mjs?rev=20261109-priority-2';
 export function monthStart(date){return date.slice(0,7)+'-01'}
 export function shiftMonth(date,n){const d=new Date(date+'T12:00:00');d.setDate(1);d.setMonth(d.getMonth()+n);return localDate(d)}
 export function weekStart(date){const day=new Date(date+'T12:00:00').getDay();return shiftDate(date,-((day+6)%7))}

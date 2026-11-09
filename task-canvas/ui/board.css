@@ -44,3 +44,24 @@ body[data-board-mode=priority] .status-shortcuts{display:none}
 @media(max-width:767px){.map-zone-heading .priority-emblem svg{display:block}}
 
 .matrix-signal-row{padding:0 8px;min-height:25px;display:flex;align-items:center}.matrix-card:has(.temperature.level-5) .matrix-title{color:var(--text)}
+/* Compact vertical queues: one readable row per task in each fixed quadrant. */
+.matrix-card-grid{grid-template-columns:minmax(0,1fr);gap:7px}
+.matrix-card{height:auto;min-height:86px;display:flex;flex-direction:row;align-items:stretch;padding:8px 7px;gap:5px;border-radius:10px}
+.matrix-row-handle{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 28px}
+.matrix-row-handle .matrix-grip,.matrix-row-handle .matrix-check{width:28px;height:28px;min-height:28px}
+.matrix-row-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.matrix-title{padding:0;min-height:0;flex:none;line-height:1.4;font-size:var(--card-font);width:100%}
+.matrix-title>span{-webkit-line-clamp:2}
+.matrix-row-meta{display:flex;align-items:center;flex-wrap:wrap;gap:3px 10px;color:var(--muted);font-size:11px;min-height:22px}
+.matrix-row-meta .matrix-person{max-width:min(65%,230px);gap:5px}
+.matrix-row-meta .matrix-person b{width:18px;height:18px}
+.matrix-row-meta .matrix-unit{font-size:10px}
+.matrix-card .matrix-signal-row{padding:0;min-height:23px;gap:6px;flex-wrap:wrap}
+.matrix-row-pin{align-self:flex-start;width:26px;min-width:26px;margin-top:-3px;margin-right:-4px}
+.matrix-card.is-open{box-shadow:inset 3px 0 var(--primary),0 2px 8px #1421350c}
+.matrix-card.insert-before:before,.matrix-card.insert-after:after{left:0;right:0;top:auto;bottom:auto;width:auto;height:3px;border-radius:3px}
+.matrix-card.insert-before:before{top:-5px}.matrix-card.insert-after:after{bottom:-5px}
+.matrix-panel{background:var(--panel)}
+.matrix-scroll{padding:2px 9px 10px}
+@media(max-width:760px){.matrix-card{padding:9px 5px;min-height:100px}.matrix-row-handle{flex-basis:34px}.matrix-row-handle .matrix-grip,.matrix-row-handle .matrix-check{width:34px;height:36px}.matrix-row-pin{width:28px;min-width:28px}.matrix-card .matrix-signal-row{gap:5px}.matrix-row-meta .matrix-person{max-width:100%}}
+@media(forced-colors:active){.matrix-card.is-open{outline:2px solid Highlight}}

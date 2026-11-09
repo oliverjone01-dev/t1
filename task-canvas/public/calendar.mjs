@@ -1,9 +1,9 @@
-import {statusBadge} from './quick-controls.mjs?rev=20261109-gantt-1';
-import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261109-gantt-1';
-import {sortTasks} from './productivity-model.mjs?rev=20261109-gantt-1';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary} from './calendar-model.mjs?rev=20261109-gantt-1';
-import {QUADRANTS,statusGroup} from './model.mjs?rev=20261109-gantt-1';
-import {icon} from './icons.mjs?rev=20261109-gantt-1';
+import {statusBadge} from './quick-controls.mjs?rev=20261109-priority-2';
+import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261109-priority-2';
+import {sortTasks} from './productivity-model.mjs?rev=20261109-priority-2';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary} from './calendar-model.mjs?rev=20261109-priority-2';
+import {QUADRANTS,statusGroup} from './model.mjs?rev=20261109-priority-2';
+import {icon} from './icons.mjs?rev=20261109-priority-2';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view='month',anchor=host.today(),undated=false,peek=null;

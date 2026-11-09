@@ -59,7 +59,7 @@ def submit(prepared, now=None, retry_failed=False, backfill_since=None):
     previous = json.loads(base64.b64decode(content['content']))
     # Includes partial packages: if every included row is already current, no upload or dispatch.
     old = {(r['day'], r['phase']): r for r in previous['snapshots']}
-    if all(old.get((r['day'], r['phase'])) == r for r in incoming['snapshots']) and all(previous.get(k) == incoming[k] for k in ['catalogs', 'competitors'] if k in incoming):
+    if all(old.get((r['day'], r['phase'])) == r for r in incoming['snapshots']) and all(previous.get(k) == incoming[k] for k in ['catalogs', 'competitors', 'cpo'] if k in incoming):
         return save(receipt_path, {'state': 'data_in_main', 'public_sha256': digest,
                                   'data_committed': True, 'published': False,
                                   'note': 'Still verify Pages and live source date'})

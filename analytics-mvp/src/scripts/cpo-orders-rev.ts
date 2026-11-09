@@ -5,6 +5,7 @@
 // День = самая ранняя дата отправлений заказа в orders_daily, не первая по порядку файла (ФЕНИКС O3 13.10). Выручка и штуки = отправления заказа без отменённых.
 // Заказа нет в orders_daily - строка не учитывается (miss, missSp). Расход - списание по выгрузке, как есть; строки одного
 // заказа (сборщик с 14.10 пишет строку на заказ и день) складываются. spAll - все списания выгрузки, с ненайденными.
+import {readCpo,cpoSkuRows} from "./ozon/cpo-capture.js";
 import { readFileSync } from "node:fs";
 
 // Нет файла - пусто; файл есть, но строка не разбирается - ошибка в bad (ФЕНИКС G2 14.10: раньше битый файл молча
@@ -28,11 +29,13 @@ export const orders = (n: number) => n + " " + (n % 10 === 1 && n % 100 !== 11 ?
 
 export function cpoOrdersByDay(dp: (f: string) => string): CpoOrders {
   const bad: string[] = [];
+  const capture=readCpo(dp);
   const postings: Record<string, any[]> = {};
   for (const r of readNd(dp("orders_daily.ndjson"), bad)) { const o = String(r.order || ""); const k = o.slice(0, o.lastIndexOf("-")); (postings[k] ||= []).push(r); }
   const spBy: Record<string, number> = {}, monOf: Record<string, string> = {};
   let noSkuSp = 0; // списания строк выгрузки без SKU: в cpo_sku_daily их нет (ФЕНИКС iter10 gap 2)
   for (const r of readNd(dp("cpo_orders.ndjson"), bad)) {
+    if(capture && r.d>=capture.from && r.d<=capture.to)throw Error("CPO aggregate overlaps legacy orders");
     const o = String(r.order); spBy[o] = (spBy[o] || 0) + (Number(r.sp) || 0); noSkuSp += Number(r.nosku) || 0;
     const m = r.d ? String(r.d).slice(0, 7) : "?"; if (!monOf[o] || (m !== "?" && (monOf[o] === "?" || m < monOf[o]))) monOf[o] = m;
   }
@@ -46,8 +49,13 @@ export function cpoOrdersByDay(dp: (f: string) => string): CpoOrders {
     a.sp += sp;
     for (const p of ps) if (p.status !== "cancelled") { a.rev += Number(p.revenue) || 0; a.units += Number(p.units) || 0; }
   }
-  let from = "", to = "", skuSp = 0;
-  for (const r of readNd(dp("cpo_sku_daily.ndjson"), bad)) { const d = String(r.d || ""); if (!d) continue; skuSp += Number(r.sp) || 0; if (!from || d < from) from = d; if (d > to) to = d; }
+  if(capture){
+    for(const r of capture.order_days){const a=(day[r.d]||={sp:0,rev:0,units:0});a.sp+=r.sp;a.rev+=r.rev;a.units+=r.units;}
+    for(const r of capture.miss){const a=(missBy[r.month]||={n:0,sp:0});a.n+=r.n;a.sp+=r.sp;miss+=r.n;missSp+=r.sp;}
+    spAll+=capture.report_days.reduce((a,r)=>a+r.sp,0);noSkuSp+=capture.no_sku_sp;
+  }
+  let from = capture?.from??"", to = capture?.to??"", skuSp = 0;
+  for (const r of cpoSkuRows(dp,readNd(dp("cpo_sku_daily.ndjson"), bad))) { const d = String(r.d || ""); if (!d) continue; skuSp += Number(r.sp) || 0; if (!from || d < from) from = d; if (d > to) to = d; }
   return { day, miss, missSp, missBy, spAll, skuSp, noSkuSp, from, to, bad };
 }
 

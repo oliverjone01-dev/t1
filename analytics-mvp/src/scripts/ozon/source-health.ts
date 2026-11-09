@@ -1,3 +1,4 @@
+import {readCpo} from "./cpo-capture.js";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
@@ -65,11 +66,18 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   const timelineFresh=Number.isFinite(timelineAge)&&timelineAge>=-60000&&timelineAge<=36*3600000;
   const timelineIssues=(timeline.rows??[]).filter((r:any)=>r.missing||r.issues?.length).length;
   out.push({source:'Наша доставка: сроки и статусы',through:timeline.source_date??null,expected:to,status:!timelineFresh?'error':timelineIssues?'warning':'ok',note:`Снято ${timeline.loaded_at??'неизвестно'}; строк для проверки: ${timelineIssues}. Неполные номера отправлений сохраняются отдельно для проверки и не подтверждают доставку или просрочку. Денежная ведомость имеет собственную дату.`});
+  const cpo=readCpo(f=>join(dir,f));
+  if(cpo){
+    const cpoJoinCurrent=createHash('sha256').update(readFileSync(join(dir,'orders_daily.ndjson'))).digest('hex')===cpo.orders_sha256;
+    out.push({source:'CPO: все товары — общая настройка',through:cpo.settings.captured_at,expected:today,status:Date.parse(cpo.settings.captured_at)<=now.getTime()+60000&&now.getTime()-Date.parse(cpo.settings.captured_at)<=18*3600000?'ok':'warning',note:`${cpo.settings.active?'Активно':'Остановлено'}, ставка ${cpo.settings.bid_percent}%; ${cpo.settings.promoted_products} товаров за период интерфейса ${cpo.settings.products_period_from}..${cpo.settings.products_period_to}. Это не наблюдение ставки каждого SKU и не история ставок.`});
+    out.push({source:'CPO: выгрузка по товарам и дням',through:cpo.to,expected:to,status:cpo.to>=to&&!cpo.miss.length&&cpoJoinCurrent?'ok':'warning',note:`Окно ${cpo.from}..${cpo.to}, снято ${cpo.captured_at}. Ненайденных заказов: ${cpo.miss.reduce((n,r)=>n+r.n,0)}. ${cpoJoinCurrent?'':'Заказы обновились после сопоставления; нужен повторный съём CPO. '}Номера заказов остаются в локальном архиве. Дневная выручка связанных заказов рассчитана на дату съёма; последующие отмены требуют нового съёма.`});
+  }
   for (const [source, file, fields] of [
     ["CPO: ставки и позиции", "cpo_sku_status.ndjson", ["date", "d"]],
     ["CPO: ручная выгрузка", "cpo_sku_daily.ndjson", ["d"]],
   ] as Array<[string,string,string[]]>) {
     const through = maxDate(readRows(join(dir, file)), fields);
+    if(cpo && file=== "cpo_sku_daily.ndjson")continue;
     out.push({ source, through, expected: to, status: through && through >= to ? "ok" : "warning", note: "Более поздние даты не подтверждены. Нужна новая выгрузка/съём кабинета" });
   }
   const delivery = json(join(dir,"delivery_sheet_status.json"));

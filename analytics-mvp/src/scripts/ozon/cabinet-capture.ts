@@ -1,3 +1,4 @@
+import {validateCpo,type CpoCapture} from './cpo-capture.js';
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {validateSupplements,type Catalog} from './cabinet-supplements.js';
@@ -9,12 +10,13 @@ export type CaptureItem = {sku:string;scheme:string|null;search_position:number|
 export type CabinetCapture = {version:1;company:'GENGLASS';day:string;captured_at:string;phase:string;day_in_progress:boolean;
  scope:{expected:number;received:number;matched:number;missing:number;extra:number;status:'partial'|'complete'};
  totals:Record<Metric,number|null>;items:CaptureItem[];source:string;not_refreshed:string[]};
-export type CaptureFile = {version:1;company:'GENGLASS';snapshots:CabinetCapture[];catalogs?:Catalog[];competitors?:any};
+export type CaptureFile = {version:1;company:'GENGLASS';snapshots:CabinetCapture[];catalogs?:Catalog[];competitors?:any;cpo?:CpoCapture};
 const keys=(o:any,allowed:string[])=>{if(!o||typeof o!=='object'||Array.isArray(o)||Object.keys(o).some(k=>!allowed.includes(k)))throw Error('Cabinet capture: unexpected fields');};
 const count=(x:any)=>Number.isSafeInteger(x)&&x>=0;
 export function validateCaptureFile(raw:any):CaptureFile {
- keys(raw,['version','company','snapshots','catalogs','competitors']);
+ keys(raw,['version','company','snapshots','catalogs','competitors','cpo']);
  validateSupplements(raw);
+ if(raw.cpo!==undefined)validateCpo(raw.cpo);
  if(raw.version!==1||raw.company!=='GENGLASS'||!Array.isArray(raw.snapshots))throw Error('Cabinet capture: contract');
  const seen=new Set<string>();
  for(const r of raw.snapshots){

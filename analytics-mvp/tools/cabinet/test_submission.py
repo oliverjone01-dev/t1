@@ -91,6 +91,14 @@ class Submission(unittest.TestCase):
         old = copy.deepcopy(ROW); old['day'] = '2026-10-31'; self.previous['snapshots'].append(old)
         self.assertEqual(client.submit(self.prepared, NOW)['state'], 'data_in_main')
 
+    def test_changed_cpo_is_not_mistaken_for_already_published_funnel(self):
+        self.previous = copy.deepcopy(self.incoming)
+        self.incoming['cpo']={'from':'2026-11-01','to':'2026-11-02','captured_at':NOW.isoformat(),'settings':{'captured_at':NOW.isoformat()}}
+        self.write_package()
+        result=client.submit(self.prepared,NOW)
+        self.assertEqual(result['state'],'submitted')
+        self.assertEqual(sum(e.endswith('/dispatches') for e, _ in self.calls),1)
+
     def test_stale_package_rejected_before_upload(self):
         self.incoming['snapshots'][0]['captured_at'] = '2026-11-02T07:00:00Z'; self.write_package()
         with self.assertRaises(ValueError): client.submit(self.prepared, NOW)

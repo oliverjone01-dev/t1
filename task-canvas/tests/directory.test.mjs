@@ -9,3 +9,12 @@ test('avatar download only permits approved HTTPS photo hosts, no REST/auth path
 test('directory network failure preserves task names and never blocks board',async()=>{const d=new Directory({fetcher:async()=>{throw new Error('offline')}});await d.load();assert.equal(d.status,'unavailable');assert.equal(d.name('Катя'),'Катя');assert.equal(d.avatar('Катя'),'')});
 test('directory reports actual department coverage rather than claiming missing PTO',async()=>{const d=new Directory({fetcher:async()=>({ok:true,json:async()=>({version:1,people,departments:[{id:'73',name:' Отдел Маркетинга '},null,{name:7}]})})});await d.load();assert.equal(d.status,'ready');assert.deepEqual(d.departments,['Отдел Маркетинга']);assert.equal(d.name('Катя'),'Екатерина Иванова')});
 test('default fetch retains the browser global receiver',async(t)=>{t.mock.method(globalThis,'fetch',async function(){assert.equal(this,globalThis);return {ok:true,json:async()=>({version:1,people})}});const d=await new Directory().load();assert.equal(d.status,'ready');assert.equal(d.people.length,2)});
+test('confirmed PTO department includes its staff and descendants without other production departments',()=>{
+ const departments=[{ID:'73',NAME:'Отдел Маркетинга',PARENT:'1'},{ID:189,NAME:'Конструкторский отдел ',PARENT:'1'},{ID:'191',NAME:'Расчёты',PARENT:189},{ID:'61',NAME:'Производство',PARENT:'1'},{ID:'173',NAME:'Оптовый отдел ',PARENT:'155'}];
+ const {ids,roots}=departmentScope(departments);
+ assert.deepEqual(roots.map(d=>String(d.ID)),['73','189']);assert.deepEqual([...ids],['73','189','191']);
+ const employee={ID:'8',NAME:'Виктория',LAST_NAME:'Иванова',ACTIVE:'Y',UF_DEPARTMENT:[189]};
+ assert.equal(publicPerson(employee,departments,ids)?.name,'Виктория Иванова');
+ assert(publicPerson({...employee,UF_DEPARTMENT:[191]},departments,ids));
+ assert.equal(publicPerson({...employee,UF_DEPARTMENT:[61]},departments,ids),null);
+});

@@ -1,5 +1,6 @@
 export function departmentScope(departments){
- const roots=departments.filter(d=>/маркетинг|marketing|(?:^|[^а-я])пто(?:$|[^а-я])|производственно[ -]?техническ/i.test(d.NAME||''));
+ // The owner confirmed Bitrix department 189 (Конструкторский отдел) is PTO.
+ const roots=departments.filter(d=>String(d.ID)==='189'||/маркетинг|marketing|(?:^|[^а-я])пто(?:$|[^а-я])|производственно[ -]?техническ/i.test(d.NAME||''));
  if(!roots.length)throw new Error('Requested departments were not found');
  const ids=new Set(roots.map(d=>String(d.ID)));let changed=true;
  while(changed){changed=false;for(const d of departments)if(ids.has(String(d.PARENT))&&!ids.has(String(d.ID))){ids.add(String(d.ID));changed=true}}

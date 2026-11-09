@@ -6,7 +6,10 @@ export function cleanDirectory(data){
 export function resolvePerson(owner,people){
  const value=normalize(owner);if(!value)return null;
  const exact=people.filter(p=>[normalize(p.name),normalize(p.last+' '+p.first)].includes(value));if(exact.length===1)return exact[0];if(exact.length>1)return null;
- if(value.includes(' '))return null;
+ if(value.includes(' ')){
+  const matches=people.filter(p=>{const first=normalize(p.first),last=normalize(p.last);if(!last)return false;return Object.entries(givenNames).some(([alias,names])=>names.includes(first)&&[alias+' '+last,last+' '+alias].includes(value))});
+  return matches.length===1?matches[0]:null;
+ }
  const names=new Set([value,...(givenNames[value]||[])]),matches=people.filter(p=>names.has(normalize(p.first))||normalize(p.last)===value);
  return matches.length===1?matches[0]:null;
 }

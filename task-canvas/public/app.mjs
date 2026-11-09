@@ -1,5 +1,5 @@
 import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-productivity-1';
-import {Directory} from './directory.mjs?rev=20261109-productivity-1';
+import {Directory} from './directory.mjs?rev=20261109-directory-2';
 import {installCalendar} from './calendar.mjs?rev=20261109-productivity-1';
 import {installProductivity} from './productivity.mjs?rev=20261109-productivity-1';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-productivity-1';

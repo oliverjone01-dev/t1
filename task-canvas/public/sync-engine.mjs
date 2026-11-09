@@ -4,9 +4,9 @@ import {
   comparable,
   equal,
   SYNC_FIELDS,
-} from "./sync-model.mjs?rev=20261109-priority-2";
-import { validateBoard } from "./model.mjs?rev=20261109-priority-2";
-import { remoteChanges } from "./changes.mjs?rev=20261109-priority-2";
+} from "./sync-model.mjs?rev=20261110-priority-3";
+import { validateBoard } from "./model.mjs?rev=20261110-priority-3";
+import { remoteChanges } from "./changes.mjs?rev=20261110-priority-3";
 const cleanBoard = (board) => {
   if (
     board?.owners &&

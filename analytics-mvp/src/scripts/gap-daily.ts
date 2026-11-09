@@ -20,6 +20,7 @@
 // цену, а не на цену с картой. Пороги гейта заданы на шкале gap_pct (см. ARRIVED).
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
+import {supplements,catalogGaps} from './ozon/cabinet-supplements.js';
 import type { CoinvRow } from "./boost-readiness.js";
 
 export const GAP_DAILY_FILE = "gap_daily.ndjson";
@@ -193,12 +194,11 @@ export function readGapManual(dir: string): { keys: Map<string, ManualRow>; exis
 /** Строки gap_daily с метками: одна на (день, артикул), ручные снятия как метка файла, затем markNoSiteEx.
  *  Единственная точка входа для всех читателей файла (readGapDaily, plan-tab.ts, build-tests.ts) - копий нет. */
 export function readGapMarked(path: string): { rows: GapRow[]; systemDays: string[]; warnDays: string[]; bad: number; manual: number; manualRows: ManualRow[]; manualFile: boolean } {
-  if (!existsSync(path)) return { rows: [], systemDays: [], warnDays: [], bad: 0, manual: 0, manualRows: [], manualFile: false };
   const manual = readGapManual(dirname(path));
   const parsed: GapRow[] = [];
   const manualRows: ManualRow[] = [];
   let bad = 0, manualN = 0;
-  for (const l of readFileSync(path, "utf-8").trim().split("\n").filter(Boolean)) {
+  for (const l of (existsSync(path) ? readFileSync(path, "utf-8") : "").trim().split("\n").filter(Boolean)) {
     let r: GapRow;
     try { r = JSON.parse(l) as GapRow; } catch { bad += 1; continue; }
     const d = String(r.date || "").slice(0, 10);
@@ -210,11 +210,12 @@ export function readGapMarked(path: string): { rows: GapRow[]; systemDays: strin
     parsed.push(r);
   }
   const m = markNoSiteEx(parsed);
-  return { rows: m.rows, systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN, manualRows, manualFile: manual.exists };
+  const merged = new Map(m.rows.map(r=>[r.date+'|'+r.art,r]));
+  for(const r of catalogGaps(supplements(dirname(path)).catalogs)) merged.set(r.date+'|'+r.art,r);
+  return { rows: [...merged.values()], systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN, manualRows, manualFile: manual.exists };
 }
 
 export function readGapDaily(path: string): GapRead {
-  if (!existsSync(path)) return EMPTY;
   const rows: CoinvRow[] = [];
   const bySrc = new Map<string, number>();
   const days = new Set<string>();

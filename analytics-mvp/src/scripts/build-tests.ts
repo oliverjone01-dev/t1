@@ -338,13 +338,16 @@ if (GAP.exists) {
     if (cap) capOf.set(art, cap);
   }
   for (const [, m] of series) for (const [, c] of m) { delete c["coinv"]; delete c["price"]; }
+  const rawGapPrices = new Map(readGapMarked(dp(GAP_DAILY_FILE)).rows.map(r=>[r.date+"|"+r.art,r]));
   for (const r of GAP.rows) {
     const g = Number(r.gap_pct);
     if (!Number.isFinite(g)) continue;
     const c = cell(r.art, r.date);
     c["coinv"] = g;
-    const cap = capOf.get(r.art);
-    if (cap) c["price"] = Math.round(cap * (1 - g / 100));
+    const raw = rawGapPrices.get(r.date+"|"+r.art) as any;
+    const cap = raw?.cap ?? capOf.get(r.art);
+    if (raw?.buyer != null) c["price"] = raw.buyer;
+    else if (cap) c["price"] = Math.round(cap * (1 - g / 100));
   }
 }
 // Снимок индекса бустинга. Он не участвует в гейте: три дня наблюдения, решения по нему не

@@ -42,13 +42,13 @@ def validate(path):
                    cwd=Path(__file__).resolve().parents[2], check=True, timeout=90)
 
 
-def submit(prepared, now=None, retry_failed=False):
+def submit(prepared, now=None, retry_failed=False, backfill_since=None):
     prepared = prepared.resolve()
     raw = (prepared/'cabinet_capture.json').read_bytes()
     manifest = json.loads((prepared/'manifest.json').read_text())
     ready = json.loads((prepared/'READY.json').read_text())
     digest = hashlib.sha256(raw).hexdigest()
-    if len(raw) > 8_000_000 or digest != manifest['public_sha256'] or digest != ready['sha256'] or manifest['ready_for_summary_publication'] is not True:
+    if len(raw) > 32_000_000 or digest != manifest['public_sha256'] or digest != ready['sha256'] or manifest['ready_for_summary_publication'] is not True:
         raise ValueError('Prepared package is not ready or changed')
     validate(prepared/'cabinet_capture.json')  # before any public upload
     incoming = json.loads(raw)
@@ -59,7 +59,7 @@ def submit(prepared, now=None, retry_failed=False):
     previous = json.loads(base64.b64decode(content['content']))
     # Includes partial packages: if every included row is already current, no upload or dispatch.
     old = {(r['day'], r['phase']): r for r in previous['snapshots']}
-    if all(old.get((r['day'], r['phase'])) == r for r in incoming['snapshots']):
+    if all(old.get((r['day'], r['phase'])) == r for r in incoming['snapshots']) and all(previous.get(k) == incoming[k] for k in ['catalogs', 'competitors'] if k in incoming):
         return save(receipt_path, {'state': 'data_in_main', 'public_sha256': digest,
                                   'data_committed': True, 'published': False,
                                   'note': 'Still verify Pages and live source date'})
@@ -84,7 +84,7 @@ def submit(prepared, now=None, retry_failed=False):
         if not retry_allowed:
             return receipt
     # Fail stale/conflicting input before upload. The server repeats this against current main.
-    accept(previous, incoming, now)
+    accept(previous, incoming, now, backfill_since)
     if any(r['status'] != 'completed' for r in runs):
         raise RuntimeError('Cabinet publication already active; await it and reprepare against main')
     blob = api('git/blobs', {'content': raw.decode('utf-8'), 'encoding': 'utf-8'})
@@ -101,7 +101,7 @@ def submit(prepared, now=None, retry_failed=False):
     save(receipt_path, receipt)
     try:
         api(f'actions/workflows/{WORKFLOW}/dispatches',
-            {'ref': 'main', 'inputs': {'blob_sha': blob['sha'], 'base_sha': current['sha']}})
+            {'ref': 'main', 'inputs': {'blob_sha': blob['sha'], 'base_sha': current['sha'], 'backfill_since': backfill_since or ''}})
     except (subprocess.SubprocessError, OSError):
         receipt['state'] = 'unknown'
         save(receipt_path, receipt)
@@ -113,13 +113,14 @@ def submit(prepared, now=None, retry_failed=False):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('prepared', type=Path)
+    p.add_argument('--backfill-since', help='Explicit earliest historical source day to restore')
     p.add_argument('--retry-failed', action='store_true', help='One retry only after a confirmed failed server run; never an unknown dispatch')
     a = p.parse_args()
     # Nonblocking process-wide lock, shared by different package paths on this Mac.
     lockpath = Path(tempfile.gettempdir())/f'ozon-cabinet-submit-{os.getuid()}.lock'
     with lockpath.open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        receipt = submit(a.prepared, retry_failed=a.retry_failed)
+        receipt = submit(a.prepared, retry_failed=a.retry_failed, backfill_since=a.backfill_since)
     print(json.dumps(receipt))
     if receipt['state'] in ['unknown', 'server_failed']:
         raise SystemExit(2)

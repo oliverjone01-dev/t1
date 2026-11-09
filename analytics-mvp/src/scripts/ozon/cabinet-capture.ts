@@ -1,5 +1,6 @@
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {validateSupplements,type Catalog} from './cabinet-supplements.js';
 
 const notRefreshed = new Set(['card_price','coinvest','boosting_components','fbs_tariff','cpo_settings','card_groups','competitor_watchlist']);
 const metrics = ['views','search_views','pdp_views','cart','ordered_units'] as const;
@@ -8,11 +9,12 @@ export type CaptureItem = {sku:string;scheme:string|null;search_position:number|
 export type CabinetCapture = {version:1;company:'GENGLASS';day:string;captured_at:string;phase:string;day_in_progress:boolean;
  scope:{expected:number;received:number;matched:number;missing:number;extra:number;status:'partial'|'complete'};
  totals:Record<Metric,number|null>;items:CaptureItem[];source:string;not_refreshed:string[]};
-export type CaptureFile = {version:1;company:'GENGLASS';snapshots:CabinetCapture[]};
+export type CaptureFile = {version:1;company:'GENGLASS';snapshots:CabinetCapture[];catalogs?:Catalog[];competitors?:any};
 const keys=(o:any,allowed:string[])=>{if(!o||typeof o!=='object'||Array.isArray(o)||Object.keys(o).some(k=>!allowed.includes(k)))throw Error('Cabinet capture: unexpected fields');};
 const count=(x:any)=>Number.isSafeInteger(x)&&x>=0;
 export function validateCaptureFile(raw:any):CaptureFile {
- keys(raw,['version','company','snapshots']);
+ keys(raw,['version','company','snapshots','catalogs','competitors']);
+ validateSupplements(raw);
  if(raw.version!==1||raw.company!=='GENGLASS'||!Array.isArray(raw.snapshots))throw Error('Cabinet capture: contract');
  const seen=new Set<string>();
  for(const r of raw.snapshots){

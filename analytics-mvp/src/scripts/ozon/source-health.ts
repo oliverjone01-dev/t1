@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { closedDay, shiftDay, readRows } from "./collector-integrity.js";
+import {supplements} from './cabinet-supplements.js';
 import {readCaptureFile,latestCapture} from './cabinet-capture.js';
 
 export type SourceHealth = { source: string; through: string | null; expected: string; status: "ok" | "warning" | "error"; note: string };
@@ -40,6 +41,18 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
     const expected = collector === "pnl-sku-accrual-daily" && !status[collector] ? shiftDay(to, -7) : to;
     out.push({ source, through, expected, status: through && through >= expected ? "ok" : "error", note: collector && status[collector] ? `Успешная загрузка ${status[collector].loaded_at}` : "Дата последней строки; не подтверждает отсутствие внутренних пропусков" });
   }
+  const supplemental = supplements(dir), catalog = [...supplemental.catalogs].sort((a,b)=>Date.parse(a.captured_at)-Date.parse(b.captured_at)).at(-1);
+  const catalogFresh = catalog && Date.parse(catalog.captured_at)<=now.getTime()+60000 && now.getTime()-Date.parse(catalog.captured_at)<=18*3600000;
+  for(const [label, fields] of [['Цены реализации и разрыв цен',['cap','buyer','gap_pct']],['Остатки каталога',['stock_ozon','stock_seller']],['Комиссии каталога',['commission_fbo','commission_fbs']],['Расчётная логистика каталога',['logistics_fbo_min','logistics_fbo_max','logistics_fbs_min','logistics_fbs_max']],['Эквайринг каталога',['acquiring']]] as [string,string[]][]){
+    const observed=catalog?.items.filter(r=>fields.every(k=>(r as any)[k]!==null)).length??0;
+    out.push({source:label,through:catalog?.day??null,expected:today,status:catalogFresh&&catalog?.expected===catalog?.items.length&&observed===catalog?.items.length?'ok':'error',note:`Время сеанса ${catalog?.captured_at??'неизвестно'}; ${observed} из ${catalog?.items.length??0} товаров с полями. Расчётные условия не заменяют начисления по заказам. Разрыв цен не является фактической компенсацией Ozon.`});
+  }
+  for(const [label,file] of [['Соинвест по карте (исторический источник)','coinv_daily.ndjson'],['Составляющие бустинга','boost_daily.ndjson']] as const){
+    const through=maxDate(readRows(join(dir,file)),['date']);out.push({source:label,through,expected:today,status:through&&through>=today?'ok':'warning',note:'Отдельное наблюдение; каталог цен не содержит этого показателя. Старое значение нельзя считать текущим.'});
+  }
+  const comp=supplemental.competitors;
+  out.push({source:'Конкуренты: кабинетные выгрузки',through:comp?.source_updated_at??null,expected:shiftDay(to,-2),status:comp&&Date.parse(comp.source_updated_at)<=now.getTime()&&now.getTime()-Date.parse(comp.source_updated_at)<=72*3600000?'warning':'error',note:comp?`Подключены ${comp.exports.length} выгрузок за 7/28 дней; получены ${comp.captured_at}. Категории ограничены 1000 строками, полного рынка и полного списка наблюдения не подтверждают.`:'Новые выгрузки не подключены; страница использует исторический снимок.'});
+  const tariff=json(join(dir,'fbs_tariff.json'));out.push({source:'Фактический тариф FBS по отправлениям',through:tariff.source_date??null,expected:to,status:tariff.source_date>=to?'ok':'warning',note:'Отдельная база от расчётных тарифов каталога; необходимы сведения по отправлениям.'});
   const cabinet = json(join(dir, "reakciya.json"));
   const cabThrough = cabinet.data_until ?? cabinet.updated ?? null;
   out.push({ source: "Кабинет: акции и цены", through: cabThrough, expected: today, status: cabThrough && cabThrough >= today ? "ok" : "warning", note: "Съём с Mac; сегодняшний день может быть неполным" });

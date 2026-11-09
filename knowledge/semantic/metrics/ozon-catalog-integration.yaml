@@ -1,0 +1,16 @@
+id: ozon-catalog-integration
+version: 1
+status: authorized-restoration
+approval: "Иван, 2026-11-09: давай чини, чтобы в дашборде была полная и актуальная информация; восстановить доступную историю по согласованному разбору"
+source: catalog.xlsx, headers resolved by label
+population: every observed catalog SKU, distinct SKU per capture
+ratio: 100 * (1 - buyer_realization / seller_cap), same SKU and same observation
+meaning: price gap; NOT actual Ozon compensation, NOT separate Ozon Card price
+clock: Europe/Moscow; actual observation timestamp; today is partial
+aggregation: latest observation per SKU/day; morning and evening retained, never summed
+nulls: missing stays null; invalid ratio excluded; no carry-forward price labelled current
+orders_and_returns: not applicable to price observations; no changed financial formulas
+competitors: direct 7/28-day export metrics, unknown exact boundaries retained; missing SKU unknown; categories not summed across overlapping exports
+reference: "KONUX 5426756030 on 04.11 morning cap115803 buyer49827; evening cap115803 buyer46670; catalog count468, from user-approved analysis"
+checks: schema shift, duplicate SKU, timestamp timezone, preservation of history, rendered page values
+publication: "Local restore and validation authorized; expanded cabinet_capture public scope still needs confirmation. Prior financial-plan permission remains valid."

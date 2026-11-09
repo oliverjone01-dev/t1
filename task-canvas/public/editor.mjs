@@ -1,5 +1,5 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261109-priority-2";
-import { parseAssignee } from "./people.mjs?rev=20261109-priority-2";
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-priority-3";
+import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
 export const EDIT_FIELDS = [
   "title",
   "unit",

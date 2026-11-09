@@ -1,15 +1,15 @@
-import {installPriorityEditor} from './priority-editor.mjs?rev=20261109-priority-2';
-import {installGantt} from './gantt.mjs?rev=20261109-priority-2';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261109-priority-2';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261109-priority-2';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-priority-2';
-import {Directory} from './directory.mjs?rev=20261109-priority-2';
-import {installCalendar} from './calendar.mjs?rev=20261109-priority-2';
-import {installProductivity} from './productivity.mjs?rev=20261109-priority-2';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-priority-2';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-priority-2';
-import {renderBoard} from './board-ui.mjs?rev=20261109-priority-2';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-priority-2';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-priority-3';
+import {installGantt} from './gantt.mjs?rev=20261110-priority-3';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-priority-3';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-priority-3';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-priority-3';
+import {Directory} from './directory.mjs?rev=20261110-priority-3';
+import {installCalendar} from './calendar.mjs?rev=20261110-priority-3';
+import {installProductivity} from './productivity.mjs?rev=20261110-priority-3';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-priority-3';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-priority-3';
+import {renderBoard} from './board-ui.mjs?rev=20261110-priority-3';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-priority-3';
 import {
   QUADRANTS,
   CARD,
@@ -24,20 +24,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261109-priority-2";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261109-priority-2";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-priority-2";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-priority-2";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261109-priority-2";
-import { remoteChanges } from "./changes.mjs?rev=20261109-priority-2";
-import { TeamApi } from "./team-api.mjs?rev=20261109-priority-2";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-priority-2";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-priority-2";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261109-priority-2";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-priority-2";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-priority-2";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-priority-2";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-priority-2";
+} from "./model.mjs?rev=20261110-priority-3";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261110-priority-3";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-priority-3";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-priority-3";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261110-priority-3";
+import { remoteChanges } from "./changes.mjs?rev=20261110-priority-3";
+import { TeamApi } from "./team-api.mjs?rev=20261110-priority-3";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-priority-3";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-priority-3";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261110-priority-3";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-priority-3";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261110-priority-3";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-priority-3";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-priority-3";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -45,8 +45,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261109-priority-2";
-import { parseAssignee } from "./people.mjs?rev=20261109-priority-2";
+} from "./editor.mjs?rev=20261110-priority-3";
+import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
 import {
   matchesTask,
   matchesWords,
@@ -55,8 +55,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261109-priority-2";
-import { icon } from "./icons.mjs?rev=20261109-priority-2";
+} from "./ui-model.mjs?rev=20261110-priority-3";
+import { icon } from "./icons.mjs?rev=20261110-priority-3";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -1935,7 +1935,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   const typing = e.target.closest("input,textarea,select,[contenteditable]");
-  if (typing || $("dialog[open]")) return;
+  if (typing || e.target.closest("#editor") || $("dialog[open]").some(d=>d.id!=="editor"||editorBlocksSync(d))) return;
   if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
     e.preventDefault();
     e.shiftKey ? restore(future, history) : restore(history, future);
@@ -2315,7 +2315,7 @@ cloudEngine.flush = async () => {
   }
   if (
     !cloudEngine.managed &&
-    (gesture || $("#editor").open || $("#import-dialog").open)
+    (gesture || editorBlocksSync($("#editor")) || $("#import-dialog").open)
   ) {
     cloudEngine.later(1500);
     return;

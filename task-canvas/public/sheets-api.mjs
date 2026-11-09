@@ -5,8 +5,8 @@ import {
   combineSheets,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261109-priority-2";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-priority-2';
+} from "./sync-model.mjs?rev=20261110-priority-3";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261110-priority-3';
 export class SheetsApi {
   constructor(
     auth,

@@ -1,7 +1,7 @@
-import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance} from './gantt-model.mjs?rev=20261109-priority-2';
-import {temperature,dateShift} from './task-signals.mjs?rev=20261109-priority-2';
-import {statusBadge} from './quick-controls.mjs?rev=20261109-priority-2';
-import {statusStyle} from './status-model.mjs?rev=20261109-priority-2';
+import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance} from './gantt-model.mjs?rev=20261110-priority-3';
+import {temperature,dateShift} from './task-signals.mjs?rev=20261110-priority-3';
+import {statusBadge} from './quick-controls.mjs?rev=20261110-priority-3';
+import {statusStyle} from './status-model.mjs?rev=20261110-priority-3';
 export function installGantt(host){
  const root=document.querySelector('#gantt-view'),esc=host.esc;let group='unit',sort='due',scale=28,months=3,anchor=host.today(),collapsed=new Set(),drag=null,busy=false,scroll={x:0,y:0},groups=[];
  const fmt=(d,opts={day:'numeric',month:'short'})=>new Intl.DateTimeFormat('ru',opts).format(new Date(d+'T12:00:00Z'));

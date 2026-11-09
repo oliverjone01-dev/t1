@@ -1935,7 +1935,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   const typing = e.target.closest("input,textarea,select,[contenteditable]");
-  if (typing || e.target.closest("#editor") || $("dialog[open]").some(d=>d.id!=="editor"||editorBlocksSync(d))) return;
+  if (typing || e.target.closest("#editor") || $$("dialog[open]").some(d=>d.id!=="editor"||editorBlocksSync(d))) return;
   if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
     e.preventDefault();
     e.shiftKey ? restore(future, history) : restore(history, future);

@@ -3,7 +3,7 @@ export const STATUS_STYLE={
  'В ожидании':{key:'waiting',symbol:'◷',card:'#edf6ff',badge:'#cce6ff',ink:'#245578'},
  'В работе':{key:'working',symbol:'◐',card:'#fff3e5',badge:'#ffd9ad',ink:'#774015'},
  'Приостановлено':{key:'paused',symbol:'Ⅱ',card:'#fff0f4',badge:'#f8ccda',ink:'#84334e'},
- 'Готово':{key:'done',symbol:'✓',card:'#f0f8e5',badge:'#d9efff',ink:'#285675'},
+ 'Готово':{key:'done',symbol:'✓',card:'#f0f8e5',badge:'#cfeac0',ink:'#2c5e30'},
  'Отменено':{key:'cancelled',symbol:'×',card:'#f2f1f3',badge:'#e6dfe5',ink:'#665362'},
 };
 export const statusStyle=s=>STATUS_STYLE[s]||STATUS_STYLE['Не указан'];

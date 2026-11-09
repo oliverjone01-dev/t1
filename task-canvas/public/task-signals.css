@@ -13,9 +13,11 @@ button.temperature{appearance:none;border:0;background:none;font-family:inherit;
 :root[data-theme=dark] [data-task-status="В работе"],:root[data-theme=dark] .task-status.working,:root[data-theme=dark] .gantt-bar.working{--status-card:#35281e;--status-badge:#644326;--status-ink:#ffdbb5}
 [data-task-status="Приостановлено"],.task-status.paused,.gantt-bar.paused{--status-card:#fff0f4;--status-badge:#f8ccda;--status-ink:#84334e}
 :root[data-theme=dark] [data-task-status="Приостановлено"],:root[data-theme=dark] .task-status.paused,:root[data-theme=dark] .gantt-bar.paused{--status-card:#351f2a;--status-badge:#643346;--status-ink:#ffd0df}
-[data-task-status="Готово"],.task-status.done,.gantt-bar.done{--status-card:#f0f8e5;--status-badge:#d9efff;--status-ink:#285675}
-:root[data-theme=dark] [data-task-status="Готово"],:root[data-theme=dark] .task-status.done,:root[data-theme=dark] .gantt-bar.done{--status-card:#263020;--status-badge:#24465b;--status-ink:#d1edff}
+[data-task-status="Готово"],.task-status.done,.gantt-bar.done{--status-card:#f0f8e5;--status-badge:#cfeac0;--status-ink:#2c5e30}
+:root[data-theme=dark] [data-task-status="Готово"],:root[data-theme=dark] .task-status.done,:root[data-theme=dark] .gantt-bar.done{--status-card:#263020;--status-badge:#355432;--status-ink:#d8f4c9}
 [data-task-status="Отменено"],.task-status.cancelled,.gantt-bar.cancelled{--status-card:#f2f1f3;--status-badge:#e6dfe5;--status-ink:#665362}
 :root[data-theme=dark] [data-task-status="Отменено"],:root[data-theme=dark] .task-status.cancelled,:root[data-theme=dark] .gantt-bar.cancelled{--status-card:#28252d;--status-badge:#4e3c4b;--status-ink:#ebd8e7}
 
 :root[data-theme=dark] .temperature.level-0{--heat:#b8c8da}
+
+button.task-status.done:focus-visible{outline-color:var(--status-ink)}

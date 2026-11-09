@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-02T09:57:47.805Z",
+  "measured": "2026-11-09T10:13:45.462Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5034,
-        "it50": 49525130,
-        "vis": 3937261,
-        "perc": 0.01016453667057512
+        "cnt": 5055,
+        "it50": 49549827,
+        "vis": 4993271,
+        "perc": 0.010201851966102727
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 4537,
-        "it50": 20529572,
-        "vis": 2696775,
-        "perc": 0.022099827507363525
+        "cnt": 4560,
+        "it50": 20568061,
+        "vis": 2325538,
+        "perc": 0.02217029597490984
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3804,
-        "it50": 50170273,
-        "vis": 3899888,
-        "perc": 0.007582179192048647
+        "cnt": 3807,
+        "it50": 50155054,
+        "vis": 3546389,
+        "perc": 0.007590461372048368
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3036,
-        "it50": 47311827,
-        "vis": 10562215,
-        "perc": 0.0064170001297984116
-      },
-      {
-        "did": 37692261,
-        "name": "m-strana.ru",
-        "cnt": 2941,
-        "it50": 1391364,
-        "vis": 16814,
-        "perc": 0.21137531228348586
+        "cnt": 3029,
+        "it50": 47231304,
+        "vis": 10357483,
+        "perc": 0.006413119570020764
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 2912,
-        "it50": 17474784,
-        "vis": 1131926,
-        "perc": 0.016664011412101002
+        "cnt": 2959,
+        "it50": 17519345,
+        "vis": 1178626,
+        "perc": 0.01688990084960368
+      },
+      {
+        "did": 37692261,
+        "name": "m-strana.ru",
+        "cnt": 2948,
+        "it50": 1400385,
+        "vis": 19401,
+        "perc": 0.2105135373486577
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2884,
-        "it50": 3137917,
-        "vis": 479775,
-        "perc": 0.09190810336920958
+        "cnt": 2896,
+        "it50": 3122173,
+        "vis": 394550,
+        "perc": 0.09275591070706204
       },
       {
         "did": 31079457,
         "name": "vk.ru",
-        "cnt": 2487,
-        "it50": 49172724,
-        "vis": 6608186,
-        "perc": 0.005057681978326033
+        "cnt": 2491,
+        "it50": 49174170,
+        "vis": 6288196,
+        "perc": 0.005065667605574227
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
-        "cnt": 2162,
-        "it50": 879796,
-        "vis": 12965,
-        "perc": 0.24573878490013595
+        "cnt": 2157,
+        "it50": 880183,
+        "vis": 14018,
+        "perc": 0.2450626744665598
       },
       {
-        "did": 140677055,
-        "name": "ru.pinterest.com",
-        "cnt": 2099,
-        "it50": 6373652,
-        "vis": 857965,
-        "perc": 0.03293245379572026
+        "did": 29918353,
+        "name": "ozon.ru",
+        "cnt": 2119,
+        "it50": 18653776,
+        "vis": 3423736,
+        "perc": 0.011359630350444863
       }
     ],
-    "it1": 239,
-    "it3": 647,
-    "it5": 1088,
-    "it10": 2314,
-    "it50": 9647,
+    "it1": 232,
+    "it3": 639,
+    "it5": 1069,
+    "it10": 2274,
+    "it50": 9663,
     "childsCount": 1,
     "keys": [
       {
@@ -158,10 +158,10 @@
         "wsk": 72
       }
     ],
-    "topkeys": 42582,
+    "topkeys": 42633,
     "pages": [
       {
-        "it50": 312,
+        "it50": 315,
         "url": "/"
       },
       {
@@ -169,15 +169,15 @@
         "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
-        "it50": 243,
+        "it50": 250,
         "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 200,
+        "it50": 198,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "it50": 190,
+        "it50": 191,
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
@@ -185,11 +185,11 @@
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 147,
+        "it50": 146,
         "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
       },
       {
-        "it50": 129,
+        "it50": 128,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
@@ -201,18 +201,18 @@
         "url": "/shower-enclosures/kak-pravilno-splanirovat-dushevoe-ograzhdenie-bez-poddona"
       }
     ],
-    "pagesinindex": 1173,
-    "vis": 141,
-    "topvis": 49665,
+    "pagesinindex": 1174,
+    "vis": 139,
+    "topvis": 50937,
     "adconcs": [
       {
         "did": 29969733,
         "name": "ofimall.ru",
         "cnt": 11,
-        "it50": 2371,
+        "it50": 2356,
         "vis": 9,
-        "adkeyscnt": 1803,
-        "adscnt": 328
+        "adkeyscnt": 1846,
+        "adscnt": 335
       }
     ],
     "adkeys": [
@@ -296,17 +296,6 @@
       {
         "p": [
           0,
-          46
-        ],
-        "pos": 46,
-        "sr": 0,
-        "word": "стеклянный сити",
-        "ws": 1069,
-        "wsk": 496
-      },
-      {
-        "p": [
-          0,
           9
         ],
         "pos": 9,
@@ -325,18 +314,21 @@
         "word": "звукоизоляционные перегородки для офиса",
         "ws": 36,
         "wsk": 33
+      },
+      {
+        "p": [
+          0,
+          5
+        ],
+        "pos": 5,
+        "sr": 0,
+        "word": "стена из стекла купить",
+        "ws": 209,
+        "wsk": 0
       }
     ],
-    "adkeyscnt": 13,
+    "adkeyscnt": 12,
     "ads": [
-      {
-        "facts": "",
-        "header": "Стеклянные перегородки в Москве от производителя!",
-        "id": 268521267,
-        "keyscnt": 2,
-        "links": "Гарантия качества, Сроков, Скидки до 30%, Замеры бесплатно",
-        "txt": "Перегородки стеклянные в Москве под ключ. От 2200 р/м2. Скидка 30% от 100м2.Заходите!"
-      },
       {
         "facts": "",
         "header": "Стеклянные Перегородки на заказ от 2200 р/м² в Москве",
@@ -408,33 +400,29 @@
         "keyscnt": 1,
         "links": "Гарантия качества, Сроков, Скидки до 30%, Замеры бесплатно",
         "txt": "Двойные звукоизоляционные стеклянные перегородки для офиса. Зонирование пространства с помощью каркасных стеклянных перегородок в офисе."
+      },
+      {
+        "facts": "",
+        "header": "Стеклянные перегородки и стеклянные двери от производителя в Москве",
+        "id": 3668598938,
+        "keyscnt": 1,
+        "links": "Гарантия качества, Сроков, Скидки до 30%, Замеры бесплатно",
+        "txt": "Прозрачные перегородки Basic Express. ... Стеклянные перегородки раздвижные монтируются в кратчайшие сроки."
       }
     ],
     "adscnt": 11,
     "adtraf": 0,
     "adcost": {
-      "average": 1426,
-      "bdg100": 3565,
+      "average": 1425,
+      "bdg100": 3564,
       "bdg5": 11,
-      "bdg62": 1410,
-      "bdg85": 2131,
+      "bdg62": 1409,
+      "bdg85": 2130,
       "bdg9": 11,
-      "max": 3565
+      "max": 3564
     },
     "restop5": 11,
     "history": {
-      "2025.05": {
-        "it1": 108,
-        "it3": 431,
-        "it5": 770,
-        "it10": 1918,
-        "it50": 9141,
-        "pagesInIndex": 1073,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 181,
-        "aiCnt": 0
-      },
       "2025.06": {
         "it1": 112,
         "it3": 406,
@@ -637,19 +625,19 @@
         "adsCount": 11,
         "adKeysCount": 13,
         "visAvg": 141,
-        "aiCnt": 1213
+        "aiCnt": 1247
       },
       "2026.11": {
-        "it1": 239,
-        "it3": 647,
-        "it5": 1088,
-        "it10": 2314,
-        "it50": 9647,
-        "pagesInIndex": 1173,
+        "it1": 232,
+        "it3": 639,
+        "it5": 1069,
+        "it10": 2274,
+        "it50": 9663,
+        "pagesInIndex": 1174,
         "adsCount": 11,
-        "adKeysCount": 13,
-        "visAvg": 141,
-        "aiCnt": 1213
+        "adKeysCount": 12,
+        "visAvg": 139,
+        "aiCnt": 920
       }
     },
     "linksHistory": {
@@ -780,14 +768,14 @@
         1344
       ],
       "2026.11": [
-        3773,
-        27831,
-        487,
+        3740,
+        28450,
+        488,
         24,
-        1344
+        1334
       ]
     },
-    "aiAnswersCnt": 1213,
+    "aiAnswersCnt": 920,
     "aiState": 0,
     "dr": 26,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

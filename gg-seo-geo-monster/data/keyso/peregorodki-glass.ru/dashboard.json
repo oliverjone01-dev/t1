@@ -2,7 +2,7 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-02T09:52:54.511Z",
+  "measured": "2026-11-09T10:10:10.009Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
     "id": 309180640,
@@ -12,88 +12,88 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 161,
-        "it50": 20529572,
-        "vis": 2696775,
-        "perc": 0.0007842345666047007
+        "cnt": 160,
+        "it50": 20568061,
+        "vis": 2325538,
+        "perc": 0.000777905121926661
       },
       {
         "did": 30700481,
         "name": "gstrong.ru",
-        "cnt": 146,
-        "it50": 3545,
-        "vis": 45,
-        "perc": 4.118476727785613
+        "cnt": 140,
+        "it50": 3520,
+        "vis": 49,
+        "perc": 3.977272727272727
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 137,
-        "it50": 9647,
-        "vis": 141,
-        "perc": 1.4201306105525033
+        "cnt": 135,
+        "it50": 9663,
+        "vis": 139,
+        "perc": 1.397081651660975
       },
       {
         "did": 278166136,
         "name": "zavod-peregorodok.ru",
-        "cnt": 131,
-        "it50": 982,
-        "vis": 8,
-        "perc": 13.340122199592667
+        "cnt": 133,
+        "it50": 998,
+        "vis": 7,
+        "perc": 13.326653306613226
       },
       {
         "did": 30670319,
         "name": "oki-doki.ru",
-        "cnt": 127,
-        "it50": 1867,
-        "vis": 63,
-        "perc": 6.802356722013926
+        "cnt": 126,
+        "it50": 1858,
+        "vis": 132,
+        "perc": 6.7814854682454255
       },
       {
         "did": 239735018,
         "name": "glgrup.ru",
-        "cnt": 115,
-        "it50": 1670,
+        "cnt": 116,
+        "it50": 1662,
         "vis": 14,
-        "perc": 6.88622754491018
+        "perc": 6.979542719614922
       },
       {
         "did": 322813373,
         "name": "lain-loft.ru",
-        "cnt": 114,
-        "it50": 6633,
-        "vis": 220,
-        "perc": 1.718679330619629
+        "cnt": 115,
+        "it50": 6665,
+        "vis": 284,
+        "perc": 1.7254313578394598
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
-        "cnt": 111,
+        "cnt": 112,
         "it50": 2248,
-        "vis": 134,
-        "perc": 4.937722419928826
+        "vis": 112,
+        "perc": 4.98220640569395
       },
       {
         "did": 329921063,
         "name": "doors4u.ru",
-        "cnt": 110,
-        "it50": 9792,
-        "vis": 972,
-        "perc": 1.1233660130718954
+        "cnt": 112,
+        "it50": 9826,
+        "vis": 781,
+        "perc": 1.1398330958681049
       },
       {
         "did": 30773214,
         "name": "zerist.ru",
-        "cnt": 105,
-        "it50": 3795,
-        "vis": 42,
-        "perc": 2.766798418972332
+        "cnt": 104,
+        "it50": 3781,
+        "vis": 43,
+        "perc": 2.75059508066649
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
-    "it10": 4,
+    "it10": 5,
     "it50": 209,
     "childsCount": 0,
     "keys": [
@@ -108,6 +108,12 @@
         "word": "изготовление стеклянной перегородки цена",
         "ws": 6,
         "wsk": 1
+      },
+      {
+        "pos": 7,
+        "word": "зонирование комнаты стеклом",
+        "ws": 344,
+        "wsk": 5
       },
       {
         "pos": 7,
@@ -150,27 +156,25 @@
         "word": "изготовление стеклянных перегородок",
         "ws": 289,
         "wsk": 19
-      },
-      {
-        "pos": 14,
-        "word": "сделать стеклянную перегородку в комнате",
-        "ws": 48,
-        "wsk": 4
       }
     ],
-    "topkeys": 680216,
+    "topkeys": 679862,
     "pages": [
       {
         "it50": 138,
         "url": "/"
       },
       {
-        "it50": 16,
+        "it50": 15,
         "url": "/our-works/mobilnyie-peregorodki"
       },
       {
-        "it50": 13,
+        "it50": 12,
         "url": "/our-works/loft-peregorodki"
+      },
+      {
+        "it50": 8,
+        "url": "/our-works/razdvizhnyie-peregorodki"
       },
       {
         "it50": 7,
@@ -178,30 +182,26 @@
       },
       {
         "it50": 7,
-        "url": "/our-works/razdvizhnyie-peregorodki"
-      },
-      {
-        "it50": 7,
-        "url": "/our-works/skladnyie-peregorodki"
-      },
-      {
-        "it50": 6,
         "url": "/our-works/peregorodki-dlya-zonirovaniya-komnat"
       },
       {
-        "it50": 3,
-        "url": "/our-works/nedorogie-peregorodki"
+        "it50": 6,
+        "url": "/our-works/skladnyie-peregorodki"
       },
       {
         "it50": 3,
         "url": "/our-works/peregorodki-v-kvartire"
       },
       {
+        "it50": 3,
+        "url": "/our-works/nedorogie-peregorodki"
+      },
+      {
         "it50": 2,
         "url": "/articles/kak-professionalno-ustanovit-steklyannuyu-peregorodku"
       }
     ],
-    "pagesinindex": 14,
+    "pagesinindex": 15,
     "vis": 0,
     "topvis": 1000000,
     "adconcs": [],
@@ -226,18 +226,6 @@
     },
     "restop5": 0,
     "history": {
-      "2025.05": {
-        "it1": 0,
-        "it3": 1,
-        "it5": 2,
-        "it10": 4,
-        "it50": 173,
-        "pagesInIndex": 12,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 0,
-        "aiCnt": 0
-      },
       "2025.06": {
         "it1": 0,
         "it3": 1,
@@ -440,19 +428,19 @@
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
-        "aiCnt": 16
+        "aiCnt": 17
       },
       "2026.11": {
         "it1": 0,
         "it3": 0,
         "it5": 0,
-        "it10": 4,
+        "it10": 5,
         "it50": 209,
-        "pagesInIndex": 14,
+        "pagesInIndex": 15,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
-        "aiCnt": 16
+        "aiCnt": 15
       }
     },
     "linksHistory": {
@@ -461,84 +449,84 @@
         23,
         1,
         2,
-        1
+        0
       ],
       "2025.06": [
         1,
         23,
         1,
         2,
-        1
+        0
       ],
       "2025.07": [
         0,
         24,
         0,
         2,
-        1
+        0
       ],
       "2025.08": [
         0,
         23,
         0,
         2,
-        1
+        0
       ],
       "2025.09": [
         0,
         23,
         0,
         2,
-        1
+        0
       ],
       "2025.10": [
         0,
         22,
         0,
         2,
-        1
+        0
       ],
       "2025.11": [
         0,
         21,
         0,
         2,
-        1
+        0
       ],
       "2025.12": [
         0,
         23,
         0,
         2,
-        1
+        0
       ],
       "2026.01": [
         0,
         29,
         0,
         2,
-        1
+        0
       ],
       "2026.02": [
         0,
         28,
         0,
         2,
-        1
+        0
       ],
       "2026.04": [
         0,
         23,
         0,
         2,
-        1
+        0
       ],
       "2026.05": [
         0,
         21,
         0,
         2,
-        1
+        0
       ],
       "2026.06": [
         0,
@@ -577,13 +565,13 @@
       ],
       "2026.11": [
         1,
-        31,
+        30,
         1,
         2,
         1
       ]
     },
-    "aiAnswersCnt": 16,
+    "aiAnswersCnt": 15,
     "aiState": 0,
     "dr": 3,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/10df735f4ea2b936f65758356dd87113282d06ab4b80560bea1bf14626d01a24.png",

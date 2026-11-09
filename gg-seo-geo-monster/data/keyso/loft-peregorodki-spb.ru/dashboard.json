@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-02T09:54:32.289Z",
+  "measured": "2026-11-09T10:11:52.615Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -13,49 +13,33 @@
         "did": 30654137,
         "name": "m.avito.ru",
         "cnt": 10,
-        "it50": 20529572,
-        "vis": 2696775,
-        "perc": 0.00004871022152824228
+        "it50": 20568061,
+        "vis": 2325538,
+        "perc": 0.00004861907012041631
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
         "cnt": 9,
-        "it50": 47311827,
-        "vis": 10562215,
-        "perc": 0.000019022727657505172
+        "it50": 47231304,
+        "vis": 10357483,
+        "perc": 0.000019055158841263415
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
         "cnt": 8,
-        "it50": 2784756,
-        "vis": 95381,
-        "perc": 0.0002872783109184431
+        "it50": 2779198,
+        "vis": 82105,
+        "perc": 0.00028785282660681247
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 8,
-        "it50": 301,
+        "it50": 310,
         "vis": 5,
-        "perc": 2.6578073089700998
-      },
-      {
-        "did": 244319620,
-        "name": "peregorodka78.ru",
-        "cnt": 7,
-        "it50": 106,
-        "vis": 0,
-        "perc": 6.60377358490566
-      },
-      {
-        "did": 30880413,
-        "name": "ginterio.ru",
-        "cnt": 7,
-        "it50": 576,
-        "vis": 1,
-        "perc": 1.215277777777778
+        "perc": 2.5806451612903225
       },
       {
         "did": 31466309,
@@ -66,28 +50,44 @@
         "perc": 2.0648967551622417
       },
       {
-        "did": 29917497,
-        "name": "market.yandex.ru",
-        "cnt": 6,
-        "it50": 17474784,
-        "vis": 1131926,
-        "perc": 0.000034335188349109207
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 7,
+        "it50": 577,
+        "vis": 1,
+        "perc": 1.2131715771230505
       },
       {
-        "did": 242157702,
-        "name": "biglas.ru",
-        "cnt": 6,
-        "it50": 1464,
-        "vis": 7,
-        "perc": 0.4098360655737705
+        "did": 244319620,
+        "name": "peregorodka78.ru",
+        "cnt": 7,
+        "it50": 110,
+        "vis": 0,
+        "perc": 6.363636363636363
       },
       {
-        "did": 30146789,
-        "name": "petralum.ru",
+        "did": 32073658,
+        "name": "peregorodki-spb.ru",
         "cnt": 6,
-        "it50": 912,
-        "vis": 11,
-        "perc": 0.6578947368421053
+        "it50": 184,
+        "vis": 1,
+        "perc": 3.260869565217391
+      },
+      {
+        "did": 31079457,
+        "name": "vk.ru",
+        "cnt": 6,
+        "it50": 49174170,
+        "vis": 6288196,
+        "perc": 0.000012201527753289989
+      },
+      {
+        "did": 30777277,
+        "name": "glcon.ru",
+        "cnt": 6,
+        "it50": 252,
+        "vis": 4,
+        "perc": 2.380952380952381
       }
     ],
     "it1": 0,
@@ -190,18 +190,6 @@
     },
     "restop5": 7,
     "history": {
-      "2025.05": {
-        "it1": 0,
-        "it3": 1,
-        "it5": 2,
-        "it10": 6,
-        "it50": 23,
-        "pagesInIndex": 3,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 0,
-        "aiCnt": 0
-      },
       "2025.06": {
         "it1": 0,
         "it3": 1,

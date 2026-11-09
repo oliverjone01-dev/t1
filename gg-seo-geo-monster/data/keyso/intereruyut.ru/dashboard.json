@@ -2,7 +2,7 @@
   "domain": "intereruyut.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-02T10:00:14.434Z",
+  "measured": "2026-11-09T10:15:34.031Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=intereruyut.ru",
   "data": {
     "id": 30530749,
@@ -12,102 +12,102 @@
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 7674,
-        "it50": 17474784,
-        "vis": 1131926,
-        "perc": 0.04391470589851068
+        "cnt": 7765,
+        "it50": 17519345,
+        "vis": 1178626,
+        "perc": 0.04432243328731753
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 7068,
-        "it50": 3137917,
-        "vis": 479775,
-        "perc": 0.22524496345824316
-      },
-      {
-        "did": 30030622,
-        "name": "169.ru",
-        "cnt": 6649,
-        "it50": 89844,
-        "vis": 3663,
-        "perc": 7.400605493967321
+        "cnt": 7089,
+        "it50": 3122173,
+        "vis": 394550,
+        "perc": 0.22705340158921367
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 6630,
-        "it50": 18512071,
-        "vis": 3050194,
-        "perc": 0.035814469380546346
+        "cnt": 6740,
+        "it50": 18653776,
+        "vis": 3423736,
+        "perc": 0.036132094649362144
+      },
+      {
+        "did": 30030622,
+        "name": "169.ru",
+        "cnt": 6693,
+        "it50": 89765,
+        "vis": 4260,
+        "perc": 7.45613546482482
       },
       {
         "did": 30134448,
         "name": "dvertsov.ru",
-        "cnt": 6312,
-        "it50": 23933,
-        "vis": 1005,
-        "perc": 26.373626373626372
+        "cnt": 6338,
+        "it50": 23963,
+        "vis": 608,
+        "perc": 26.449109043108127
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 6254,
-        "it50": 20529572,
-        "vis": 2696775,
-        "perc": 0.030463372543762725
+        "cnt": 6326,
+        "it50": 20568061,
+        "vis": 2325538,
+        "perc": 0.03075642375817536
       },
       {
         "did": 80337046,
         "name": "dveriunas.ru",
-        "cnt": 6132,
-        "it50": 21440,
-        "vis": 1517,
-        "perc": 28.600746268656717
+        "cnt": 6184,
+        "it50": 21523,
+        "vis": 1422,
+        "perc": 28.732054081680065
       },
       {
         "did": 30135923,
         "name": "rf-dveri.ru",
-        "cnt": 5619,
-        "it50": 18003,
-        "vis": 837,
-        "perc": 31.211464755874022
+        "cnt": 5634,
+        "it50": 18068,
+        "vis": 703,
+        "perc": 31.182200575603275
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 5501,
-        "it50": 14739300,
-        "vis": 1659954,
-        "perc": 0.037321989511035124
+        "cnt": 5605,
+        "it50": 14818691,
+        "vis": 1857175,
+        "perc": 0.03782385367236553
       },
       {
         "did": 30182400,
         "name": "dveri-tut.com",
-        "cnt": 4999,
-        "it50": 13955,
-        "vis": 407,
-        "perc": 35.82228591902543
+        "cnt": 5016,
+        "it50": 13975,
+        "vis": 409,
+        "perc": 35.89266547406082
       }
     ],
-    "it1": 229,
-    "it3": 849,
-    "it5": 1772,
-    "it10": 4344,
-    "it50": 13614,
+    "it1": 234,
+    "it3": 857,
+    "it5": 1786,
+    "it10": 4386,
+    "it50": 13669,
     "childsCount": 0,
     "keys": [
       {
         "pos": 1,
-        "word": "двери скрытого монтажа",
-        "ws": 43215,
-        "wsk": 5374
+        "word": "двери межкомнатные",
+        "ws": 1422506,
+        "wsk": 45008
       },
       {
         "pos": 1,
-        "word": "скрытые двери межкомнатные",
-        "ws": 17916,
-        "wsk": 2348
+        "word": "скрытые двери",
+        "ws": 105977,
+        "wsk": 2624
       },
       {
         "pos": 1,
@@ -117,9 +117,9 @@
       },
       {
         "pos": 1,
-        "word": "межкомнатные двери на заказ",
-        "ws": 6123,
-        "wsk": 1031
+        "word": "белая дверь",
+        "ws": 125175,
+        "wsk": 799
       },
       {
         "pos": 1,
@@ -158,52 +158,52 @@
         "wsk": 420
       }
     ],
-    "topkeys": 31236,
+    "topkeys": 31180,
     "pages": [
       {
-        "it50": 828,
+        "it50": 837,
         "url": "/catalog/skrytye-dveri"
       },
       {
-        "it50": 539,
+        "it50": 540,
         "url": "/catalog/dveri-iz-massiva"
       },
       {
-        "it50": 524,
+        "it50": 532,
         "url": "/catalog/mezhkomnatnye-dveri"
+      },
+      {
+        "it50": 353,
+        "url": "/catalog/razdvizhnye-dveri"
       },
       {
         "it50": 352,
         "url": "/catalog/mezhkomnatnye-dvernye-ruchki"
       },
       {
-        "it50": 350,
-        "url": "/catalog/razdvizhnye-dveri"
-      },
-      {
-        "it50": 331,
+        "it50": 333,
         "url": "/services/ustanovka-dverej"
       },
       {
-        "it50": 298,
+        "it50": 303,
         "url": "/catalog/dr-vnutrennie-paneli"
       },
       {
-        "it50": 256,
-        "url": "/catalog/bravo"
-      },
-      {
-        "it50": 250,
+        "it50": 257,
         "url": "/catalog/dveri-knizhka"
       },
       {
-        "it50": 223,
+        "it50": 249,
+        "url": "/catalog/bravo"
+      },
+      {
+        "it50": 221,
         "url": "/catalog/razdvizhnye-peregorodki"
       }
     ],
-    "pagesinindex": 1493,
-    "vis": 1248,
-    "topvis": 8799,
+    "pagesinindex": 1497,
+    "vis": 1294,
+    "topvis": 8667,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -226,18 +226,6 @@
     },
     "restop5": 13,
     "history": {
-      "2025.05": {
-        "it1": 92,
-        "it3": 618,
-        "it5": 1370,
-        "it10": 3452,
-        "it50": 9714,
-        "pagesInIndex": 898,
-        "adsCount": 5,
-        "adKeysCount": 5,
-        "visAvg": 1152,
-        "aiCnt": 0
-      },
       "2025.06": {
         "it1": 115,
         "it3": 620,
@@ -440,19 +428,19 @@
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 1248,
-        "aiCnt": 281
+        "aiCnt": 286
       },
       "2026.11": {
-        "it1": 229,
-        "it3": 849,
-        "it5": 1772,
-        "it10": 4344,
-        "it50": 13614,
-        "pagesInIndex": 1493,
+        "it1": 234,
+        "it3": 857,
+        "it5": 1786,
+        "it10": 4386,
+        "it50": 13669,
+        "pagesInIndex": 1497,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 1248,
-        "aiCnt": 281
+        "visAvg": 1294,
+        "aiCnt": 153
       }
     },
     "linksHistory": {
@@ -583,16 +571,16 @@
         695
       ],
       "2026.11": [
-        2258,
-        11039,
-        288,
+        2255,
+        11271,
+        290,
         19,
-        695
+        691
       ]
     },
-    "aiAnswersCnt": 281,
+    "aiAnswersCnt": 153,
     "aiState": 0,
-    "dr": 26,
+    "dr": 29,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/8ca977d93caea090093885456e6c251f9495fd9e43785078fb83d96e392f8161.png",
     "name": "intereruyut.ru"
   }

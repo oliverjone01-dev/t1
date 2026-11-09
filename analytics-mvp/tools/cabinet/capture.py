@@ -106,7 +106,7 @@ def merge_capture(old, fresh):
                     raise ValueError('Incoming snapshot loses previously measured SKU/scheme rows')
     rows = [r for r in rows if (r['day'], r['phase']) != key] + [fresh]
     rows.sort(key=lambda r: (r['day'], dt.datetime.fromisoformat(r['captured_at'].replace('Z', '+00:00'))))
-    return {'version': 1, 'company': 'GENGLASS', 'snapshots': rows}
+    return {**(old or {}), 'version': 1, 'company': 'GENGLASS', 'snapshots': rows}
 
 
 def atomic_json(path, value):

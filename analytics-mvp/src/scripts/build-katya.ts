@@ -13,6 +13,8 @@ import { cabinetCompetitorPage } from "./competitors/cabinet-page.js";
 import {loadProblemData} from './problems/data.js';
 import {problemsPage} from './problems/page.js';
 import { matchedCompetitorPage } from "./competitors/matched-page.js";
+import {cabinetDataPage,currentCompetitorPage} from './ozon/cabinet-data-page.js';
+import {supplements} from './ozon/cabinet-supplements.js';
 import { healthHtml } from "./ozon/source-health.js";
 import { deliveryHealthHtml } from "./ym/delivery-source.js";
 import {readCaptureFile} from './ozon/cabinet-capture.js';
@@ -1330,7 +1332,7 @@ function kshell(title: string, activeKey: string, body: string, pageJs: string, 
 <title>GENGLASS · ${title}</title><style>${KCSS}${EXTRA_CSS}</style></head><body>
 ${banner(activeKey)}${ndBad.length ? `<div style="margin:8px 16px;padding:8px 12px;border:1px solid #FF5A5F;border-radius:8px;color:#FF5A5F;font-weight:600">⚠ ${ndBadNote().replace(/</g, "&lt;")}</div>` : ""}
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · ${liveDay ? 'закрытые дни' : 'данные'} по ${snapTo}</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено ${BUILD_TS}</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · ${liveDay ? 'закрытые дни' : 'данные'} по ${snapTo}</div><div class="brand-sub" style="font-size:11px;opacity:.75">Страница собрана ${BUILD_TS}</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/${IS_OZON ? "ozon-snapshots.yml" : "ym-snapshots.yml"}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">${liveDay ? `\n    <button class="pb" data-p="cabinet">Срез ${liveDay.slice(8)}.${liveDay.slice(5,7)}</button>` : ''}
@@ -5750,10 +5752,11 @@ function render(cur,cmp){
 // OZON: проверенный исторический снимок MPSTATS и явные связи Ивана из Excel.
 // Маркет сохраняет свой прежний блок; источник OZON ему не подставляется.
 if (IS_OZON) {
+  writeFileSync(op('katya-data.html'),cabinetDataPage(dp('')));
   const snapshot = loadMatchedSnapshot(dp("competitors/mpstats-matched-2026-10-22.json"));
   writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
   const cabinetSnapshot = JSON.parse(readFileSync(dp("competitors/cabinet-2026-10-27.json"), "utf8"));
-  writeFileSync(op("katya-competitors-cabinet.html"), cabinetCompetitorPage(cabinetSnapshot));
+  writeFileSync(op("katya-competitors-cabinet.html"), supplements(dp('')).competitors ? currentCompetitorPage(supplements(dp('')).competitors) : cabinetCompetitorPage(cabinetSnapshot));
   writeFileSync(op('katya-problems.html'),problemsPage({...loadProblemData(dp('')),periodBounds:{from:pageFloor,to:maxD}}));
 } else {
 // ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.

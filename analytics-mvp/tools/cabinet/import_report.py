@@ -62,23 +62,25 @@ def price_records(sheets, expected_count=None):
         raise ValueError('Missing sheet Товары и цены')
     rows = {r['row']: r['cells'] for r in sheet['rows']}
     headers = {c: v['value'] for c, v in rows[2].items()}
-    for col, label in {'A': 'Артикул', 'B': 'SKU', 'P': 'Предельная цена, руб.',
-                       'R': 'Цена реализации, руб.'}.items():
-        if headers.get(col) != label:
-            raise ValueError('Unexpected schema at ' + col)
+    labels = {label: col for col, label in headers.items()}
+    if len(labels) != len(headers):
+        raise ValueError('Duplicate catalog header')
+    for label in ['Артикул', 'SKU', 'Предельная цена, руб.', 'Цена реализации, руб.']:
+        if label not in labels:
+            raise ValueError('Missing catalog field: ' + label)
     records = []
     seen = set()
     for r in sheet['rows']:
         if r['row'] < 5 or not any(c['value'] is not None for c in r['cells'].values()):
             continue
         values = {k: v['value'] for k, v in r['cells'].items()}
-        sku = values.get('B')
+        sku = values.get(labels['SKU'])
         if not sku or not re.fullmatch(r'[0-9]+', sku) or sku in seen:
             raise ValueError('Missing, invalid or duplicate SKU at row ' + str(r['row']))
-        if not values.get('A'):
+        if not values.get(labels['Артикул']):
             raise ValueError('Missing offer at row ' + str(r['row']))
         seen.add(sku)
-        records.append({'source_row': r['row'], 'sku': sku, 'offer_id': values['A'],
+        records.append({'source_row': r['row'], 'sku': sku, 'offer_id': values[labels['Артикул']],
                         'source_values': {col: values.get(col) for col in headers}})
     if not records:
         raise ValueError('Empty price report')

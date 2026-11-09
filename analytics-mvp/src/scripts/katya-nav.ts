@@ -19,6 +19,7 @@ export const KPAGES: [string, string, string][] = [
   ...(IS_OZON ? [["katya-problems.html", "Проблемы", "problems"] as [string,string,string]] : []),
   ["katya-reakciya.html", "Реакция", "reakciya"],
   ["katya-tests.html", "Тесты", "tests"],
+  ...(IS_OZON ? [["katya-data.html", "Данные и цены", "data"] as [string,string,string]] : []),
   // В Ozon вкладка убрана из меню по решению Ивана от 27.10.
   ...(!IS_OZON ? [["katya-boost.html", "Бустинг (служ.)", "boost"] as [string,string,string]] : []),
 ];

@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 from capture import make_capture, merge_capture
 from expected_skus import registry
+from catalog_capture import catalog_capture, merge_catalogs
 
 
 def prepare(analytics, prices, catalog_count, legacy, day, captured_at, phase, run_dir, previous=None, now=None):
@@ -20,6 +21,7 @@ def prepare(analytics, prices, catalog_count, legacy, day, captured_at, phase, r
     if fresh['day'] != day:
         raise ValueError('Requested/source date mismatch')
     payload = merge_capture(old, fresh)
+    payload['catalogs'] = merge_catalogs((old or {}).get('catalogs', []), [catalog_capture(prices, captured_at, phase, catalog_count)], now)
     after = {k: hashlib.sha256(p.read_bytes()).hexdigest() for k, p in files.items()}
     if before != after:
         raise ValueError('Input changed during validation')

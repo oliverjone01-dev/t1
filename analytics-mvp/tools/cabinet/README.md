@@ -39,3 +39,24 @@ CPO, группы карточек и список конкурентов эти
 и `vitest run src/scripts/ozon/cabinet-capture.test.ts`.
 Доступ, навигация, скачивание и расписание исполняются агентом во встроенном
 браузере по локальному RUNBOOK.md; этот модуль не хранит сессию или секреты.
+
+
+## Extended catalog and competitor adapter
+
+The extended adapter includes additional fields: seller/buyer prices, stocks,
+commercial conditions, names and complete competitor export metrics. Check the
+existing permission scope for the destination before submitting this package.
+The prior financial-plan permission does not expand cabinet_capture.json.
+Raw XLSX, cost inputs, credentials and personal data remain local.
+
+`prepare.py` retains the catalog downloaded during normal capture. Once catalogs
+exist in the accepted payload, fresh funnel changes require a catalog from the
+same phase and collection session. `supplement_package.py` restores archived
+catalogs and six competitor exports. Historical submission needs the explicit
+`--backfill-since` window. Operational instructions are at repository root:
+`knowledge/episodes/2026-11/ozon-complete-data-operation.md`.
+
+Before publication the workflow runs `verify_supplements.ts` on staged pages:
+full latest catalog count, exact displayed prices, shared price history,
+competitor windows and missing watchlist coverage. Source health checks
+commissions, logistics and acquiring separately. Missing values never become zero.

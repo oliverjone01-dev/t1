@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261109-telegram-tabs-1";
-import { equal } from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
+} from "./team-model.mjs?rev=20261109-weekly-1";
+import { equal } from "./sync-model.mjs?rev=20261109-weekly-1";
 export const digest = async (value) =>
   [
     ...new Uint8Array(

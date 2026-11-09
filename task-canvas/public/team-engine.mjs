@@ -7,10 +7,10 @@ import {
   GROUPS,
   groupValue,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261109-telegram-tabs-1";
-import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
-import { remoteChanges } from "./changes.mjs?rev=20261109-telegram-tabs-1";
-import { TeamOutbox } from "./team-outbox.mjs?rev=20261109-telegram-tabs-1";
+} from "./team-model.mjs?rev=20261109-weekly-1";
+import { equal, bootstrapBoard } from "./sync-model.mjs?rev=20261109-weekly-1";
+import { remoteChanges } from "./changes.mjs?rev=20261109-weekly-1";
+import { TeamOutbox } from "./team-outbox.mjs?rev=20261109-weekly-1";
 const clone = (v) => structuredClone(v),
   id = () => crypto.randomUUID();
 export class TeamSyncEngine {

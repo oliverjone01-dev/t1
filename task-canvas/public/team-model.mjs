@@ -1,6 +1,6 @@
-import { validateBoard } from "./model.mjs?rev=20261109-signals-1";
-import { equal } from "./sync-model.mjs?rev=20261109-signals-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-signals-1";
+import { validateBoard } from "./model.mjs?rev=20261109-gantt-1";
+import { equal } from "./sync-model.mjs?rev=20261109-gantt-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-gantt-1";
 export const TEAM_SCHEMA = 1;
 export const GROUPS = {
   title: ["title"],
@@ -10,8 +10,8 @@ export const GROUPS = {
   comment: ["comment"],
   status: ["status","closedAt","archiveKind"],
   assignment: ["owner", "positions.owners"],
-  schedule: ["due", "positions.time"],
-  priority: ["priority", "positions.priority","importance"],
+  schedule: ["due", "positions.time", "start"],
+  priority: ["priority", "positions.priority","positions.gantt","importance"],
   context: [
     "sourceId",
     "ownerNote",
@@ -157,7 +157,7 @@ export function validateOperation(op) {
         !patch.value ||
         GROUPS[key].some(
           (path) =>
-            !(["importance","closedAt","archiveKind"].includes(path)) && (!Object.hasOwn(patch.base, path) ||
+            !(["positions.gantt","start","importance","closedAt","archiveKind"].includes(path)) && (!Object.hasOwn(patch.base, path) ||
             !Object.hasOwn(patch.value, path)),
         ) ||
         Object.keys(patch.value).some((path) => !GROUPS[key].includes(path)) ||

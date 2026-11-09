@@ -1,10 +1,11 @@
-import {ordered,orderKey} from './order.mjs?rev=20261109-signals-1';
-import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261109-signals-1';
-import {parseAssignee} from './people.mjs?rev=20261109-signals-1';
-import {normalizeQuery} from './ui-model.mjs?rev=20261109-signals-1';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261109-gantt-1';
+import {ordered,orderKey} from './order.mjs?rev=20261109-gantt-1';
+import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261109-gantt-1';
+import {parseAssignee} from './people.mjs?rev=20261109-gantt-1';
+import {normalizeQuery} from './ui-model.mjs?rev=20261109-gantt-1';
 
 export const FOCUS = [['all','Все задачи'],['today','Сегодня'],['overdue','Просрочено'],['week','Ближайшие 7 дней'],['unassigned','Без ответственного'],['undated','Без срока'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
-export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Важность 5 → 1'],['owner','По ответственному'],['title','По названию']];
+export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];
 export function matchesFocus(task, focus, today, pins=[], unread=false) {
   if(focus==='all')return true;
   if(focus==='pinned')return pins.includes(task.id);
@@ -20,7 +21,7 @@ export function sortTasks(tasks,sort,ownerName=value=>value,today=localDate()) {
 }
 export function cleanView(value={}) {
   value=value||{};
-  return {query:String(value.query||'').slice(0,500),unit:String(value.unit||'').slice(0,100),owner:String(value.owner||'').slice(0,100),hideDone:!!value.hideDone,focus:FOCUS.some(([id])=>id===value.focus)?value.focus:'all',sort:SORTS.some(([id])=>id===value.sort)?value.sort:'manual',mode:['priority','owners','time','list','calendar'].includes(value.mode)?value.mode:'priority'};
+  return {query:String(value.query||'').slice(0,500),unit:String(value.unit||'').slice(0,100),owner:String(value.owner||'').slice(0,100),hideDone:!!value.hideDone,focus:FOCUS.some(([id])=>id===value.focus)?value.focus:'all',sort:SORTS.some(([id])=>id===value.sort)?value.sort:'manual',mode:['priority','owners','time','list','calendar','gantt'].includes(value.mode)?value.mode:'priority'};
 }
 export function cleanPersonal(value={}) {
   return {version:1,pins:[...new Set(Array.isArray(value?.pins)?value.pins.filter(x=>typeof x==='string'):[])].slice(0,2000),views:(Array.isArray(value?.views)?value.views:[]).filter(v=>v&&typeof v.id==='string'&&typeof v.name==='string'&&v.name.trim()).slice(0,12).map(v=>({id:v.id,name:v.name.trim().slice(0,60),view:cleanView(v.view)}))};
@@ -37,7 +38,7 @@ export function bulkPatch(values) {
     patch[key]=values[key+'Mode']==='clear'?'':String(values[key]||'').trim();
     if(values[key+'Mode']==='set'&&!patch[key])throw new Error('Укажите значение для назначения или выберите «Очистить».');
   }
-  if('importance' in patch){patch.importance=Number(patch.importance||0);if(!Number.isInteger(patch.importance)||patch.importance<0||patch.importance>5)throw new Error('Выберите важность от 1 до 5.')}
+  if('importance' in patch){patch.importance=Number(patch.importance||0);if(!Number.isInteger(patch.importance)||patch.importance<0||patch.importance>5)throw new Error('Выберите срочность от 1 до 5.')}
   if('owner' in patch){const owner=parseAssignee(patch.owner);if(owner===null)throw new Error('Укажите одного ответственного.');patch.owner=owner;}
   if('status' in patch&&!STATUSES.includes(patch.status))throw new Error('Выберите статус.');
   if('priority' in patch&&patch.priority&&!QUADRANTS.some(q=>q.id===patch.priority))throw new Error('Выберите приоритет.');
@@ -51,14 +52,14 @@ export function applyBulk(tasks,base,patch) {
     const current=tasks.find(t=>t.id===old.id);
     if(!current)throw new Error('Одна из выбранных задач удалена. Закройте окно и выберите задачи заново.');
     const fields=new Set(Object.keys(patch));
-    if('importance' in patch){patch.importance=Number(patch.importance||0);if(!Number.isInteger(patch.importance)||patch.importance<0||patch.importance>5)throw new Error('Выберите важность от 1 до 5.')}
+    if('importance' in patch){patch.importance=Number(patch.importance||0);if(!Number.isInteger(patch.importance)||patch.importance<0||patch.importance>5)throw new Error('Выберите срочность от 1 до 5.')}
   if('owner' in patch)fields.add('ownerNote');
-    if('due' in patch)fields.add('dueNote');
+    if('due' in patch){fields.add('dueNote');fields.add('start');}
     for(const key of fields)if((current[key]||'')!==(old[key]||'')&&(current[key]||'')!==(patch[key]||''))throw new Error('Выбранные поля изменились на доске. Закройте окно, проверьте новые значения и повторите.');
   }
   return validateBoard(tasks.map(task=>{
     if(!ids.has(task.id))return task;
-    const next={...task,...patch,positions:structuredClone(task.positions||{})};
+    const next={...('due' in patch&&patch.due?shiftSchedule(task,patch.due):task),...patch,positions:structuredClone(task.positions||{})};
     for(const [key,mode] of [['owner','owners'],['due','time'],['priority','priority']])if(key in patch&&patch[key]!==task[key])delete next.positions[mode];
     if('owner' in patch&&patch.owner!==task.owner)next.ownerNote='';
     if('due' in patch&&patch.due!==task.due)next.dueNote='';

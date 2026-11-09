@@ -1,4 +1,4 @@
-import {parseAssignee} from './people.mjs?rev=20261109-signals-1';
+import {parseAssignee} from './people.mjs?rev=20261109-gantt-1';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -7,7 +7,7 @@ export const QUADRANTS = [
   { id: 'delegate', title: 'Делегировать', subtitle: 'Не важно · срочно', color: 'blue' },
   { id: 'later', title: 'Отложить', subtitle: 'Не важно · не срочно', color: 'slate' },
 ];
-export const STATUSES = ['Не указан', 'В ожидании', 'В работе', 'Готово', 'Отменено'];
+export const STATUSES = ['Не указан', 'В ожидании', 'В работе', 'Приостановлено', 'Готово', 'Отменено'];
 export const STATUS_LANES = [
   {id:'status:done',status:'Готово',title:'Готово',subtitle:'Завершённые задачи',color:'green',symbol:'✓'},
   {id:'status:cancelled',status:'Отменено',title:'Отменено',subtitle:'Отменённые задачи',color:'cancelled',symbol:'×'},
@@ -109,7 +109,7 @@ export function moveTask(task, mode, group, worldX, worldY, today) {
     if(statusGroup(task))next.status='В работе';
     if (mode === 'priority') next.priority = group.id === 'inbox' ? null : group.id;
     if (mode === 'owners') next.owner = group.id === 'unassigned' ? '' : group.id.slice(6);
-    if (mode === 'time' && group.id !== timeBucket(task, today)) next.due = group.due;
+    if (mode === 'time' && group.id !== timeBucket(task, today)) {next.due = group.due;if(next.start&&task.due&&next.due)next.start=new Date(Date.parse(next.start+'T12:00:00Z')+Date.parse(next.due+'T12:00:00Z')-Date.parse(task.due+'T12:00:00Z')).toISOString().slice(0,10);}
   }
   next.positions ||= {};
   next.positions[mode] = { group: group.id, x: Math.max(24, Math.min(group.w - CARD.width - 24, snap(worldX - group.x))), y: Math.max(96, snap(worldY - group.y)) };
@@ -167,22 +167,24 @@ export function validateBoard(value) {
     if (!t || typeof t.id !== 'string' || !t.id || ids.has(t.id) || typeof t.title !== 'string' || !t.title.trim()) throw new Error('В файле есть карточки без ID, заголовка или с повторяющимся ID.');
     ids.add(t.id);
     if (t.due && (!/^\d{4}-\d{2}-\d{2}$/.test(t.due) || Number.isNaN(+new Date(`${t.due}T12:00:00`)) || localDate(new Date(`${t.due}T12:00:00`)) !== t.due)) throw new Error('Некорректный формат даты.');
+    if(t.start&&(!/^\d{4}-\d{2}-\d{2}$/.test(t.start)||Number.isNaN(+new Date(t.start+'T12:00:00'))||localDate(new Date(t.start+'T12:00:00'))!==t.start))throw new Error('Некорректная дата начала.');
+    if(t.start&&t.due&&t.start>t.due)throw new Error('Начало не может быть позже срока.');
     if (t.priority && !QUADRANTS.some(q => q.id === t.priority)) throw new Error('Неизвестный приоритет.');
     const result = { id: t.id, title: t.title, priority: t.priority || null, positions: {} };
     const importance=Number(t.importance||0);
-    if(!Number.isInteger(importance)||importance<0||importance>5)throw new Error('Важность должна быть от 1 до 5.');
+    if(!Number.isInteger(importance)||importance<0||importance>5)throw new Error('Срочность должна быть от 1 до 5.');
     result.importance=importance;
     if(t.closedAt&&(!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt)||!Number.isFinite(Date.parse(t.closedAt))))throw new Error('Некорректная дата завершения.');
     result.closedAt=t.closedAt||'';
     if(t.archiveKind&&!['done','cancelled'].includes(t.archiveKind))throw new Error('Неизвестный архив.');
     result.archiveKind=t.archiveKind||'';
     if(result.archiveKind&&t.status!==(result.archiveKind==='done'?'Готово':'Отменено'))throw new Error('Архив не соответствует статусу задачи.');
-    for (const key of ['sourceId','unit','direction','description','status','owner','ownerNote','due','dueNote','comment','dependency','requester','link']) result[key] = typeof t[key] === 'string' ? t[key] : '';
-    for (const mode of ['priority','owners','time']) {
+    for (const key of ['start','sourceId','unit','direction','description','status','owner','ownerNote','due','dueNote','comment','dependency','requester','link']) result[key] = typeof t[key] === 'string' ? t[key] : '';
+    for (const mode of ['priority','owners','time','gantt']) {
       const p = t.positions?.[mode];
       if (p && typeof p.group === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y)) result.positions[mode] = { group: mode === 'owners' && p.group === result.owner && result.owner ? `owner:${result.owner}` : p.group, x: Math.max(0, Math.min(100000, p.x)), y: Math.max(0, Math.min(100000, p.y)) };
     }
-    for (const mode of ['priority','owners','time']) {
+    for (const mode of ['priority','owners','time','gantt']) {
       const p=t.positions?.[mode];
       if(result.positions[mode] && typeof p.order==='string' && /^[a-zA-Z0-9]{2,512}$/.test(p.order)) result.positions[mode].order=p.order;
     }

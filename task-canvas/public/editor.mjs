@@ -1,11 +1,12 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261109-signals-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-signals-1";
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261109-gantt-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-gantt-1";
 export const EDIT_FIELDS = [
   "title",
   "unit",
   "status",
   "owner",
   "due",
+  "start",
   "priority",
   "importance",
   "description",

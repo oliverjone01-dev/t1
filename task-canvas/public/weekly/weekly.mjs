@@ -1,9 +1,9 @@
-import {installQuickControls} from '../quick-controls.mjs?rev=20261109-gantt-1';
-import {temperature,observedTask} from '../task-signals.mjs?rev=20261109-gantt-1';
-import {Directory} from '../directory.mjs?rev=20261109-gantt-1';
-import {PublicSheetsApi} from '../sheet-viewer.mjs?rev=20261109-gantt-1';
-import {parseDelimited} from '../model.mjs?rev=20261109-gantt-1';
-import {SHEET_ID} from '../sync-model.mjs?rev=20261109-gantt-1';
+import {installQuickControls} from '../quick-controls.mjs?rev=20261109-priority-2';
+import {temperature,observedTask} from '../task-signals.mjs?rev=20261109-priority-2';
+import {Directory} from '../directory.mjs?rev=20261109-priority-2';
+import {PublicSheetsApi} from '../sheet-viewer.mjs?rev=20261109-priority-2';
+import {parseDelimited} from '../model.mjs?rev=20261109-priority-2';
+import {SHEET_ID} from '../sync-model.mjs?rev=20261109-priority-2';
 import {SNAPSHOT_TAB,EVENT_TAB,parseSnapshots,parseEvents,normalize,account,weekOf,weekEnd,shift,active,planned} from '../weekly-model.mjs';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const directory=new Directory({fetcher:(url,options)=>fetch(url==='./directory.json'?'../directory.json':url,options)});await directory.load();

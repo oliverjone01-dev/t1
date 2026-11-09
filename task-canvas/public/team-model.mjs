@@ -1,6 +1,6 @@
-import { validateBoard } from "./model.mjs?rev=20261109-gantt-1";
-import { equal } from "./sync-model.mjs?rev=20261109-gantt-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-gantt-1";
+import { validateBoard } from "./model.mjs?rev=20261109-priority-2";
+import { equal } from "./sync-model.mjs?rev=20261109-priority-2";
+import { parseAssignee } from "./people.mjs?rev=20261109-priority-2";
 export const TEAM_SCHEMA = 1;
 export const GROUPS = {
   title: ["title"],

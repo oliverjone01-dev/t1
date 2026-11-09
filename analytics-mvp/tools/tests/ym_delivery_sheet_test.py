@@ -43,6 +43,34 @@ class DeliverySheetTests(unittest.TestCase):
         (path / "data-ym/orders.ndjson").write_text(json.dumps({"order": ORDER, "status": "DELIVERED"}) + "\n")
         return legacy, missing
 
+    def test_failure_keeps_last_good_and_success_clears_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); self.root(root)
+            good = lambda name: source(row())
+            sheet.refresh(root, good, NOW)
+            paths = [root / "data-ym" / name for name in ("delivery.csv", "delivery_source.json")]
+            before = [p.read_bytes() for p in paths]
+            bad = lambda name: source(row(ship="PRIVATE-CELL"))
+            failed = sheet.refresh(root, bad, NOW)
+            self.assertEqual(failed["status"], "error")
+            self.assertIn("строка 2", failed["reason"])
+            self.assertEqual([p.read_bytes() for p in paths], before)
+            self.assertNotIn("PRIVATE", (root / "data-ym/delivery_refresh.json").read_text())
+            def network_error(name):
+                raise OSError("PRIVATE-TOKEN")
+            self.assertEqual(sheet.refresh(root, network_error, NOW)["status"], "error")
+            self.assertNotIn("PRIVATE", (root / "data-ym/delivery_refresh.json").read_text())
+            self.assertEqual(sheet.refresh(root, good, NOW)["status"], "ok")
+            self.assertEqual(json.loads((root / "data-ym/delivery_refresh.json").read_text())["status"], "ok")
+
+    def test_failure_before_first_sync_only_writes_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); self.root(root)
+            sheet.refresh(root, lambda name: "bad", NOW)
+            self.assertFalse((root / "data-ym/delivery.csv").exists())
+            self.assertFalse((root / "data-ym/delivery_source.json").exists())
+            self.assertEqual(json.loads((root / "data-ym/delivery_refresh.json").read_text())["status"], "error")
+
     def test_real_mapping_and_rescheduled_document_no_double_payment(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); _, missing = self.root(root)

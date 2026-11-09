@@ -14,6 +14,7 @@ import {loadProblemData} from './problems/data.js';
 import {problemsPage} from './problems/page.js';
 import { matchedCompetitorPage } from "./competitors/matched-page.js";
 import { healthHtml } from "./ozon/source-health.js";
+import { deliveryHealthHtml } from "./ym/delivery-source.js";
 import {readCaptureFile} from './ozon/cabinet-capture.js';
 import {mergeCabinetViews,mergeCabinetTotals,nativeFunnel,captureDays,captureIsOpen} from './ozon/cabinet-funnel.js';
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
@@ -31,7 +32,7 @@ import { AD_ECON_JS, UE_MATURE_DAYS, UE_STALE_DAYS, packAccrual } from "./ad-eco
 // Битые строки данных - одна строка ::error:: в лог CI в конце сборки (ФЕНИКС iter10 gap 1).
 process.on("exit", () => { if (ndBad.length) console.log(`::error::katya: ${ndBadNote()}`); });
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
-const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
+const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(IS_OZON ? html : html.replace(/<body[^>]*>/, (body) => body + deliveryHealthHtml(dp("")))));
 
 // Сборка OZON включена обратно 25.09.2026 (Иван: «в этой сессии мы правим Озон и обновляем данные,
 // но это не должно мешать правкам на Маркете»). Разведение по платформе: OZON пишет public/katya*.html

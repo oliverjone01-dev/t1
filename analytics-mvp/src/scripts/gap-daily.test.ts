@@ -114,8 +114,8 @@ describe("живой файл data/gap_daily.ndjson", () => {
   it("источники ряда - только наблюдения", () => {
     const r = readGapDaily("data/" + GAP_DAILY_FILE);
     if (!r.exists) return;
-    // Catalog realization is an observed seller/buyer pair, not a modeled card price.
-    const observedSources = new Set(["prices_raw", "snapshot", "catalog_realization"]);
+    // Only the ordinary storefront basis is admissible in this historical series.
+    const observedSources = new Set(["prices_raw", "snapshot"]);
     expect(r.bySrc.size).toBeGreaterThan(0);
     expect([...r.bySrc.keys()].filter(src => !observedSources.has(src))).toEqual([]);
   });

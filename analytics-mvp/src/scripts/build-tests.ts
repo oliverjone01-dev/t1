@@ -27,6 +27,7 @@ import {partialChartPoint} from './partial-chart.js';
 import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
+import {catalogGaps,supplements} from './ozon/cabinet-supplements.js';
 import { readGapDaily, noSite as gapNoSite, readGapMarked, GAP_DAILY_FILE, GAP_MANUAL_FILE, NO_SITE_DAY_SHARE, NO_SITE_DAY_WARN } from "./gap-daily.js";
 import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
@@ -330,6 +331,8 @@ for (const d of GAP.warnDays) console.log(`gap_daily: WARNING ${d} - цена с
 // стояло «нет данных». Склеивать два файла нельзя: в coinv_daily соинвест от цены с картой Ozon,
 // в gap_daily от витрины без карты, на стыке ряд прыгнул бы от смены источника. Поэтому весь ряд
 // из одного файла. Цена на витрине = предельная цена (последняя известная из coinv_daily) × доля.
+// Missing ordinary history must remain missing, never fall back to bank-card prices.
+for (const [, m] of series) for (const [, c] of m) { delete c["coinv"]; delete c["price"]; }
 if (GAP.exists) {
   const capOf = new Map<string, number>();
   for (const [art, m] of series) {
@@ -337,7 +340,6 @@ if (GAP.exists) {
     for (const [d, c] of m) if (c["cap"] && d >= last) { last = d; cap = c["cap"]!; }
     if (cap) capOf.set(art, cap);
   }
-  for (const [, m] of series) for (const [, c] of m) { delete c["coinv"]; delete c["price"]; }
   const rawGapPrices = new Map(readGapMarked(dp(GAP_DAILY_FILE)).rows.map(r=>[r.date+"|"+r.art,r]));
   for (const r of GAP.rows) {
     const g = Number(r.gap_pct);
@@ -349,6 +351,13 @@ if (GAP.exists) {
     if (raw?.buyer != null) c["price"] = raw.buyer;
     else if (cap) c["price"] = Math.round(cap * (1 - g / 100));
   }
+}
+// Keep the catalog realization basis separate from ordinary storefront history.
+const REALIZATION_PRICES = catalogGaps(supplements(dp('')).catalogs);
+for (const r of REALIZATION_PRICES) {
+  const c = cell(r.art, r.date);
+  if (r.buyer !== null) c['realization_price'] = r.buyer;
+  if (r.gap_pct !== null) c['realization_gap'] = r.gap_pct;
 }
 // Снимок индекса бустинга. Он не участвует в гейте: три дня наблюдения, решения по нему не
 // принимаются (служебная вкладка «Бустинг», build-boost.ts). Нужен здесь ровно для одного -
@@ -539,7 +548,7 @@ function medByCard(items: Array<{ test: string }>, valueOf: (x: any) => number |
 // testOnly - метрика рисуется одной линией: у контроля рекламы нет по построению,
 // и вторая линия была бы плоским нулём, который только мешает.
 const METRICS: Array<[string, string, "index" | "raw", string, boolean?]> = [];
-if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);          // предмет теста
+if (HAS_COINV) METRICS.push(["coinv", "Разрыв без карты (архив)", "raw", " %"]);          // предмет теста
 METRICS.push(["adspend", "Расход на клики", "raw", " ₽", true]);          // цена эффекта
 METRICS.push(["cpc", "CPC", "raw", " ₽", true]);
 METRICS.push(["clicks", "Клики", "raw", "", true]);
@@ -555,12 +564,16 @@ METRICS.push(["cart", "Корзина", "index", ""]);
 // и правило в estimator.ts лечит корзину и заказы одинаково.
 METRICS.push(["units", "Заказы", "index", ""]);
 if (HAS_PRICE) METRICS.push(["price", "Цена на витрине", "raw", " ₽"]);
+if (REALIZATION_PRICES.length) {
+  METRICS.push(["realization_price", "Цена реализации", "raw", " ₽"]);
+  METRICS.push(["realization_gap", "Разрыв к цене реализации", "raw", " %"]);
+}
 METRICS.push(["revenue", "Выручка", "raw", " ₽"]);
 METRICS.push(["drr", "ДРР", "raw", " %", true]);
 
 // Соинвест - уровень, а не количество: по группе берём среднее по тем артикулам,
 // у которых значение есть, а не сумму.
-const LEVEL = new Set(["coinv", "pos", "price", "cap", "cpo"]);   // уровни, а не количества: усредняем, не суммируем
+const LEVEL = new Set(["coinv", "pos", "price", "cap", "cpo", "realization_price", "realization_gap"]);   // уровни, а не количества: усредняем, не суммируем
 
 // ДЕНЬ БЕЗ СЪЁМА ЭТО НЕ НОЛЬ. Количества (показы, клики, заказы) раньше на любом пустом дне
 // давали 0, и пропуск выгрузки рисовался обвалом до нуля: 23.09 график показывал, будто тест
@@ -940,9 +953,9 @@ const lowerTitle = (t: string) => t.split(' ')
 // ---------- простыми словами: как считается и что видно (Иван 30.09) ----------
 /** Как считается каждый показатель графика. Текст для человека, без формул в коде. */
 const HOW: Record<string, string> = {
-  coinv: "Какую долю нашей цены для Ozon оплачивает сам Ozon, а не покупатель. На каждый товар и день:"
-    + " (1 - цена, которую платит покупатель с картой Ozon / наша цена для Ozon) × 100. По группе - среднее"
-    + " по товарам, у которых в этот день был снимок цены. Чем выше, тем дешевле товар на полке за счёт Ozon.",
+  coinv: "Разрыв между предельной ценой продавца и обычной ценой витрины без карты: (1 − цена витрины / предельная цена) × 100. Это отдельная историческая база, а не фактически начисленная компенсация Ozon.",
+  realization_price: "Цена реализации из каталога Ozon. Может учитывать скидку при оплате картой банка; стоимость обработки заказа в ПВЗ исключена. По группе — среднее наблюдаемых цен. Не соединяется с обычной ценой без карты.",
+  realization_gap: "(1 − цена реализации / предельная цена) × 100 по одному товару и снимку; по группе — среднее. Не является доказанной компенсацией Ozon и не используется в порогах исторического ряда без карты.",
   adspend: "Сколько за день списано за клики по рекламе тестовых товаров, из отчёта кабинета рекламы. По группе - сумма."
     + " У контроля рекламы нет, поэтому линия одна.",
   cpc: "Средняя цена клика: расход на клики за день, делённый на число кликов того же дня. По группе считается из сумм,"
@@ -960,7 +973,7 @@ const HOW: Record<string, string> = {
   cart: "Сколько раз товары положили в корзину. Корзин мало, 0-2 в день на товар, поэтому складываем корзины всей группы"
     + " за день и сравниваем со средним днём группы до старта (100 = как обычно).",
   units: "Сколько штук заказали. Как корзина: заказы всей группы за день против среднего дня группы до старта (100 = как обычно).",
-  price: "Цена, которую платит покупатель с картой Ozon, среднее по товарам группы за день.",
+  price: "Историческая обычная цена витрины без карты, восстановленная из исторического разрыва и предельной цены. По группе — среднее. Цена реализации из каталога показана отдельно.",
   revenue: "Выручка по заказам за день из ночной выгрузки «Дневная история», сумма по товарам группы. Магазин продаёт"
     + " 4-16 SKU в день на весь ассортимент, поэтому линия прыгает от нуля до сотен тысяч: один стол за день меняет картину.",
   drr: "Доля рекламы в выручке: расход на рекламу тестовых товаров, делённый на их выручку, × 100. За период считается"
@@ -1155,7 +1168,9 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
       continue;
     }
     const measurable=['views','vsearch','pdp','cart','units','pos'].includes(key);
+    const realizationMetric=['realization_price','realization_gap'].includes(key);
     const point=(arts:string[])=>partialChartPoint(matrixOf(arts,days,key),arts.map(art=>{
+      if(realizationMetric&&openDay)return series.get(art)?.get(openDay)?.[key]??null;
       const r=openByArt.get(art);return measurable&&r ? r[key as 'views']??null : null;
     }),idxOf(days,new Set(base)),mode,estOf(key),cardKeys(arts));
     // Position keeps the same historically matched population as the closed line.
@@ -1172,7 +1187,9 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: key === "pos" ? a : rawT, rc: key === "pos" ? b : rawC, mode, unit };
     if(openDay) {
-      subs[key]+=` · ${DM(openDay)} — неполный день, ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openRows.find(r=>r.date===openDay)!.loaded_at))} МСК; ${measurable?`тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} наблюдаемых товаров`:'этим срезом не измерялось'}. В выводы не входит`;
+      subs[key]+=realizationMetric
+        ? ` · ${DM(openDay)} — текущий день, последнее наблюдение каталога; тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} товаров. В выводы не входит`
+        : ` · ${DM(openDay)} — неполный день, ${new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'}).format(new Date(openRows.find(r=>r.date===openDay)!.loaded_at))} МСК; ${measurable?`тест ${pa.have}/${pa.want}, контроль ${pb.have}/${pb.want} наблюдаемых товаров`:'этим срезом не измерялось'}. В выводы не входит`;
       tip[key].t.push(pa.value);tip[key].c.push(pb.value);tip[key].rt=[...tip[key].rt,pa.raw];tip[key].rc=[...tip[key].rc,pb.raw];
     }
     if (mode === "index") {
@@ -1214,7 +1231,7 @@ function chart(t: TestDef, cid: string, endAt?: string): string {
         const gb = bT - bC, gp = pT - pC;      // разрыв в базе и после старта, в пунктах
         if (Number.isFinite(gb) && Number.isFinite(gp)) {
           // Цена - в рублях, остальные уровни (позиция, ставка) - в своих единицах, не «пунктах».
-          const rub = key === "price" || key === "cap" || key === "cpo";
+      const rub = key === "price" || key === "cap" || key === "cpo" || key === "realization_price";
           const sgn = (x: number) => (x >= 0 ? "+" : "") + (rub ? nbsp(Math.round(x)) + " ₽" : x.toFixed(1));
           // Средний разрыв за весь период после старта размывает момент прихода эффекта:
           // надбавка приходит через двое-трое суток, и первые дни тянут среднее вниз.

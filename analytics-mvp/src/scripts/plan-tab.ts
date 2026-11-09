@@ -33,6 +33,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 import {readCaptureFile} from './ozon/cabinet-capture.js';
+import {catalogGaps,supplements} from './ozon/cabinet-supplements.js';
 import {mergeCabinetViews,nativeFunnel} from './ozon/cabinet-funnel.js';
 import {readFunnelTests,FUNNEL_TESTS_FILE} from './funnel-tests.js';
 import { noSite as gapNoSite, readGapMarked } from "./gap-daily.js";
@@ -692,7 +693,7 @@ ${cabTxt}
     orders:ordRows.filter(r=>r.d<=OD_RAW_LAST),orderLast:OD_LAST,orderCovered:new Set(readNd(dp('daily_totals.ndjson')).map(r=>String(r.date))),
     ads:adsDaily,adsSku:asd,adsLast:AD_CAMP_LAST,adsFull:adsFullDay(adsDaily.map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,'2026-11-01',campDay,adsReceipts),
     adsCovered:new Set([...new Set(adsDaily.map(a=>String(a.d)))].filter(d=>d>='2026-10-01'&&d<='2026-11-30'&&adsFullDay(adsDaily.filter(a=>a.d===d).map(a=>({d:a.d,id:String(a.id),sp:Number(a.sp)||0})),adsState,CPO_ID,d,campDay,adsReceipts)===d)),
-    prices:priceSource,gaps:gapSource.filter(r=>!gapNoSite(r)),partial:PARTIAL}) : null;
+    prices:priceSource,gaps:catalogGaps(supplements(dp('')).catalogs),partial:PARTIAL}) : null;
   const activeHtml = november ? novemberForecastHtml(november,(details?.html??'<!-- NOVEMBER_STORE -->')+novemberGrowthHtml(today,details)) + html
     .replace('<details class="card tcard" open id="pt-plan">','<details class="card tcard pt-nov-archive" id="pt-plan">')
     .replace('План с 15.10: как идём к цели','Октябрьские условия тестов и история') : html;

@@ -20,7 +20,6 @@
 // цену, а не на цену с картой. Пороги гейта заданы на шкале gap_pct (см. ARRIVED).
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
-import {supplements,catalogGaps} from './ozon/cabinet-supplements.js';
 import type { CoinvRow } from "./boost-readiness.js";
 
 export const GAP_DAILY_FILE = "gap_daily.ndjson";
@@ -210,9 +209,9 @@ export function readGapMarked(path: string): { rows: GapRow[]; systemDays: strin
     parsed.push(r);
   }
   const m = markNoSiteEx(parsed);
-  const merged = new Map(m.rows.map(r=>[r.date+'|'+r.art,r]));
-  for(const r of catalogGaps(supplements(dirname(path)).catalogs)) merged.set(r.date+'|'+r.art,r);
-  return { rows: [...merged.values()], systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN, manualRows, manualFile: manual.exists };
+  // Catalog realization may include bank-card discounts and excludes pickup handling.
+  // It must never replace the ordinary storefront basis used by historical gates.
+  return { rows: m.rows, systemDays: m.systemDays, warnDays: m.warnDays, bad, manual: manualN, manualRows, manualFile: manual.exists };
 }
 
 export function readGapDaily(path: string): GapRead {

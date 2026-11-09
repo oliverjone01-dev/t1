@@ -47,6 +47,8 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
     const observed=catalog?.items.filter(r=>fields.every(k=>(r as any)[k]!==null)).length??0;
     out.push({source:label,through:catalog?.day??null,expected:today,status:catalogFresh&&catalog?.expected===catalog?.items.length&&observed===catalog?.items.length?'ok':'error',note:`Время сеанса ${catalog?.captured_at??'неизвестно'}; ${observed} из ${catalog?.items.length??0} товаров с полями. Расчётные условия не заменяют начисления по заказам. Разрыв цен не является фактической компенсацией Ozon.`});
   }
+  const ordinaryThrough=maxDate(readRows(join(dir,'gap_daily.ndjson')),['date']);
+  out.push({source:'Обычная цена без карты: история для тестов',through:ordinaryThrough,expected:today,status:ordinaryThrough&&ordinaryThrough>=today?'ok':'warning',note:'Самостоятельная база сравнения. Цена реализации из каталога может учитывать скидку банка и не заменяет обычную цену без карты; новые даты не достраиваются.'});
   for(const [label,file] of [['Соинвест по карте (исторический источник)','coinv_daily.ndjson'],['Составляющие бустинга','boost_daily.ndjson']] as const){
     const through=maxDate(readRows(join(dir,file)),['date']);out.push({source:label,through,expected:today,status:through&&through>=today?'ok':'warning',note:'Отдельное наблюдение; каталог цен не содержит этого показателя. Старое значение нельзя считать текущим.'});
   }

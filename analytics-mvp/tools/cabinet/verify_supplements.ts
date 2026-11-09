@@ -20,9 +20,27 @@ if(data.catalogs.length){
  const number=(s:string)=>Number(s.replace(/[^\d,.-]/g,'').replace(',','.'));
  assert.equal(number(td[1]!.textContent!),selected.buyer);
  assert.equal(number(td[2]!.textContent!),selected.cap);
- // Every modern date/product must survive the shared reader used by existing tests/plan.
- const shared=new Map(readGapMarked(join(dir,'gap_daily.ndjson')).rows.map(r=>[r.date+'|'+r.art,r]));
- for(const r of catalogGaps(data.catalogs))assert.equal(shared.get(r.date+'|'+r.art)?.gap_pct,r.gap_pct);
+ // Ordinary storefront gates must stay separate from catalog realization.
+ assert(readGapMarked(join(dir,'gap_daily.ndjson')).rows.every(r=>r.src!=='catalog_realization'));
+ const testDom=page('katya-tests.html'),testDoc=testDom.window.document;
+ const row=[...testDoc.querySelectorAll('.nd-price')].find(e=>e.textContent?.includes(selected.art!))?.closest('tr');
+ assert(row,'Fresh realization price must remain in the existing November price table');
+ assert.equal(number(row.querySelectorAll('td')[5]!.firstChild!.textContent!),selected.buyer);
+ assert(testDoc.body.textContent?.includes('Цена реализации'));
+ assert(testDoc.body.textContent?.includes('Разрыв к цене реализации'));
+ const definitions=JSON.parse(readFileSync('tools/tests/tests.json','utf8')).тесты_цены??[];
+ const catalogRows=catalogGaps(data.catalogs),byKey=new Map(catalogRows.map(r=>[r.art+'|'+r.date,r]));
+ for(const definition of definitions)for(const [i,art] of definition.тест.entries()){
+  const chart=(testDom.window as any).DYN?.['dyn-p4-'+i];if(!chart)continue;
+  for(const [metric,field] of [['realization_price','buyer'],['realization_gap','gap_pct']] as const){
+   const values=chart.m[metric]?.rt;assert(values,`Missing ${metric} for ${art}`);
+   chart.d.forEach((day:string,j:number)=>{const expected=byKey.get(art+'|'+day)?.[field]??null;const actual=values[j];
+    if(expected===null)assert.equal(actual,null,`${art} ${day}: missing is not zero`);
+    else assert(Math.abs(actual-expected)<1e-8,`${art} ${day}: ${metric} ${actual} != ${expected}`);
+   });
+  }
+ }
+ testDom.window.close();
  dom.window.close();
 }
 if(data.competitors){

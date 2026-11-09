@@ -4,9 +4,9 @@ import {
   comparable,
   equal,
   SYNC_FIELDS,
-} from "./sync-model.mjs?rev=20261109-directory-2";
-import { validateBoard } from "./model.mjs?rev=20261109-directory-2";
-import { remoteChanges } from "./changes.mjs?rev=20261109-directory-2";
+} from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
+import { validateBoard } from "./model.mjs?rev=20261109-telegram-tabs-1";
+import { remoteChanges } from "./changes.mjs?rev=20261109-telegram-tabs-1";
 const cleanBoard = (board) => {
   if (
     board?.owners &&

@@ -1,10 +1,12 @@
 import {
   SHEET_ID,
   TAB_ID,
+  TELEGRAM_TAB_ID,
+  combineSheets,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261109-directory-2";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-directory-2';
+} from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261109-telegram-tabs-1';
 export class SheetsApi {
   constructor(
     auth,
@@ -70,6 +72,12 @@ export class SheetsApi {
       throw new Error(
         "Первой стала другая вкладка. Синхронизация остановлена, чтобы не изменить чужие данные.",
       );
+    const telegram = tabs.find(t=>t.sheetId===TELEGRAM_TAB_ID);
+    if(!telegram)throw new Error('Вкладка новых задач Telegram недоступна. Данные доски сохранены без усечения.');
+    const snapshots=await Promise.all([tab,telegram].map(t=>this.readTab(t)));
+    return combineSheets(...snapshots);
+  }
+  async readTab(tab) {
     if (tab.gridProperties.columnCount < 22)
       throw new Error("Служебные колонки таблицы ещё не настроены.");
     if (tab.gridProperties.rowCount > 2500)
@@ -89,6 +97,7 @@ export class SheetsApi {
       (row, i) => (rows[(grid.startRow || 0) + i] = row.values || []),
     );
     return decodeSheet({
+      sheetId: tab.sheetId,
       rows,
       title: tab.title,
       rowCount: tab.gridProperties.rowCount,

@@ -2,10 +2,11 @@ import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261109-directory-2";
-import { parseAssignee } from "./people.mjs?rev=20261109-directory-2";
+} from "./model.mjs?rev=20261109-telegram-tabs-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-telegram-tabs-1";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
+export const TELEGRAM_TAB_ID = 1478506234;
 export const SERVICE_HEADERS = [
   "Приоритет · доска",
   "Позиции · доска",
@@ -161,6 +162,7 @@ export function decodeSheet(sheet, year = new Date().getFullYear()) {
       rows[index][19]?.effectiveValue?.boolValue === true;
     records.push({
       id,
+      sheetId: sheet.sheetId ?? TAB_ID,
       row: index,
       cells: rows[index],
       task: validateBoard([task])[0],
@@ -186,6 +188,15 @@ export function decodeSheet(sheet, year = new Date().getFullYear()) {
       owners,
     },
   };
+}
+export function combineSheets(primary, telegram) {
+  const records = [...primary.records, ...telegram.records];
+  if (new Set(records.map(r => r.id)).size !== records.length)
+    throw new Error('ID карточки повторяется в двух вкладках. Устраните дубль в таблице.');
+  return {...primary, records, sourceTabs:[TAB_ID,TELEGRAM_TAB_ID], board:{
+    tasks:validateBoard(records.filter(r=>!r.archived).map(r=>r.task)),
+    owners:primary.board.owners,
+  }};
 }
 export function bootstrapBoard(local, remote) {
   const localMap = new Map(local.tasks.map((t) => [t.id, t]));
@@ -300,10 +311,11 @@ export function cellValue(field, value) {
 export function buildWriteRequests(snapshot, writes, owners) {
   const requests = [],
     byId = new Map(snapshot.records.map((r) => [r.id, r]));
+  let targetSheetId = TAB_ID;
   const cell = (row, col, value) =>
     requests.push({
       updateCells: {
-        start: { sheetId: TAB_ID, rowIndex: row, columnIndex: col },
+        start: { sheetId: targetSheetId, rowIndex: row, columnIndex: col },
         rows: [
           {
             values: [
@@ -323,6 +335,8 @@ export function buildWriteRequests(snapshot, writes, owners) {
     });
   for (const write of writes) {
     const record = byId.get(write.id);
+    targetSheetId = record?.sheetId ?? (write.id.startsWith('tg-') ? TELEGRAM_TAB_ID : TAB_ID);
+    if (![TAB_ID, TELEGRAM_TAB_ID].includes(targetSheetId)) throw new Error('Неизвестная вкладка задачи.');
     if (write.type === "archive") {
       if (record) cell(record.row, 19, true);
       continue;
@@ -371,7 +385,7 @@ export function buildWriteRequests(snapshot, writes, owners) {
         cell(record.row, col, value);
       }
     } else {
-      const template = snapshot.records[0]?.cells || [];
+      const template = snapshot.records.find(r=>(r.sheetId??TAB_ID)===targetSheetId)?.cells || [];
       const values = Array.from({ length: 22 }, (_, col) => ({
         userEnteredFormat: template[col]?.userEnteredFormat || {},
         ...(template[col]?.dataValidation
@@ -399,13 +413,14 @@ export function buildWriteRequests(snapshot, writes, owners) {
       set(21, write.task.dueNote);
       requests.push({
         appendCells: {
-          sheetId: TAB_ID,
+          sheetId: targetSheetId,
           rows: [{ values }],
           fields: "userEnteredValue,userEnteredFormat,dataValidation",
         },
       });
     }
   }
+  targetSheetId = TAB_ID;
   if (
     !equal(
       [...new Set(owners)].sort(),

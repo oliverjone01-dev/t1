@@ -1,0 +1,21 @@
+name: Telegram task bot connection check
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/telegram-task-probe.yml', 'task-canvas/telegram/probe.mjs']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bot identity and group access without reading messages
+        env:
+          TELEGRAM_TASK_BOT_TOKEN: ${{ secrets.TELEGRAM_TASK_BOT_TOKEN }}
+        run: node task-canvas/telegram/probe.mjs

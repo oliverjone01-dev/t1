@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {build} from 'esbuild';
-import {SERVICE_HEADERS,TAB_ID,SHEET_ID} from '../public/sync-model.mjs';
+import {SERVICE_HEADERS,TAB_ID,TELEGRAM_TAB_ID,SHEET_ID} from '../public/sync-model.mjs';
 
 const built=await build({entryPoints:['telegram/entry.mjs'],bundle:true,write:false,format:'iife',globalName:'TelegramTaskIntake',target:'es2020'});
 const token='123456:'+ 'test_secret_'.repeat(3);
@@ -25,11 +25,11 @@ function harness(){
   assert.ok(url.startsWith(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`));
   if(url.endsWith(':batchUpdate')){
    const requests=JSON.parse(opts.payload).requests;
-   for(const r of requests){assert.ok(r.appendCells);rows.push(r.appendCells.rows[0].values)}
+   for(const r of requests){assert.ok(r.appendCells);assert.equal(r.appendCells.sheetId,TELEGRAM_TAB_ID);rows.push(r.appendCells.rows[0].values)}
    return body(200,{});
   }
-  if(url.includes('fields=spreadsheetId'))return body(200,{sheets:[{properties:{sheetId:TAB_ID,index:0,title:'Тест',gridProperties:{rowCount:100,columnCount:22}}}]});
-  return body(200,{sheets:[{data:[{rowData:rows.map(values=>({values}))}]}]});
+  if(url.includes('fields=spreadsheetId'))return body(200,{sheets:[TAB_ID,TELEGRAM_TAB_ID].map((sheetId,index)=>({properties:{sheetId,index,title:index?'Telegram':'Тест',gridProperties:{rowCount:100,columnCount:22}}}))});
+  return body(200,{sheets:[{data:[{rowData:(url.includes("Telegram")?rows:rows.slice(0,3)).map(values=>({values}))}]}]});
  }}});
  vm.runInContext(built.outputFiles[0].text,context);
  return {api:context.TelegramTaskIntake,properties,triggers,calls,rows,setUpdates:v=>updates=v,setLocked:v=>locked=v,setFail:v=>fail=v,setWebhook:v=>webhook=v,setPrivacy:v=>privacy=v};

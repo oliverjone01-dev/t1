@@ -1,5 +1,5 @@
-import {SHEET_ID,TAB_ID,decodeSheet} from './sync-model.mjs?rev=20261109-directory-2';
-import {readModeControl} from './storage-mode.mjs?rev=20261109-directory-2';
+import {SHEET_ID,TAB_ID,TELEGRAM_TAB_ID,decodeSheet,combineSheets} from './sync-model.mjs?rev=20261109-telegram-tabs-1';
+import {readModeControl} from './storage-mode.mjs?rev=20261109-telegram-tabs-1';
 // CSV export retains minority cell types, blank rows, multiline text and literal
 // JSON. Visualization queries infer column types and can silently drop values.
 export function parseCsv(text){
@@ -34,11 +34,14 @@ export class PublicSheetsApi {
  async read(){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),18000);
   try{
-   const r=await this.fetcher(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${TAB_ID}&_=${Date.now()}`,{credentials:'omit',cache:'no-store',signal:controller.signal});
+   const snapshots=await Promise.all([TAB_ID,TELEGRAM_TAB_ID].map(async sheetId=>{
+   const r=await this.fetcher(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${sheetId}&_=${Date.now()}`,{credentials:'omit',cache:'no-store',signal:controller.signal});
    if(!r.ok)throw new Error('Таблица недоступна по ссылке. Показана последняя подтверждённая копия.');
    const strings=parseCsv(await r.text()),rows=strings.map(row=>row.map(formattedValue=>({formattedValue})));
-   const snapshot=decodeSheet({rows,title:'Первая вкладка',rowCount:rows.length});
-   return {...snapshot,control:readModeControl(rows),checkedAt:Date.now()};
+   return decodeSheet({rows,sheetId,title:sheetId===TAB_ID?'Основные задачи':'Новые задачи · Telegram',rowCount:rows.length});
+   }));
+   const snapshot=combineSheets(...snapshots);
+   return {...snapshot,control:readModeControl(snapshots[0].rows),checkedAt:Date.now()};
   }finally{clearTimeout(timer)}
  }
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {extractTask,taskFromUpdate,appendRequests,processUpdates,GROUP_ID} from '../telegram/intake.mjs';
-import {decodeSheet,SERVICE_HEADERS,TAB_ID} from '../public/sync-model.mjs';
+import {decodeSheet,SERVICE_HEADERS,TELEGRAM_TAB_ID} from '../public/sync-model.mjs';
 
 const date=new Date('2026-11-09T22:00:00Z'); // 10 November in Moscow.
 const config={chatId:GROUP_ID,startedAt:1700000000,botUsername:'tasks_bot'};
@@ -42,7 +42,7 @@ test('appends one literal row in the existing schema and never patches a task',(
  const s=snapshot(),task=taskFromUpdate(update(10,'/task =IMPORTXML("https://example.invalid")'),config);
  const requests=appendRequests(s,task);assert.equal(requests.length,1);
  const append=requests[0].appendCells,cells=append.rows[0].values;
- assert.equal(append.sheetId,TAB_ID);assert.equal(cells.length,22);
+ assert.equal(append.sheetId,TELEGRAM_TAB_ID);assert.equal(cells.length,22);
  assert.equal(cells[6].userEnteredValue.stringValue,task.title);
  assert.equal(cells[14].userEnteredValue.stringValue,task.telegramText);
  assert.equal(cells[18].userEnteredValue.stringValue,task.id);

@@ -10,6 +10,7 @@ it('uses Moscow day at the UTC evening boundary',()=>{const c=sample();c.capture
 it('rejects a missing day, broken sum, duplicate key and private order identifiers',()=>{
  for(const change of [(c:any)=>c.report_days.shift(),(c:any)=>c.sku[0].sp=99,(c:any)=>c.sku.push({...c.sku[0]}),(c:any)=>c.sku[0].order='private']){const c=sample();change(c);expect(()=>validateCpo(c)).toThrow();}
 });
+it('rejects a one-kopeck loss or gain, including a balanced cross-day move',()=>{for(const delta of [-.01,.01]){const c=sample();c.sku[0]!.sp+=delta;expect(()=>validateCpo(c)).toThrow(/conservation/);}const c=sample();c.report_days[0]!.sp=.01;c.report_days[1]!.sp=99.99;expect(()=>validateCpo(c)).toThrow(/daily SKU/);});
 it('rejects open source day, NaN, non-money value and invalid settings',()=>{
  for(const change of [(c:any)=>c.to='2026-11-03',(c:any)=>c.sku[0].sp=NaN,(c:any)=>c.sku[0].sp=100.001,(c:any)=>c.settings.scope='selected']){const c=sample();change(c);expect(()=>validateCpo(c)).toThrow();}
 });

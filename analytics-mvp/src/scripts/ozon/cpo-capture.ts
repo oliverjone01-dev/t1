@@ -4,12 +4,12 @@ const keys=(x:any,ks:string[])=>{if(!x||typeof x!=='object'||Array.isArray(x)||O
 const date=(x:any)=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&Number.isFinite(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x;
 const stamp=(x:any)=>typeof x==='string'&&/(Z|[+-]\d\d:\d\d)$/.test(x)&&Number.isFinite(Date.parse(x));
 const num=(x:any)=>typeof x==='number'&&Number.isFinite(x)&&x>=0;
-const cents=(x:any)=>num(x)&&Math.abs(x*100-Math.round(x*100))<1e-5;
+const cents=(x:any)=>num(x)&&Number.isSafeInteger(Math.round(x*100))&&Math.abs(x*100-Math.round(x*100))<1e-5;
 const count=(x:any)=>Number.isSafeInteger(x)&&x>=0;
 export function validateCpo(x:any):CpoCapture{
  keys(x,['version','from','to','captured_at','source','orders_sha256','source_sha256','sku','report_days','order_days','miss','no_sku_sp','settings']);
  if(x.version!==1||!date(x.from)||!date(x.to)||x.from>x.to||!stamp(x.captured_at)||x.to>=new Date(Date.parse(x.captured_at)+10800000).toISOString().slice(0,10)||x.source!=='ozon-cpo-order-export'||!/^[a-f0-9]{64}$/.test(x.orders_sha256)||!Array.isArray(x.source_sha256)||!x.source_sha256.length||x.source_sha256.some((s:any)=>!/^[a-f0-9]{64}$/.test(s)))throw Error('CPO capture provenance');
- const sum=(rows:any[],k:string)=>rows.reduce((a,r)=>a+r[k],0), eq=(a:number,b:number)=>Math.abs(a-b)<.011;
+ const sum=(rows:any[],k:string)=>rows.reduce((a,r)=>a+r[k],0), eq=(a:number,b:number)=>Math.round(a*100)===Math.round(b*100);
  for(const [name,fields] of [['sku',['d','sku','offer','sp','n']],['report_days',['d','sp','n']],['order_days',['d','sp','rev','units']],['miss',['month','n','sp']]] as const){
   if(!Array.isArray(x[name])||x[name].length>100000)throw Error('CPO capture rows');const seen=new Set();
   for(const r of x[name]){keys(r,[...fields]);const key=name==='sku'?r.d+'|'+r.sku:name==='miss'?r.month:r.d;
@@ -23,7 +23,7 @@ export function validateCpo(x:any):CpoCapture{
  }
  if(!cents(x.no_sku_sp)||!eq(sum(x.report_days,'sp'),sum(x.sku,'sp')+x.no_sku_sp)||!eq(sum(x.report_days,'sp'),sum(x.order_days,'sp')+sum(x.miss,'sp')))throw Error('CPO capture conservation');
  const days=(Date.parse(x.to)-Date.parse(x.from))/86400000+1;if(x.report_days.length!==days)throw Error('CPO daily coverage');
- for(const d of x.report_days)if(sum(x.sku.filter((r:any)=>r.d===d.d),'sp')>d.sp+.011||sum(x.sku.filter((r:any)=>r.d===d.d),'n')>d.n)throw Error('CPO daily SKU total');
+ for(const d of x.report_days)if(Math.round(sum(x.sku.filter((r:any)=>r.d===d.d),'sp')*100)>Math.round(d.sp*100)||sum(x.sku.filter((r:any)=>r.d===d.d),'n')>d.n)throw Error('CPO daily SKU total');
  keys(x.settings,['captured_at','scope','active','bid_percent','promoted_products','products_period_from','products_period_to']);const s=x.settings;
  if(!stamp(s.captured_at)||s.scope!=='all'||typeof s.active!=='boolean'||!num(s.bid_percent)||s.bid_percent>100||!count(s.promoted_products)||!date(s.products_period_from)||!date(s.products_period_to)||s.products_period_from>s.products_period_to)throw Error('CPO settings');
  return x;

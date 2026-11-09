@@ -114,8 +114,10 @@ describe("живой файл data/gap_daily.ndjson", () => {
   it("источники ряда - только наблюдения", () => {
     const r = readGapDaily("data/" + GAP_DAILY_FILE);
     if (!r.exists) return;
-    // Все дни ряда сняты, моделей в нём нет: источники только snapshot и prices_raw.
-    expect([...r.bySrc.keys()].sort()).toEqual(["prices_raw", "snapshot"]);
+    // Catalog realization is an observed seller/buyer pair, not a modeled card price.
+    const observedSources = new Set(["prices_raw", "snapshot", "catalog_realization"]);
+    expect(r.bySrc.size).toBeGreaterThan(0);
+    expect([...r.bySrc.keys()].filter(src => !observedSources.has(src))).toEqual([]);
   });
 });
 

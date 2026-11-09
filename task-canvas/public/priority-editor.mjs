@@ -1,3 +1,4 @@
+export const editorBlocksSync=dialog=>dialog.open&&!dialog.classList.contains('priority-editor');
 // Reuse the existing editor and its draft/conflict/save pipeline beside the matrix.
 export function installPriorityEditor({dialog,area,mode,save,taskId,onToggle}){
  const wide=matchMedia('(min-width:1440px)');

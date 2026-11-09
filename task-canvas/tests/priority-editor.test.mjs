@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {installPriorityEditor} from '../public/priority-editor.mjs';
+import {installPriorityEditor,editorBlocksSync} from '../public/priority-editor.mjs';
 
 function browser(){
- const classes=()=>({values:new Set(),toggle(k,v){v?this.values.add(k):this.values.delete(k)}});
+ const classes=()=>({values:new Set(),contains(k){return this.values.has(k)},toggle(k,v){v?this.values.add(k):this.values.delete(k)}});
  const doc=new EventTarget();doc.body={classList:classes()};doc.activeElement=null;
  let extraModal=false,restored=0,saves=0,toggles=0,lastToggleOpen=null;
  const wide=new EventTarget();wide.matches=true;
@@ -17,9 +17,9 @@ function browser(){
 
 test('resizing an open matrix editor changes modality without losing text, scroll or the new panel',async()=>{
  const b=browser();try{
-  b.editor.open();assert.equal(b.dialog.modal,false);assert.ok(b.doc.body.classList.values.has('priority-editor-open'));
+  b.editor.open();assert.equal(editorBlocksSync(b.dialog),false,'a usable matrix must keep synchronizing while its side editor is open');assert.equal(b.dialog.modal,false);assert.ok(b.doc.body.classList.values.has('priority-editor-open'));
   b.wide.matches=false;b.wide.dispatchEvent(new Event('change'));await Promise.resolve();
-  assert.equal(b.dialog.open,true);assert.equal(b.dialog.modal,true);assert.equal(b.dialog.value,'Незавершённый текст');assert.equal(b.dialog.scrollTop,91);
+  assert.equal(b.dialog.open,true);assert.equal(b.dialog.modal,true);assert.equal(editorBlocksSync(b.dialog),true);assert.equal(b.dialog.value,'Незавершённый текст');assert.equal(b.dialog.scrollTop,91);
   assert.equal(b.doc.body.classList.values.has('priority-editor-open'),false);
   b.wide.matches=true;b.wide.dispatchEvent(new Event('change'));await Promise.resolve();
   assert.ok(b.doc.body.classList.values.has('priority-editor-open'));assert.equal(b.dialog.open,true);assert.equal(b.lastToggleOpen,true,'the open-row marker must survive a responsive editor transition');

@@ -1,4 +1,4 @@
-import {installPriorityEditor} from './priority-editor.mjs?rev=20261110-priority-3';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-priority-3';
 import {installGantt} from './gantt.mjs?rev=20261110-priority-3';
 import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-priority-3';
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-priority-3';
@@ -1935,7 +1935,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   const typing = e.target.closest("input,textarea,select,[contenteditable]");
-  if (typing || $("dialog[open]")) return;
+  if (typing || e.target.closest("#editor") || $("dialog[open]").some(d=>d.id!=="editor"||editorBlocksSync(d))) return;
   if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
     e.preventDefault();
     e.shiftKey ? restore(future, history) : restore(history, future);
@@ -2315,7 +2315,7 @@ cloudEngine.flush = async () => {
   }
   if (
     !cloudEngine.managed &&
-    (gesture || $("#editor").open || $("#import-dialog").open)
+    (gesture || editorBlocksSync($("#editor")) || $("#import-dialog").open)
   ) {
     cloudEngine.later(1500);
     return;

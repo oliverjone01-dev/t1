@@ -54,7 +54,7 @@ describe('reviewed MPSTATS data contract',()=>{
 describe('integrated competitor page interactions',()=>{
  function open(){const errors:string[]=[],vc=new VirtualConsole();vc.on('jsdomError',(e:Error)=>errors.push(e.message));const dom=new JSDOM(matchedCompetitorPage(snapshot,css,'test'),{runScripts:'dangerously',virtualConsole:vc,beforeParse(w:any){w.Element.prototype.scrollIntoView=()=>{};}});return {dom,d:dom.window.document,w:dom.window,errors};}
  it('renders the existing navigation, dated source and two shared charts',()=>{
-  const {dom,d,errors}=open();expect(d.querySelector('#gg-nav a[href="katya-money.html"]')).not.toBeNull();expect(d.querySelector('#gg-nav a[href="katya-competitors.html"]')).not.toBeNull();
+  const {dom,d,errors}=open();expect(d.querySelector('#gg-nav a[href="katya-money.html"]')).not.toBeNull();expect(d.querySelector('#gg-nav a[href="katya-competitors-cabinet.html"]')).not.toBeNull();
   expect(d.querySelector('.cm-period')!.textContent).toContain('20.10.2026');expect(d.querySelectorAll('[data-chart]')).toHaveLength(2);
   expect(d.querySelectorAll('[data-chart="price"] [data-series]')).toHaveLength(2);expect(d.querySelectorAll('[data-site-point]')).toHaveLength(1);expect(errors).toEqual([]);dom.window.close();
  });

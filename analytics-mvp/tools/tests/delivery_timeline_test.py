@@ -38,6 +38,14 @@ class TimelineTests(unittest.TestCase):
             with self.assertRaises(ValueError):collect([r])
         with self.assertRaises(ValueError):t.prepare('bad','bad',None,NOW)
         with self.assertRaises(ValueError):collect([])
+    def test_incomplete_order_is_visible_but_never_invented_or_confirmed(self):
+        partial=row(**{'1':'0147868445-0123','2':'М26-5279'})
+        s=collect([row(),partial]);r=next(r for r in s['rows'] if r['trip']=='М26-5279')
+        self.assertEqual(r['order'],'0147868445-0123');self.assertIn('incomplete_order',r['issues'])
+        partial[5]='29 октября'
+        s2=collect([row(),partial],s,NOW+dt.timedelta(days=1))
+        self.assertTrue(s2['history'][0]['conflict'])
+        self.assertEqual(len(s2['rows']),2)
     def test_unknown_status_and_bad_dates_safe(self):
         s=collect([row(**{'7':'SECRET NAME','5':'ошибка'})]);r=s['rows'][0];self.assertIsNone(r['planned']);self.assertEqual(r['status'],'Неизвестный статус');self.assertNotIn('SECRET',str(s))
     def test_moscow_day_and_no_future_fact_clamping(self):

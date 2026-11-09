@@ -12,6 +12,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import { healthHtml } from "./ozon/source-health.js";
+import { escapeHtml } from "./ozon/cabinet-supplements.js";
 
 const PARTS = ["app_head.js", "app_kpi_timeline.js", "app_bytype_feed.js", "app_tail.js"];
 const part = (f: string): string => readFileSync(`katya/reakciya/${f}`, "utf-8");
@@ -55,7 +57,8 @@ function assemble(dataStr: string, light: boolean): string {
   const navStart = body.indexOf('<div class="topnav">');
   const navEnd = body.indexOf("</div>", body.indexOf('id="navhint"')) + "</div>".length;
   if (navStart < 0 || navEnd <= navStart) throw new Error("build-reakciya: не найден блок навигации в katya/reakciya/body1.html");
-  body = body.slice(0, navStart) + navStrip + body.slice(navEnd);
+  const archiveNote = `<div role="note" style="margin:16px;padding:14px;border:1px solid #eab308;border-radius:8px">Архив анализа действий: события по ${escapeHtml(raw.updated)}, воронка по ${escapeHtml(raw.data_until)}, цены по ${escapeHtml(raw.prices_until)}. Выводы об эффекте относятся к этим датам. Текущие показатели: <a href="katya-voronka.html">воронка</a>, <a href="katya-marketing.html">реклама</a>, <a href="katya-tests.html">тесты и история цен</a>. Новые ежедневные выгрузки не содержат журнал изменений кампаний.</div>`;
+  body = body.slice(0, navStart) + navStrip + archiveNote + healthHtml(dp("")) + body.slice(navEnd);
 
   const guard = part("guard.js");
   const end = part("endmark.js");

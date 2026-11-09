@@ -50,7 +50,12 @@ def parse(text, tab, collection_year=2026):
         try:
             order = order_number(row[1])
         except ValueError:
-            raise ValueError(f"{tab}: invalid order at row {number}") from None
+            order = row[1].strip()
+            # An order reference is not a posting. Keep it for review without
+            # guessing a suffix; a single such row must not freeze all trips.
+            if not re.fullmatch(r"[0-9]+-[0-9]+", order):
+                raise ValueError(f"{tab}: invalid order at row {number}") from None
+            issues.append("incomplete_order")
         ledger_text = row[2].strip().upper().replace("M", "М")
         codes = sorted(set(re.findall(r"(?:НС|НМ|С|М)\d{2}-\d+", ledger_text)))
         rest = re.sub(r"(?:НС|НМ|С|М)\d{2}-\d+", "", ledger_text)
@@ -105,7 +110,8 @@ def prepare(active, archive, old, now):
                 history.append({"id": hashlib.sha256((key + stamp + encoded(changes)).encode()).hexdigest()[:24],
                                 "trip_id": key, "order": row["order"], "observed_at": stamp,
                                 "previous_seen": prior["last_seen"], "changes": changes, "status": row["status"],
-                                "conflict": "source_conflict" in row["issues"] or "source_conflict" in prior["issues"]})
+                                "conflict": any(i in row["issues"] or i in prior["issues"]
+                                                for i in ("source_conflict", "incomplete_order"))})
         previous[key] = row
     for key in previous.keys() - incoming.keys():
         previous[key] = dict(previous[key], missing=True)

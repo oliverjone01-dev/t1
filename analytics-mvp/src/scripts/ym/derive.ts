@@ -58,14 +58,13 @@ function main() {
   writeJson(yp("pnl_sku_30d.json"), buildPnlSku(rows, w.dateFrom, w.dateTo));
   writeNdjson(yp("pnl_daily.ndjson"), buildPnlDaily(rows));
   writeNdjson(yp("pnl_sku_daily.ndjson"), buildPnlSkuDaily(rows));
-  // Ведомость доставки - ручной лист (наш расход на перевозку). Живёт в fixtures, потому что
-  // источник ручной: API Маркета счёт перевозчика не отдаёт и отдать не может.
+  // Наша доставка: проверенный снимок Google-таблицы; fixtures только до первого синка.
   let delivRows: DelivRow[] = [];
   let delivIssues: DelivIssue[] = [];
-  // Нет файла - предупреждение ниже. Файл есть, но в нём не число - сборка падает с номером
-  // строки: молча обнулённая сумма и есть та ошибка, которую ловим.
+  // Ошибка или давность доставки не блокирует другие источники: reader сохраняет
+  // проверенные расходы или исключает повреждённый источник с явным предупреждением.
   const delivery = deliverySource(yp("").replace(/\/$/, ""));
-  if (delivery) {
+  if (delivery.text) {
     const ordAll = readNdjson<OrderRow>(yp("orders.ndjson"));
     const knownOrders = new Set(ordAll.map((r) => String(r.order)));
     const deliveredOrders = new Set(ordAll.filter((r) => r.status === "DELIVERED").map((r) => String(r.order)));
@@ -124,6 +123,7 @@ function main() {
     split_check: { business: SPLIT_B, ym: SPLIT_M, money: Math.round(splitMoney), points: Math.round(splitPoints),
       act_money: 557250.2, act_points: 2350590.89 },
     deliv_issues: delivIssues,
+    delivery_health: { warning: delivery.warning, loaded_at: delivery.loaded_at, through: delivery.through },
     months: svod });
   console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
   // Реестр отстаёт от отчёта о баллах: списания, которых в реестре ещё нет, лежат в

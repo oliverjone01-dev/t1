@@ -241,15 +241,34 @@ def write_bundle(root, outputs):
             src.unlink(missing_ok=True)
 
 
+def refresh(root, fetch=fetch_tab, now=None):
+    """A rejected delivery refresh cannot hold back the other Market sources."""
+    now = now or dt.datetime.now(ZoneInfo("Europe/Moscow"))
+    try:
+        outputs = prepare(root, fetch("active"), fetch("archive"), now)
+    except Exception as error:
+        # Never publish exception strings from HTTP or source cells (may be PII).
+        row = re.fullmatch(r"(active|archive): row (\d+), invalid date/order/status/amount", str(error))
+        reason = (f"Лист {'Активные' if row[1] == 'active' else 'Архив'}, строка {row[2]}: проверьте дату, номер заказа, статус и суммы."
+                  if row else "Не удалось загрузить или проверить таблицу доставки.")
+        status = {"schema": 1, "status": "error", "attempted_at": now.isoformat(), "reason": reason}
+        # The accepted CSV and its success timestamp/hash remain byte-for-byte.
+        write_bundle(root, {"delivery_refresh.json": json.dumps(status, ensure_ascii=False, indent=2) + "\n"})
+        print(f"::warning::{reason} Остальные данные Маркета продолжают обновляться.")
+        return status
+    status = {"schema": 1, "status": "ok", "attempted_at": now.isoformat()}
+    outputs["delivery_refresh.json"] = json.dumps(status, ensure_ascii=False, indent=2) + "\n"
+    write_bundle(root, outputs)
+    state = json.loads(outputs["delivery_source.json"])
+    print(json.dumps({k: state[k] for k in ("loaded_at", "through", "rows", "source_counts", "retained_documents")}, ensure_ascii=False))
+    return status
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
-    # Fetch and validate both responses before the first local mutation.
-    outputs = prepare(args.root, fetch_tab("active"), fetch_tab("archive"), dt.datetime.now(ZoneInfo("Europe/Moscow")))
-    write_bundle(args.root, outputs)
-    state = json.loads(outputs["delivery_source.json"])
-    print(json.dumps({k: state[k] for k in ("loaded_at", "through", "rows", "source_counts", "retained_documents")}, ensure_ascii=False))
+    refresh(args.root)
 
 
 if __name__ == "__main__":

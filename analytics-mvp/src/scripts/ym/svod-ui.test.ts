@@ -35,7 +35,7 @@ beforeAll(async () => {
   cpSync("data-ym", der, { recursive: true });
   // This test checks arithmetic on a saved snapshot, not wall-clock freshness.
   // Pin the child clock to that snapshot; production's 36h guard is covered by
-  // delivery-source.test.ts and must still reject genuinely stale refreshes.
+  // delivery-source.test.ts and labels stale delivery without blocking publication.
   const loadedAt = JSON.parse(readFileSync(join(der, "delivery_source.json"), "utf8")).loaded_at;
   const clock = join(der, "snapshot-clock.mjs");
   writeFileSync(clock, `Date.now = () => Date.parse(${JSON.stringify(loadedAt)});`);

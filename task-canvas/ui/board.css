@@ -42,3 +42,5 @@ body[data-board-mode=priority] .status-shortcuts{display:none}
 .map-zone-heading>.priority-emblem{flex:0 0 30px}.small-zone .map-zone-heading>.priority-emblem{flex-basis:24px}.map-zone-heading>span:not(.priority-emblem){flex:1 1 auto}.matrix-panel-head h3 .priority-emblem{flex:0 0 38px;padding:0;margin:0;font-size:inherit}
 .matrix-panel-head h3 .priority-emblem[data-kind=plan]{color:var(--importance-ink);background:color-mix(in srgb,var(--importance-ink) 7%,var(--panel))}
 @media(max-width:767px){.map-zone-heading .priority-emblem svg{display:block}}
+
+.matrix-signal-row{padding:0 8px;min-height:25px;display:flex;align-items:center}.matrix-card:has(.temperature.level-5) .matrix-title{color:var(--text)}

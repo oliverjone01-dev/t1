@@ -1,0 +1,3 @@
+import React from 'react';
+import {IMPORTANCE_LABELS} from '../public/task-signals.mjs';
+export function Temperature({task,props}:any){const n=Number(task.importance)||0;return <label className={`temperature level-${n}`} title={`Важность ${n||'не задана'} / 5 · ${IMPORTANCE_LABELS[n]}`} onClick={e=>e.stopPropagation()}><span className="temperature-bars" aria-hidden="true">{[1,2,3,4,5].map(i=><i key={i} className={i<=n?'lit':''}/>)}</span><span className="temperature-number">{n||'—'}<small>/5</small></span>{props.editable&&<select aria-label={`Важность: ${task.title}`} value={n} onChange={e=>props.onImportance(task.id,Number(e.target.value))}>{IMPORTANCE_LABELS.map((label,i)=><option key={i} value={i}>{i?i+' / 5 · ':''}{label}</option>)}</select>}</label>}

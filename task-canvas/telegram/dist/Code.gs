@@ -28,7 +28,17 @@ var TelegramTaskIntake = (() => {
     stop: () => stop
   });
 
-  // public/people.mjs?rev=20261109-weekly-1
+  // public/task-signals.mjs?rev=20261109-signals-1
+  function metadata(t) {
+    return { importance: Number(t.importance) || 0, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
+  }
+  function packedPositions(t) {
+    const p = structuredClone(t.positions || {}), m = metadata(t);
+    if (m.importance || m.closedAt || m.archiveKind) p._task = m;
+    return p;
+  }
+
+  // public/people.mjs?rev=20261109-signals-1
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -39,7 +49,7 @@ var TelegramTaskIntake = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261109-weekly-1
+  // public/model.mjs?rev=20261109-signals-1
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0417\u0430\u043F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -94,6 +104,14 @@ var TelegramTaskIntake = (() => {
       if (t.due && (!/^\d{4}-\d{2}-\d{2}$/.test(t.due) || Number.isNaN(+/* @__PURE__ */ new Date(`${t.due}T12:00:00`)) || localDate(/* @__PURE__ */ new Date(`${t.due}T12:00:00`)) !== t.due)) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u0444\u043E\u0440\u043C\u0430\u0442 \u0434\u0430\u0442\u044B.");
       if (t.priority && !QUADRANTS.some((q) => q.id === t.priority)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u043F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442.");
       const result = { id: t.id, title: t.title, priority: t.priority || null, positions: {} };
+      const importance = Number(t.importance || 0);
+      if (!Number.isInteger(importance) || importance < 0 || importance > 5) throw new Error("\u0412\u0430\u0436\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 1 \u0434\u043E 5.");
+      result.importance = importance;
+      if (t.closedAt && (!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt) || !Number.isFinite(Date.parse(t.closedAt)))) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F.");
+      result.closedAt = t.closedAt || "";
+      if (t.archiveKind && !["done", "cancelled"].includes(t.archiveKind)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432.");
+      result.archiveKind = t.archiveKind || "";
+      if (result.archiveKind && t.status !== (result.archiveKind === "done" ? "\u0413\u043E\u0442\u043E\u0432\u043E" : "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E")) throw new Error("\u0410\u0440\u0445\u0438\u0432 \u043D\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0441\u0442\u0430\u0442\u0443\u0441\u0443 \u0437\u0430\u0434\u0430\u0447\u0438.");
       for (const key of ["sourceId", "unit", "direction", "description", "status", "owner", "ownerNote", "due", "dueNote", "comment", "dependency", "requester", "link"]) result[key] = typeof t[key] === "string" ? t[key] : "";
       for (const mode of ["priority", "owners", "time"]) {
         const p = t.positions?.[mode];
@@ -107,7 +125,7 @@ var TelegramTaskIntake = (() => {
     });
   }
 
-  // public/sync-model.mjs?rev=20261109-weekly-1
+  // public/sync-model.mjs?rev=20261109-signals-1
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -129,7 +147,10 @@ var TelegramTaskIntake = (() => {
     "due",
     "comment",
     "priority",
-    "positions"
+    "positions",
+    "importance",
+    "closedAt",
+    "archiveKind"
   ];
   var FIELD_NAMES = {
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
@@ -141,6 +162,9 @@ var TelegramTaskIntake = (() => {
     due: "\u0421\u0440\u043E\u043A",
     comment: "\u041A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439",
     priority: "\u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442",
+    importance: "\u0412\u0430\u0436\u043D\u043E\u0441\u0442\u044C",
+    closedAt: "\u0414\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F",
+    archiveKind: "\u0410\u0440\u0445\u0438\u0432 \u0441\u0442\u0430\u0442\u0443\u0441\u0430",
     positions: "\u0420\u0430\u0441\u043F\u043E\u043B\u043E\u0436\u0435\u043D\u0438\u0435",
     task: "\u0417\u0430\u0434\u0430\u0447\u0430 \u0446\u0435\u043B\u0438\u043A\u043E\u043C"
   };
@@ -160,7 +184,10 @@ var TelegramTaskIntake = (() => {
     owner: 10,
     due: 11,
     priority: 16,
-    positions: 17
+    positions: 17,
+    importance: 17,
+    closedAt: 17,
+    archiveKind: 17
   };
   var canonical = (value) => {
     if (value && typeof value.toJSON === "function") return canonical(value.toJSON());
@@ -218,6 +245,11 @@ var TelegramTaskIntake = (() => {
         throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u043F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442 \u0432 \u0441\u0442\u0440\u043E\u043A\u0435 ${index + 1}.`);
       try {
         task.positions = raw[17] ? JSON.parse(raw[17]) : {};
+        const meta = task.positions._task || {};
+        task.importance = meta.importance || 0;
+        task.closedAt = meta.closedAt || "";
+        task.archiveKind = meta.archiveKind || "";
+        delete task.positions._task;
       } catch {
         throw new Error(`\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u044B \u043F\u043E\u0437\u0438\u0446\u0438\u0438 \u043A\u0430\u0440\u0442\u043E\u0447\u043A\u0438 \u0432 \u0441\u0442\u0440\u043E\u043A\u0435 ${index + 1}.`);
       }
@@ -245,8 +277,8 @@ var TelegramTaskIntake = (() => {
     let owners = [];
     if (textRows[0]?.[17]) {
       try {
-        const metadata = JSON.parse(textRows[0][17]);
-        owners = metadata.owners;
+        const metadata2 = JSON.parse(textRows[0][17]);
+        owners = metadata2.owners;
         if (!Array.isArray(owners) || owners.some((o) => typeof o !== "string"))
           throw new Error();
       } catch {
@@ -271,7 +303,8 @@ var TelegramTaskIntake = (() => {
       owners: primary.board.owners
     } };
   }
-  function cellValue(field, value) {
+  function cellValue(field, value, task) {
+    if (task && ["positions", "importance", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
     if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
     if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -323,7 +356,7 @@ var TelegramTaskIntake = (() => {
             throw new Error(
               `\u041F\u043E\u043B\u0435 \xAB${FIELD_NAMES[field]}\xBB \u0441\u0442\u0440\u043E\u043A\u0438 ${record.row + 1} \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u0444\u043E\u0440\u043C\u0443\u043B\u0443. \u0418\u0437\u043C\u0435\u043D\u0438\u0442\u0435 \u0435\u0433\u043E \u0432 \u0442\u0430\u0431\u043B\u0438\u0446\u0435.`
             );
-          const value = cellValue(field, write.task[field]);
+          const value = cellValue(field, write.task[field], write.task);
           if (field === "owner" && value && parseAssignee(value) === null)
             throw new Error(
               "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u0431\u0435\u0437 \u043F\u043E\u044F\u0441\u043D\u0435\u043D\u0438\u0439. \u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0435 \u0432 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0438."
@@ -352,7 +385,7 @@ var TelegramTaskIntake = (() => {
         set2(12, write.task.dependency);
         for (const field of SYNC_FIELDS)
           if (COLUMNS[field] !== void 0)
-            set2(COLUMNS[field], cellValue(field, write.task[field]));
+            set2(COLUMNS[field], cellValue(field, write.task[field], write.task));
         values[3].userEnteredValue = {
           formulaValue: '=INDIRECT("B"&ROW())&INDIRECT("C"&ROW())'
         };
@@ -378,7 +411,7 @@ var TelegramTaskIntake = (() => {
     return requests;
   }
 
-  // public/storage-mode.mjs?rev=20261109-weekly-1
+  // public/storage-mode.mjs?rev=20261109-signals-1
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {
@@ -449,10 +482,10 @@ var TelegramTaskIntake = (() => {
       }
     }
     async read() {
-      const metadata = await this.request(
+      const metadata2 = await this.request(
         "?fields=spreadsheetId,sheets(properties)"
       );
-      const tabs = metadata.sheets.map((s) => s.properties).sort((a, b) => a.index - b.index), tab = tabs[0];
+      const tabs = metadata2.sheets.map((s) => s.properties).sort((a, b) => a.index - b.index), tab = tabs[0];
       if (tab?.sheetId !== TAB_ID)
         throw new Error(
           "\u041F\u0435\u0440\u0432\u043E\u0439 \u0441\u0442\u0430\u043B\u0430 \u0434\u0440\u0443\u0433\u0430\u044F \u0432\u043A\u043B\u0430\u0434\u043A\u0430. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430, \u0447\u0442\u043E\u0431\u044B \u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0447\u0443\u0436\u0438\u0435 \u0434\u0430\u043D\u043D\u044B\u0435."
@@ -528,7 +561,10 @@ var TelegramTaskIntake = (() => {
     "due",
     "comment",
     "priority",
-    "positions"
+    "positions",
+    "importance",
+    "closedAt",
+    "archiveKind"
   ];
   var FIELD_NAMES2 = {
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
@@ -540,6 +576,9 @@ var TelegramTaskIntake = (() => {
     due: "\u0421\u0440\u043E\u043A",
     comment: "\u041A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439",
     priority: "\u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442",
+    importance: "\u0412\u0430\u0436\u043D\u043E\u0441\u0442\u044C",
+    closedAt: "\u0414\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F",
+    archiveKind: "\u0410\u0440\u0445\u0438\u0432 \u0441\u0442\u0430\u0442\u0443\u0441\u0430",
     positions: "\u0420\u0430\u0441\u043F\u043E\u043B\u043E\u0436\u0435\u043D\u0438\u0435",
     task: "\u0417\u0430\u0434\u0430\u0447\u0430 \u0446\u0435\u043B\u0438\u043A\u043E\u043C"
   };
@@ -559,7 +598,10 @@ var TelegramTaskIntake = (() => {
     owner: 10,
     due: 11,
     priority: 16,
-    positions: 17
+    positions: 17,
+    importance: 17,
+    closedAt: 17,
+    archiveKind: 17
   };
   var canonical2 = (value) => {
     if (value && typeof value.toJSON === "function") return canonical2(value.toJSON());
@@ -568,7 +610,8 @@ var TelegramTaskIntake = (() => {
     return value;
   };
   var equal2 = (a, b) => JSON.stringify(canonical2(a ?? null)) === JSON.stringify(canonical2(b ?? null));
-  function cellValue2(field, value) {
+  function cellValue2(field, value, task) {
+    if (task && ["positions", "importance", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
     if (field === "priority") return value ? PRIORITY_LABELS2[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
     if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -620,7 +663,7 @@ var TelegramTaskIntake = (() => {
             throw new Error(
               `\u041F\u043E\u043B\u0435 \xAB${FIELD_NAMES2[field]}\xBB \u0441\u0442\u0440\u043E\u043A\u0438 ${record.row + 1} \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u0444\u043E\u0440\u043C\u0443\u043B\u0443. \u0418\u0437\u043C\u0435\u043D\u0438\u0442\u0435 \u0435\u0433\u043E \u0432 \u0442\u0430\u0431\u043B\u0438\u0446\u0435.`
             );
-          const value = cellValue2(field, write.task[field]);
+          const value = cellValue2(field, write.task[field], write.task);
           if (field === "owner" && value && parseAssignee(value) === null)
             throw new Error(
               "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u0431\u0435\u0437 \u043F\u043E\u044F\u0441\u043D\u0435\u043D\u0438\u0439. \u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0435 \u0432 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0438."
@@ -649,7 +692,7 @@ var TelegramTaskIntake = (() => {
         set2(12, write.task.dependency);
         for (const field of SYNC_FIELDS2)
           if (COLUMNS2[field] !== void 0)
-            set2(COLUMNS2[field], cellValue2(field, write.task[field]));
+            set2(COLUMNS2[field], cellValue2(field, write.task[field], write.task));
         values[3].userEnteredValue = {
           formulaValue: '=INDIRECT("B"&ROW())&INDIRECT("C"&ROW())'
         };
@@ -991,7 +1034,42 @@ var WeeklyReports = (() => {
     start: () => start
   });
 
-  // public/people.mjs?rev=20261109-weekly-1
+  // public/task-signals.mjs
+  var terminalKind = (t) => t?.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? "done" : t?.status === "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E" ? "cancelled" : "";
+  function trackStatus(before, task, at = (/* @__PURE__ */ new Date()).toISOString()) {
+    const kind = terminalKind(task);
+    if (!kind) return { ...task, closedAt: "", archiveKind: "" };
+    return { ...task, closedAt: before?.status === task.status && before.closedAt ? before.closedAt : task.closedAt && task.closedAt !== before?.closedAt ? task.closedAt : at, archiveKind: before?.status === task.status ? task.archiveKind || "" : "" };
+  }
+  function weekStart(date) {
+    const d = /* @__PURE__ */ new Date(date + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
+    return d.toISOString().slice(0, 10);
+  }
+  function dateShift(d, n) {
+    return new Date(Date.parse(d + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+  }
+  var closedDay = (t) => t.closedAt ? new Date(Date.parse(t.closedAt) + 108e5).toISOString().slice(0, 10) : "";
+  function archiveEligible(task, today) {
+    return !!terminalKind(task) && !!task.closedAt && closedDay(task) < dateShift(weekStart(today), -7);
+  }
+  function lifecycle(before, task, today, at) {
+    let next = trackStatus(before, task, at);
+    if (archiveEligible(next, today)) next.archiveKind = terminalKind(next);
+    return next;
+  }
+
+  // public/task-signals.mjs?rev=20261109-signals-1
+  function metadata(t) {
+    return { importance: Number(t.importance) || 0, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
+  }
+  function packedPositions(t) {
+    const p = structuredClone(t.positions || {}), m = metadata(t);
+    if (m.importance || m.closedAt || m.archiveKind) p._task = m;
+    return p;
+  }
+
+  // public/people.mjs?rev=20261109-signals-1
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -1002,7 +1080,7 @@ var WeeklyReports = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261109-weekly-1
+  // public/model.mjs?rev=20261109-signals-1
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0417\u0430\u043F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -1057,6 +1135,14 @@ var WeeklyReports = (() => {
       if (t.due && (!/^\d{4}-\d{2}-\d{2}$/.test(t.due) || Number.isNaN(+/* @__PURE__ */ new Date(`${t.due}T12:00:00`)) || localDate(/* @__PURE__ */ new Date(`${t.due}T12:00:00`)) !== t.due)) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u0444\u043E\u0440\u043C\u0430\u0442 \u0434\u0430\u0442\u044B.");
       if (t.priority && !QUADRANTS.some((q) => q.id === t.priority)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u043F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442.");
       const result = { id: t.id, title: t.title, priority: t.priority || null, positions: {} };
+      const importance = Number(t.importance || 0);
+      if (!Number.isInteger(importance) || importance < 0 || importance > 5) throw new Error("\u0412\u0430\u0436\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 1 \u0434\u043E 5.");
+      result.importance = importance;
+      if (t.closedAt && (!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt) || !Number.isFinite(Date.parse(t.closedAt)))) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F.");
+      result.closedAt = t.closedAt || "";
+      if (t.archiveKind && !["done", "cancelled"].includes(t.archiveKind)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432.");
+      result.archiveKind = t.archiveKind || "";
+      if (result.archiveKind && t.status !== (result.archiveKind === "done" ? "\u0413\u043E\u0442\u043E\u0432\u043E" : "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E")) throw new Error("\u0410\u0440\u0445\u0438\u0432 \u043D\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0441\u0442\u0430\u0442\u0443\u0441\u0443 \u0437\u0430\u0434\u0430\u0447\u0438.");
       for (const key of ["sourceId", "unit", "direction", "description", "status", "owner", "ownerNote", "due", "dueNote", "comment", "dependency", "requester", "link"]) result[key] = typeof t[key] === "string" ? t[key] : "";
       for (const mode of ["priority", "owners", "time"]) {
         const p = t.positions?.[mode];
@@ -1070,7 +1156,7 @@ var WeeklyReports = (() => {
     });
   }
 
-  // public/sync-model.mjs?rev=20261109-weekly-1
+  // public/sync-model.mjs?rev=20261109-signals-1
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -1092,7 +1178,10 @@ var WeeklyReports = (() => {
     "due",
     "comment",
     "priority",
-    "positions"
+    "positions",
+    "importance",
+    "closedAt",
+    "archiveKind"
   ];
   var FIELD_NAMES = {
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
@@ -1104,6 +1193,9 @@ var WeeklyReports = (() => {
     due: "\u0421\u0440\u043E\u043A",
     comment: "\u041A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439",
     priority: "\u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442",
+    importance: "\u0412\u0430\u0436\u043D\u043E\u0441\u0442\u044C",
+    closedAt: "\u0414\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F",
+    archiveKind: "\u0410\u0440\u0445\u0438\u0432 \u0441\u0442\u0430\u0442\u0443\u0441\u0430",
     positions: "\u0420\u0430\u0441\u043F\u043E\u043B\u043E\u0436\u0435\u043D\u0438\u0435",
     task: "\u0417\u0430\u0434\u0430\u0447\u0430 \u0446\u0435\u043B\u0438\u043A\u043E\u043C"
   };
@@ -1123,7 +1215,10 @@ var WeeklyReports = (() => {
     owner: 10,
     due: 11,
     priority: 16,
-    positions: 17
+    positions: 17,
+    importance: 17,
+    closedAt: 17,
+    archiveKind: 17
   };
   var canonical = (value) => {
     if (value && typeof value.toJSON === "function") return canonical(value.toJSON());
@@ -1181,6 +1276,11 @@ var WeeklyReports = (() => {
         throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u043F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442 \u0432 \u0441\u0442\u0440\u043E\u043A\u0435 ${index + 1}.`);
       try {
         task.positions = raw[17] ? JSON.parse(raw[17]) : {};
+        const meta = task.positions._task || {};
+        task.importance = meta.importance || 0;
+        task.closedAt = meta.closedAt || "";
+        task.archiveKind = meta.archiveKind || "";
+        delete task.positions._task;
       } catch {
         throw new Error(`\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u044B \u043F\u043E\u0437\u0438\u0446\u0438\u0438 \u043A\u0430\u0440\u0442\u043E\u0447\u043A\u0438 \u0432 \u0441\u0442\u0440\u043E\u043A\u0435 ${index + 1}.`);
       }
@@ -1208,8 +1308,8 @@ var WeeklyReports = (() => {
     let owners = [];
     if (textRows[0]?.[17]) {
       try {
-        const metadata = JSON.parse(textRows[0][17]);
-        owners = metadata.owners;
+        const metadata2 = JSON.parse(textRows[0][17]);
+        owners = metadata2.owners;
         if (!Array.isArray(owners) || owners.some((o) => typeof o !== "string"))
           throw new Error();
       } catch {
@@ -1234,7 +1334,8 @@ var WeeklyReports = (() => {
       owners: primary.board.owners
     } };
   }
-  function cellValue(field, value) {
+  function cellValue(field, value, task) {
+    if (task && ["positions", "importance", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
     if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
     if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -1286,7 +1387,7 @@ var WeeklyReports = (() => {
             throw new Error(
               `\u041F\u043E\u043B\u0435 \xAB${FIELD_NAMES[field]}\xBB \u0441\u0442\u0440\u043E\u043A\u0438 ${record.row + 1} \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u0444\u043E\u0440\u043C\u0443\u043B\u0443. \u0418\u0437\u043C\u0435\u043D\u0438\u0442\u0435 \u0435\u0433\u043E \u0432 \u0442\u0430\u0431\u043B\u0438\u0446\u0435.`
             );
-          const value = cellValue(field, write.task[field]);
+          const value = cellValue(field, write.task[field], write.task);
           if (field === "owner" && value && parseAssignee(value) === null)
             throw new Error(
               "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u0431\u0435\u0437 \u043F\u043E\u044F\u0441\u043D\u0435\u043D\u0438\u0439. \u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0435 \u0432 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0438."
@@ -1315,7 +1416,7 @@ var WeeklyReports = (() => {
         set(12, write.task.dependency);
         for (const field of SYNC_FIELDS)
           if (COLUMNS[field] !== void 0)
-            set(COLUMNS[field], cellValue(field, write.task[field]));
+            set(COLUMNS[field], cellValue(field, write.task[field], write.task));
         values[3].userEnteredValue = {
           formulaValue: '=INDIRECT("B"&ROW())&INDIRECT("C"&ROW())'
         };
@@ -1341,7 +1442,7 @@ var WeeklyReports = (() => {
     return requests;
   }
 
-  // public/storage-mode.mjs?rev=20261109-weekly-1
+  // public/storage-mode.mjs?rev=20261109-signals-1
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {
@@ -1412,10 +1513,10 @@ var WeeklyReports = (() => {
       }
     }
     async read() {
-      const metadata = await this.request(
+      const metadata2 = await this.request(
         "?fields=spreadsheetId,sheets(properties)"
       );
-      const tabs = metadata.sheets.map((s) => s.properties).sort((a, b) => a.index - b.index), tab = tabs[0];
+      const tabs = metadata2.sheets.map((s) => s.properties).sort((a, b) => a.index - b.index), tab = tabs[0];
       if (tab?.sheetId !== TAB_ID)
         throw new Error(
           "\u041F\u0435\u0440\u0432\u043E\u0439 \u0441\u0442\u0430\u043B\u0430 \u0434\u0440\u0443\u0433\u0430\u044F \u0432\u043A\u043B\u0430\u0434\u043A\u0430. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430, \u0447\u0442\u043E\u0431\u044B \u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0447\u0443\u0436\u0438\u0435 \u0434\u0430\u043D\u043D\u044B\u0435."
@@ -1485,7 +1586,7 @@ var WeeklyReports = (() => {
   var EVENT_TAB = 1909260102;
   var SNAPSHOT_TITLE = "\u041F\u043B\u0430\u043D-\u0444\u0430\u043A\u0442 \xB7 \u0441\u043D\u0438\u043C\u043A\u0438";
   var EVENT_TITLE = "\u041F\u043B\u0430\u043D-\u0444\u0430\u043A\u0442 \xB7 \u0441\u043E\u0431\u044B\u0442\u0438\u044F";
-  var FIELDS = ["title", "owner", "ownerNote", "due", "status", "unit", "comment", "description", "archived"];
+  var FIELDS = ["title", "owner", "ownerNote", "due", "status", "unit", "comment", "description", "archived", "importance", "closedAt", "archiveKind"];
   var day = (at) => new Date(new Date(at).getTime() + 108e5).toISOString().slice(0, 10);
   function shift(date, n) {
     return new Date(Date.parse(date + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
@@ -1509,6 +1610,7 @@ var WeeklyReports = (() => {
   }
 
   // weekly/runtime.mjs
+  var HANDLER = "pollTaskSignalsReports";
   var STATE_TAB = 1909260103;
   var STATE_TITLE = "\u041F\u043B\u0430\u043D-\u0444\u0430\u043A\u0442 \xB7 \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435";
   var HEADERS = { [STATE_TAB]: ["\u041F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043E", "\u041D\u0435\u0434\u0435\u043B\u044F", "ID \u0437\u0430\u0434\u0430\u0447\u0438", "\u0421\u043D\u0438\u043C\u043E\u043A \u0437\u0430\u0434\u0430\u0447\u0438 JSON"], [SNAPSHOT_TAB]: ["\u041D\u0435\u0434\u0435\u043B\u044F", "\u0422\u0438\u043F", "\u0417\u0430\u0444\u0438\u043A\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u043E", "\u041A\u0430\u0447\u0435\u0441\u0442\u0432\u043E", "ID \u0437\u0430\u0434\u0430\u0447\u0438", "\u0417\u0430\u0434\u0430\u0447\u0430 / \u043F\u0440\u0438\u043C\u0435\u0447\u0430\u043D\u0438\u0435", "\u0421\u043D\u0438\u043C\u043E\u043A \u0437\u0430\u0434\u0430\u0447\u0438 JSON"], [EVENT_TAB]: ["\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E", "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0430\u044F \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430", "ID \u0437\u0430\u0434\u0430\u0447\u0438", "\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435", "\u0414\u043E JSON", "\u041F\u043E\u0441\u043B\u0435 JSON"] };
@@ -1563,9 +1665,11 @@ var WeeklyReports = (() => {
   async function tickImpl() {
     const api = new Api();
     await ensure(api);
-    const snapshot = await api.read(), at = (/* @__PURE__ */ new Date()).toISOString(), week = weekOf(at), tasks = snapshot.records.map(normalize);
+    const snapshot = await api.read(), at = (/* @__PURE__ */ new Date()).toISOString(), week = weekOf(at), tasks = [];
     const stateRows = await readRows(api, STATE_TAB);
     const previous = stateRows[1]?.[0] ? { at: stateRows[1][0], week: stateRows[1][1], tasks: stateRows.slice(2).filter((r) => r[2]).map((r) => JSON.parse(r[3])) } : null;
+    const priorTasks = new Map((previous?.tasks || []).map((t) => [t.id, t]));
+    for (const r of snapshot.records) tasks.push(normalize({ ...r, task: r.archived ? r.task : lifecycle(priorTasks.get(r.id), r.task, day(at), at) }));
     const old = await readRows(api, SNAPSHOT_TAB), eventRows = await readRows(api, EVENT_TAB);
     const seen = new Set(old.filter((r) => r[4] === "__meta__").map((r) => r[0] + "|" + r[1]));
     const seenEvents = new Set(eventRows.slice(1).map((r) => r[0] + "|" + r[2]));
@@ -1618,7 +1722,8 @@ var WeeklyReports = (() => {
   async function start() {
     return lock(async () => {
       const result = await tickImpl();
-      if (!ScriptApp.getProjectTriggers().some((t) => t.getHandlerFunction() === "pollWeeklyReports")) ScriptApp.newTrigger("pollWeeklyReports").timeBased().everyMinutes(5).create();
+      if (!ScriptApp.getProjectTriggers().some((t) => t.getHandlerFunction() === HANDLER)) ScriptApp.newTrigger(HANDLER).timeBased().everyMinutes(5).create();
+      for (const t of ScriptApp.getProjectTriggers()) if (t.getHandlerFunction() === "pollWeeklyReports") ScriptApp.deleteTrigger(t);
       props().setProperty("WEEKLY_ENABLED", "true");
       return { ...result, enabled: true };
     });
@@ -1636,10 +1741,16 @@ var WeeklyReports = (() => {
     });
   }
   function check() {
-    return { enabled: props().getProperty("WEEKLY_ENABLED") === "true", lastSuccess: props().getProperty("WEEKLY_LAST_OK"), error: props().getProperty("WEEKLY_LAST_ERROR"), triggers: ScriptApp.getProjectTriggers().filter((t) => t.getHandlerFunction() === "pollWeeklyReports").length };
+    return { enabled: props().getProperty("WEEKLY_ENABLED") === "true", lastSuccess: props().getProperty("WEEKLY_LAST_OK"), error: props().getProperty("WEEKLY_LAST_ERROR"), triggers: ScriptApp.getProjectTriggers().filter((t) => t.getHandlerFunction() === HANDLER).length };
   }
   return __toCommonJS(runtime_exports);
 })();
+
+async function startTaskSignalsReports(){const result=await WeeklyReports.start();console.log(JSON.stringify(result));return result;}
+
+async function pollTaskSignalsReports(){const result=await WeeklyReports.poll();console.log(JSON.stringify(result));return result;}
+
+async function checkTaskSignalsReports(){const result=await WeeklyReports.check();console.log(JSON.stringify(result));return result;}
 
 async function initializeWeeklyReports(){const result=await WeeklyReports.initialize();console.log(JSON.stringify(result));return result;}
 

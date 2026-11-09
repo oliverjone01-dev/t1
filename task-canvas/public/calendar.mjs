@@ -1,7 +1,7 @@
-import {sortTasks} from './productivity-model.mjs?rev=20261109-productivity-1';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary} from './calendar-model.mjs?rev=20261109-productivity-1';
-import {QUADRANTS,statusGroup} from './model.mjs?rev=20261109-productivity-1';
-import {icon} from './icons.mjs?rev=20261109-productivity-1';
+import {sortTasks} from './productivity-model.mjs?rev=20261109-directory-2';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary} from './calendar-model.mjs?rev=20261109-directory-2';
+import {QUADRANTS,statusGroup} from './model.mjs?rev=20261109-directory-2';
+import {icon} from './icons.mjs?rev=20261109-directory-2';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view='month',anchor=host.today(),undated=false,peek=null;

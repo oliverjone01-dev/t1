@@ -1,7 +1,7 @@
 // Runs only in GitHub Actions. Secrets never reach JSON, image paths or logs.
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {departmentScope,publicPerson,safePhotoURL} from './directory-source.mjs';
+import {departmentScope,publicPerson,safePhotoURL,CONFIRMED_OWNER_ALIASES} from './directory-source.mjs';
 const output=resolve(process.argv[2]||'task-canvas/public'),base=process.env.B24_WEBHOOK_URL?.trim();
 async function request(method,params={}){
  let response;try{response=await fetch(base.replace(/\/?$/,'/')+method+'.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params),signal:AbortSignal.timeout(20000)})}catch{throw new Error('Bitrix request unavailable: '+method)}
@@ -25,6 +25,6 @@ try{
  for(const user of users){const person=publicPerson(user,departments,ids);if(!person||people.some(p=>p.id===person.id))continue;person.avatar=await photo(user.PERSONAL_PHOTO,person.id);people.push(person)}
  if(!people.length)throw new Error('No active employees with complete names in requested departments');
  people.sort((a,b)=>a.name.localeCompare(b.name,'ru'));
- await writeFile(resolve(output,'directory.json'),JSON.stringify({version:1,updatedAt:new Date().toISOString(),departments:roots.map(d=>({id:String(d.ID),name:d.NAME})),people},null,2)+'\n');
+ await writeFile(resolve(output,'directory.json'),JSON.stringify({version:1,updatedAt:new Date().toISOString(),departments:roots.map(d=>({id:String(d.ID),name:d.NAME})),ownerAliases:CONFIRMED_OWNER_ALIASES,people},null,2)+'\n');
  console.log(`Task directory: ${roots.length} departments, ${people.length} employees, ${people.filter(p=>p.avatar).length} photos`);
 }catch(error){console.error('Task directory: '+error.message);process.exitCode=1}

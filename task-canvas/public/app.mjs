@@ -1,11 +1,11 @@
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-productivity-1';
-import {Directory} from './directory.mjs?rev=20261109-productivity-1';
-import {installCalendar} from './calendar.mjs?rev=20261109-productivity-1';
-import {installProductivity} from './productivity.mjs?rev=20261109-productivity-1';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-productivity-1';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-productivity-1';
-import {renderBoard} from './board-ui.mjs?rev=20261109-productivity-1';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-productivity-1';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261109-directory-2';
+import {Directory} from './directory.mjs?rev=20261109-directory-2';
+import {installCalendar} from './calendar.mjs?rev=20261109-directory-2';
+import {installProductivity} from './productivity.mjs?rev=20261109-directory-2';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261109-directory-2';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261109-directory-2';
+import {renderBoard} from './board-ui.mjs?rev=20261109-directory-2';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261109-directory-2';
 import {
   QUADRANTS,
   CARD,
@@ -20,20 +20,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,
-} from "./model.mjs?rev=20261109-productivity-1";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261109-productivity-1";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-productivity-1";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-productivity-1";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261109-productivity-1";
-import { remoteChanges } from "./changes.mjs?rev=20261109-productivity-1";
-import { TeamApi } from "./team-api.mjs?rev=20261109-productivity-1";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-productivity-1";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-productivity-1";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261109-productivity-1";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-productivity-1";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-productivity-1";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-productivity-1";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-productivity-1";
+} from "./model.mjs?rev=20261109-directory-2";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261109-directory-2";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261109-directory-2";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261109-directory-2";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261109-directory-2";
+import { remoteChanges } from "./changes.mjs?rev=20261109-directory-2";
+import { TeamApi } from "./team-api.mjs?rev=20261109-directory-2";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261109-directory-2";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261109-directory-2";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261109-directory-2";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261109-directory-2";
+import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261109-directory-2";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261109-directory-2";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261109-directory-2";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -41,8 +41,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261109-productivity-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-productivity-1";
+} from "./editor.mjs?rev=20261109-directory-2";
+import { parseAssignee } from "./people.mjs?rev=20261109-directory-2";
 import {
   matchesTask,
   matchesWords,
@@ -51,8 +51,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261109-productivity-1";
-import { icon } from "./icons.mjs?rev=20261109-productivity-1";
+} from "./ui-model.mjs?rev=20261109-directory-2";
+import { icon } from "./icons.mjs?rev=20261109-directory-2";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";

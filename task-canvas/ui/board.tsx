@@ -1,3 +1,4 @@
+import {Temperature} from './temperature';
 import React,{useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {MotionConfig,motion,AnimatePresence,useReducedMotion} from 'motion/react';
@@ -44,7 +45,7 @@ function TaskCard({task,props,chosen,insert,overlay=false}:any){
    {props.editable&&<><label className="matrix-check"><input type="checkbox" aria-label={`Выбрать: ${task.title}`} checked={chosen} onChange={()=>{}} onClick={e=>{e.stopPropagation();props.onSelect(task.id,e.shiftKey)}}/></label><button className="matrix-grip" aria-label={`Переместить: ${task.title}`} {...attributes} {...listeners}><GripVertical size={16}/></button></>}
   </div>
   <button className="matrix-title" onClick={e=>{if(props.editable&&(e.metaKey||e.ctrlKey||e.shiftKey))props.onSelect(task.id,e.shiftKey);else props.onOpen(task.id)}}><span>{task.title}</span></button>
-  <div className="matrix-card-bottom"><span className="matrix-person" title={task.owner||task.ownerNote||'Без ответственного'}><b aria-hidden="true">{props.avatars[task.owner]?<img src={props.avatars[task.owner]} alt="" loading="lazy"/>:(task.owner||'?').slice(0,1)}</b>{task.owner||'Не назначен'}</span><time className={task.due&&task.due<props.today?'overdue':''}>{task.due?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00')):'Без срока'}</time></div>
+  <div className="matrix-signal-row"><Temperature task={task} props={props}/></div><div className="matrix-card-bottom"><span className="matrix-person" title={task.owner||task.ownerNote||'Без ответственного'}><b aria-hidden="true">{props.avatars[task.owner]?<img src={props.avatars[task.owner]} alt="" loading="lazy"/>:(task.owner||'?').slice(0,1)}</b>{task.owner||'Не назначен'}</span><time className={task.due&&task.due<props.today?'overdue':''}>{task.due?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00')):'Без срока'}</time></div>
  </article>
 }
 function Panel({group,items,props,selection,focus,setFocus,overId,drag}:any){

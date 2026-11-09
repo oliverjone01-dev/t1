@@ -1,5 +1,5 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261109-weekly-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-weekly-1";
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261109-signals-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-signals-1";
 export const EDIT_FIELDS = [
   "title",
   "unit",
@@ -7,6 +7,7 @@ export const EDIT_FIELDS = [
   "owner",
   "due",
   "priority",
+  "importance",
   "description",
   "comment",
 ];

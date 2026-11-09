@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261109-weekly-1" />
+    <meta name="application-version" content="20261109-signals-1" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -27,9 +27,9 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261109-weekly-1" />
-    <link rel="stylesheet" href="./board-ui.css?rev=20261109-weekly-1" />
-  </head>
+    <link rel="stylesheet" href="./styles.css?rev=20261109-signals-1" />
+    <link rel="stylesheet" href="./board-ui.css?rev=20261109-signals-1" />
+  <link rel="stylesheet" href="./task-signals.css?rev=20261109-signals-1"></head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
@@ -142,7 +142,7 @@
           ><button id="drafts-open" class="text-button">Продолжить</button>
         </div>
         <div class="toolbar">
-          <div class="toolbar-heading"><span id="view-kicker" class="visually-hidden">Планирование</span><h2 id="view-title">Приоритеты</h2><span class="stats"><strong id="task-count">0</strong><span id="task-scope" class="visually-hidden">на устройстве</span></span></div>
+          <div class="registry-controls"><label>Неделя<input type="date" id="registry-week" aria-label="Неделя общего реестра"></label><button type="button" id="registry-week-clear" class="text-button">Все недели</button><label>Реестр<select id="archive-scope"><option value="">Текущие задачи</option><option value="done">Архив · Готово</option><option value="cancelled">Архив · Отменено</option><option value="all">Включая архив</option></select></label><span id="registry-note"></span></div><div class="toolbar-heading"><span id="view-kicker" class="visually-hidden">Планирование</span><h2 id="view-title">Приоритеты</h2><span class="stats"><strong id="task-count">0</strong><span id="task-scope" class="visually-hidden">на устройстве</span></span></div>
           <label class="search"
             ><span data-icon="search"></span
             ><input
@@ -317,6 +317,7 @@
             </select></label
           >
         </div>
+        <label>Важность задачи<select name="importance"><option value="">Не оценена</option><option value="1">1 · Низкая</option><option value="2">2 · Умеренная</option><option value="3">3 · Обычная</option><option value="4">4 · Высокая</option><option value="5">5 · Критичная</option></select></label>
         <p id="due-note" class="source-note"></p>
         <label
           >Ожидаемый результат<textarea
@@ -776,7 +777,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261109-weekly-1"></script>
+    <script type="module" src="./app.mjs?rev=20261109-signals-1"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

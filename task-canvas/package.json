@@ -9,6 +9,7 @@
     "test:team": "node --test team-tests/*.test.mjs",
     "build": "node build.mjs",
     "build:background": "node background/build.mjs",
+    "build:weekly": "node weekly/build.mjs",
     "build:telegram": "node telegram/build.mjs"
   },
   "devDependencies": {

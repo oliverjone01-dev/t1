@@ -6,6 +6,6 @@ const path='telegram/dist/Code.gs';let code=await readFile(path,'utf8');
 for(const [name,method] of Object.entries({prepareTelegramIntake:'prepare',startTelegramIntake:'start',pollTelegramTasks:'run',stopTelegramIntake:'stop',checkTelegramIntake:'check',retryPendingTelegramTask:'retryPending'}))code+=`\nasync function ${name}(){const result=await TelegramTaskIntake.${method}();console.log(JSON.stringify(result));return result;}\n`;
 const weekly=await build({entryPoints:['weekly/runtime.mjs'],bundle:true,format:'iife',globalName:'WeeklyReports',target:'es2020',write:false});
 code+='\n'+weekly.outputFiles[0].text;
-for(const [name,method] of Object.entries({initializeWeeklyReports:'initialize',startWeeklyReports:'start',pollWeeklyReports:'poll',checkWeeklyReports:'check'}))code+=`\nasync function ${name}(){const result=await WeeklyReports.${method}();console.log(JSON.stringify(result));return result;}\n`;
+for(const [name,method] of Object.entries({startTaskSignalsReports:'start',pollTaskSignalsReports:'poll',checkTaskSignalsReports:'check',initializeWeeklyReports:'initialize',startWeeklyReports:'start',pollWeeklyReports:'poll',checkWeeklyReports:'check'}))code+=`\nasync function ${name}(){const result=await WeeklyReports.${method}();console.log(JSON.stringify(result));return result;}\n`;
 if(/\bimport\s*\(/.test(code)||code.includes('www.gstatic.com'))throw Error('Browser dependencies in Apps Script');
 await writeFile(path,code);await writeFile('telegram/dist/appsscript.json',await readFile('telegram/appsscript.json','utf8'));

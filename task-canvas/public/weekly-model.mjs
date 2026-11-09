@@ -1,14 +1,14 @@
 // Pure weekly accounting shared by the browser and the private Google worker.
 export const SNAPSHOT_TAB=1909260101, EVENT_TAB=1909260102;
 export const SNAPSHOT_TITLE='План-факт · снимки', EVENT_TITLE='План-факт · события';
-export const FIELDS=['title','owner','ownerNote','due','status','unit','comment','description','archived'];
+export const FIELDS=['title','owner','ownerNote','due','status','unit','comment','description','archived','importance','closedAt','archiveKind'];
 export const day=at=>new Date(new Date(at).getTime()+10800000).toISOString().slice(0,10);
 export function shift(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*86400000).toISOString().slice(0,10)}
 export function weekOf(at){const d=day(at);return shift(d,-((new Date(d+'T12:00:00Z').getUTCDay()+6)%7))}
 export const weekEnd=w=>shift(w,6);
 export const isDone=t=>t?.status==='Готово';
 export const isCancelled=t=>t?.status==='Отменено';
-export const active=t=>t&&!t.archived&&!isDone(t)&&!isCancelled(t);
+export const active=t=>t&&!t.archived&&!t.archiveKind&&!isDone(t)&&!isCancelled(t);
 export const planned=(t,w)=>active(t)&&!!t.due&&t.due<=weekEnd(w);
 export function normalize(record){const t=record.task||record;return {id:t.id,sourceId:t.sourceId||'',...Object.fromEntries(FIELDS.map(k=>[k,k==='archived'?!!record.archived:String(t[k]||'')]))}}
 export function changes(before,after,observedAt,previousAt){
@@ -23,7 +23,7 @@ export function account(week,baseline,current,events=[],{historical=false,qualit
  const original=new Map(baseline.map(t=>[t.id,t])),latest=new Map(current.map(t=>[t.id,t]));
  const inWeek=events.filter(e=>Date.parse(e.observedAt)>=startAt&&Date.parse(e.observedAt)<endAt);
  const observedDone=new Set(inWeek.filter(e=>e.to&&isDone(e.to)&&!isDone(e.from)&&Date.parse(e.previousAt)>=startAt).map(e=>e.id));
- const all=new Set([...ids,...current.filter(t=>!t.archived&&(historical||planned(t,week))).map(t=>t.id),...observedDone]);
+ const all=new Set([...ids,...current.filter(t=>!t.archived&&(historical||planned(t,week))).map(t=>t.id),...observedDone,...inWeek.filter(e=>e.to&&isCancelled(e.to)&&!isCancelled(e.from)).map(e=>e.id)]);
  const rows=[...all].map(id=>{const before=original.get(id),after=latest.get(id),t=after||before;const wasPlanned=ids.has(id);let outcome;
  if(historical)outcome='unknown';
  else if(!after||after.archived)outcome='removed';

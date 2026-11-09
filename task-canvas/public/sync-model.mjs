@@ -1,9 +1,10 @@
+import {packedPositions} from './task-signals.mjs?rev=20261109-signals-1';
 import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261109-weekly-1";
-import { parseAssignee } from "./people.mjs?rev=20261109-weekly-1";
+} from "./model.mjs?rev=20261109-signals-1";
+import { parseAssignee } from "./people.mjs?rev=20261109-signals-1";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const TELEGRAM_TAB_ID = 1478506234;
@@ -26,6 +27,9 @@ export const SYNC_FIELDS = [
   "comment",
   "priority",
   "positions",
+  "importance",
+  "closedAt",
+  "archiveKind",
 ];
 export const FIELD_NAMES = {
   title: "Задача",
@@ -37,6 +41,7 @@ export const FIELD_NAMES = {
   due: "Срок",
   comment: "Комментарий",
   priority: "Приоритет",
+  importance: "Важность",closedAt:"Дата завершения",archiveKind:"Архив статуса",
   positions: "Расположение",
   task: "Задача целиком",
 };
@@ -56,7 +61,7 @@ export const COLUMNS = {
   owner: 10,
   due: 11,
   priority: 16,
-  positions: 17,
+  positions: 17,importance:17,closedAt:17,archiveKind:17,
 };
 // Firestore map field order is not significant. Preserve array order and the
 // original JSON treatment of undefined, but never manufacture a Sheet edit
@@ -73,7 +78,7 @@ export const comparable = (t) =>
     ? Object.fromEntries(
         SYNC_FIELDS.map((k) => [
           k,
-          k === "positions"
+          k === "importance" ? Number(t[k]||0) : k === "positions"
             ? t[k] || {}
             : (t[k] ?? (k === "priority" ? null : "")),
         ]),
@@ -137,6 +142,7 @@ export function decodeSheet(sheet, year = new Date().getFullYear()) {
       throw new Error(`Неизвестный приоритет в строке ${index + 1}.`);
     try {
       task.positions = raw[17] ? JSON.parse(raw[17]) : {};
+      const meta=task.positions._task||{};task.importance=meta.importance||0;task.closedAt=meta.closedAt||'';task.archiveKind=meta.archiveKind||'';delete task.positions._task;
     } catch {
       throw new Error(`Повреждены позиции карточки в строке ${index + 1}.`);
     }
@@ -300,7 +306,8 @@ export function mergeBoards(base, local, remote) {
     writes,
   };
 }
-export function cellValue(field, value) {
+export function cellValue(field, value, task) {
+  if(task&&["positions","importance","closedAt","archiveKind"].includes(field))return JSON.stringify(packedPositions(task));
   if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
   if (field === "positions") return JSON.stringify(value || {});
   if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -363,7 +370,7 @@ export function buildWriteRequests(snapshot, writes, owners) {
           throw new Error(
             `Поле «${FIELD_NAMES[field]}» строки ${record.row + 1} содержит формулу. Измените его в таблице.`,
           );
-        const value = cellValue(field, write.task[field]);
+        const value = cellValue(field, write.task[field],write.task);
         if (field === "owner" && value && parseAssignee(value) === null)
           throw new Error(
             "Укажите одного ответственного без пояснений. Дополнительный текст сохраните в комментарии.",
@@ -403,7 +410,7 @@ export function buildWriteRequests(snapshot, writes, owners) {
       set(12, write.task.dependency);
       for (const field of SYNC_FIELDS)
         if (COLUMNS[field] !== undefined)
-          set(COLUMNS[field], cellValue(field, write.task[field]));
+          set(COLUMNS[field], cellValue(field, write.task[field],write.task));
       values[3].userEnteredValue = {
         formulaValue: '=INDIRECT("B"&ROW())&INDIRECT("C"&ROW())',
       };

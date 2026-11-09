@@ -1,4 +1,4 @@
-import {parseAssignee} from './people.mjs?rev=20261109-weekly-1';
+import {parseAssignee} from './people.mjs?rev=20261109-signals-1';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -169,6 +169,14 @@ export function validateBoard(value) {
     if (t.due && (!/^\d{4}-\d{2}-\d{2}$/.test(t.due) || Number.isNaN(+new Date(`${t.due}T12:00:00`)) || localDate(new Date(`${t.due}T12:00:00`)) !== t.due)) throw new Error('Некорректный формат даты.');
     if (t.priority && !QUADRANTS.some(q => q.id === t.priority)) throw new Error('Неизвестный приоритет.');
     const result = { id: t.id, title: t.title, priority: t.priority || null, positions: {} };
+    const importance=Number(t.importance||0);
+    if(!Number.isInteger(importance)||importance<0||importance>5)throw new Error('Важность должна быть от 1 до 5.');
+    result.importance=importance;
+    if(t.closedAt&&(!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt)||!Number.isFinite(Date.parse(t.closedAt))))throw new Error('Некорректная дата завершения.');
+    result.closedAt=t.closedAt||'';
+    if(t.archiveKind&&!['done','cancelled'].includes(t.archiveKind))throw new Error('Неизвестный архив.');
+    result.archiveKind=t.archiveKind||'';
+    if(result.archiveKind&&t.status!==(result.archiveKind==='done'?'Готово':'Отменено'))throw new Error('Архив не соответствует статусу задачи.');
     for (const key of ['sourceId','unit','direction','description','status','owner','ownerNote','due','dueNote','comment','dependency','requester','link']) result[key] = typeof t[key] === 'string' ? t[key] : '';
     for (const mode of ['priority','owners','time']) {
       const p = t.positions?.[mode];

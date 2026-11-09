@@ -28,8 +28,8 @@ test('CSV preserves blank rows, commas, multiline text, escaped quotes, booleans
  assert.throws(()=>parseCsv('x\n'.repeat(2501)),/2500/);
 });
 test('public Sheet view reads an anonymous CSV with no credentials and retains task IDs and order data',async()=>{
- const api=new PublicSheetsApi(async(url,options)=>{assert.match(url,/\/export\?format=csv&gid=1102202601/);assert.equal(options.credentials,'omit');assert.equal(options.headers,undefined);return {ok:true,text:async()=>sheetCsv(sheets)}});
- const result=await api.read();assert.equal(result.board.tasks[0].id,'sheet-1');assert.equal(result.board.tasks[0].title,'Тест «CSV»\nв две строки');assert.equal(result.control.ack.mode,'sheets');
+ const api=new PublicSheetsApi(async(url,options)=>{assert.match(url,/\/export\?format=csv&gid=(1102202601|1478506234)/);assert.equal(options.credentials,'omit');assert.equal(options.headers,undefined);return {ok:true,text:async()=>url.includes('gid=1478506234')?sheetCsv(sheets).replaceAll('sheet-1','tg-test'):sheetCsv(sheets)}});
+ const result=await api.read();assert.equal(result.board.tasks[0].id,'sheet-1');assert.equal(result.board.tasks[0].title,'Тест «CSV»\nв две строки');assert.equal(result.control.ack.mode,'sheets');assert.equal(result.board.tasks.length,2);
 });
 test('public mode polling uses only the two bounded configuration cells',async()=>{
  const raw=[sheets.request,sheets.ack].map(v=>'"'+JSON.stringify(v).replaceAll('"','""')+'"').join(',');

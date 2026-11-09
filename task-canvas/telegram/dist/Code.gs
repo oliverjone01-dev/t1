@@ -28,7 +28,7 @@ var TelegramTaskIntake = (() => {
     stop: () => stop
   });
 
-  // public/people.mjs?rev=20261109-directory-2
+  // public/people.mjs?rev=20261109-telegram-tabs-1
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -39,7 +39,7 @@ var TelegramTaskIntake = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261109-directory-2
+  // public/model.mjs?rev=20261109-telegram-tabs-1
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0417\u0430\u043F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -107,9 +107,10 @@ var TelegramTaskIntake = (() => {
     });
   }
 
-  // public/sync-model.mjs?rev=20261109-directory-2
+  // public/sync-model.mjs?rev=20261109-telegram-tabs-1
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
+  var TELEGRAM_TAB_ID = 1478506234;
   var SERVICE_HEADERS = [
     "\u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442 \xB7 \u0434\u043E\u0441\u043A\u0430",
     "\u041F\u043E\u0437\u0438\u0446\u0438\u0438 \xB7 \u0434\u043E\u0441\u043A\u0430",
@@ -234,6 +235,7 @@ var TelegramTaskIntake = (() => {
       const archived = /^(true|да|1)$/i.test(raw[19] || "") || rows[index][19]?.effectiveValue?.boolValue === true;
       records.push({
         id,
+        sheetId: sheet.sheetId ?? TAB_ID,
         row: index,
         cells: rows[index],
         task: validateBoard([task])[0],
@@ -260,6 +262,15 @@ var TelegramTaskIntake = (() => {
       }
     };
   }
+  function combineSheets(primary, telegram2) {
+    const records = [...primary.records, ...telegram2.records];
+    if (new Set(records.map((r) => r.id)).size !== records.length)
+      throw new Error("ID \u043A\u0430\u0440\u0442\u043E\u0447\u043A\u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u044F\u0435\u0442\u0441\u044F \u0432 \u0434\u0432\u0443\u0445 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445. \u0423\u0441\u0442\u0440\u0430\u043D\u0438\u0442\u0435 \u0434\u0443\u0431\u043B\u044C \u0432 \u0442\u0430\u0431\u043B\u0438\u0446\u0435.");
+    return { ...primary, records, sourceTabs: [TAB_ID, TELEGRAM_TAB_ID], board: {
+      tasks: validateBoard(records.filter((r) => !r.archived).map((r) => r.task)),
+      owners: primary.board.owners
+    } };
+  }
   function cellValue(field, value) {
     if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
@@ -270,9 +281,10 @@ var TelegramTaskIntake = (() => {
   }
   function buildWriteRequests(snapshot, writes, owners) {
     const requests = [], byId = new Map(snapshot.records.map((r) => [r.id, r]));
+    let targetSheetId = TAB_ID;
     const cell = (row, col, value) => requests.push({
       updateCells: {
-        start: { sheetId: TAB_ID, rowIndex: row, columnIndex: col },
+        start: { sheetId: targetSheetId, rowIndex: row, columnIndex: col },
         rows: [
           {
             values: [
@@ -287,6 +299,8 @@ var TelegramTaskIntake = (() => {
     });
     for (const write of writes) {
       const record = byId.get(write.id);
+      targetSheetId = record?.sheetId ?? (write.id.startsWith("tg-") ? TELEGRAM_TAB_ID : TAB_ID);
+      if (![TAB_ID, TELEGRAM_TAB_ID].includes(targetSheetId)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u0432\u043A\u043B\u0430\u0434\u043A\u0430 \u0437\u0430\u0434\u0430\u0447\u0438.");
       if (write.type === "archive") {
         if (record) cell(record.row, 19, true);
         continue;
@@ -326,7 +340,7 @@ var TelegramTaskIntake = (() => {
           cell(record.row, col, value);
         }
       } else {
-        const template = snapshot.records[0]?.cells || [];
+        const template = snapshot.records.find((r) => (r.sheetId ?? TAB_ID) === targetSheetId)?.cells || [];
         const values = Array.from({ length: 22 }, (_, col) => ({
           userEnteredFormat: template[col]?.userEnteredFormat || {},
           ...template[col]?.dataValidation ? { dataValidation: template[col].dataValidation } : {}
@@ -348,13 +362,14 @@ var TelegramTaskIntake = (() => {
         set2(21, write.task.dueNote);
         requests.push({
           appendCells: {
-            sheetId: TAB_ID,
+            sheetId: targetSheetId,
             rows: [{ values }],
             fields: "userEnteredValue,userEnteredFormat,dataValidation"
           }
         });
       }
     }
+    targetSheetId = TAB_ID;
     if (!equal(
       [...new Set(owners)].sort(),
       [...new Set(snapshot.board.owners)].sort()
@@ -363,7 +378,7 @@ var TelegramTaskIntake = (() => {
     return requests;
   }
 
-  // public/storage-mode.mjs?rev=20261109-directory-2
+  // public/storage-mode.mjs?rev=20261109-telegram-tabs-1
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {
@@ -442,6 +457,12 @@ var TelegramTaskIntake = (() => {
         throw new Error(
           "\u041F\u0435\u0440\u0432\u043E\u0439 \u0441\u0442\u0430\u043B\u0430 \u0434\u0440\u0443\u0433\u0430\u044F \u0432\u043A\u043B\u0430\u0434\u043A\u0430. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430, \u0447\u0442\u043E\u0431\u044B \u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0447\u0443\u0436\u0438\u0435 \u0434\u0430\u043D\u043D\u044B\u0435."
         );
+      const telegram2 = tabs.find((t) => t.sheetId === TELEGRAM_TAB_ID);
+      if (!telegram2) throw new Error("\u0412\u043A\u043B\u0430\u0434\u043A\u0430 \u043D\u043E\u0432\u044B\u0445 \u0437\u0430\u0434\u0430\u0447 Telegram \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430. \u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043E\u0441\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u044B \u0431\u0435\u0437 \u0443\u0441\u0435\u0447\u0435\u043D\u0438\u044F.");
+      const snapshots = await Promise.all([tab, telegram2].map((t) => this.readTab(t)));
+      return combineSheets(...snapshots);
+    }
+    async readTab(tab) {
       if (tab.gridProperties.columnCount < 22)
         throw new Error("\u0421\u043B\u0443\u0436\u0435\u0431\u043D\u044B\u0435 \u043A\u043E\u043B\u043E\u043D\u043A\u0438 \u0442\u0430\u0431\u043B\u0438\u0446\u044B \u0435\u0449\u0451 \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D\u044B.");
       if (tab.gridProperties.rowCount > 2500)
@@ -459,6 +480,7 @@ var TelegramTaskIntake = (() => {
         (row, i) => rows[(grid.startRow || 0) + i] = row.values || []
       );
       return decodeSheet({
+        sheetId: tab.sheetId,
         rows,
         title: tab.title,
         rowCount: tab.gridProperties.rowCount
@@ -495,6 +517,7 @@ var TelegramTaskIntake = (() => {
   // public/sync-model.mjs
   var SHEET_ID2 = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID2 = 1102202601;
+  var TELEGRAM_TAB_ID2 = 1478506234;
   var SYNC_FIELDS2 = [
     "title",
     "unit",
@@ -555,9 +578,10 @@ var TelegramTaskIntake = (() => {
   }
   function buildWriteRequests2(snapshot, writes, owners) {
     const requests = [], byId = new Map(snapshot.records.map((r) => [r.id, r]));
+    let targetSheetId = TAB_ID2;
     const cell = (row, col, value) => requests.push({
       updateCells: {
-        start: { sheetId: TAB_ID2, rowIndex: row, columnIndex: col },
+        start: { sheetId: targetSheetId, rowIndex: row, columnIndex: col },
         rows: [
           {
             values: [
@@ -572,6 +596,8 @@ var TelegramTaskIntake = (() => {
     });
     for (const write of writes) {
       const record = byId.get(write.id);
+      targetSheetId = record?.sheetId ?? (write.id.startsWith("tg-") ? TELEGRAM_TAB_ID2 : TAB_ID2);
+      if (![TAB_ID2, TELEGRAM_TAB_ID2].includes(targetSheetId)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u0432\u043A\u043B\u0430\u0434\u043A\u0430 \u0437\u0430\u0434\u0430\u0447\u0438.");
       if (write.type === "archive") {
         if (record) cell(record.row, 19, true);
         continue;
@@ -611,7 +637,7 @@ var TelegramTaskIntake = (() => {
           cell(record.row, col, value);
         }
       } else {
-        const template = snapshot.records[0]?.cells || [];
+        const template = snapshot.records.find((r) => (r.sheetId ?? TAB_ID2) === targetSheetId)?.cells || [];
         const values = Array.from({ length: 22 }, (_, col) => ({
           userEnteredFormat: template[col]?.userEnteredFormat || {},
           ...template[col]?.dataValidation ? { dataValidation: template[col].dataValidation } : {}
@@ -633,13 +659,14 @@ var TelegramTaskIntake = (() => {
         set2(21, write.task.dueNote);
         requests.push({
           appendCells: {
-            sheetId: TAB_ID2,
+            sheetId: targetSheetId,
             rows: [{ values }],
             fields: "userEnteredValue,userEnteredFormat,dataValidation"
           }
         });
       }
     }
+    targetSheetId = TAB_ID2;
     if (!equal2(
       [...new Set(owners)].sort(),
       [...new Set(snapshot.board.owners)].sort()

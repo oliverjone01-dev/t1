@@ -1,4 +1,4 @@
-import { comparable, equal } from "./sync-model.mjs?rev=20261109-directory-2";
+import { comparable, equal } from "./sync-model.mjs?rev=20261109-telegram-tabs-1";
 export const normalizeQuery = (value) =>
   String(value || "")
     .toLocaleLowerCase("ru")

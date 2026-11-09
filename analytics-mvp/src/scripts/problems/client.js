@@ -186,7 +186,7 @@ function renderTariffs(from,to){
 
 function renderDeliveryTimeline(from,to){
  const source=D.deliveryTimeline,t=summarizeDeliveryTimeline(source,from,to),day=v=>v?esc(v.split('-').reverse().join('.')):'н/д';
- const labels={missing_trip:'Нет номера рейса',future_actual:'Факт в будущем',actual_before_ship:'Факт раньше отправки',status_vs_actual:'Факт заполнен, статус «Создан»',delivered_without_actual:'Статус «Доставлен», факт не подтверждён',missing:'Нет в последнем снимке',source_conflict:'Активные и архив расходятся',unknown_status:'Неизвестный статус',invalid_shipped:'Не распознана отгрузка',invalid_planned:'Не распознан план',invalid_actual:'Не распознан факт'};
+ const labels={incomplete_order:'Неполный номер отправления — проверить',missing_trip:'Нет номера рейса',future_actual:'Факт в будущем',actual_before_ship:'Факт раньше отправки',status_vs_actual:'Факт заполнен, статус «Создан»',delivered_without_actual:'Статус «Доставлен», факт не подтверждён',missing:'Нет в последнем снимке',source_conflict:'Активные и архив расходятся',unknown_status:'Неизвестный статус',invalid_shipped:'Не распознана отгрузка',invalid_planned:'Не распознан план',invalid_actual:'Не распознан факт'};
  const stale=source&&moscowDay(D.now)>source.source_date;
  $('rfbs-note').textContent=source?'Снимок '+source.source_date+' · рейсы по дате отгрузки: '+from+' - '+to+' · статусы на дату снимка · история с '+moscowDay(source.started_at)+(stale?' · СНИМОК УСТАРЕЛ':'')+(t.undated?' · Без даты отгрузки: '+t.undated+' рейсов, в период не включены':''):'Снимок ведомости ещё не загружен';
  const filter=$('rfbs-filter').value,q=$('rfbs-search').value.trim().toLowerCase(),open=$('rfbs-list').open;

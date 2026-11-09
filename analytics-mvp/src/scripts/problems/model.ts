@@ -112,7 +112,8 @@ export function validateDeliveryTimeline(s:DeliveryTimeline){
  const date=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
  if(s.version!==1||!date(s.source_date)||moscowDay(s.loaded_at)!==s.source_date||!Number.isFinite(Date.parse(s.started_at)))throw new Error('Invalid delivery timeline');
  const keys=new Set<string>();for(const r of s.rows){
-  if(keys.has(r.id)||r.id!==r.order+':'+r.trip||!/^\d+-\d+-\d+$/.test(r.order)||! /^(?:(?:НС|НМ|С|М)\d{2}-\d+)(?:\+(?:НС|НМ|С|М)\d{2}-\d+)*$|^БЕЗ-НОМЕРА$/.test(r.trip))throw new Error('Invalid delivery trip identity');keys.add(r.id);
+  const incomplete=/^\d+-\d+$/.test(r.order)&&r.issues.includes('incomplete_order');
+  if(keys.has(r.id)||r.id!==r.order+':'+r.trip||(!/^\d+-\d+-\d+$/.test(r.order)&&!incomplete)||! /^(?:(?:НС|НМ|С|М)\d{2}-\d+)(?:\+(?:НС|НМ|С|М)\d{2}-\d+)*$|^БЕЗ-НОМЕРА$/.test(r.trip))throw new Error('Invalid delivery trip identity');keys.add(r.id);
   for(const d of [r.planned,r.actual,r.shipped])if(d!==null&&!date(d))throw new Error('Invalid delivery trip date');
   if(!Number.isFinite(Date.parse(r.last_seen))||r.last_seen>s.loaded_at)throw new Error('Invalid delivery observation');
  }
@@ -124,7 +125,7 @@ export function summarizeDeliveryTimeline(s:DeliveryTimeline|null|undefined,from
  const undated=(s?.rows??[]).filter(r=>!r.shipped).length;
  const rows=(s?.rows??[]).filter(r=>r.shipped!==null&&r.shipped>=from&&r.shipped<=to).map(r=>{
   const issues=[...r.issues],today=s!.source_date,closed=terminal(r.status);
-  const conflict=r.issues.includes('source_conflict'),future=!!r.actual&&r.actual>today,beforeShip=!!r.actual&&!!r.shipped&&r.actual<r.shipped;
+  const conflict=r.issues.includes('source_conflict')||r.issues.includes('incomplete_order'),future=!!r.actual&&r.actual>today,beforeShip=!!r.actual&&!!r.shipped&&r.actual<r.shipped;
   if(future)issues.push('future_actual');if(beforeShip)issues.push('actual_before_ship');if(r.missing)issues.push('missing');
   const actual=!future&&!beforeShip&&!conflict&&!r.missing?r.actual:null;
   if(actual&&r.status==='Создан')issues.push('status_vs_actual');
@@ -135,7 +136,8 @@ export function summarizeDeliveryTimeline(s:DeliveryTimeline|null|undefined,from
   return {...r,issues,closed,confirmedActual:closed?null:actual,late,overdue};
  });
  const history=(s?.history??[]).filter(h=>{const d=moscowDay(h.observed_at);return d>=from&&d<=to;}).sort((a,b)=>b.observed_at.localeCompare(a.observed_at));
- const shifts=history.filter(h=>h.changes.planned?.[0]&&h.changes.planned?.[1]&&!h.conflict&&!terminal(h.status));
+ const incompleteIds=new Set((s?.rows??[]).filter(r=>r.issues.includes('incomplete_order')).map(r=>r.id));
+ const shifts=history.filter(h=>h.changes.planned?.[0]&&h.changes.planned?.[1]&&!h.conflict&&!incompleteIds.has(h.trip_id)&&!terminal(h.status));
  const historyAvailable=!!s&&to>=moscowDay(s.started_at);
  return {rows,undated,history,shifts,shiftCount:historyAvailable?shifts.length:null,
   overdue:rows.filter(r=>r.overdue!==null),late:rows.filter(r=>r.late!==null&&r.late>0),

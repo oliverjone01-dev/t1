@@ -54,8 +54,15 @@ export function sourceHealth(dir: string, now = new Date()): SourceHealth[] {
   out.push({source:'Конкуренты: кабинетные выгрузки',through:comp?.source_updated_at??null,expected:shiftDay(to,-2),status:comp&&Date.parse(comp.source_updated_at)<=now.getTime()&&now.getTime()-Date.parse(comp.source_updated_at)<=72*3600000?'warning':'error',note:comp?`Подключены ${comp.exports.length} выгрузок за 7/28 дней; получены ${comp.captured_at}. Категории ограничены 1000 строками, полного рынка и полного списка наблюдения не подтверждают.`:'Новые выгрузки не подключены; страница использует исторический снимок.'});
   const tariff=json(join(dir,'fbs_tariff.json'));out.push({source:'Фактический тариф FBS по отправлениям',through:tariff.source_date??null,expected:to,status:tariff.source_date>=to?'ok':'warning',note:'Отдельная база от расчётных тарифов каталога; необходимы сведения по отправлениям.'});
   const cabinet = json(join(dir, "reakciya.json"));
-  const cabThrough = cabinet.data_until ?? cabinet.updated ?? null;
-  out.push({ source: "Кабинет: акции и цены", through: cabThrough, expected: today, status: cabThrough && cabThrough >= today ? "ok" : "warning", note: "Съём с Mac; сегодняшний день может быть неполным" });
+  for(const [label,key] of [['Реакция: журнал действий','updated'],['Реакция: архив воронки','data_until'],['Реакция: архив цен','prices_until']] as const){
+    const through=cabinet[key]??null;
+    out.push({source:label,through,expected:to,status:through&&through>=to?'ok':'warning',note:'Архив самостоятельного анализа действий. Пересборка страницы не обновляет журнал кампаний и рассчитанные эффекты. Текущие выгрузки используются в Воронке, Маркетинге и Тестах.'});
+  }
+  const timeline=json(join(dir,'delivery_timeline.json'));
+  const timelineAge=now.getTime()-Date.parse(timeline.loaded_at);
+  const timelineFresh=Number.isFinite(timelineAge)&&timelineAge>=-60000&&timelineAge<=36*3600000;
+  const timelineIssues=(timeline.rows??[]).filter((r:any)=>r.missing||r.issues?.length).length;
+  out.push({source:'Наша доставка: сроки и статусы',through:timeline.source_date??null,expected:to,status:!timelineFresh?'error':timelineIssues?'warning':'ok',note:`Снято ${timeline.loaded_at??'неизвестно'}; строк для проверки: ${timelineIssues}. Неполные номера отправлений сохраняются отдельно для проверки и не подтверждают доставку или просрочку. Денежная ведомость имеет собственную дату.`});
   for (const [source, file, fields] of [
     ["CPO: ставки и позиции", "cpo_sku_status.ndjson", ["date", "d"]],
     ["CPO: ручная выгрузка", "cpo_sku_daily.ndjson", ["d"]],

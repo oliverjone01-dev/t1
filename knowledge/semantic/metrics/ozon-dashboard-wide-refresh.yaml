@@ -1,0 +1,18 @@
+id: ozon-dashboard-wide-refresh
+version: 1
+scope: repair propagation and visibly isolate invalid operational identity
+authorization: existing request to repair all dashboard data; no new financial formula
+timezone: Europe/Moscow
+date: delivery snapshot observation; financial and shipment cohort dates unchanged
+empty_value: null; never replace a missing source with zero
+identity_exception:
+  - Exactly two numeric hyphen-separated components are preserved verbatim as an incomplete order reference.
+  - Require incomplete_order issue; do not invent a posting suffix or join it to a posting.
+  - Exclude incomplete references from delivered, overdue, late and observed-shift counters; retain in review.
+  - Other malformed identifiers still fail; money ledger parser remains strict.
+examples:
+  - '0147868445-0123: preserved, incomplete_order, zero contribution to confirmed delivery counters'
+  - '12345678-0001-1: unchanged valid posting'
+  - 'phone unknown: rejected, never published'
+navigation: Ozon competitors tab opens cabinet export; dated MPSTATS remains separately accessible
+archive: Reaction actions/effects and boosting retain their own observation dates; global rebuild is not evidence of refresh

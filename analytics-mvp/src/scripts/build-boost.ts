@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import { healthHtml } from "./ozon/source-health.js";
 
 if (!IS_OZON) {
   console.log("build-boost: PLATFORM != ozon, служебная вкладка «Бустинг» не собирается");
@@ -186,7 +187,7 @@ const body = rows.length
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
   + `<title>GENGLASS · Бустинг (служебное)</title><style>${CSS}</style></head><body>${nav}`
-  + `<div class="wrap"><h1>Бустинг · служебная вкладка</h1>`
+  + healthHtml(dp("")) + `<div class="wrap"><h1>Бустинг · служебная вкладка</h1>`
   + `<p class="sub">Индекс бустинга по товарам и его состав. Служебная: по трём снимкам решения не принимаются.</p>`
   + body + `</div></body></html>`;
 

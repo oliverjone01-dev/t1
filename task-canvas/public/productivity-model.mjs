@@ -1,8 +1,8 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261110-controls-6';
-import {ordered,orderKey} from './order.mjs?rev=20261110-controls-6';
-import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261110-controls-6';
-import {parseAssignee} from './people.mjs?rev=20261110-controls-6';
-import {normalizeQuery} from './ui-model.mjs?rev=20261110-controls-6';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261110-controls-7';
+import {ordered,orderKey} from './order.mjs?rev=20261110-controls-7';
+import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261110-controls-7';
+import {parseAssignee} from './people.mjs?rev=20261110-controls-7';
+import {normalizeQuery} from './ui-model.mjs?rev=20261110-controls-7';
 
 export const FOCUS = [['all','Все задачи'],['today','Сегодня'],['overdue','Просрочено'],['week','Ближайшие 7 дней'],['unassigned','Без ответственного'],['undated','Без срока'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];

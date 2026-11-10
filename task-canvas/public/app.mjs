@@ -1,20 +1,20 @@
-import {googleStatusLabel} from './sync-indicator.mjs?rev=20261110-controls-6';
-import {installThemeToggle} from './appearance.mjs?rev=20261110-controls-6';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261110-controls-6';
-import {installRangePicker} from './range-picker.mjs?rev=20261110-controls-6';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-controls-6';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-controls-6';
-import {installGantt} from './gantt.mjs?rev=20261110-controls-6';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-controls-6';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-controls-6';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-controls-6';
-import {Directory} from './directory.mjs?rev=20261110-controls-6';
-import {installCalendar} from './calendar.mjs?rev=20261110-controls-6';
-import {installProductivity} from './productivity.mjs?rev=20261110-controls-6';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-controls-6';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-controls-6';
-import {renderBoard} from './board-ui.mjs?rev=20261110-controls-6';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-controls-6';
+import {googleStatusLabel} from './sync-indicator.mjs?rev=20261110-controls-7';
+import {installThemeToggle} from './appearance.mjs?rev=20261110-controls-7';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261110-controls-7';
+import {installRangePicker} from './range-picker.mjs?rev=20261110-controls-7';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-controls-7';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-controls-7';
+import {installGantt} from './gantt.mjs?rev=20261110-controls-7';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-controls-7';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-controls-7';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-controls-7';
+import {Directory} from './directory.mjs?rev=20261110-controls-7';
+import {installCalendar} from './calendar.mjs?rev=20261110-controls-7';
+import {installProductivity} from './productivity.mjs?rev=20261110-controls-7';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-controls-7';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-controls-7';
+import {renderBoard} from './board-ui.mjs?rev=20261110-controls-7';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-controls-7';
 import {
   QUADRANTS,
   CARD,
@@ -29,20 +29,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261110-controls-6";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261110-controls-6";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-controls-6";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-controls-6";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261110-controls-6";
-import { remoteChanges } from "./changes.mjs?rev=20261110-controls-6";
-import { TeamApi } from "./team-api.mjs?rev=20261110-controls-6";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-controls-6";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-controls-6";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261110-controls-6";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-controls-6";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-controls-6";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-controls-6";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-controls-6";
+} from "./model.mjs?rev=20261110-controls-7";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261110-controls-7";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-controls-7";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-controls-7";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261110-controls-7";
+import { remoteChanges } from "./changes.mjs?rev=20261110-controls-7";
+import { TeamApi } from "./team-api.mjs?rev=20261110-controls-7";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-controls-7";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-controls-7";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261110-controls-7";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-controls-7";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-controls-7";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-controls-7";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-controls-7";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -50,8 +50,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261110-controls-6";
-import { parseAssignee } from "./people.mjs?rev=20261110-controls-6";
+} from "./editor.mjs?rev=20261110-controls-7";
+import { parseAssignee } from "./people.mjs?rev=20261110-controls-7";
 import {
   matchesTask,
   matchesWords,
@@ -60,8 +60,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261110-controls-6";
-import { icon } from "./icons.mjs?rev=20261110-controls-6";
+} from "./ui-model.mjs?rev=20261110-controls-7";
+import { icon } from "./icons.mjs?rev=20261110-controls-7";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";

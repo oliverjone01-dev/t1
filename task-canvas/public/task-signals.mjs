@@ -1,4 +1,4 @@
-import {overlapsRange} from './task-dates.mjs?rev=20261110-controls-7';
+import {overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
 export const IMPORTANCE_LABELS=['Не оценена','Низкая','Умеренная','Обычная','Высокая','Критичная'];
 export const terminalKind=t=>t?.status==='Готово'?'done':t?.status==='Отменено'?'cancelled':'';
 export function metadata(t){return {...(t.start?{start:t.start}:{}),importance:Number(t.importance)||0,progress:Number(t.progress??(t.status==='Готово'?100:0)),workStarted:!!t.workStarted,closedAt:t.closedAt||'',archiveKind:t.archiveKind||''}}

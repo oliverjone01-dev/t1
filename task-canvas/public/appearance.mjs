@@ -1,4 +1,4 @@
-import {icon} from './icons.mjs?rev=20261110-controls-7';
+import {icon} from './icons.mjs?rev=20261111-status-8';
 const KEY='gengroup.task-canvas.preferences.v1';
 export function savedTheme(storage,systemDark=false){try{const theme=JSON.parse(storage.getItem(KEY)||'{}').theme;return theme==='dark'||theme!=='light'&&systemDark?'dark':'light'}catch{return systemDark?'dark':'light'}}
 export function toggleTheme(storage,current){const theme=current==='dark'?'light':'dark';let preferences={};try{preferences=JSON.parse(storage.getItem(KEY)||'{}')||{}}catch{};storage.setItem(KEY,JSON.stringify({...preferences,theme}));return theme}

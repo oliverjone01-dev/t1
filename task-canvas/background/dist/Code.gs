@@ -27,7 +27,7 @@ var TaskCanvasBackground = (() => {
     stop: () => stop
   });
 
-  // public/task-dates.mjs?rev=20261110-controls-7
+  // public/task-dates.mjs?rev=20261111-status-8
   function validDay(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + "T12:00:00Z")) && (/* @__PURE__ */ new Date(value + "T12:00:00Z")).toISOString().slice(0, 10) === value;
   }
@@ -49,7 +49,7 @@ var TaskCanvasBackground = (() => {
     return values[0] || "";
   }
 
-  // public/people.mjs?rev=20261110-controls-7
+  // public/people.mjs?rev=20261111-status-8
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -60,7 +60,7 @@ var TaskCanvasBackground = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261110-controls-7
+  // public/model.mjs?rev=20261111-status-8
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0420\u0430\u0437\u0432\u0438\u0442\u0438\u0435", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -146,7 +146,7 @@ var TaskCanvasBackground = (() => {
     });
   }
 
-  // public/task-signals.mjs?rev=20261110-controls-7
+  // public/task-signals.mjs?rev=20261111-status-8
   function metadata(t) {
     return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, progress: Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0)), workStarted: !!t.workStarted, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
   }
@@ -156,7 +156,7 @@ var TaskCanvasBackground = (() => {
     return p;
   }
 
-  // public/sync-model.mjs?rev=20261110-controls-7
+  // public/sync-model.mjs?rev=20261111-status-8
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -534,7 +534,7 @@ var TaskCanvasBackground = (() => {
     return requests;
   }
 
-  // public/team-model.mjs?rev=20261110-controls-7
+  // public/team-model.mjs?rev=20261111-status-8
   var TEAM_SCHEMA = 1;
   var GROUPS = {
     title: ["title"],
@@ -1290,7 +1290,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/team-api.mjs?rev=20261110-controls-7
+  // public/team-api.mjs?rev=20261111-status-8
   var digest2 = async (value) => [
     ...new Uint8Array(
       await crypto.subtle.digest(
@@ -1593,7 +1593,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/storage-mode.mjs?rev=20261110-controls-7
+  // public/storage-mode.mjs?rev=20261111-status-8
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {

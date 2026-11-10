@@ -43,3 +43,8 @@ test('month/week shifts clamp dates, preserve whole months and cross leap/year b
 test('weekly draft does not pull a future-created task backwards into an earlier week',()=>{
  assert(!planned({status:'В работе',due:'2026-11-10',createdAt:'2026-11-17'},'2026-11-09'));assert(planned({status:'В работе',due:'2026-11-10',createdAt:'2026-10-01'},'2026-11-09'));
 });
+import {rangePage} from '../public/calendar-model.mjs';
+test('long calendar ranges expose every selected day through pages without truncating the selection',()=>{
+ const r={from:'2026-11-01',to:'2028-03-01'},first=rangePage(r),last=rangePage(r,999);assert.equal(first.days[0],r.from);assert.equal(first.days.length,42);assert.equal(last.days.at(-1),r.to);assert.equal(last.page,last.pages-1);
+ const all=Array.from({length:first.pages},(_,i)=>rangePage(r,i).days).flat();assert.equal(all.length,first.total);assert.equal(new Set(all).size,all.length);
+});

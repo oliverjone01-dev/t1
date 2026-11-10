@@ -120,7 +120,7 @@ export class GoogleAuth {
   }
   async profile(fetcher=(...args)=>fetch(...args)) {
     const r=await fetcher('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+this.getToken()},cache:'no-store',redirect:'error'});
-    const profile=await r.json();if(!r.ok||profile.email_verified!==true||typeof profile.email!=='string')throw new Error('Google не подтвердил аккаунт владельца.');
+    const profile=await r.json();if(!r.ok){if(r.status===401)this.invalidate();throw Object.assign(new Error(r.status===401?'Разрешение Google истекло. Вход и локальные правки сохранены.':'Не удалось проверить Google-аккаунт. Локальные правки сохранены.'),{status:r.status,auth:r.status===401})}if(profile.email_verified!==true||typeof profile.email!=='string')throw Object.assign(new Error('Google не подтвердил аккаунт владельца.'),{identity:true});
     return profile;
   }
   async pickFile() {

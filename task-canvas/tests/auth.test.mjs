@@ -122,3 +122,9 @@ test('identity-only cached grant cannot be restored as a Drive permission and re
  const b=new GoogleAuth({clientId:'scope-test',identityOnly:false},{environment});assert.throws(()=>b.getToken(),e=>e.auth);assert.equal(b.rememberedEmail,'owner@example.test');
  a.invalidate();assert.throws(()=>new GoogleAuth({clientId:'scope-test',identityOnly:true},{environment}).getToken(),e=>e.auth);
 });
+test('a revoked grant is invalidated while its remembered verified account survives for renewal',async()=>{
+ const saved=new Map(),environment={localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)}};
+ const a=new GoogleAuth({clientId:'revoked-test'},{environment});a.token='revoked-fixture';a.expiresAt=Date.now()+60000;a.remember('owner@example.test');
+ await assert.rejects(a.profile(async()=>({ok:false,status:401,json:async()=>({error:'revoked'})})),e=>e.auth);
+ assert.equal(a.rememberedEmail,'owner@example.test');assert.throws(()=>a.getToken(),e=>e.auth);assert.equal(new GoogleAuth({clientId:'revoked-test'},{environment}).rememberedEmail,'owner@example.test');
+});

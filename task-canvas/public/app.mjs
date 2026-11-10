@@ -2595,6 +2595,7 @@ $("#resolve-conflicts").onclick = async () => {
 };
 window.addEventListener("online", () => {
   if (cloudEngine.connected) cloudEngine.flush();
+  else if(SHEETS_ONLY&&accessMode==="edit")restorePersonalSession();
   else if (!DEMO && accessMode === "view") viewer?.start();
 });
 document.addEventListener("visibilitychange", () => {
@@ -2635,15 +2636,23 @@ if (!DEMO) {
 let renewingSession=null;
 async function restorePersonalSession(){
  if(!googleAuth||!SHEETS_ONLY||modePending(storageControl))return;
- const valid=googleAuth.restore(), remembered=googleAuth.rememberedEmail===MODE_OWNER;
+ let valid=googleAuth.restore();const remembered=googleAuth.rememberedEmail===MODE_OWNER;
  if(!valid&&!remembered)return;
+ let message='Вход сохранён. При следующем изменении обновим разрешение Google.';
+ if(valid){
+  try{const p=await googleAuth.profile();if(p.email.toLowerCase()!==MODE_OWNER){googleAuth.disconnect();return}}
+  catch(error){
+   if(error.identity){googleAuth.disconnect();return}
+   if(!remembered||!cloudEngine.base||stateLoadError){text('#google-error',error.message);return}
+   valid=false;message=error.message;
+  }
+ }
+ if(!valid&&(!cloudEngine.base||stateLoadError))return;
  try{
-  if(valid){const p=await googleAuth.profile();if(p.email.toLowerCase()!==MODE_OWNER){googleAuth.disconnect();return}}
-  else if(!cloudEngine.base||stateLoadError)return;
   viewer?.stop();tasks=structuredClone(editorLocalBoard.tasks);extraOwners=[...editorLocalBoard.owners];accessMode='connecting';
-  if(valid)await cloudEngine.connect();else {cloudEngine.enabled=true;cloudEngine.state('signin','Вход сохранён. При следующем изменении обновим разрешение Google.');}
+  if(valid)await cloudEngine.connect();else {cloudEngine.enabled=true;cloudEngine.state('signin',message);}
   accessMode='edit';$('#view-access').hidden=true;$('#google-disconnect').hidden=false;persist();render();cloudState({...syncState,status:cloudEngine.status,conflicts:cloudEngine.conflicts,pending:cloudEngine.pending()});
- }catch(error){if(error.status===401||error.status===403){googleAuth.disconnect();startViewer()}else {startViewer();text('#google-error',error.message)}}
+ }catch(error){text('#google-error',error.message);startViewer()}
 }
 function renewPersonalSession(){
  if(renewingSession||!SHEETS_ONLY||accessMode!=='edit'||!googleAuth?.needsRefresh())return;
@@ -2674,7 +2683,7 @@ installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?c
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 gantt=installGantt({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
-calendar=installCalendar({esc,today,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
+calendar=installCalendar({esc,today,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });
 installPlanningDrag({tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit,selection:()=>[...selectedIds],toast,

@@ -4032,7 +4032,7 @@
 {"order":"0236771185-0326-1","date":"2026-10-30","status":"delivering","scheme":"rFBS","sku":"3734276712","offer":"GGT-35-2-2-100-180","amount":118862,"reason":null,"initiator":null}
 {"order":"92688814-0167-6","date":"2026-10-30","status":"delivered","scheme":"FBS","sku":"3563831409","offer":"GGS-01-3-1","amount":21900,"reason":null,"initiator":null}
 {"order":"16226868-0107-1","date":"2026-10-30","status":"cancelled","scheme":"FBS","sku":"3595055077","offer":"GGL-10","amount":76900,"reason":"Покупатель отменил заказ","initiator":"client"}
-{"order":"16226868-0108-1","date":"2026-10-30","status":"delivering","scheme":"FBS","sku":"3595055077","offer":"GGL-10","amount":76900,"reason":null,"initiator":null}
+{"order":"16226868-0108-1","date":"2026-10-30","status":"delivered","scheme":"FBS","sku":"3595055077","offer":"GGL-10","amount":76900,"reason":null,"initiator":null}
 {"order":"0176877602-0004-1","date":"2026-10-30","status":"delivering","scheme":"rFBS","sku":"6005103981","offer":"GGT-47-5-1-90","amount":223600,"reason":null,"initiator":null}
 {"order":"28359167-0662-1","date":"2026-10-30","status":"delivering","scheme":"rFBS","sku":"3590033029","offer":"GGK-02-3-3-100","amount":41900,"reason":null,"initiator":null}
 {"order":"45358079-0150-1","date":"2026-10-31","status":"delivering","scheme":"FBS","sku":"3492796838","offer":"GGM-24-1","amount":72900,"reason":null,"initiator":null}
@@ -4074,7 +4074,7 @@
 {"order":"46850359-0161-1","date":"2026-11-03","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"80511638-0112-1","date":"2026-11-03","status":"delivering","scheme":"rFBS","sku":"5444460310","offer":"GGT-48-2-2-100-180","amount":78473,"reason":null,"initiator":null}
 {"order":"37912817-0454-1","date":"2026-11-03","status":"cancelled","scheme":"rFBS","sku":"3734276157","offer":"GGT-35-3-3-100-180","amount":115251,"reason":"Покупатель отменил заказ: нашел дешевле","initiator":"client"}
-{"order":"0137778979-0308-2","date":"2026-11-03","status":"delivering","scheme":"FBS","sku":"3564823069","offer":"GGK-05-3-3-7040","amount":30900,"reason":null,"initiator":null}
+{"order":"0137778979-0308-2","date":"2026-11-03","status":"delivered","scheme":"FBS","sku":"3564823069","offer":"GGK-05-3-3-7040","amount":30900,"reason":null,"initiator":null}
 {"order":"32642859-0105-1","date":"2026-11-03","status":"delivering","scheme":"rFBS","sku":"3734276157","offer":"GGT-35-3-3-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"35361097-0032-1","date":"2026-11-03","status":"delivered","scheme":"FBS","sku":"3497336273","offer":"GGM-02-3-1","amount":21900,"reason":null,"initiator":null}
 {"order":"64898483-0316-1","date":"2026-11-03","status":"cancelled","scheme":"rFBS","sku":"3555672541","offer":"GGL-09-2","amount":55390,"reason":"Покупатель отменил заказ: нашел дешевле","initiator":"client"}
@@ -4083,7 +4083,7 @@
 {"order":"0100633880-0194-1","date":"2026-11-03","status":"delivering","scheme":"rFBS","sku":"3564824198","offer":"GGT-03-3-3-E-12080","amount":79459,"reason":null,"initiator":null}
 {"order":"0166016035-0053-1","date":"2026-11-04","status":"delivered","scheme":"FBS","sku":"3492802310","offer":"GGM-18-2-2","amount":60896,"reason":null,"initiator":null}
 {"order":"0268213293-0078-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3734276157","offer":"GGT-35-3-3-100-180","amount":115803,"reason":null,"initiator":null}
-{"order":"44115557-0152-2","date":"2026-11-04","status":"delivering","scheme":"FBS","sku":"3564826357","offer":"GGR-11-1","amount":29355,"reason":null,"initiator":null}
+{"order":"44115557-0152-2","date":"2026-11-04","status":"delivered","scheme":"FBS","sku":"3564826357","offer":"GGR-11-1","amount":29355,"reason":null,"initiator":null}
 {"order":"66537791-0271-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3734276157","offer":"GGT-35-3-3-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"45880616-0134-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"58212305-0019-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3734276153","offer":"GGT-35-1-3-100-180","amount":118242,"reason":null,"initiator":null}
@@ -4110,7 +4110,7 @@
 {"order":"97366358-0395-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3579703753","offer":"GGT-20-3-3-18090","amount":78755,"reason":null,"initiator":null}
 {"order":"46260551-0144-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3734276712","offer":"GGT-35-2-2-100-180","amount":118750,"reason":null,"initiator":null}
 {"order":"0174005311-0035-1","date":"2026-11-04","status":"delivered","scheme":"FBS","sku":"3564846960","offer":"GGR-11-3","amount":30730,"reason":null,"initiator":null}
-{"order":"39659163-0254-1","date":"2026-11-04","status":"delivering","scheme":"FBS","sku":"3564847171","offer":"GGK-02-2-2-80","amount":43900,"reason":null,"initiator":null}
+{"order":"39659163-0254-1","date":"2026-11-04","status":"delivered","scheme":"FBS","sku":"3564847171","offer":"GGK-02-2-2-80","amount":43900,"reason":null,"initiator":null}
 {"order":"0144341141-0091-3","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"31859893-0056-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"3579701389","offer":"GGT-03-5-1-O-20090","amount":109900,"reason":null,"initiator":null}
 {"order":"32450664-0848-1","date":"2026-11-04","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
@@ -4122,8 +4122,8 @@
 {"order":"43498100-0604-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115193,"reason":null,"initiator":null}
 {"order":"64898483-0319-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"3555672541","offer":"GGL-09-2","amount":55390,"reason":null,"initiator":null}
 {"order":"47194368-0172-2","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3492796838","offer":"GGM-24-1","amount":72900,"reason":null,"initiator":null}
-{"order":"48531175-1173-1","date":"2026-11-05","status":"delivering","scheme":"FBS","sku":"3497338067","offer":"GGM-24-1-M","amount":44753,"reason":null,"initiator":null}
-{"order":"48531175-1173-3","date":"2026-11-05","status":"delivering","scheme":"FBS","sku":"3497338067","offer":"GGM-24-1-M","amount":44753,"reason":null,"initiator":null}
+{"order":"48531175-1173-1","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3497338067","offer":"GGM-24-1-M","amount":44753,"reason":null,"initiator":null}
+{"order":"48531175-1173-3","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3497338067","offer":"GGM-24-1-M","amount":44753,"reason":null,"initiator":null}
 {"order":"31551759-0224-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115134,"reason":null,"initiator":null}
 {"order":"39249781-0243-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115134,"reason":null,"initiator":null}
 {"order":"41362279-0171-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
@@ -4132,7 +4132,7 @@
 {"order":"25673336-0200-1","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3492803714","offer":"GGM-18-2-1","amount":52878,"reason":null,"initiator":null}
 {"order":"46586931-0116-1","date":"2026-11-05","status":"delivering","scheme":"FBS","sku":"3564825716","offer":"GGR-10-1","amount":27364,"reason":null,"initiator":null}
 {"order":"0126835163-0767-1","date":"2026-11-05","status":"delivering","scheme":"rFBS","sku":"6045903704","offer":"GGT-03-5-1-L-80","amount":67900,"reason":null,"initiator":null}
-{"order":"18426808-0450-1","date":"2026-11-05","status":"delivering","scheme":"FBS","sku":"3492803714","offer":"GGM-18-2-1","amount":52878,"reason":null,"initiator":null}
+{"order":"18426808-0450-1","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3492803714","offer":"GGM-18-2-1","amount":52878,"reason":null,"initiator":null}
 {"order":"47629652-0079-4","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3564835749","offer":"GGR-11-2","amount":30900,"reason":null,"initiator":null}
 {"order":"35915342-0032-1","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3492803714","offer":"GGM-18-2-1","amount":52878,"reason":null,"initiator":null}
 {"order":"32037910-1044-1","date":"2026-11-05","status":"delivered","scheme":"FBS","sku":"3492791902","offer":"GGM-20-2","amount":92143,"reason":null,"initiator":null}
@@ -4164,7 +4164,7 @@
 {"order":"38758236-0523-1","date":"2026-11-06","status":"delivering","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
 {"order":"43599130-0096-1","date":"2026-11-06","status":"delivering","scheme":"rFBS","sku":"3579703160","offer":"GGT-03-2-4-E-16080","amount":96900,"reason":null,"initiator":null}
 {"order":"18481977-1562-1","date":"2026-11-06","status":"delivering","scheme":"FBS","sku":"3492815548","offer":"GGL-02-L-2","amount":45506,"reason":null,"initiator":null}
-{"order":"0106552246-0218-1","date":"2026-11-06","status":"delivering","scheme":"FBS","sku":"3564835749","offer":"GGR-11-2","amount":30900,"reason":null,"initiator":null}
+{"order":"0106552246-0218-1","date":"2026-11-06","status":"cancelled","scheme":"FBS","sku":"3564835749","offer":"GGR-11-2","amount":30900,"reason":"Не удалось доставить заказ","initiator":"ozon"}
 {"order":"57538549-0065-1","date":"2026-11-07","status":"delivering","scheme":"rFBS","sku":"4865594883","offer":"GGT-47-3-5-80","amount":51900,"reason":null,"initiator":null}
 {"order":"85292015-0238-1","date":"2026-11-07","status":"delivering","scheme":"FBS","sku":"3564847171","offer":"GGK-02-2-2-80","amount":47337,"reason":null,"initiator":null}
 {"order":"40911204-0528-1","date":"2026-11-07","status":"delivering","scheme":"rFBS","sku":"3734276153","offer":"GGT-35-1-3-100-180","amount":118242,"reason":null,"initiator":null}
@@ -4216,3 +4216,15 @@
 {"order":"28867700-0495-6","date":"2026-11-10","status":"cancelled","scheme":"FBS","sku":"3564847171","offer":"GGK-02-2-2-80","amount":47337,"reason":"Покупатель отменил заказ","initiator":"client"}
 {"order":"40054000-0469-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3555657576","offer":"GGL-08-2","amount":63900,"reason":null,"initiator":null}
 {"order":"0250006067-0018-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3564837592","offer":"B-100-200-9003","amount":60900,"reason":null,"initiator":null}
+{"order":"01817829-0150-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3734277653","offer":"GGT-35-2-1-100-180","amount":119460,"reason":null,"initiator":null}
+{"order":"0245495661-0024-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3564839538","offer":"GGT-03-3-3-E-14080","amount":92900,"reason":null,"initiator":null}
+{"order":"44529792-0257-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"5989203179","offer":"GGT-47-5-1-80","amount":51900,"reason":null,"initiator":null}
+{"order":"32058995-0769-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3564823254","offer":"GGT-03-3-5-E-16080","amount":93053,"reason":null,"initiator":null}
+{"order":"19409265-0157-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3590028945","offer":"GGK-02-3-5-120","amount":42900,"reason":null,"initiator":null}
+{"order":"0281481966-0002-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"6045905827","offer":"GGT-03-5-1-L-120","amount":79900,"reason":null,"initiator":null}
+{"order":"63325995-0407-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"6045907076","offer":"GGT-03-5-1-E-12080","amount":60745,"reason":null,"initiator":null}
+{"order":"15659314-0798-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"6170292686","offer":"GGT-03-2-1-E-16080/MDF","amount":96900,"reason":null,"initiator":null}
+{"order":"0211268612-0102-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"3564845774","offer":"GGT-03-2-2-L-80","amount":67900,"reason":null,"initiator":null}
+{"order":"12369751-0220-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"5426756030","offer":"GGT-35-5-1-100-180","amount":115803,"reason":null,"initiator":null}
+{"order":"45994555-0728-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"rFBS","sku":"6045903630","offer":"GGT-03-5-1-L-100","amount":75900,"reason":null,"initiator":null}
+{"order":"43988435-1806-1","date":"2026-11-10","status":"awaiting_packaging","scheme":"FBS","sku":"3564818585","offer":"GGR-10-2","amount":27619,"reason":null,"initiator":null}

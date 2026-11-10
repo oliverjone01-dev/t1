@@ -1,5 +1,6 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-planning-4";
-import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-progress-5";
+import { parseAssignee } from "./people.mjs?rev=20261110-progress-5";
+import {progressPatch} from './work-progress.mjs?rev=20261110-progress-5';
 export const EDIT_FIELDS = [
   "title",
   "unit",
@@ -9,12 +10,13 @@ export const EDIT_FIELDS = [
   "start",
   "priority",
   "importance",
+  "progress",
   "description",
   "comment",
 ];
 export const editorValues = (task) =>
   Object.fromEntries(
-    EDIT_FIELDS.map((key) => [key, String(task?.[key] || "")]),
+    EDIT_FIELDS.map((key) => [key, key==="progress"?String(task?.progress??(task?.status==="Готово"?100:0)):String(task?.[key] || "")]),
   );
 export function editConflicts(current, base, values) {
   if (!current) return [];
@@ -94,12 +96,13 @@ export function planEdit({
   const changed = EDIT_FIELDS.filter(
     (key) => data[key] !== editorValues(base)[key],
   );
-  const task = {
+  let task = {
     ...(old && !forceNew ? old : { id: createId(), positions: {}, createdAt: now() }),
     ...(old && !forceNew
       ? Object.fromEntries(changed.map((key) => [key, data[key]]))
       : data),
   };
+  if(changed.includes('progress') && !(changed.includes('status') && data.status === 'Готово')) task=progressPatch(task,data.progress);
   task.priority ||= null;
   if (old && !forceNew) {
     task.positions = structuredClone(old.positions || {});

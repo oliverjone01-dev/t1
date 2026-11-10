@@ -1,7 +1,7 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261110-planning-4';
-import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261110-planning-4';
-import {groupFor,validateBoard,localDate} from './model.mjs?rev=20261110-planning-4';
-import {ordered,orderKey,reorderTasks} from './order.mjs?rev=20261110-planning-4';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261110-progress-5';
+import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261110-progress-5';
+import {groupFor,validateBoard,localDate} from './model.mjs?rev=20261110-progress-5';
+import {ordered,orderKey,reorderTasks} from './order.mjs?rev=20261110-progress-5';
 export function dateInMonth(due,month){
  const day=Number((due||'').slice(8))||1,last=new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate();
  return month+'-'+String(Math.min(day,last)).padStart(2,'0');

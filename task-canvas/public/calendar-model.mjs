@@ -1,6 +1,6 @@
-import {overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
-import {ordered} from './order.mjs?rev=20261110-planning-4';
-import {localDate,shiftDate,statusGroup} from './model.mjs?rev=20261110-planning-4';
+import {overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
+import {ordered} from './order.mjs?rev=20261110-progress-5';
+import {localDate,shiftDate,statusGroup} from './model.mjs?rev=20261110-progress-5';
 export function monthStart(date){return date.slice(0,7)+'-01'}
 export function shiftMonth(date,n){const d=new Date(date+'T12:00:00');d.setDate(1);d.setMonth(d.getMonth()+n);return localDate(d)}
 export function weekStart(date){const day=new Date(date+'T12:00:00').getDay();return shiftDate(date,-((day+6)%7))}

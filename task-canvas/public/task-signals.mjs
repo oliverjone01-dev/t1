@@ -1,11 +1,12 @@
-import {overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
+import {overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
 export const IMPORTANCE_LABELS=['Не оценена','Низкая','Умеренная','Обычная','Высокая','Критичная'];
 export const terminalKind=t=>t?.status==='Готово'?'done':t?.status==='Отменено'?'cancelled':'';
-export function metadata(t){return {...(t.start?{start:t.start}:{}),importance:Number(t.importance)||0,closedAt:t.closedAt||'',archiveKind:t.archiveKind||''}}
-export function packedPositions(t){const p=structuredClone(t.positions||{}),m=metadata(t);if(m.start||m.importance||m.closedAt||m.archiveKind)p._task=m;return p}
+export function metadata(t){return {...(t.start?{start:t.start}:{}),importance:Number(t.importance)||0,progress:Number(t.progress??(t.status==='Готово'?100:0)),workStarted:!!t.workStarted,closedAt:t.closedAt||'',archiveKind:t.archiveKind||''}}
+export function packedPositions(t){const p=structuredClone(t.positions||{}),m=metadata(t);if(m.start||m.importance||m.closedAt||m.archiveKind||m.progress||m.workStarted)p._task=m;return p}
 export function trackStatus(before,task,at=new Date().toISOString()){
+ task={...task,workStarted:!!task.workStarted||['В работе','Приостановлено'].includes(task.status)||Number(task.progress)>0};
  const kind=terminalKind(task);if(!kind)return {...task,closedAt:'',archiveKind:''};
- return {...task,closedAt:before?.status===task.status&&before.closedAt?before.closedAt:(task.closedAt&&task.closedAt!==before?.closedAt?task.closedAt:at),archiveKind:before?.status===task.status?(task.archiveKind||''):''};
+ return {...task,...(task.status==='Готово'?{progress:100}:{}),closedAt:before?.status===task.status&&before.closedAt?before.closedAt:(task.closedAt&&task.closedAt!==before?.closedAt?task.closedAt:at),archiveKind:before?.status===task.status?(task.archiveKind||''):''};
 }
 export function weekStart(date){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10)}
 export function dateShift(d,n){return new Date(Date.parse(d+'T12:00:00Z')+n*86400000).toISOString().slice(0,10)}

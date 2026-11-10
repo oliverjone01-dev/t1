@@ -1,8 +1,8 @@
-import {FIELD_NAMES, equal} from './sync-model.mjs?rev=20261110-planning-4';
+import {FIELD_NAMES, equal} from './sync-model.mjs?rev=20261110-progress-5';
 
 export const CHANGE_FIELDS = {...FIELD_NAMES, sourceId:'ID', ownerNote:'Формулировка ответственного', dueNote:'Формулировка срока', dependency:'Зависимости', requester:'Постановщик', link:'Ссылка'};
 const fields = Object.keys(CHANGE_FIELDS).filter(key=>key!=='task');
-const value = (task,key) => key==='importance'?Number(task?.importance||0):key==='positions' ? task?.positions || {} : task?.[key] ?? '';
+const value = (task,key) => key==='workStarted'?!!task?.workStarted:key==='progress'?Number(task?.progress??(task?.status==='Готово'?100:0)):key==='importance'?Number(task?.importance||0):key==='positions' ? task?.positions || {} : task?.[key] ?? '';
 
 // Compare shared snapshots, excluding this device's own writes and their delayed acknowledgements.
 export function remoteChanges(base, remote, local) {

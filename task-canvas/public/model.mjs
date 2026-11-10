@@ -1,5 +1,5 @@
-import {parseCreatedAt} from './task-dates.mjs?rev=20261110-planning-4';
-import {parseAssignee} from './people.mjs?rev=20261110-planning-4';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261110-progress-5';
+import {parseAssignee} from './people.mjs?rev=20261110-progress-5';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -176,6 +176,10 @@ export function validateBoard(value) {
     const importance=Number(t.importance||0);
     if(!Number.isInteger(importance)||importance<0||importance>5)throw new Error('Срочность должна быть от 1 до 5.');
     result.importance=importance;
+    const progress=Number(t.progress??(t.status==='Готово'?100:0));
+    if(!Number.isInteger(progress)||progress<0||progress>100)throw new Error('Готовность должна быть от 0 до 100%.');
+    if(t.workStarted!==undefined&&typeof t.workStarted!=='boolean')throw new Error('Повреждено состояние запуска.');
+    result.progress=progress;result.workStarted=!!t.workStarted;
     if(t.createdAt && parseCreatedAt(t.createdAt)!==t.createdAt)throw new Error('Некорректная дата постановки.');
     result.createdAt=t.createdAt||'';
     if(t.closedAt&&(!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt)||!Number.isFinite(Date.parse(t.closedAt))))throw new Error('Некорректная дата завершения.');

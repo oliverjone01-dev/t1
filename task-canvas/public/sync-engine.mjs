@@ -4,9 +4,9 @@ import {
   comparable,
   equal,
   SYNC_FIELDS,
-} from "./sync-model.mjs?rev=20261110-planning-4";
-import { validateBoard } from "./model.mjs?rev=20261110-planning-4";
-import { remoteChanges } from "./changes.mjs?rev=20261110-planning-4";
+} from "./sync-model.mjs?rev=20261110-progress-5";
+import { validateBoard } from "./model.mjs?rev=20261110-progress-5";
+import { remoteChanges } from "./changes.mjs?rev=20261110-progress-5";
 const cleanBoard = (board) => {
   if (
     board?.owners &&
@@ -37,7 +37,7 @@ function cleanConflicts(value) {
       } else if (conflict.field === "positions") {
         if (typeof item !== "object" || Array.isArray(item))
           throw new Error("Повреждены позиции.");
-      } else if (typeof item !== "string")
+      } else if ((["importance","progress"].includes(conflict.field)?typeof item!=="number":conflict.field==="workStarted"?typeof item!=="boolean":typeof item !== "string"))
         throw new Error("Повреждено поле конфликта.");
       if (
         conflict.field === "priority" &&

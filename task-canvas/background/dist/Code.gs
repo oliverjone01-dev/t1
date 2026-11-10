@@ -27,7 +27,7 @@ var TaskCanvasBackground = (() => {
     stop: () => stop
   });
 
-  // public/task-dates.mjs?rev=20261110-planning-4
+  // public/task-dates.mjs?rev=20261110-progress-5
   function validDay(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + "T12:00:00Z")) && (/* @__PURE__ */ new Date(value + "T12:00:00Z")).toISOString().slice(0, 10) === value;
   }
@@ -49,7 +49,7 @@ var TaskCanvasBackground = (() => {
     return values[0] || "";
   }
 
-  // public/people.mjs?rev=20261110-planning-4
+  // public/people.mjs?rev=20261110-progress-5
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -60,7 +60,7 @@ var TaskCanvasBackground = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261110-planning-4
+  // public/model.mjs?rev=20261110-progress-5
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0420\u0430\u0437\u0432\u0438\u0442\u0438\u0435", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -121,6 +121,11 @@ var TaskCanvasBackground = (() => {
       const importance = Number(t.importance || 0);
       if (!Number.isInteger(importance) || importance < 0 || importance > 5) throw new Error("\u0421\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 1 \u0434\u043E 5.");
       result.importance = importance;
+      const progress = Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0));
+      if (!Number.isInteger(progress) || progress < 0 || progress > 100) throw new Error("\u0413\u043E\u0442\u043E\u0432\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 0 \u0434\u043E 100%.");
+      if (t.workStarted !== void 0 && typeof t.workStarted !== "boolean") throw new Error("\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u0437\u0430\u043F\u0443\u0441\u043A\u0430.");
+      result.progress = progress;
+      result.workStarted = !!t.workStarted;
       if (t.createdAt && parseCreatedAt(t.createdAt) !== t.createdAt) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438.");
       result.createdAt = t.createdAt || "";
       if (t.closedAt && (!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt) || !Number.isFinite(Date.parse(t.closedAt)))) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F.");
@@ -141,17 +146,17 @@ var TaskCanvasBackground = (() => {
     });
   }
 
-  // public/task-signals.mjs?rev=20261110-planning-4
+  // public/task-signals.mjs?rev=20261110-progress-5
   function metadata(t) {
-    return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
+    return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, progress: Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0)), workStarted: !!t.workStarted, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
   }
   function packedPositions(t) {
     const p = structuredClone(t.positions || {}), m = metadata(t);
-    if (m.start || m.importance || m.closedAt || m.archiveKind) p._task = m;
+    if (m.start || m.importance || m.closedAt || m.archiveKind || m.progress || m.workStarted) p._task = m;
     return p;
   }
 
-  // public/sync-model.mjs?rev=20261110-planning-4
+  // public/sync-model.mjs?rev=20261110-progress-5
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -175,12 +180,16 @@ var TaskCanvasBackground = (() => {
     "priority",
     "positions",
     "importance",
+    "progress",
+    "workStarted",
     "start",
     "createdAt",
     "closedAt",
     "archiveKind"
   ];
   var FIELD_NAMES = {
+    progress: "\u0413\u043E\u0442\u043E\u0432\u043D\u043E\u0441\u0442\u044C",
+    workStarted: "\u0417\u0430\u0434\u0430\u0447\u0430 \u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043B\u0430\u0441\u044C",
     createdAt: "\u0414\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438",
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
     unit: "\u042E\u043D\u0438\u0442",
@@ -218,6 +227,8 @@ var TaskCanvasBackground = (() => {
     positions: 17,
     start: 17,
     importance: 17,
+    progress: 17,
+    workStarted: 17,
     closedAt: 17,
     archiveKind: 17
   };
@@ -231,7 +242,7 @@ var TaskCanvasBackground = (() => {
   var comparable = (t) => t ? Object.fromEntries(
     SYNC_FIELDS.map((k) => [
       k,
-      k === "importance" ? Number(t[k] || 0) : k === "positions" ? t[k] || {} : t[k] ?? (k === "priority" ? null : "")
+      k === "workStarted" ? !!t[k] : k === "progress" ? Number(t[k] ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0)) : k === "importance" ? Number(t[k] || 0) : k === "positions" ? t[k] || {} : t[k] ?? (k === "priority" ? null : "")
     ])
   ) : null;
   function decodeSheet(sheet, year = (/* @__PURE__ */ new Date()).getFullYear()) {
@@ -286,6 +297,8 @@ var TaskCanvasBackground = (() => {
         const meta = task.positions._task || {};
         task.start = meta.start || "";
         task.importance = meta.importance || 0;
+        task.progress = meta.progress ?? (task.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0);
+        task.workStarted = !!meta.workStarted;
         task.closedAt = meta.closedAt || "";
         task.archiveKind = meta.archiveKind || "";
         delete task.positions._task;
@@ -414,7 +427,7 @@ var TaskCanvasBackground = (() => {
     };
   }
   function cellValue(field, value, task) {
-    if (task && ["positions", "start", "importance", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
+    if (task && ["positions", "start", "importance", "progress", "workStarted", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
     if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
     if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -521,7 +534,7 @@ var TaskCanvasBackground = (() => {
     return requests;
   }
 
-  // public/team-model.mjs?rev=20261110-planning-4
+  // public/team-model.mjs?rev=20261110-progress-5
   var TEAM_SCHEMA = 1;
   var GROUPS = {
     title: ["title"],
@@ -529,7 +542,7 @@ var TaskCanvasBackground = (() => {
     direction: ["direction"],
     description: ["description"],
     comment: ["comment"],
-    status: ["status", "closedAt", "archiveKind"],
+    status: ["status", "closedAt", "archiveKind", "progress", "workStarted"],
     assignment: ["owner", "positions.owners"],
     schedule: ["due", "positions.time", "start"],
     priority: ["priority", "positions.priority", "positions.gantt", "importance"],
@@ -633,7 +646,7 @@ var TaskCanvasBackground = (() => {
         throw new Error("\u041F\u0443\u0441\u0442\u0430\u044F \u043F\u0440\u0430\u0432\u043A\u0430.");
       for (const [key, patch] of Object.entries(op.groups)) {
         if (!GROUPS[key] || typeof patch.baseVersion !== "string" || !patch.base || !patch.value || GROUPS[key].some(
-          (path) => !["positions.gantt", "start", "importance", "closedAt", "archiveKind"].includes(path) && (!Object.hasOwn(patch.base, path) || !Object.hasOwn(patch.value, path))
+          (path) => !["positions.gantt", "start", "importance", "closedAt", "archiveKind", "progress", "workStarted"].includes(path) && (!Object.hasOwn(patch.base, path) || !Object.hasOwn(patch.value, path))
         ) || Object.keys(patch.value).some((path) => !GROUPS[key].includes(path)) || Object.keys(patch.base).some((path) => !GROUPS[key].includes(path)))
           throw new Error("\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u044B \u043F\u043E\u043B\u044F \u043F\u0440\u0430\u0432\u043A\u0438.");
         if (key === "assignment" && parseAssignee(patch.value.owner || "") === null)
@@ -1277,7 +1290,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/team-api.mjs?rev=20261110-planning-4
+  // public/team-api.mjs?rev=20261110-progress-5
   var digest2 = async (value) => [
     ...new Uint8Array(
       await crypto.subtle.digest(
@@ -1580,7 +1593,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/storage-mode.mjs?rev=20261110-planning-4
+  // public/storage-mode.mjs?rev=20261110-progress-5
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {

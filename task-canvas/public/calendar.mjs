@@ -1,18 +1,19 @@
-import {overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
-import {periodRange,shiftRange} from './range-model.mjs?rev=20261110-planning-4';
-import {statusBadge} from './quick-controls.mjs?rev=20261110-planning-4';
-import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261110-planning-4';
-import {sortTasks} from './productivity-model.mjs?rev=20261110-planning-4';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261110-planning-4';
-import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261110-planning-4';
-import {icon} from './icons.mjs?rev=20261110-planning-4';
+import {workProgress} from './work-progress.mjs?rev=20261110-progress-5';
+import {overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
+import {periodRange,shiftRange} from './range-model.mjs?rev=20261110-progress-5';
+import {statusBadge} from './quick-controls.mjs?rev=20261110-progress-5';
+import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261110-progress-5';
+import {sortTasks} from './productivity-model.mjs?rev=20261110-progress-5';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261110-progress-5';
+import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261110-progress-5';
+import {icon} from './icons.mjs?rev=20261110-progress-5';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view=host.range?.().from?'range':'month',anchor=host.today(),undated=false,peek=null,rangePage=0;
  const root=$('#calendar-view');
  const taskWord=n=>n%10===1&&n%100!==11?'задача':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'задачи':'задач';
  const dateText=(date,options)=>new Intl.DateTimeFormat('ru',options).format(new Date(date+'T12:00:00'));
- const taskButton=t=>`<article class="calendar-task-wrap" data-task-status="${esc(t.status)}" data-drop-task="${esc(t.id)}">${temperature(t,host.canEdit())}${statusBadge(t,host.canEdit())}<button class="calendar-task ${statusGroup(t)?'is-terminal':''}" data-calendar-task="${esc(t.id)}" data-priority="${esc(t.priority||'inbox')}" title="${esc(t.title)}"><span class="calendar-task-title">${esc(t.title)}</span><span>${t.avatar?`<img class="inline-avatar" src="${esc(t.avatar)}" alt="" loading="lazy">`:""}${esc(t.owner||'Не назначен')}${view==='months'&&t.due?' · '+t.due.slice(8)+'.'+t.due.slice(5,7):''}</span></button>${host.canEdit()?`<button class="planning-grip" data-plan-grip="${esc(t.id)}" aria-label="Переместить в календаре: ${esc(t.title)}" title="Перенос меняет дату и очередь. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:''}</article>`;
+ const taskButton=t=>`<article class="calendar-task-wrap" data-task-status="${esc(t.status)}" data-drop-task="${esc(t.id)}">${workProgress(t,host.canEdit())}${temperature(t,host.canEdit())}${statusBadge(t,host.canEdit())}<button class="calendar-task ${statusGroup(t)?'is-terminal':''}" data-calendar-task="${esc(t.id)}" data-priority="${esc(t.priority||'inbox')}" title="${esc(t.title)}"><span class="calendar-task-title">${esc(t.title)}</span><span>${t.avatar?`<img class="inline-avatar" src="${esc(t.avatar)}" alt="" loading="lazy">`:""}${esc(t.owner||'Не назначен')}${view==='months'&&t.due?' · '+t.due.slice(8)+'.'+t.due.slice(5,7):''}</span></button>${host.canEdit()?`<button class="planning-grip" data-plan-grip="${esc(t.id)}" aria-label="Переместить в календаре: ${esc(t.title)}" title="Перенос меняет дату и очередь. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:''}</article>`;
  function day(date,full=false){const items=dayTasks(host.visible(),date,host.today()),today=date===host.today(),outside=view==='month'&&date.slice(0,7)!==anchor.slice(0,7)||!!host.range?.().from&&!overlapsRange({start:date,due:date},host.range().from,host.range().to);return `<section data-drop-date="${date}" class="calendar-day ${today?'is-today':''} ${outside?'outside-month':''}" aria-label="${esc(dateText(date,{day:'numeric',month:'long',year:'numeric'}))}"><header><button class="calendar-date" data-calendar-day="${date}" aria-label="Открыть день ${date}">${full?esc(dateText(date,{weekday:'short',day:'numeric',month:'short'})):Number(date.slice(8))}${today?'<span>Сегодня</span>':''}</button>${host.canEdit()?`<button class="icon-button calendar-add" data-calendar-add="${date}" aria-label="Новая задача на ${date}">${icon('plus')}</button>`:''}</header><div class="calendar-day-tasks">${items.length?`<button class="calendar-day-count" data-calendar-peek="${date}" aria-label="Задачи на ${date}: ${items.length}">${items.length} ${taskWord(items.length)}</button>`:""}${(full?items:items.slice(0,3)).map(taskButton).join('')}${!items.length&&full?'<p class="calendar-empty-day">Задач на этот день нет</p>':''}${!full&&items.length>3?`<button class="text-button calendar-more" data-calendar-day="${date}">Ещё ${items.length-3}</button>`:''}</div></section>`}
  function render(){
   root.hidden=host.mode()!=='calendar';if(root.hidden)return;

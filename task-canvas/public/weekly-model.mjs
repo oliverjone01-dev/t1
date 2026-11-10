@@ -1,7 +1,7 @@
 // Pure weekly accounting shared by the browser and the private Google worker.
 export const SNAPSHOT_TAB=1909260101, EVENT_TAB=1909260102;
 export const SNAPSHOT_TITLE='План-факт · снимки', EVENT_TITLE='План-факт · события';
-export const FIELDS=['createdAt','title','owner','ownerNote','due','status','unit','comment','description','archived','importance','start','closedAt','archiveKind'];
+export const FIELDS=['progress','workStarted','createdAt','title','owner','ownerNote','due','status','unit','comment','description','archived','importance','start','closedAt','archiveKind'];
 export const day=at=>new Date(new Date(at).getTime()+10800000).toISOString().slice(0,10);
 export function shift(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*86400000).toISOString().slice(0,10)}
 export function weekOf(at){const d=day(at);return shift(d,-((new Date(d+'T12:00:00Z').getUTCDay()+6)%7))}
@@ -10,7 +10,7 @@ export const isDone=t=>t?.status==='Готово';
 export const isCancelled=t=>t?.status==='Отменено';
 export const active=t=>t&&!t.archived&&!t.archiveKind&&!isDone(t)&&!isCancelled(t);
 export const planned=(t,w)=>active(t)&&!!t.due&&t.due<=weekEnd(w)&&(!t.createdAt||day(t.createdAt)<=weekEnd(w));
-export function normalize(record){const t=record.task||record;return {id:t.id,sourceId:t.sourceId||'',...Object.fromEntries(FIELDS.map(k=>[k,k==='archived'?!!record.archived:String(t[k]||'')]))}}
+export function normalize(record){const t=record.task||record;return {id:t.id,sourceId:t.sourceId||'',...Object.fromEntries(FIELDS.map(k=>[k,k==='archived'?!!record.archived:k==='workStarted'?!!t.workStarted:k==='progress'?Number(t.progress??(t.status==='Готово'?100:0)):String(t[k]||'')]))}}
 export function changes(before,after,observedAt,previousAt){
  const a=new Map(before.map(t=>[t.id,t])),b=new Map(after.map(t=>[t.id,t]));const result=[];
  for(const id of new Set([...a.keys(),...b.keys()])){const from=a.get(id)||null,to=b.get(id)||null;

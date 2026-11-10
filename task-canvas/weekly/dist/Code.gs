@@ -28,7 +28,7 @@ var WeeklySignalsRuntime = (() => {
     start: () => start
   });
 
-  // public/task-dates.mjs?rev=20261110-planning-4
+  // public/task-dates.mjs?rev=20261110-progress-5
   function validDay(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + "T12:00:00Z")) && (/* @__PURE__ */ new Date(value + "T12:00:00Z")).toISOString().slice(0, 10) === value;
   }
@@ -53,9 +53,10 @@ var WeeklySignalsRuntime = (() => {
   // public/task-signals.mjs
   var terminalKind = (t) => t?.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? "done" : t?.status === "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E" ? "cancelled" : "";
   function trackStatus(before, task, at = (/* @__PURE__ */ new Date()).toISOString()) {
+    task = { ...task, workStarted: !!task.workStarted || ["\u0412 \u0440\u0430\u0431\u043E\u0442\u0435", "\u041F\u0440\u0438\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E"].includes(task.status) || Number(task.progress) > 0 };
     const kind = terminalKind(task);
     if (!kind) return { ...task, closedAt: "", archiveKind: "" };
-    return { ...task, closedAt: before?.status === task.status && before.closedAt ? before.closedAt : task.closedAt && task.closedAt !== before?.closedAt ? task.closedAt : at, archiveKind: before?.status === task.status ? task.archiveKind || "" : "" };
+    return { ...task, ...task.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? { progress: 100 } : {}, closedAt: before?.status === task.status && before.closedAt ? before.closedAt : task.closedAt && task.closedAt !== before?.closedAt ? task.closedAt : at, archiveKind: before?.status === task.status ? task.archiveKind || "" : "" };
   }
   function weekStart(date) {
     const d = /* @__PURE__ */ new Date(date + "T12:00:00Z");
@@ -75,17 +76,17 @@ var WeeklySignalsRuntime = (() => {
     return next;
   }
 
-  // public/task-signals.mjs?rev=20261110-planning-4
+  // public/task-signals.mjs?rev=20261110-progress-5
   function metadata(t) {
-    return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
+    return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, progress: Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0)), workStarted: !!t.workStarted, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
   }
   function packedPositions(t) {
     const p = structuredClone(t.positions || {}), m = metadata(t);
-    if (m.start || m.importance || m.closedAt || m.archiveKind) p._task = m;
+    if (m.start || m.importance || m.closedAt || m.archiveKind || m.progress || m.workStarted) p._task = m;
     return p;
   }
 
-  // public/people.mjs?rev=20261110-planning-4
+  // public/people.mjs?rev=20261110-progress-5
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -96,7 +97,7 @@ var WeeklySignalsRuntime = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261110-planning-4
+  // public/model.mjs?rev=20261110-progress-5
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
     { id: "plan", title: "\u0420\u0430\u0437\u0432\u0438\u0442\u0438\u0435", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
@@ -157,6 +158,11 @@ var WeeklySignalsRuntime = (() => {
       const importance = Number(t.importance || 0);
       if (!Number.isInteger(importance) || importance < 0 || importance > 5) throw new Error("\u0421\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 1 \u0434\u043E 5.");
       result.importance = importance;
+      const progress = Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0));
+      if (!Number.isInteger(progress) || progress < 0 || progress > 100) throw new Error("\u0413\u043E\u0442\u043E\u0432\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 0 \u0434\u043E 100%.");
+      if (t.workStarted !== void 0 && typeof t.workStarted !== "boolean") throw new Error("\u041F\u043E\u0432\u0440\u0435\u0436\u0434\u0435\u043D\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u0437\u0430\u043F\u0443\u0441\u043A\u0430.");
+      result.progress = progress;
+      result.workStarted = !!t.workStarted;
       if (t.createdAt && parseCreatedAt(t.createdAt) !== t.createdAt) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438.");
       result.createdAt = t.createdAt || "";
       if (t.closedAt && (!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt) || !Number.isFinite(Date.parse(t.closedAt)))) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F.");
@@ -177,7 +183,7 @@ var WeeklySignalsRuntime = (() => {
     });
   }
 
-  // public/sync-model.mjs?rev=20261110-planning-4
+  // public/sync-model.mjs?rev=20261110-progress-5
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -201,12 +207,16 @@ var WeeklySignalsRuntime = (() => {
     "priority",
     "positions",
     "importance",
+    "progress",
+    "workStarted",
     "start",
     "createdAt",
     "closedAt",
     "archiveKind"
   ];
   var FIELD_NAMES = {
+    progress: "\u0413\u043E\u0442\u043E\u0432\u043D\u043E\u0441\u0442\u044C",
+    workStarted: "\u0417\u0430\u0434\u0430\u0447\u0430 \u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043B\u0430\u0441\u044C",
     createdAt: "\u0414\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438",
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
     unit: "\u042E\u043D\u0438\u0442",
@@ -244,6 +254,8 @@ var WeeklySignalsRuntime = (() => {
     positions: 17,
     start: 17,
     importance: 17,
+    progress: 17,
+    workStarted: 17,
     closedAt: 17,
     archiveKind: 17
   };
@@ -306,6 +318,8 @@ var WeeklySignalsRuntime = (() => {
         const meta = task.positions._task || {};
         task.start = meta.start || "";
         task.importance = meta.importance || 0;
+        task.progress = meta.progress ?? (task.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0);
+        task.workStarted = !!meta.workStarted;
         task.closedAt = meta.closedAt || "";
         task.archiveKind = meta.archiveKind || "";
         delete task.positions._task;
@@ -364,7 +378,7 @@ var WeeklySignalsRuntime = (() => {
     } };
   }
   function cellValue(field, value, task) {
-    if (task && ["positions", "start", "importance", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
+    if (task && ["positions", "start", "importance", "progress", "workStarted", "closedAt", "archiveKind"].includes(field)) return JSON.stringify(packedPositions(task));
     if (field === "priority") return value ? PRIORITY_LABELS[value] : "";
     if (field === "positions") return JSON.stringify(value || {});
     if (field === "due") return value ? value.split("-").reverse().join(".") : "";
@@ -471,7 +485,7 @@ var WeeklySignalsRuntime = (() => {
     return requests;
   }
 
-  // public/storage-mode.mjs?rev=20261110-planning-4
+  // public/storage-mode.mjs?rev=20261110-progress-5
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {
@@ -616,7 +630,7 @@ var WeeklySignalsRuntime = (() => {
   var EVENT_TAB = 1909260102;
   var SNAPSHOT_TITLE = "\u041F\u043B\u0430\u043D-\u0444\u0430\u043A\u0442 \xB7 \u0441\u043D\u0438\u043C\u043A\u0438";
   var EVENT_TITLE = "\u041F\u043B\u0430\u043D-\u0444\u0430\u043A\u0442 \xB7 \u0441\u043E\u0431\u044B\u0442\u0438\u044F";
-  var FIELDS = ["createdAt", "title", "owner", "ownerNote", "due", "status", "unit", "comment", "description", "archived", "importance", "start", "closedAt", "archiveKind"];
+  var FIELDS = ["progress", "workStarted", "createdAt", "title", "owner", "ownerNote", "due", "status", "unit", "comment", "description", "archived", "importance", "start", "closedAt", "archiveKind"];
   var day = (at) => new Date(new Date(at).getTime() + 108e5).toISOString().slice(0, 10);
   function shift(date, n) {
     return new Date(Date.parse(date + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
@@ -627,7 +641,7 @@ var WeeklySignalsRuntime = (() => {
   }
   function normalize(record) {
     const t = record.task || record;
-    return { id: t.id, sourceId: t.sourceId || "", ...Object.fromEntries(FIELDS.map((k) => [k, k === "archived" ? !!record.archived : String(t[k] || "")])) };
+    return { id: t.id, sourceId: t.sourceId || "", ...Object.fromEntries(FIELDS.map((k) => [k, k === "archived" ? !!record.archived : k === "workStarted" ? !!t.workStarted : k === "progress" ? Number(t.progress ?? (t.status === "\u0413\u043E\u0442\u043E\u0432\u043E" ? 100 : 0)) : String(t[k] || "")])) };
   }
   function changes(before, after, observedAt, previousAt) {
     const a = new Map(before.map((t) => [t.id, t])), b = new Map(after.map((t) => [t.id, t]));

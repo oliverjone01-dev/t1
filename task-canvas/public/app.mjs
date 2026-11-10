@@ -1,17 +1,19 @@
-import {installRangePicker} from './range-picker.mjs?rev=20261110-planning-4';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-planning-4';
-import {installGantt} from './gantt.mjs?rev=20261110-planning-4';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-planning-4';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-planning-4';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-planning-4';
-import {Directory} from './directory.mjs?rev=20261110-planning-4';
-import {installCalendar} from './calendar.mjs?rev=20261110-planning-4';
-import {installProductivity} from './productivity.mjs?rev=20261110-planning-4';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-planning-4';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-planning-4';
-import {renderBoard} from './board-ui.mjs?rev=20261110-planning-4';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-planning-4';
+import {installThemeToggle} from './appearance.mjs?rev=20261110-progress-5';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261110-progress-5';
+import {installRangePicker} from './range-picker.mjs?rev=20261110-progress-5';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-progress-5';
+import {installGantt} from './gantt.mjs?rev=20261110-progress-5';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-progress-5';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-progress-5';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-progress-5';
+import {Directory} from './directory.mjs?rev=20261110-progress-5';
+import {installCalendar} from './calendar.mjs?rev=20261110-progress-5';
+import {installProductivity} from './productivity.mjs?rev=20261110-progress-5';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-progress-5';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-progress-5';
+import {renderBoard} from './board-ui.mjs?rev=20261110-progress-5';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-progress-5';
 import {
   QUADRANTS,
   CARD,
@@ -26,20 +28,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261110-planning-4";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261110-planning-4";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-planning-4";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-planning-4";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261110-planning-4";
-import { remoteChanges } from "./changes.mjs?rev=20261110-planning-4";
-import { TeamApi } from "./team-api.mjs?rev=20261110-planning-4";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-planning-4";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-planning-4";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261110-planning-4";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-planning-4";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-planning-4";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-planning-4";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-planning-4";
+} from "./model.mjs?rev=20261110-progress-5";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261110-progress-5";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-progress-5";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-progress-5";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261110-progress-5";
+import { remoteChanges } from "./changes.mjs?rev=20261110-progress-5";
+import { TeamApi } from "./team-api.mjs?rev=20261110-progress-5";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-progress-5";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-progress-5";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261110-progress-5";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-progress-5";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-progress-5";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-progress-5";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-progress-5";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -47,8 +49,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261110-planning-4";
-import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
+} from "./editor.mjs?rev=20261110-progress-5";
+import { parseAssignee } from "./people.mjs?rev=20261110-progress-5";
 import {
   matchesTask,
   matchesWords,
@@ -57,8 +59,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261110-planning-4";
-import { icon } from "./icons.mjs?rev=20261110-planning-4";
+} from "./ui-model.mjs?rev=20261110-progress-5";
+import { icon } from "./icons.mjs?rev=20261110-progress-5";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -537,6 +539,8 @@ function applyPreferences() {
         : "light"
       : preferences.theme;
   document.documentElement.dataset.density = preferences.density;
+  const themeButton=$("#appearance-open"),dark=document.documentElement.dataset.theme==='dark';
+  themeButton.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');themeButton.setAttribute('aria-pressed',String(dark));themeButton.title=themeButton.getAttribute('aria-label');themeButton.innerHTML=dark?'☀':'◐';
   $("#theme-choice").value = preferences.theme;
   $("#density-choice").value = preferences.density;
   document.querySelector('meta[name="theme-color"]').content = getComputedStyle(
@@ -591,7 +595,8 @@ $("#editor").addEventListener("close", () => {
   renderDraftBanner();
   if (cloudEngine?.connected) cloudEngine.later(250);
 });
-$("#appearance-open").onclick = () => showDialog("appearance-dialog");
+$("#settings-open").onclick=()=>showDialog("appearance-dialog");
+installThemeToggle({button:$("#appearance-open"),storage,onChange:theme=>{preferences=cleanPreferences({...preferences,theme});applyPreferences()},onError:()=>toast("Тема не сохранилась: хранилище браузера недоступно.")});
 $("#help-open").onclick = () => showDialog("help-dialog");
 function placeFilters() {
   const mobile = matchMedia("(max-width:767px)").matches;
@@ -773,16 +778,17 @@ function cardMarkup(task) {
         .map((s) => s[0])
         .join("")
     : "·";
-  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div>${temperature(task,canEdit())}<div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div>${workProgress(task,canEdit())}${temperature(task,canEdit())}<div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${temperature(task,canEdit())}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
+      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
     })
     .join("")}</tbody></table>`;
 }
+function renderWorkEditor(){if(!$('#editor').open)return;const current=tasks.find(t=>t.id===editing);$('#editor-work').innerHTML=current?workProgress(current,canEdit()):'';if(current){const base=editorValues(editingBase);for(const key of ['status','progress'])if(field(key).value===base[key]){field(key).value=editorValues(current)[key];editingBase[key]=editorValues(current)[key];}}text('#editor-progress-value',field('progress').value+'%');}
 function renderCreatedAt(task){const value=task?.createdAt;field('createdAt').value=value?formatDate(createdDay(value))+(value.includes('T')?' · '+new Intl.DateTimeFormat('ru',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' МСК':''):'';field('createdAt').readOnly=true;text('#created-note',task?'Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.':'Дата появится при создании задачи.')}
 function renderRegistry(){
  const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>registryMatch(t,options)).length;
@@ -872,6 +878,7 @@ function render() {
     $("#cards").innerHTML = visible.map(cardMarkup).join("");
   }
   renderMatrix();
+  renderWorkEditor();
   productivity?.render();
   calendar?.render();
   gantt?.render();
@@ -1340,9 +1347,11 @@ function openTask(id = null, chosenDraft = null) {
   showDialog("editor");
   productivity?.editorOpened(id);
   renderOwnerProfile();
+  renderWorkEditor();
 }
 $("#task-form").addEventListener("input", () => {
   text("#editor-error", "");
+  text("#editor-progress-value",field("progress").value+"%");
   saveDraft();
   renderOwnerProfile();
 });
@@ -1359,7 +1368,7 @@ $("#editor-conflicts").onclick = (e) => {
   if (editingVersionBasis && cloudEngine.managed) {
     const latest = cloudEngine.capture().entries.get(editing),
       old = editingVersionBasis.entries.get(editing);
-    const group = { owner: "assignment", due: "schedule" }[key] || key;
+    const group = { owner: "assignment", due: "schedule", progress:"status" }[key] || key;
     if (latest && old) old.versions[group] = latest.versions[group];
   }
   text("#editor-error", "");
@@ -2679,6 +2688,7 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
  clearSelection:()=>{selectedIds.clear();render()},
  hasNewDraft:()=>{try{return !!(memoryDrafts.get(null)||drafts.read(null))}catch{return true}},
 });
+installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 gantt=installGantt({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
@@ -2786,7 +2796,7 @@ renderStorageMode();if(!DEMO)modeMonitor=setTimeout(monitorStorageMode,30000);
 
 // Open links from the weekly report after the source finishes loading.
 const linkedTask=new URLSearchParams(location.search).get("task");
-if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id===linkedTask)){clearInterval(timer);openTask(linkedTask);const desiredStatus=new URLSearchParams(location.search).get("setStatus");if(canEdit()&&["Готово","Отменено"].includes(desiredStatus)){field("status").value=desiredStatus;saveDraft()}const desiredImportance=new URLSearchParams(location.search).get("setImportance");if(canEdit()&&desiredImportance!==null&&/^[0-5]$/.test(desiredImportance)){field("importance").value=desiredImportance==="0"?"":desiredImportance;saveDraft();field("importance").focus()}}else if(++attempts>=60)clearInterval(timer)},1000);}
+if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id===linkedTask)){clearInterval(timer);openTask(linkedTask);const desiredStatus=new URLSearchParams(location.search).get("setStatus");if(canEdit()&&["Готово","Отменено"].includes(desiredStatus)){field("status").value=desiredStatus;saveDraft()}const desiredImportance=new URLSearchParams(location.search).get("setImportance");if(canEdit()&&desiredImportance!==null&&/^[0-5]$/.test(desiredImportance)){field("importance").value=desiredImportance==="0"?"":desiredImportance;saveDraft();field("importance").focus()}const desiredProgress=new URLSearchParams(location.search).get("setProgress");if(canEdit()&&desiredProgress!==null&&/^(100|[1-9]?\d)$/.test(desiredProgress)){field("progress").value=desiredProgress;saveDraft();field("progress").focus()}const desiredAction=new URLSearchParams(location.search).get("setWorkAction");if(canEdit()&&["play","pause"].includes(desiredAction)){field("status").value=desiredAction==="play"?"В работе":"Приостановлено";saveDraft();field("status").focus()}}else if(++attempts>=60)clearInterval(timer)},1000);}
 
 function setTaskStatus(id,status){if(!STATUSES.includes(status))return;return change(()=>{tasks=tasks.map(t=>t.id===id?{...t,status}:t)})}
 document.addEventListener('change',e=>{const el=e.target;if(el?.dataset?.importanceId){e.stopPropagation();change(()=>{tasks=tasks.map(t=>t.id===decodeURIComponent(el.dataset.importanceId)?{...t,importance:Number(el.value)}:t)})}},true);

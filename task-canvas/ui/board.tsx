@@ -1,4 +1,4 @@
-import {Temperature,StatusBadge} from './temperature';
+import {Temperature,StatusBadge,WorkProgress} from './temperature';
 import React,{useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {MotionConfig,motion,AnimatePresence,useReducedMotion} from 'motion/react';
@@ -44,7 +44,7 @@ function TaskCard({task,props,chosen,insert,overlay=false}:any){
   {props.editable&&<div className="matrix-row-handle"><button className="matrix-grip" aria-label={`Переместить: ${task.title}`} title="Тяните для переноса; пробел и стрелки — с клавиатуры" {...attributes} {...listeners}><GripVertical size={16}/></button><label className="matrix-check"><input type="checkbox" aria-label={`Выбрать: ${task.title}`} checked={chosen} onChange={()=>{}} onClick={e=>{e.stopPropagation();props.onSelect(task.id,e.shiftKey)}}/></label></div>}
   <div className="matrix-row-body"><button className="matrix-title" title={task.title} aria-expanded={props.openId===task.id} onClick={e=>{if(props.editable&&(e.metaKey||e.ctrlKey||e.shiftKey))props.onSelect(task.id,e.shiftKey);else props.onOpen(task.id)}}><span>{task.title}</span></button>
   <div className="matrix-row-meta"><span className="matrix-person" title={task.owner||task.ownerNote||'Без ответственного'}><b aria-hidden="true">{props.avatars[task.owner]?<img src={props.avatars[task.owner]} alt="" loading="lazy"/>:(task.owner||'?').slice(0,1)}</b>{task.owner||'Не назначен'}</span><time className={task.due&&task.due<props.today&&!['Готово','Отменено'].includes(task.status)?'overdue':''}>{task.due?new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00')):'Без срока'}</time><span className="matrix-unit">{task.unit}{task.sourceId&&` · #${task.sourceId}`}</span></div>
-  <div className="matrix-signal-row"><Temperature task={task} props={props}/><StatusBadge task={task} props={props}/>{props.notices[task.id]&&<span className="matrix-update" title="Изменения из таблицы"><i/>{props.notices[task.id]==='new'?'Новое':'Правки'}</span>}</div></div>
+  <div className="matrix-signal-row"><WorkProgress task={task} props={props}/><Temperature task={task} props={props}/><StatusBadge task={task} props={props}/>{props.notices[task.id]&&<span className="matrix-update" title="Изменения из таблицы"><i/>{props.notices[task.id]==='new'?'Новое':'Правки'}</span>}</div></div>
   <button className="task-pin-icon matrix-row-pin" aria-label={`${props.pins.includes(task.id)?'Убрать из избранного':'В избранное'}: ${task.title}`} aria-pressed={props.pins.includes(task.id)} onClick={()=>props.onPin(task.id)}><Star size={15}/></button>
  </article>
 }

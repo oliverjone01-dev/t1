@@ -1,6 +1,6 @@
-import {localDate,shiftDate} from './model.mjs?rev=20261110-planning-4';
-import {weekStart,monthStart,shiftMonth} from './calendar-model.mjs?rev=20261110-planning-4';
-import {validDay} from './task-dates.mjs?rev=20261110-planning-4';
+import {localDate,shiftDate} from './model.mjs?rev=20261110-progress-5';
+import {weekStart,monthStart,shiftMonth} from './calendar-model.mjs?rev=20261110-progress-5';
+import {validDay} from './task-dates.mjs?rev=20261110-progress-5';
 export function periodRange(kind,date=localDate()){
  if(kind==='all')return {from:'',to:''};
  if(kind==='today')return {from:date,to:date};

@@ -892,16 +892,16 @@ h3 {
   box-shadow: 0 0 0 6px var(--change-glow);
 }
 .unread-new {
-  --change-edge: var(--success-edge);
-  --change-glow: var(--success-glow);
-  --change-fill: var(--success-soft);
-  --change-ink: var(--success);
+  --change-edge: var(--primary);
+  --change-glow: color-mix(in srgb, var(--primary) 14%, transparent);
+  --change-fill: var(--primary-soft);
+  --change-ink: var(--primary);
 }
 .unread-updated {
-  --change-edge: var(--warning-edge);
-  --change-glow: var(--warning-glow);
-  --change-fill: var(--warning-soft);
-  --change-ink: var(--warning);
+  --change-edge: var(--primary);
+  --change-glow: color-mix(in srgb, var(--primary) 14%, transparent);
+  --change-fill: var(--primary-soft);
+  --change-ink: var(--primary);
 }
 .task-card.unread-change:focus-visible {
   outline: 3px solid var(--focus);
@@ -1087,11 +1087,9 @@ h3 {
   font-size: 13px;
   min-width: 0;
 }
-#task-list tr.unread-new {
-  background: var(--success-soft);
-}
-#task-list tr.unread-updated {
-  background: var(--warning-soft);
+/* Change notices live in their badges; the row always communicates task status. */
+#task-list tr[data-task-status] {
+  background: var(--status-card, var(--panel));
 }
 dialog {
   border: 1px solid var(--line);

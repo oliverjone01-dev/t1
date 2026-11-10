@@ -5,8 +5,8 @@ import {
   combineSheets,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261110-priority-3";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261110-priority-3';
+} from "./sync-model.mjs?rev=20261110-planning-4";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261110-planning-4';
 export class SheetsApi {
   constructor(
     auth,
@@ -47,6 +47,7 @@ export class SheetsApi {
         );
         e.status = response.status;
         e.auth = response.status === 401;
+        if(e.auth)this.auth.invalidate?.();
         throw e;
       }
       return data;

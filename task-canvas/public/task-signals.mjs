@@ -1,3 +1,4 @@
+import {overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
 export const IMPORTANCE_LABELS=['Не оценена','Низкая','Умеренная','Обычная','Высокая','Критичная'];
 export const terminalKind=t=>t?.status==='Готово'?'done':t?.status==='Отменено'?'cancelled':'';
 export function metadata(t){return {...(t.start?{start:t.start}:{}),importance:Number(t.importance)||0,closedAt:t.closedAt||'',archiveKind:t.archiveKind||''}}
@@ -16,4 +17,4 @@ export function temperature(t,editable=false){const n=Number(t.importance)||0,ti
 
 
 export function observedTask(task,observed){if(!observed||observed.status!==task.status||!terminalKind(task))return task;return {...task,closedAt:task.closedAt||observed.closedAt||'',archiveKind:task.archiveKind||observed.archiveKind||''}}
-export function registryMatch(task,{week='',archive='',hideDone=false}={}){if(week)return inWeek(task,week);if(archive==='all')return true;if(archive)return task.archiveKind===archive;return !task.archiveKind&&(!hideDone||!terminalKind(task))}
+export function registryMatch(task,{week='',from='',to='',archive='',hideDone=false}={}){if(!overlapsRange(task,from,to))return false;if(archive.startsWith('status:'))return (task.status||'Не указан')===archive.slice(7);if(week)return inWeek(task,week);if(archive==='all')return true;if(archive)return task.archiveKind===archive;return !task.archiveKind&&(!hideDone||!terminalKind(task))}

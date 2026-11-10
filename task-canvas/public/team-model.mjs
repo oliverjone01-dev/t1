@@ -1,6 +1,6 @@
-import { validateBoard } from "./model.mjs?rev=20261110-priority-3";
-import { equal } from "./sync-model.mjs?rev=20261110-priority-3";
-import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
+import { validateBoard } from "./model.mjs?rev=20261110-planning-4";
+import { equal } from "./sync-model.mjs?rev=20261110-planning-4";
+import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
 export const TEAM_SCHEMA = 1;
 export const GROUPS = {
   title: ["title"],
@@ -13,6 +13,7 @@ export const GROUPS = {
   schedule: ["due", "positions.time", "start"],
   priority: ["priority", "positions.priority","positions.gantt","importance"],
   context: [
+    "createdAt",
     "sourceId",
     "ownerNote",
     "dueNote",

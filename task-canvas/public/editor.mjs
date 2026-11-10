@@ -1,5 +1,5 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-priority-3";
-import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-planning-4";
+import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
 export const EDIT_FIELDS = [
   "title",
   "unit",
@@ -57,6 +57,7 @@ export function planEdit({
   values,
   createId,
   forceNew = false,
+  now = () => new Date().toISOString(),
 }) {
   const old = tasks.find((task) => task.id === id);
   if (id !== null && !old && !forceNew) return { kind: "missing" };
@@ -94,7 +95,7 @@ export function planEdit({
     (key) => data[key] !== editorValues(base)[key],
   );
   const task = {
-    ...(old && !forceNew ? old : { id: createId(), positions: {} }),
+    ...(old && !forceNew ? old : { id: createId(), positions: {}, createdAt: now() }),
     ...(old && !forceNew
       ? Object.fromEntries(changed.map((key) => [key, data[key]]))
       : data),

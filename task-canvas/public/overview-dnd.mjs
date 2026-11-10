@@ -1,5 +1,5 @@
-import {groupFor} from './model.mjs?rev=20261110-priority-3';
-import {ordered} from './order.mjs?rev=20261110-priority-3';
+import {groupFor} from './model.mjs?rev=20261110-planning-4';
+import {ordered} from './order.mjs?rev=20261110-planning-4';
 
 // Drop slots use task identities, never screen coordinates as stored order.
 // The list lives in screen space, so the same midpoint applies at any camera zoom.

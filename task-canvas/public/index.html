@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261110-priority-3" />
+    <meta name="application-version" content="20261110-planning-4" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -27,10 +27,11 @@
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
     </script>
-    <link rel="stylesheet" href="./styles.css?rev=20261110-priority-3" />
-    <link rel="stylesheet" href="./board-ui.css?rev=20261110-priority-3" />
-  <link rel="stylesheet" href="./priority-focus.css?rev=20261110-priority-3"><link rel="stylesheet" href="./task-signals.css?rev=20261110-priority-3&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261110-priority-3">
-</head>
+    <link rel="stylesheet" href="./styles.css?rev=20261110-planning-4" />
+    <link rel="stylesheet" href="./board-ui.css?rev=20261110-planning-4" />
+  <link rel="stylesheet" href="./priority-focus.css?rev=20261110-planning-4"><link rel="stylesheet" href="./task-signals.css?rev=20261110-planning-4&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261110-planning-4">
+  <link rel="stylesheet" href="./planning.css?rev=20261110-planning-4" />
+  </head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
@@ -82,7 +83,7 @@
       <aside class="sidebar" aria-label="Управление доской">
         <h1 class="sidebar-title">Рабочая доска</h1>
         <nav class="views" aria-label="Вид доски">
-          <a class="view" href="./weekly/" style="text-decoration:none;color:inherit"><span data-icon="calendar"></span><span>Неделя · план/факт</span></a>
+          <a class="view" href="./weekly/" style="text-decoration:none;color:inherit"><span data-icon="calendar"></span><span>План/факт</span></a>
           <button data-mode="priority" class="view active" aria-pressed="true">
             <span data-icon="grid"></span><span>Приоритеты</span>
           </button>
@@ -110,7 +111,7 @@
               </select></label
             >
             <label class="filter"
-              >Ответственный<select id="owner-filter">
+              >Отдел<select id="department-filter"><option value="">Все отделы</option></select></label><label class="filter">Ответственный<select id="owner-filter">
                 <option value="">Вся команда</option>
               </select></label
             >
@@ -144,7 +145,7 @@
           ><button id="drafts-open" class="text-button">Продолжить</button>
         </div>
         <div class="toolbar">
-          <div class="registry-controls"><label>Неделя<input type="date" id="registry-week" aria-label="Неделя общего реестра"></label><button type="button" id="registry-week-clear" class="text-button">Все недели</button><label>Реестр<select id="archive-scope"><option value="">Текущие задачи</option><option value="done">Архив · Готово</option><option value="cancelled">Архив · Отменено</option><option value="all">Включая архив</option></select></label><span id="registry-note"></span></div><div class="toolbar-heading"><span id="view-kicker" class="visually-hidden">Планирование</span><h2 id="view-title">Приоритеты</h2><span class="stats"><strong id="task-count">0</strong><span id="task-scope" class="visually-hidden">на устройстве</span></span></div>
+          <div class="registry-controls"><div id="period-picker" class="period-picker"></div><label class="registry-select">Реестр<select id="archive-scope" aria-label="Статус реестра"><option value="">Текущие задачи</option></select></label><span id="registry-note" class="visually-hidden"></span></div><div class="toolbar-heading"><span id="view-kicker" class="visually-hidden">Планирование</span><h2 id="view-title">Приоритеты</h2><span class="stats"><strong id="task-count">0</strong><span id="task-scope" class="visually-hidden">на устройстве</span></span></div>
           <label class="search"
             ><span data-icon="search"></span
             ><input
@@ -307,15 +308,15 @@
           Например, Иван Раюшкин. Пояснения можно оставить в комментарии.
         </p>
         <p id="owner-note" class="source-note"></p>
-        <div class="form-row">
-          <label>Начало<input name="start" type="date" aria-label="Начало задачи"></label>
+        <label>Дата постановки<input name="createdAt" type="text" readonly aria-readonly="true" placeholder="Не указана в источнике" aria-describedby="created-note"></label><p id="created-note" class="field-hint">Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.</p>
+        <div class="form-row"><label>Начало<input name="start" type="date" aria-label="Начало задачи"></label>
 <label>Срок<input name="due" type="date" /></label
           ><label
             >Приоритет<select name="priority">
               <option value="">Входящие</option>
               <option value="do">Важно, срочно</option>
-              <option value="plan">Важно, не срочно</option>
-              <option value="delegate">Не важно, срочно</option>
+              <option value="plan">Развитие · важно, не срочно</option>
+              <option value="delegate">Сделать позже · не важно, срочно</option>
               <option value="later">Не важно, не срочно</option>
             </select></label
           >
@@ -780,7 +781,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261110-priority-3"></script>
+    <script type="module" src="./app.mjs?rev=20261110-planning-4"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

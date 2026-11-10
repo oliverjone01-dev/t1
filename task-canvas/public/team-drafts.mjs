@@ -2,7 +2,7 @@ import {
   DraftStore,
   editorValues,
   EDIT_FIELDS,
-} from "./editor.mjs?rev=20261110-priority-3";
+} from "./editor.mjs?rev=20261110-planning-4";
 // Every page owns its draft slot. Reloaded and sibling-page variants remain recoverable.
 export class TeamDraftStore {
   constructor(storage, prefix, writer = crypto.randomUUID()) {

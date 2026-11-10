@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-09T20:00:01.373137+03:00",
-  "through": "2026-11-08",
+  "loaded_at": "2026-11-10T17:18:10.898256+03:00",
+  "through": "2026-11-09",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
     "tabs": {
@@ -11,23 +11,24 @@
     }
   },
   "window_from": "2026-10-03",
-  "rows": 684,
+  "rows": 688,
   "source_counts": {
     "active": {
-      "market_rows": 52,
+      "market_rows": 41,
       "historical_rows": 6,
-      "accepted_rows": 24,
-      "missing_cost_rows": 1,
-      "unrecognized_offer_rows": 2,
-      "future_rows": 21,
+      "accepted_rows": 15,
+      "missing_cost_rows": 0,
+      "unrecognized_offer_rows": 1,
+      "future_rows": 19,
       "undated_rows": 1
     },
     "archive": {
-      "market_rows": 537,
+      "market_rows": 550,
       "historical_rows": 474,
-      "accepted_rows": 62,
-      "missing_cost_rows": 0,
-      "undated_rows": 1
+      "accepted_rows": 75,
+      "missing_cost_rows": 1,
+      "undated_rows": 1,
+      "unrecognized_offer_rows": 1
     }
   },
   "source_issues": [
@@ -40,5 +41,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "e507e26296468a2ad70b202b8df38d65b5a96caa4dcfb5a898cff18515a8cd04"
+  "csv_sha256": "deb3532e7d6011da0fd454c54755f17757b672e55df630c2f2c641dc9ecc3ba5"
 }

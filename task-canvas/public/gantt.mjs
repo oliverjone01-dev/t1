@@ -1,8 +1,8 @@
-import {workProgress} from './work-progress.mjs?rev=20261110-progress-5';
-import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance} from './gantt-model.mjs?rev=20261110-progress-5';
-import {temperature,dateShift} from './task-signals.mjs?rev=20261110-progress-5';
-import {statusBadge} from './quick-controls.mjs?rev=20261110-progress-5';
-import {statusStyle} from './status-model.mjs?rev=20261110-progress-5';
+import {workProgress} from './work-progress.mjs?rev=20261110-controls-6';
+import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance} from './gantt-model.mjs?rev=20261110-controls-6';
+import {temperature,dateShift} from './task-signals.mjs?rev=20261110-controls-6';
+import {statusBadge} from './quick-controls.mjs?rev=20261110-controls-6';
+import {statusStyle} from './status-model.mjs?rev=20261110-controls-6';
 export function installGantt(host){
  const root=document.querySelector('#gantt-view'),esc=host.esc;let group='unit',sort='due',scale=28,months=3,anchor=host.today(),collapsed=new Set(),drag=null,busy=false,scroll={x:0,y:0},groups=[];
  const fmt=(d,opts={day:'numeric',month:'short'})=>new Intl.DateTimeFormat('ru',opts).format(new Date(d+'T12:00:00Z'));

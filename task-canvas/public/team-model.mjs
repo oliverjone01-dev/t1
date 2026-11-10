@@ -1,6 +1,6 @@
-import { validateBoard } from "./model.mjs?rev=20261110-progress-5";
-import { equal } from "./sync-model.mjs?rev=20261110-progress-5";
-import { parseAssignee } from "./people.mjs?rev=20261110-progress-5";
+import { validateBoard } from "./model.mjs?rev=20261110-controls-6";
+import { equal } from "./sync-model.mjs?rev=20261110-controls-6";
+import { parseAssignee } from "./people.mjs?rev=20261110-controls-6";
 export const TEAM_SCHEMA = 1;
 export const GROUPS = {
   title: ["title"],

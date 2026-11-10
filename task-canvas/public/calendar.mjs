@@ -1,12 +1,12 @@
-import {workProgress} from './work-progress.mjs?rev=20261110-progress-5';
-import {overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
-import {periodRange,shiftRange} from './range-model.mjs?rev=20261110-progress-5';
-import {statusBadge} from './quick-controls.mjs?rev=20261110-progress-5';
-import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261110-progress-5';
-import {sortTasks} from './productivity-model.mjs?rev=20261110-progress-5';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261110-progress-5';
-import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261110-progress-5';
-import {icon} from './icons.mjs?rev=20261110-progress-5';
+import {workProgress} from './work-progress.mjs?rev=20261110-controls-6';
+import {overlapsRange} from './task-dates.mjs?rev=20261110-controls-6';
+import {periodRange,shiftRange} from './range-model.mjs?rev=20261110-controls-6';
+import {statusBadge} from './quick-controls.mjs?rev=20261110-controls-6';
+import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261110-controls-6';
+import {sortTasks} from './productivity-model.mjs?rev=20261110-controls-6';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261110-controls-6';
+import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261110-controls-6';
+import {icon} from './icons.mjs?rev=20261110-controls-6';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view=host.range?.().from?'range':'month',anchor=host.today(),undated=false,peek=null,rangePage=0;

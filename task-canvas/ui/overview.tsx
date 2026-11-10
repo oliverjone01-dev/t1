@@ -13,12 +13,13 @@ function MapTask({task,props,selection,drag,drop,overId,hand}:any){
  const {attributes,listeners,setNodeRef,isDragging}=useSortable({id:task.id,disabled:!props.editable||props.busy||hand,data:{group:task.status==='Готово'?'status:done':task.status==='Отменено'?'status:cancelled':task.priority||'inbox',overview:true}});
  const insert=overId===task.id&&drop&&!drag?.ids.includes(task.id);
  return <article ref={setNodeRef} data-task-status={task.status} data-map-task={task.id} className={`map-task ${chosen?'chosen':''} ${isDragging?'dragging':''} ${insert?(drop.after?'insert-after':'insert-before'):''}`}>
-   <WorkProgress task={task} props={props}/><Temperature task={task} props={props}/><StatusBadge task={task} props={props}/><div className="map-task-copy">
+   <div className="map-task-signals"><Temperature task={task} props={props}/><StatusBadge task={task} props={props}/></div><div className="map-task-copy">
     <button className="map-task-title" aria-label={`Открыть: ${task.title}`} title={task.title} onClick={e=>{if(props.editable&&(e.ctrlKey||e.metaKey||e.shiftKey))props.onSelect(task.id,e.shiftKey);else props.onOpen(task.id)}}>{task.title}</button>
     <span className="map-task-meta" title={`${task.owner||'Не назначен'} · ${task.due||'Без срока'}`}><span>{props.avatars[task.owner]&&<img className="map-avatar" src={props.avatars[task.owner]} alt="" loading="lazy"/>}{task.owner||'Не назначен'}</span>{task.due&&<time className={task.due<props.today&&!['Готово','Отменено'].includes(task.status)?'overdue':''}>{new Intl.DateTimeFormat('ru',{day:'numeric',month:'short'}).format(new Date(task.due+'T12:00:00'))}</time>}{props.notices[task.id]&&<i className="map-task-notice" title={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'} aria-label={props.notices[task.id]==='new'?'Новая задача':'Изменено в таблице'}/>}</span>
    </div>
-   <button className="task-pin-icon map-pin" aria-label={`${props.pins.includes(task.id)?'Убрать из избранного':'В избранное'}: ${task.title}`} aria-pressed={props.pins.includes(task.id)} disabled={!!drag||hand} onClick={()=>props.onPin(task.id)}><Star size={14}/></button>
+   <div className="map-task-footer"><WorkProgress task={task} props={props}/><div className="map-task-utilities"><button className="task-pin-icon map-pin" aria-label={`${props.pins.includes(task.id)?'Убрать из избранного':'В избранное'}: ${task.title}`} aria-pressed={props.pins.includes(task.id)} disabled={!!drag||hand} onClick={()=>props.onPin(task.id)}><Star size={14}/></button>
    {props.editable&&<div className="map-task-actions"><label className="map-task-check"><input type="checkbox" aria-label={`Выбрать: ${task.title}`} checked={chosen} disabled={props.busy||!!drag} onChange={()=>props.onSelect(task.id)}/></label><button className="map-task-grip" aria-label={`Переместить в обзоре: ${task.title}`} title="Тяните для переноса. Пробел и стрелки - с клавиатуры." {...attributes} {...listeners}><GripVertical size={16}/></button></div>}
+   </div></div>
  </article>;
 }
 function MapZone({group,items,props,selection,drag,drop,overId,hand,camera,summary,onFocus,onScroll}:any){

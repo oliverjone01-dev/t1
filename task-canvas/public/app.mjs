@@ -1,19 +1,20 @@
-import {installThemeToggle} from './appearance.mjs?rev=20261110-progress-5';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261110-progress-5';
-import {installRangePicker} from './range-picker.mjs?rev=20261110-progress-5';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-progress-5';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-progress-5';
-import {installGantt} from './gantt.mjs?rev=20261110-progress-5';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-progress-5';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-progress-5';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-progress-5';
-import {Directory} from './directory.mjs?rev=20261110-progress-5';
-import {installCalendar} from './calendar.mjs?rev=20261110-progress-5';
-import {installProductivity} from './productivity.mjs?rev=20261110-progress-5';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-progress-5';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-progress-5';
-import {renderBoard} from './board-ui.mjs?rev=20261110-progress-5';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-progress-5';
+import {googleStatusLabel} from './sync-indicator.mjs?rev=20261110-controls-6';
+import {installThemeToggle} from './appearance.mjs?rev=20261110-controls-6';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261110-controls-6';
+import {installRangePicker} from './range-picker.mjs?rev=20261110-controls-6';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-controls-6';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-controls-6';
+import {installGantt} from './gantt.mjs?rev=20261110-controls-6';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-controls-6';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-controls-6';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-controls-6';
+import {Directory} from './directory.mjs?rev=20261110-controls-6';
+import {installCalendar} from './calendar.mjs?rev=20261110-controls-6';
+import {installProductivity} from './productivity.mjs?rev=20261110-controls-6';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-controls-6';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-controls-6';
+import {renderBoard} from './board-ui.mjs?rev=20261110-controls-6';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-controls-6';
 import {
   QUADRANTS,
   CARD,
@@ -28,20 +29,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261110-progress-5";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261110-progress-5";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-progress-5";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-progress-5";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261110-progress-5";
-import { remoteChanges } from "./changes.mjs?rev=20261110-progress-5";
-import { TeamApi } from "./team-api.mjs?rev=20261110-progress-5";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-progress-5";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-progress-5";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261110-progress-5";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-progress-5";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-progress-5";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-progress-5";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-progress-5";
+} from "./model.mjs?rev=20261110-controls-6";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261110-controls-6";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-controls-6";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-controls-6";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261110-controls-6";
+import { remoteChanges } from "./changes.mjs?rev=20261110-controls-6";
+import { TeamApi } from "./team-api.mjs?rev=20261110-controls-6";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-controls-6";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-controls-6";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261110-controls-6";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-controls-6";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-controls-6";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-controls-6";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-controls-6";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -49,8 +50,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261110-progress-5";
-import { parseAssignee } from "./people.mjs?rev=20261110-progress-5";
+} from "./editor.mjs?rev=20261110-controls-6";
+import { parseAssignee } from "./people.mjs?rev=20261110-controls-6";
 import {
   matchesTask,
   matchesWords,
@@ -59,8 +60,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261110-progress-5";
-import { icon } from "./icons.mjs?rev=20261110-progress-5";
+} from "./ui-model.mjs?rev=20261110-controls-6";
+import { icon } from "./icons.mjs?rev=20261110-controls-6";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -540,7 +541,7 @@ function applyPreferences() {
       : preferences.theme;
   document.documentElement.dataset.density = preferences.density;
   const themeButton=$("#appearance-open"),dark=document.documentElement.dataset.theme==='dark';
-  themeButton.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');themeButton.setAttribute('aria-pressed',String(dark));themeButton.title=themeButton.getAttribute('aria-label');themeButton.innerHTML=dark?'☀':'◐';
+  themeButton.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');themeButton.setAttribute('aria-pressed',String(dark));themeButton.title=themeButton.getAttribute('aria-label');themeButton.innerHTML=icon(dark?'sun':'moon');
   $("#theme-choice").value = preferences.theme;
   $("#density-choice").value = preferences.density;
   document.querySelector('meta[name="theme-color"]').content = getComputedStyle(
@@ -778,7 +779,7 @@ function cardMarkup(task) {
         .map((s) => s[0])
         .join("")
     : "·";
-  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div>${workProgress(task,canEdit())}${temperature(task,canEdit())}<div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
+  return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-signals">${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
@@ -2100,16 +2101,7 @@ function cloudState(state) {
   text("#cloud-label", DEMO ? "Демонстрация" : label);
   $("#google-connect").setAttribute("aria-label", "Google: " + label);
   $("#google-connect").title = label;
-  text(
-    "#google-label",
-    state.status === "synced"
-      ? "Google · сохранено"
-      : state.status === "syncing"
-        ? "Google · проверка"
-        : state.status === "conflict"
-          ? "Google · конфликт"
-          : accessMode==="edit"?"Google · обновить доступ":"Подключить Google",
-  );
+  text("#google-label",googleStatusLabel(state,{editing:accessMode==='edit',remembered:!!googleAuth?.rememberedEmail}));
   text(
     "#cloud-status",
     DEMO
@@ -2125,6 +2117,8 @@ function cloudState(state) {
                     : "ожидает синхронизации") +
                 "."
               : "Изменения подтверждены чтением из таблицы."
+            : state.status === "pending"
+              ? "Сохраняем изменения в Google."
             : state.status === "syncing"
               ? "Проверяем таблицу и сохраняем правки."
               : state.status === "signin" && state.pending

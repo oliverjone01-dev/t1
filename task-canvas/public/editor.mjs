@@ -1,6 +1,6 @@
-import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-progress-5";
-import { parseAssignee } from "./people.mjs?rev=20261110-progress-5";
-import {progressPatch} from './work-progress.mjs?rev=20261110-progress-5';
+import { validateBoard, STATUSES } from "./model.mjs?rev=20261110-controls-6";
+import { parseAssignee } from "./people.mjs?rev=20261110-controls-6";
+import {progressPatch} from './work-progress.mjs?rev=20261110-controls-6';
 export const EDIT_FIELDS = [
   "title",
   "unit",

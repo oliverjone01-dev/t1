@@ -1,6 +1,6 @@
-import {dateShift} from './task-signals.mjs?rev=20261110-progress-5';
-import {validateBoard} from './model.mjs?rev=20261110-progress-5';
-import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261110-progress-5';
+import {dateShift} from './task-signals.mjs?rev=20261110-controls-6';
+import {validateBoard} from './model.mjs?rev=20261110-controls-6';
+import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261110-controls-6';
 export const dayDistance=(a,b)=>Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
 export const taskSpan=t=>t.start||t.due?{start:t.start||t.due,end:t.due||t.start,milestone:!t.start||!t.due}:null;
 export function shiftSchedule(t,due){if(!due||!t.due)return {...t,due};return {...t,due,...(t.start?{start:dateShift(t.start,dayDistance(t.due,due))}:{})}}

@@ -5,8 +5,8 @@ import {
   resolveConflict,
   GROUPS,
   GROUP_NAMES,
-} from "./team-model.mjs?rev=20261110-controls-6";
-import { equal } from "./sync-model.mjs?rev=20261110-controls-6";
+} from "./team-model.mjs?rev=20261110-controls-7";
+import { equal } from "./sync-model.mjs?rev=20261110-controls-7";
 export const digest = async (value) =>
   [
     ...new Uint8Array(

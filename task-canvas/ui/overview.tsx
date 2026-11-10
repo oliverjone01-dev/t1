@@ -26,6 +26,11 @@ function MapZone({group,items,props,selection,drag,drop,overId,hand,camera,summa
  const {setNodeRef}=useDroppable({id:'zone:'+group.id,data:{group:group.id,overviewZone:true,world:group}});
  const active=drop?.group===group.id;
  const digest=groupDigest(items,props.today),width=group.w*camera.z,height=group.h*camera.z;
+ // Semantic zoom: tiny zones remain usable navigation instead of clipped controls.
+ if(!summary&&width<180)return <section ref={setNodeRef} data-priority={group.id} className={`map-zone-label map-compact-zone ${active?'drop-active':''}`} style={{left:camera.x+group.x*camera.z,top:camera.y+group.y*camera.z,width,height}} aria-label={`Обзор: ${group.title}`}>
+  <button className="map-zone-compact-button" onClick={onFocus} disabled={!!drag} aria-label={`Открыть задачи: ${group.title}, ${items.length}`}><span className="map-compact-top"><PriorityEmblem id={group.id}/><b>{items.length}</b></span><span className="map-compact-title">{group.title}</span><small>Открыть задачи</small></button>
+ </section>;
+
  return <section ref={setNodeRef} data-priority={group.id} className={`map-zone-label ${summary?'is-summary':'has-tasks'} ${active?'drop-active':''} ${width<220?'small-zone':''}`} aria-label={`Обзор: ${group.title}`} style={{left:camera.x+group.x*camera.z,top:camera.y+group.y*camera.z,width,height,'--map-title-size':`${Math.max(12,Math.min(15,11+camera.z*2))}px`} as React.CSSProperties}>
   <header className="map-zone-head"><button className="map-zone-heading" onClick={onFocus} disabled={!!drag} title="Приблизить квадрат, оставаясь в обзоре"><PriorityEmblem id={group.id}/><span>{group.title}</span><b>{items.length}</b><Maximize2 size={13}/></button><PrioritySignals group={group}/></header>
   {summary?<div className="map-digest"><div className="map-owners">{digest.owners.slice(0,width<220?1:group.id==='inbox'||group.id.startsWith('status:')?1:3).map(([name,count])=><div key={name}><span>{name}</span><b>{count}</b><i style={{width:`${Math.round(Number(count)/Math.max(1,items.length)*100)}%`}}/></div>)}{!items.length&&<span className="map-no-tasks">Нет задач</span>}</div><div className="map-deadlines">{digest.overdue>0?<span className="overdue">Просрочено {digest.overdue}</span>:<span>Со сроком {digest.scheduled}</span>}<span>Без срока {items.length-digest.scheduled}</span></div></div>

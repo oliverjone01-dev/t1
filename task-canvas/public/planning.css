@@ -8,3 +8,5 @@
 .calendar-view-range{grid-template-columns:repeat(var(--period-columns,7),minmax(0,1fr))}
 .period-dialog .period-inputs label{display:flex;flex-direction:column;align-items:stretch;gap:5px}.period-dialog .period-inputs input{max-width:none}.period-inputs>span{margin-top:18px}
 .calendar-range-pages{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.calendar-range-pages button{min-height:44px;white-space:nowrap}.calendar-range-pages span{text-align:center}
+/* The period row spans the toolbar; its other controls stay on the next line. */
+.toolbar{flex-wrap:wrap}

@@ -27,7 +27,29 @@ var TaskCanvasBackground = (() => {
     stop: () => stop
   });
 
-  // public/people.mjs?rev=20261110-priority-3
+  // public/task-dates.mjs?rev=20261110-planning-4
+  function validDay(value) {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + "T12:00:00Z")) && (/* @__PURE__ */ new Date(value + "T12:00:00Z")).toISOString().slice(0, 10) === value;
+  }
+  function parseCreatedAt(raw, cell) {
+    if (["DATE", "DATE_TIME"].includes(cell?.userEnteredFormat?.numberFormat?.type) && typeof cell.effectiveValue?.numberValue === "number") {
+      const serial = cell.effectiveValue.numberValue, date = new Date(Date.UTC(1899, 11, 30) + Math.floor(serial) * 864e5).toISOString().slice(0, 10);
+      return validDay(date) ? date : "";
+    }
+    const value = String(raw || "").trim();
+    if (validDay(value)) return value;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(?:Z|[+-]\d{2}:\d{2})$/.test(value) && validDay(value.slice(0, 10)) && Number.isFinite(Date.parse(value))) return new Date(value).toISOString();
+    const values = [...value.matchAll(/(?:^|[\s;,])(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/g)].map((m) => {
+      const date = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+      if (!validDay(date)) return "";
+      if (!m[4]) return date;
+      if (+m[4] > 23 || +m[5] > 59 || +(m[6] || 0) > 59) return "";
+      return (/* @__PURE__ */ new Date(`${date}T${m[4].padStart(2, "0")}:${m[5]}:${m[6] || "00"}+03:00`)).toISOString();
+    }).filter(Boolean).sort();
+    return values[0] || "";
+  }
+
+  // public/people.mjs?rev=20261110-planning-4
   function parseAssignee(value) {
     const name = String(value || "").trim().replace(/\s+/g, " ");
     if (!name) return "";
@@ -38,11 +60,11 @@ var TaskCanvasBackground = (() => {
     return /^[\p{L} -]+$/u.test(name) ? name : null;
   }
 
-  // public/model.mjs?rev=20261110-priority-3
+  // public/model.mjs?rev=20261110-planning-4
   var QUADRANTS = [
     { id: "do", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "coral" },
-    { id: "plan", title: "\u0417\u0430\u043F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
-    { id: "delegate", title: "\u0414\u0435\u043B\u0435\u0433\u0438\u0440\u043E\u0432\u0430\u0442\u044C", subtitle: "\u041D\u0435 \u0432\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "blue" },
+    { id: "plan", title: "\u0420\u0430\u0437\u0432\u0438\u0442\u0438\u0435", subtitle: "\u0412\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "violet" },
+    { id: "delegate", title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u043F\u043E\u0437\u0436\u0435", subtitle: "\u041D\u0435 \u0432\u0430\u0436\u043D\u043E \xB7 \u0441\u0440\u043E\u0447\u043D\u043E", color: "blue" },
     { id: "later", title: "\u041E\u0442\u043B\u043E\u0436\u0438\u0442\u044C", subtitle: "\u041D\u0435 \u0432\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E", color: "slate" }
   ];
   function localDate(date = /* @__PURE__ */ new Date()) {
@@ -79,6 +101,7 @@ var TaskCanvasBackground = (() => {
       dependency: at(row, "\u0417\u0430\u0432\u0438\u0441\u0438\u043C\u043E\u0441\u0442\u0438 \u0438 \u0443\u0442\u043E\u0447\u043D\u0435\u043D\u0438\u044F"),
       requester: at(row, "\u041F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u0449\u0438\u043A"),
       link: /^https?:\/\//.test(at(row, "ID \u0437\u0430\u0434\u0430\u0447\u0438/ \u0441\u0441\u044B\u043B\u043A\u0430")) ? at(row, "ID \u0437\u0430\u0434\u0430\u0447\u0438/ \u0441\u0441\u044B\u043B\u043A\u0430") : "",
+      createdAt: parseCreatedAt(at(row, "\u0414\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438") || at(row, "\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043C\u044F \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u044F")),
       priority: null,
       positions: {}
     }));
@@ -98,6 +121,8 @@ var TaskCanvasBackground = (() => {
       const importance = Number(t.importance || 0);
       if (!Number.isInteger(importance) || importance < 0 || importance > 5) throw new Error("\u0421\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442 1 \u0434\u043E 5.");
       result.importance = importance;
+      if (t.createdAt && parseCreatedAt(t.createdAt) !== t.createdAt) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438.");
+      result.createdAt = t.createdAt || "";
       if (t.closedAt && (!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt) || !Number.isFinite(Date.parse(t.closedAt)))) throw new Error("\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0430\u044F \u0434\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F.");
       result.closedAt = t.closedAt || "";
       if (t.archiveKind && !["done", "cancelled"].includes(t.archiveKind)) throw new Error("\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432.");
@@ -116,7 +141,7 @@ var TaskCanvasBackground = (() => {
     });
   }
 
-  // public/task-signals.mjs?rev=20261110-priority-3
+  // public/task-signals.mjs?rev=20261110-planning-4
   function metadata(t) {
     return { ...t.start ? { start: t.start } : {}, importance: Number(t.importance) || 0, closedAt: t.closedAt || "", archiveKind: t.archiveKind || "" };
   }
@@ -126,7 +151,7 @@ var TaskCanvasBackground = (() => {
     return p;
   }
 
-  // public/sync-model.mjs?rev=20261110-priority-3
+  // public/sync-model.mjs?rev=20261110-planning-4
   var SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
   var TAB_ID = 1102202601;
   var TELEGRAM_TAB_ID = 1478506234;
@@ -151,10 +176,12 @@ var TaskCanvasBackground = (() => {
     "positions",
     "importance",
     "start",
+    "createdAt",
     "closedAt",
     "archiveKind"
   ];
   var FIELD_NAMES = {
+    createdAt: "\u0414\u0430\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438",
     title: "\u0417\u0430\u0434\u0430\u0447\u0430",
     unit: "\u042E\u043D\u0438\u0442",
     direction: "\u041D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435",
@@ -178,6 +205,7 @@ var TaskCanvasBackground = (() => {
     later: "\u041D\u0435 \u0432\u0430\u0436\u043D\u043E \xB7 \u043D\u0435 \u0441\u0440\u043E\u0447\u043D\u043E"
   };
   var COLUMNS = {
+    createdAt: 13,
     unit: 1,
     direction: 2,
     title: 6,
@@ -267,6 +295,7 @@ var TaskCanvasBackground = (() => {
       task.owner = parseAssignee(raw[10] || "") || "";
       task.ownerNote = raw[20] || raw[10] || "";
       task.dueNote = raw[21] || raw[11] || "";
+      task.createdAt = parseCreatedAt(raw[13], rows[index][13]);
       const dueCell = rows[index][11];
       if (["DATE", "DATE_TIME"].includes(
         dueCell?.userEnteredFormat?.numberFormat?.type
@@ -492,7 +521,7 @@ var TaskCanvasBackground = (() => {
     return requests;
   }
 
-  // public/team-model.mjs?rev=20261110-priority-3
+  // public/team-model.mjs?rev=20261110-planning-4
   var TEAM_SCHEMA = 1;
   var GROUPS = {
     title: ["title"],
@@ -505,6 +534,7 @@ var TaskCanvasBackground = (() => {
     schedule: ["due", "positions.time", "start"],
     priority: ["priority", "positions.priority", "positions.gantt", "importance"],
     context: [
+      "createdAt",
       "sourceId",
       "ownerNote",
       "dueNote",
@@ -1247,7 +1277,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/team-api.mjs?rev=20261110-priority-3
+  // public/team-api.mjs?rev=20261110-planning-4
   var digest2 = async (value) => [
     ...new Uint8Array(
       await crypto.subtle.digest(
@@ -1550,7 +1580,7 @@ var TaskCanvasBackground = (() => {
     }
   };
 
-  // public/storage-mode.mjs?rev=20261110-priority-3
+  // public/storage-mode.mjs?rev=20261110-planning-4
   var MODES = Object.freeze({ sheets: "Google \u0422\u0430\u0431\u043B\u0438\u0446\u0430", firestore: "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \xB7 Firestore" });
   var LEGACY_CONTROL = Object.freeze({ request: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 }, ack: { schema: 1, mode: "firestore", epoch: "legacy", at: 0 } });
   function parseModeCell(text) {
@@ -1607,6 +1637,7 @@ var TaskCanvasBackground = (() => {
           );
           e.status = response.status;
           e.auth = response.status === 401;
+          if (e.auth) this.auth.invalidate?.();
           throw e;
         }
         return data;

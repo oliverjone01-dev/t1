@@ -1,15 +1,17 @@
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-priority-3';
-import {installGantt} from './gantt.mjs?rev=20261110-priority-3';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-priority-3';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-priority-3';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-priority-3';
-import {Directory} from './directory.mjs?rev=20261110-priority-3';
-import {installCalendar} from './calendar.mjs?rev=20261110-priority-3';
-import {installProductivity} from './productivity.mjs?rev=20261110-priority-3';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-priority-3';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-priority-3';
-import {renderBoard} from './board-ui.mjs?rev=20261110-priority-3';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-priority-3';
+import {installRangePicker} from './range-picker.mjs?rev=20261110-planning-4';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261110-planning-4';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261110-planning-4';
+import {installGantt} from './gantt.mjs?rev=20261110-planning-4';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261110-planning-4';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261110-planning-4';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261110-planning-4';
+import {Directory} from './directory.mjs?rev=20261110-planning-4';
+import {installCalendar} from './calendar.mjs?rev=20261110-planning-4';
+import {installProductivity} from './productivity.mjs?rev=20261110-planning-4';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261110-planning-4';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261110-planning-4';
+import {renderBoard} from './board-ui.mjs?rev=20261110-planning-4';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261110-planning-4';
 import {
   QUADRANTS,
   CARD,
@@ -24,20 +26,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261110-priority-3";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261110-priority-3";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-priority-3";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-priority-3";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261110-priority-3";
-import { remoteChanges } from "./changes.mjs?rev=20261110-priority-3";
-import { TeamApi } from "./team-api.mjs?rev=20261110-priority-3";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-priority-3";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-priority-3";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261110-priority-3";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-priority-3";
-import { FIELD_NAMES, comparable } from "./sync-model.mjs?rev=20261110-priority-3";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-priority-3";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-priority-3";
+} from "./model.mjs?rev=20261110-planning-4";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261110-planning-4";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261110-planning-4";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261110-planning-4";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261110-planning-4";
+import { remoteChanges } from "./changes.mjs?rev=20261110-planning-4";
+import { TeamApi } from "./team-api.mjs?rev=20261110-planning-4";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261110-planning-4";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261110-planning-4";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261110-planning-4";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261110-planning-4";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261110-planning-4";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261110-planning-4";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261110-planning-4";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -45,8 +47,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261110-priority-3";
-import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
+} from "./editor.mjs?rev=20261110-planning-4";
+import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
 import {
   matchesTask,
   matchesWords,
@@ -55,8 +57,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261110-priority-3";
-import { icon } from "./icons.mjs?rev=20261110-priority-3";
+} from "./ui-model.mjs?rev=20261110-planning-4";
+import { icon } from "./icons.mjs?rev=20261110-planning-4";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -83,11 +85,12 @@ let accessMode = DEMO ? "edit" : "view",
   lastPublicBoard = null,
   lastPublicChanges = [];
 const canEdit = () =>
-  DEMO || (accessMode === "edit" && !!cloudEngine?.connected && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
+  DEMO || (accessMode === "edit" && (!!cloudEngine?.connected || SHEETS_ONLY&&googleAuth?.rememberedEmail===MODE_OWNER&&cloudEngine?.enabled) && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
 const directory=new Directory();
 const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
 let productivity=null,calendar=null,gantt=null,priorityEditor=null;
-let registryWeek="",archiveScope="",signalState=new Map();
+let archiveScope="",dateRange={from:"",to:""},rangePicker=null,signalState=new Map();
+function setDateRange(range,syncCalendar=true){dateRange={...range};if(syncCalendar)calendar?.setRange(range);rangePicker?.render();render()}
 const effectiveTask=t=>observedTask(t,signalState.get(t.id));
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
 function selectTask(id,range=false){
@@ -605,7 +608,7 @@ function setOptions(select, html) {
   const value = select.value;
   select.innerHTML = html;
   select.dataset.options = html;
-  if (value && select.tagName === "SELECT" && ["owner-filter","unit-filter"].includes(select.id) && ![...select.options].some(o=>o.value===value)) select.add(new Option(value.replace(/^owner:/, "")+" · нет на доске",value));
+  if (value && select.tagName === "SELECT" && ["owner-filter","unit-filter","department-filter"].includes(select.id) && ![...select.options].some(o=>o.value===value)) select.add(new Option(value.replace(/^owner:/, "")+" · нет на доске",value));
   if ([...select.options].some((o) => o.value === value)) select.value = value;
 }
 function updateOptions() {
@@ -634,6 +637,7 @@ function updateOptions() {
           )
           .join(""),
     );
+  setOptions($("#department-filter"),`<option value="">Все отделы</option>`+[...new Set([...directory.departments,...directory.people.flatMap(p=>p.department.split(" · ").filter(Boolean))])].sort().map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(""));
   setOptions(
     $("#owner-list"),
     owners.map((v) => `<option value="${esc(v)}"></option>`).join(""),
@@ -645,15 +649,16 @@ function updateOptions() {
 }
 function matchesFilters(task) {
   return (
+    (!$("#department-filter").value || (directory.resolve(task.owner)?.department||"").split(" · ").includes($("#department-filter").value)) &&
     (!$("#unit-filter").value || task.unit === $("#unit-filter").value) &&
     (!$("#owner-filter").value ||
       ($("#owner-filter").value === "__none"
         ? !task.owner
         : personName(task.owner) === personName($("#owner-filter").value.replace(/^owner:/,"")))) &&
-    matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (registryWeek&&statusGroup(task)?true:(productivity?.matches(task)??true))
+    matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (productivity?.matches(task)??true)
   );
 }
-const isVisible = task=>matchesFilters(task)&&registryMatch(effectiveTask(task),{week:registryWeek,archive:archiveScope,hideDone:$('#hide-done').checked});
+const isVisible = task=>matchesFilters(task)&&registryMatch(effectiveTask(task),{...dateRange,archive:archiveScope,hideDone:$('#hide-done').checked});
 const formatDate = (value) =>
   value
     ? new Date(`${value}T12:00:00`).toLocaleDateString("ru", {
@@ -771,12 +776,18 @@ function cardMarkup(task) {
   return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div>${temperature(task,canEdit())}<div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
-  return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
+  return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${temperature(task,canEdit())}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
+      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${temperature(task,canEdit())}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
     })
     .join("")}</tbody></table>`;
+}
+function renderCreatedAt(task){const value=task?.createdAt;field('createdAt').value=value?formatDate(createdDay(value))+(value.includes('T')?' · '+new Intl.DateTimeFormat('ru',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' МСК':''):'';field('createdAt').readOnly=true;text('#created-note',task?'Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.':'Дата появится при создании задачи.')}
+function renderRegistry(){
+ const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>registryMatch(t,options)).length;
+ const options=[['','Текущие задачи',count({})],...STATUSES.map(status=>['status:'+status,status,count({archive:'status:'+status})]),['done','Архив · Готово',count({archive:'done'})],['cancelled','Архив · Отменено',count({archive:'cancelled'})],['all','Все с архивом',pool.length]];
+ setOptions($('#archive-scope'),options.map(([v,label,n])=>`<option value="${esc(v)}">${esc(label)} · ${n} шт</option>`).join(''));$('#archive-scope').value=archiveScope;
 }
 function render() {
   if(matrixDragging)return;
@@ -784,12 +795,14 @@ function render() {
   const focusedStatus = document.activeElement?.dataset?.statusId;
   cloudRenderNeeded = false;
   renderedDay = today();
-  text("#registry-note",registryWeek?"Готово и отменено включены во всех видах":"");
+  text("#registry-note",dateRange.from?"Задачи по пересечению начала и срока":"Все даты");
+  rangePicker?.render();
   renderChanges();
   updateOptions();
   renderDraftBanner();
+  renderRegistry();
   const visible = productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),
-    matching = tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{week:registryWeek,archive:archiveScope})),
+    matching = tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{...dateRange,archive:archiveScope})),
     canvasMode = ["list","calendar","gantt"].includes(mode) ? lastCanvasMode : mode;
   layout = createLayout(visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})), canvasMode, today(), [
     ...new Set([...extraOwners.map(personName), ...tasks.map((t) => personName(t.owner)).filter(Boolean)]),
@@ -823,6 +836,7 @@ function render() {
   }[mode];
   text("#view-kicker", info[0]);
   text("#view-title", info[1]);
+  $("#view-title").hidden=mode==="calendar";
   text(
     "#view-hint",
     canEdit() ? info[2] : "Просмотр. Откройте карточку для подробностей.",
@@ -840,6 +854,9 @@ function render() {
   const filterCount = [
     $("#unit-filter").value,
     $("#owner-filter").value,
+    $("#department-filter").value,
+    dateRange.from,
+    archiveScope,
     $("#hide-done").checked,
     productivity?.filterActive(),
   ].filter(Boolean).length;
@@ -849,7 +866,7 @@ function render() {
     $("#zones").innerHTML = layout.groups
       .map(
         (g, i) =>
-          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor({...t,owner:personName(t.owner)}, canvasMode, today()) === g.id).length}</span></div></section>`,
+          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${g.id.startsWith("owner:")&&personAvatar(g.id.slice(6))?`<img class="team-lane-avatar" src="${esc(personAvatar(g.id.slice(6)))}" alt="" loading="lazy">`:""}${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor({...t,owner:personName(t.owner)}, canvasMode, today()) === g.id).length}</span></div></section>`,
       )
       .join("");
     $("#cards").innerHTML = visible.map(cardMarkup).join("");
@@ -1291,6 +1308,7 @@ function openTask(id = null, chosenDraft = null) {
       ? "Восстановлен черновик на этом устройстве"
       : "Изменения до сохранения остаются в черновике",
   );
+  renderCreatedAt(current);
   text("#owner-note", task.ownerNote ? `Из таблицы: ${task.ownerNote}` : "");
   text("#due-note", task.dueNote ? `Исходный срок: ${task.dueNote}` : "");
   text(
@@ -1629,12 +1647,14 @@ function clearFilters() {
   $("#search").value = "";
   $("#unit-filter").value = "";
   $("#owner-filter").value = "";
+  $("#department-filter").value = "";
+  archiveScope="";$("#archive-scope").value="";dateRange={from:"",to:""};calendar?.setRange(dateRange);
   $("#hide-done").checked = false;
   render();
 }
 $("#clear-filters").onclick = clearFilters;
 $("#reset-search").onclick = clearFilters;
-for (const id of ["search", "unit-filter", "owner-filter", "hide-done"])
+for (const id of ["search", "unit-filter", "owner-filter", "department-filter", "hide-done"])
   $("#" + id).addEventListener(id === "search" ? "input" : "change", render);
 function setMode(next) {
   if($("#editor").open){saveDraft();$("#editor").close();}
@@ -2008,7 +2028,26 @@ window.addEventListener("storage", (e) => {
   }
   if (e.key !== STORAGE && e.key !== null) return;
   if (!DEMO) {
-    if(SHEETS_ONLY){storageConflict=true;cloudEngine?.disconnect();renderAlert();return;}
+    if(SHEETS_ONLY){
+      try{
+        const incoming=JSON.parse(e.newValue||'null');
+        if(!incoming)throw new Error('Локальная копия удалена в другой вкладке.');
+        const signature=dataSignature(incoming);
+        if(signature===storedSignature)return; // Camera/cache heartbeats are not task conflicts.
+        if(!Array.isArray(incoming.owners)||incoming.owners.some(x=>typeof x!=="string"))throw new Error("Повреждены дорожки другой вкладки.");
+        const board={tasks:validateBoard(incoming),owners:incoming.owners};
+        if(accessMode==='view'){editorLocalBoard=board;storedSignature=signature;return;}
+        if(cloudEngine.busy){sharedCacheEvent=e;return;}
+        // Each cache includes its acknowledged Sheet baseline. Merge pending changes
+        // from both tabs against the old baseline before replacing either copy.
+        const plan=mergeBoards(cloudEngine.base||board,{tasks,owners:extraOwners},board);
+        storedSignature=signature;storageConflict=false;
+        cloudEngine.conflicts=[...cloudEngine.conflicts,...plan.conflicts];
+        applyCloud(plan.board,cloudEngine.snapshot());
+        if(plan.conflicts.length)cloudEngine.state('conflict');else {cloudEngine.changed();cloudEngine.later(0);}
+      }catch{storageConflict=true;renderAlert();}
+      return;
+    }
     cloudEngine
       ?.ready()
       .then(() => {
@@ -2041,7 +2080,7 @@ function cloudState(state) {
   const label =
     {
       local: "Локальная доска",
-      signin: "Нужен вход Google",
+      signin: SHEETS_ONLY&&googleAuth?.rememberedEmail?"Вход сохранён · обновите доступ Google":"Нужен вход Google",
       pending: "Ожидает отправки",
       syncing: "Синхронизация...",
       synced: state.managed ? "Сохранено для команды" : "Сохранено в Google",
@@ -2060,7 +2099,7 @@ function cloudState(state) {
         ? "Google · проверка"
         : state.status === "conflict"
           ? "Google · конфликт"
-          : "Подключить Google",
+          : accessMode==="edit"?"Google · обновить доступ":"Подключить Google",
   );
   text(
     "#cloud-status",
@@ -2213,6 +2252,7 @@ function applyPublic(board, meta) {
       $("#source-link").hidden = !/^https?:\/\//.test(current.link || "");
       if (!$("#source-link").hidden) $("#source-link").href = current.link;
 
+      renderCreatedAt(current);
       renderEditorConflicts();
     }
   }
@@ -2276,6 +2316,7 @@ function applyCloud(board, cache) {
           field(key).value = remote[key];
           editingBase[key] = remote[key];
         }
+    renderCreatedAt(current);
     saveDraft();
     renderEditorConflicts();
   }
@@ -2302,6 +2343,7 @@ cloudEngine = new (DEMO || SHEETS_ONLY ? SyncEngine : TeamSyncEngine)({
     if (changes.length) cloudRenderNeeded = true;
   },
 });
+let sharedCacheEvent=null;
 const originalFlush = cloudEngine.flush.bind(cloudEngine);
 cloudEngine.flush = async () => {
   if (DEMO) return;
@@ -2320,7 +2362,7 @@ cloudEngine.flush = async () => {
     cloudEngine.later(1500);
     return;
   }
-  return originalFlush();
+  try{return await originalFlush()}finally{if(sharedCacheEvent){const event=sharedCacheEvent;sharedCacheEvent=null;window.dispatchEvent(new StorageEvent("storage",{key:event.key,newValue:event.newValue}));}}
 };
 function pendingConnection(value) {
   connecting = value;
@@ -2357,11 +2399,13 @@ $("#google-authorize").onclick = async () => {
     let access;
     if(SHEETS_ONLY){
       const profile=await googleAuth.profile();
-      if(profile.email.toLowerCase()!==MODE_OWNER)throw new Error('Личный режим: редактирует владелец доски. Для коллег доступен просмотр по ссылке.');
+      if(profile.email.toLowerCase()!==MODE_OWNER){googleAuth.disconnect();throw new Error('Личный режим: редактирует владелец доски. Для коллег доступен просмотр по ссылке.');}
+      googleAuth.remember(profile.email);
       access={ownerEmail:MODE_OWNER};
     }else{
       await cloudEngine.repository.authenticate(googleAuth.getToken());
       access=await cloudEngine.repository.accessInfo();
+      googleAuth.remember(cloudEngine.repository.actor().email);
     }
     if(!access.background?.enabled && (SHEETS_ONLY||access.ownerEmail===cloudEngine.repository.actor().email.toLowerCase())){
       try { await cloudEngine.api.read(); }
@@ -2551,6 +2595,7 @@ $("#resolve-conflicts").onclick = async () => {
 };
 window.addEventListener("online", () => {
   if (cloudEngine.connected) cloudEngine.flush();
+  else if(SHEETS_ONLY&&accessMode==="edit")restorePersonalSession();
   else if (!DEMO && accessMode === "view") viewer?.start();
 });
 document.addEventListener("visibilitychange", () => {
@@ -2577,6 +2622,7 @@ if (!DEMO) {
         onState: renderViewerState,
       });
       if (accessMode === "view") viewer.start();
+      if(SHEETS_ONLY)queueMicrotask(restorePersonalSession);
       if(!SHEETS_ONLY)cloudEngine.repository = new TeamApi({
         config: team,
         boardId: team.boardId,
@@ -2587,6 +2633,40 @@ if (!DEMO) {
       renderViewerState({ status: "view-error", message: error.message });
     });
 }
+let renewingSession=null;
+async function restorePersonalSession(){
+ if(!googleAuth||!SHEETS_ONLY||modePending(storageControl))return;
+ let valid=googleAuth.restore();const remembered=googleAuth.rememberedEmail===MODE_OWNER;
+ if(!valid&&!remembered)return;
+ let message='Вход сохранён. При следующем изменении обновим разрешение Google.';
+ if(valid){
+  try{const p=await googleAuth.profile();if(p.email.toLowerCase()!==MODE_OWNER){googleAuth.disconnect();return}}
+  catch(error){
+   if(error.identity){googleAuth.disconnect();return}
+   if(!remembered||!cloudEngine.base||stateLoadError){text('#google-error',error.message);return}
+   valid=false;message=error.message;
+  }
+ }
+ if(!valid&&(!cloudEngine.base||stateLoadError))return;
+ try{
+  viewer?.stop();tasks=structuredClone(editorLocalBoard.tasks);extraOwners=[...editorLocalBoard.owners];accessMode='connecting';
+  if(valid)await cloudEngine.connect();else {cloudEngine.enabled=true;cloudEngine.state('signin',message);}
+  accessMode='edit';$('#view-access').hidden=true;$('#google-disconnect').hidden=false;persist();render();cloudState({...syncState,status:cloudEngine.status,conflicts:cloudEngine.conflicts,pending:cloudEngine.pending()});
+ }catch(error){text('#google-error',error.message);startViewer()}
+}
+function renewPersonalSession(){
+ if(renewingSession||!SHEETS_ONLY||accessMode!=='edit'||!googleAuth?.needsRefresh())return;
+ // Start inside the trusted user event: GIS requires a user gesture for renewal.
+ renewingSession=googleAuth.authorize().then(async()=>{
+  const p=await googleAuth.profile();if(p.email.toLowerCase()!==MODE_OWNER){googleAuth.disconnect();throw new Error('Выберите Google-аккаунт владельца доски.');}
+  googleAuth.remember(p.email);
+  if(cloudEngine.connected)await cloudEngine.flush();else await cloudEngine.connect();
+  render();
+ }).catch(error=>{if(!error.cancelled){text('#google-error',error.message);toast('Правки сохранены на устройстве. '+error.message)}}).finally(()=>{renewingSession=null});
+}
+document.addEventListener('click',e=>{if(e.isTrusted&&!e.target.closest('#google-disconnect,#google-authorize,#google-cancel,#cloud-reset'))renewPersonalSession()},true);
+document.addEventListener('keydown',e=>{if(e.isTrusted&&!e.repeat&&e.key==='Enter')renewPersonalSession()},true);
+window.addEventListener('storage',e=>{if(e.key!==googleAuth?.sessionKey)return;if(e.newValue){googleAuth.restore();if(SHEETS_ONLY&&accessMode==='edit'&&!cloudEngine.connected&&!googleAuth.needsRefresh(5000))cloudEngine.connect()}else if(SHEETS_ONLY&&accessMode==='edit'){$('#google-disconnect').click()}});
 if(SHEETS_ONLY){text('#cloud-title','Личная доска · Google Таблица');text('#cloud-mode-note','Правки до отправки и черновики сохраняются на этом устройстве. История версий таблицы доступна в Google. Общая история Firestore в личном режиме не ведётся.');text('#cloud-mode-description','Вы редактируете через свой Google, коллеги смотрят по ссылке без входа. Карточки и порядок сохраняются прямо в таблице. Firestore в этом режиме не используется.');}
 productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,canEdit,requireEditor,personName,
  tasks:()=>tasks,mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
@@ -2602,7 +2682,8 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 gantt=installGantt({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
-calendar=installCalendar({esc,today,setStatus:setTaskStatus,setWeek:value=>{registryWeek=value;$("#registry-week").value=value;render()},mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
+rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
+calendar=installCalendar({esc,today,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });
 installPlanningDrag({tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit,selection:()=>[...selectedIds],toast,
@@ -2709,8 +2790,6 @@ if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id
 
 function setTaskStatus(id,status){if(!STATUSES.includes(status))return;return change(()=>{tasks=tasks.map(t=>t.id===id?{...t,status}:t)})}
 document.addEventListener('change',e=>{const el=e.target;if(el?.dataset?.importanceId){e.stopPropagation();change(()=>{tasks=tasks.map(t=>t.id===decodeURIComponent(el.dataset.importanceId)?{...t,importance:Number(el.value)}:t)})}},true);
-$('#registry-week').onchange=e=>{registryWeek=e.target.value?weekStart(e.target.value):'';e.target.value=registryWeek;render()};
-$('#registry-week-clear').onclick=()=>{registryWeek='';$('#registry-week').value='';render()};
 $('#archive-scope').onchange=e=>{archiveScope=e.target.value;render()};
 
 async function refreshSignalState(){if(DEMO)return;try{const c=new AbortController(),timer=setTimeout(()=>c.abort(),18000);let r;try{r=await fetch('https://docs.google.com/spreadsheets/d/1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY/export?format=csv&gid=1909260103&range=A1:D2500&_='+Date.now(),{credentials:'omit',cache:'no-store',signal:c.signal})}finally{clearTimeout(timer)}if(!r.ok)throw Error();const rows=parseDelimited(await r.text(),',');if(rows[0]?.[0]!=='Проверено'||rows.length>=2500)throw Error();signalState=new Map(rows.slice(2).filter(r=>r[2]).map(r=>[r[2],JSON.parse(r[3])]));render()}catch{if(archiveScope)text('#registry-note','Архив не обновлён: проверьте соединение с таблицей.')}finally{setTimeout(refreshSignalState,30000)}}

@@ -1,10 +1,11 @@
-import {packedPositions} from './task-signals.mjs?rev=20261110-priority-3';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261110-planning-4';
+import {packedPositions} from './task-signals.mjs?rev=20261110-planning-4';
 import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261110-priority-3";
-import { parseAssignee } from "./people.mjs?rev=20261110-priority-3";
+} from "./model.mjs?rev=20261110-planning-4";
+import { parseAssignee } from "./people.mjs?rev=20261110-planning-4";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const TELEGRAM_TAB_ID = 1478506234;
@@ -29,10 +30,12 @@ export const SYNC_FIELDS = [
   "positions",
   "importance",
   "start",
+  "createdAt",
   "closedAt",
   "archiveKind",
 ];
 export const FIELD_NAMES = {
+  createdAt: "Дата постановки",
   title: "Задача",
   unit: "Юнит",
   direction: "Направление",
@@ -53,6 +56,7 @@ export const PRIORITY_LABELS = {
   later: "Не важно · не срочно",
 };
 export const COLUMNS = {
+  createdAt: 13,
   unit: 1,
   direction: 2,
   title: 6,
@@ -150,6 +154,7 @@ export function decodeSheet(sheet, year = new Date().getFullYear()) {
     task.owner = parseAssignee(raw[10] || "") || "";
     task.ownerNote = raw[20] || raw[10] || "";
     task.dueNote = raw[21] || raw[11] || "";
+    task.createdAt=parseCreatedAt(raw[13],rows[index][13]);
     const dueCell = rows[index][11];
     if (
       ["DATE", "DATE_TIME"].includes(

@@ -1,10 +1,11 @@
-import {parseAssignee} from './people.mjs?rev=20261110-priority-3';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261110-planning-4';
+import {parseAssignee} from './people.mjs?rev=20261110-planning-4';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
   { id: 'do', title: 'Сделать сейчас', subtitle: 'Важно · срочно', color: 'coral' },
-  { id: 'plan', title: 'Запланировать', subtitle: 'Важно · не срочно', color: 'violet' },
-  { id: 'delegate', title: 'Делегировать', subtitle: 'Не важно · срочно', color: 'blue' },
+  { id: 'plan', title: 'Развитие', subtitle: 'Важно · не срочно', color: 'violet' },
+  { id: 'delegate', title: 'Сделать позже', subtitle: 'Не важно · срочно', color: 'blue' },
   { id: 'later', title: 'Отложить', subtitle: 'Не важно · не срочно', color: 'slate' },
 ];
 export const STATUSES = ['Не указан', 'В ожидании', 'В работе', 'Приостановлено', 'Готово', 'Отменено'];
@@ -156,6 +157,7 @@ export function fromSheet(rows, year = new Date().getFullYear()) {
     owner: '', ownerNote: at(row, 'Ответственный'), due: parseDeadline(at(row, 'Срок'), year), dueNote: at(row, 'Срок'),
     comment: at(row, 'Коммент'), dependency: at(row, 'Зависимости и уточнения'), requester: at(row, 'Постановщик'),
     link: /^https?:\/\//.test(at(row, 'ID задачи/ ссылка')) ? at(row, 'ID задачи/ ссылка') : '',
+    createdAt: parseCreatedAt(at(row, 'Дата постановки') || at(row, 'Дата и время сообщения')),
     priority: null, positions: {},
   }));
 }
@@ -174,6 +176,8 @@ export function validateBoard(value) {
     const importance=Number(t.importance||0);
     if(!Number.isInteger(importance)||importance<0||importance>5)throw new Error('Срочность должна быть от 1 до 5.');
     result.importance=importance;
+    if(t.createdAt && parseCreatedAt(t.createdAt)!==t.createdAt)throw new Error('Некорректная дата постановки.');
+    result.createdAt=t.createdAt||'';
     if(t.closedAt&&(!/^\d{4}-\d{2}-\d{2}T/.test(t.closedAt)||!Number.isFinite(Date.parse(t.closedAt))))throw new Error('Некорректная дата завершения.');
     result.closedAt=t.closedAt||'';
     if(t.archiveKind&&!['done','cancelled'].includes(t.archiveKind))throw new Error('Неизвестный архив.');

@@ -106,3 +106,25 @@ test('personal mode verifies the Google profile directly without a Firebase sess
  assert.equal(profile.email,'owner@example.test');
  await assert.rejects(h.auth.profile(async()=>({ok:true,json:async()=>({email:'owner@example.test',email_verified:false})})),/не подтвердил/);
 });
+
+test('verified session restores across pages, respects expiry, keeps account hint and explicit logout clears it',async()=>{
+ const saved=new Map(),localStorage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};
+ let requestConfig,requested;
+ const environment={localStorage,google:{accounts:{oauth2:{initTokenClient:c=>{requestConfig=c;return {requestAccessToken:options=>{requested=options;c.callback({access_token:'fixture-persistent',expires_in:3600})}}}}}}};
+ const first=new GoogleAuth({clientId:'persistent-test'},{environment});await first.authorize();assert.equal(saved.size,0,'unverified authorization is never persisted');first.remember('owner@example.test');
+ const next=new GoogleAuth({clientId:'persistent-test'},{environment});assert.equal(next.getToken(),'fixture-persistent');assert.equal(next.rememberedEmail,'owner@example.test');
+ next.invalidate();assert.throws(()=>next.getToken(),e=>e.auth);assert.equal(next.rememberedEmail,'owner@example.test');await next.authorize();assert.equal(requestConfig.login_hint,'owner@example.test');assert.equal(requested.prompt,'');
+ next.remember();next.disconnect();assert.equal(saved.size,0);assert.equal(new GoogleAuth({clientId:'persistent-test'},{environment}).rememberedEmail,'');
+});
+test('identity-only cached grant cannot be restored as a Drive permission and revoked tokens are never reused',()=>{
+ const saved=new Map(),environment={localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)}};
+ const a=new GoogleAuth({clientId:'scope-test',identityOnly:true},{environment});a.token='identity-fixture';a.expiresAt=Date.now()+60000;a.remember('owner@example.test');
+ const b=new GoogleAuth({clientId:'scope-test',identityOnly:false},{environment});assert.throws(()=>b.getToken(),e=>e.auth);assert.equal(b.rememberedEmail,'owner@example.test');
+ a.invalidate();assert.throws(()=>new GoogleAuth({clientId:'scope-test',identityOnly:true},{environment}).getToken(),e=>e.auth);
+});
+test('a revoked grant is invalidated while its remembered verified account survives for renewal',async()=>{
+ const saved=new Map(),environment={localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)}};
+ const a=new GoogleAuth({clientId:'revoked-test'},{environment});a.token='revoked-fixture';a.expiresAt=Date.now()+60000;a.remember('owner@example.test');
+ await assert.rejects(a.profile(async()=>({ok:false,status:401,json:async()=>({error:'revoked'})})),e=>e.auth);
+ assert.equal(a.rememberedEmail,'owner@example.test');assert.throws(()=>a.getToken(),e=>e.auth);assert.equal(new GoogleAuth({clientId:'revoked-test'},{environment}).rememberedEmail,'owner@example.test');
+});

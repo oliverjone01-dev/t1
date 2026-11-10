@@ -1,6 +1,6 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261110-priority-3';
-import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261110-priority-3';
-import {icon} from './icons.mjs?rev=20261110-priority-3';
+import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261110-planning-4';
+import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261110-planning-4';
+import {icon} from './icons.mjs?rev=20261110-planning-4';
 
 // UI-only preferences live separately from the shared board and its outbox.
 export function installProductivity(host) {
@@ -85,7 +85,7 @@ export function installProductivity(host) {
  function updateIntakeCount(){const count=intake.filter(t=>!t.duplicate||$('#intake-duplicates').checked).length;$('#intake-submit').textContent=`Добавить задач: ${count}`;$('#intake-submit').disabled=busy||!count}
  $('#intake-duplicates').onchange=updateIntakeCount;
  $('#intake-submit').onclick=async()=>{if(busy||!intake.length||!host.requireEditor())return;busy=true;updateIntakeCount();try{
-  const additions=intake.filter(t=>!t.duplicate||$('#intake-duplicates').checked).map(t=>t.task);
+  const additions=intake.filter(t=>!t.duplicate||$('#intake-duplicates').checked).map(t=>{t.task.createdAt ||= new Date().toISOString();return t.task});
   if(!additions.length)return;
   if(await host.commit(current=>{
     const newTasks=additions.filter(t=>!current.some(c=>c.id===t.id));

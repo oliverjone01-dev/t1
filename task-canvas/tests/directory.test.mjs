@@ -31,3 +31,9 @@ test('confirmed PTO department includes its staff and descendants without other 
  assert(publicPerson({...employee,UF_DEPARTMENT:[191]},departments,ids));
  assert.equal(publicPerson({...employee,UF_DEPARTMENT:[61]},departments,ids),null);
 });
+test('department filters use trimmed names and descendant staff also belongs to the selected root',()=>{
+ const depts=[{ID:'189',NAME:'Конструкторский отдел ',PARENT:'1'},{ID:'191',NAME:' Расчёты ',PARENT:'189'}];
+ const person=publicPerson({ID:'8',ACTIVE:'Y',NAME:'Виктория',LAST_NAME:'Иванова',UF_DEPARTMENT:[191]},depts,new Set(['189','191']));
+ assert.equal(person.department,'Конструкторский отдел · Расчёты');
+ assert.equal(cleanDirectory({version:1,people:[{...person,department:'Конструкторский отдел '} ]})[0].department,'Конструкторский отдел');
+});

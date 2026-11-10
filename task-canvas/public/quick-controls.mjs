@@ -1,5 +1,5 @@
-import {IMPORTANCE_LABELS} from './task-signals.mjs?rev=20261110-priority-3';
-import {STATUS_STYLE,statusStyle} from './status-model.mjs?rev=20261110-priority-3';
+import {IMPORTANCE_LABELS} from './task-signals.mjs?rev=20261110-planning-4';
+import {STATUS_STYLE,statusStyle} from './status-model.mjs?rev=20261110-planning-4';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function statusBadge(task,editable=false){const s=statusStyle(task.status),label=task.status||'Не указан',body=`<span aria-hidden="true">${s.symbol}</span><span>${esc(label)}</span>`;return editable?`<button type="button" class="task-status ${s.key}" data-quick-field="status" data-quick-id="${encodeURIComponent(task.id)}" aria-label="Изменить статус: ${esc(task.title)}" aria-haspopup="dialog" title="Изменить статус">${body}</button>`:`<span class="task-status ${s.key}">${body}</span>`}
 export function installQuickControls(host){

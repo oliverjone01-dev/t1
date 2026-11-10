@@ -1,7 +1,7 @@
 const normalize=value=>String(value||'').toLocaleLowerCase('ru').replace(/ё/g,'е').trim().replace(/\s+/g,' ');
 const givenNames={катя:['екатерина'],дима:['дмитрий'],вика:['виктория'],софа:['софья','софия'],костя:['константин'],женя:['евгений','евгения'],саша:['александр','александра'],настя:['анастасия'],оля:['ольга'],лена:['елена'],маша:['мария'],миша:['михаил'],сережа:['сергей'],паша:['павел'],леша:['алексей']};
 export function cleanDirectory(data){
- return (data?.version===1&&Array.isArray(data.people)?data.people:[]).filter(p=>/^\d+$/.test(p.id)&&typeof p.name==='string'&&p.name.trim()&&typeof p.first==='string').map(p=>({id:p.id,name:p.name.trim(),first:p.first.trim(),last:String(p.last||'').trim(),department:String(p.department||''),avatar:/^avatars\/\d+\.(jpg|png|webp)$/.test(p.avatar||'')?p.avatar:''}));
+ return (data?.version===1&&Array.isArray(data.people)?data.people:[]).filter(p=>/^\d+$/.test(p.id)&&typeof p.name==='string'&&p.name.trim()&&typeof p.first==='string').map(p=>({id:p.id,name:p.name.trim(),first:p.first.trim(),last:String(p.last||'').trim(),department:String(p.department||'').split(' · ').map(s=>s.trim()).filter(Boolean).join(' · '),avatar:/^avatars\/\d+\.(jpg|png|webp)$/.test(p.avatar||'')?p.avatar:''}));
 }
 function cleanOwnerAliases(data){
  const aliases=data?.ownerAliases;if(!aliases||typeof aliases!=='object'||Array.isArray(aliases))return {};

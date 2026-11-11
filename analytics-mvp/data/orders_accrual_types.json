@@ -3,8 +3,8 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -86202429,
-  "n": 3522
+  "sum": -86241138,
+  "n": 3523
  },
  {
   "type_id": 32,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -381817,
-  "n": 1865
+  "sum": -382310,
+  "n": 1866
  },
  {
   "type_id": 74,
@@ -94,8 +94,8 @@
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -34360,
-  "n": 1718
+  "sum": -34380,
+  "n": 1719
  },
  {
   "type_id": 10,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 2039398,
-  "n": 514
+  "sum": 2089743,
+  "n": 528
  }
 ]

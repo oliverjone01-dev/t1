@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-12",
   "dateTo": "2026-11-10",
-  "generated_at": "2026-11-11T12:32:32.824Z",
+  "generated_at": "2026-11-11T17:03:45.179Z",
   "totals": {
     "rev": 36653927,
     "units": 522,
@@ -1195,7 +1195,7 @@
       "retp": 0,
       "aov": 105900,
       "offer": "GGT-03-1-5-O-18090",
-      "stock": 348,
+      "stock": 347,
       "pidx": 0.68,
       "pcol": "SUPER",
       "price": 105900,

@@ -1,7 +1,7 @@
 {
   "platform": "ym",
-  "generated_at": "2026-11-10T15:24:24.183Z",
-  "today": "2026-11-10",
+  "generated_at": "2026-11-11T08:34:25.021Z",
+  "today": "2026-11-11",
   "periods": [
     {
       "kind": "closed_month",
@@ -25,32 +25,32 @@
         "status": "расхождение -7 шт: заказы vs реализация (доначисления, поздние возвраты, месяц ещё не закрыт)"
       },
       "money": {
-        "payout_derived": 3617129,
-        "payout_matched": 3617129,
-        "netting_by_order": 3617129,
+        "payout_derived": 3653578,
+        "payout_matched": 3653578,
+        "netting_by_order": 3653578,
         "orders_total": 139,
         "orders_matched": 139,
         "diff": 0,
         "key_check": {
-          "checked": 16960,
-          "agree": 16960,
+          "checked": 17055,
+          "agree": 17055,
           "pct": 100,
           "trusted": true,
-          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 16960/16960 строк (100%)"
+          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 17055/17055 строк (100%)"
         },
         "legs": {
           "accruals_orders": 9723734,
-          "accruals_ledger": 9726609,
-          "accruals_diff": -2875,
-          "fees_derived": 6106605,
-          "fees_ledger": 6109480,
-          "fees_diff": -2875,
+          "accruals_ledger": 9726974,
+          "accruals_diff": -3240,
+          "fees_derived": 6070156,
+          "fees_ledger": 6073395,
+          "fees_diff": -3240,
           "orders_fees_from_ledger": 139,
           "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
           "allocation": {
             "orders_from_ledger": 139,
-            "orders_off": 7,
-            "off_amount": 2874,
+            "orders_off": 8,
+            "off_amount": 3238,
             "off_orders": [
               {
                 "order": "62027756931",
@@ -83,12 +83,12 @@
                 "diff": -126
               }
             ],
-            "status": "РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у 7/139 заказов сумма сборов по позициям не равна удержаниям реестра"
+            "status": "РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у 8/139 заказов сумма сборов по позициям не равна удержаниям реестра"
           }
         },
-        "status": "сошлось по 139/139 заказам (допуск 18086 ₽)",
+        "status": "сошлось по 139/139 заказам (допуск 18268 ₽)",
         "accruals": 9723734,
-        "fees": 6106605,
+        "fees": 6070156,
         "predicted_share": 0,
         "payments": {
           "buyer_leg_derived": 4307612,
@@ -158,11 +158,11 @@
         "orders_matched": 74,
         "diff": 0,
         "key_check": {
-          "checked": 16960,
-          "agree": 16960,
+          "checked": 17055,
+          "agree": 17055,
           "pct": 100,
           "trusted": true,
-          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 16960/16960 строк (100%)"
+          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 17055/17055 строк (100%)"
         },
         "legs": {
           "accruals_orders": 5151137,
@@ -245,11 +245,11 @@
     },
     {
       "kind": "current_month",
-      "label": "текущий месяц 2026-11 (по 2026-11-09)",
+      "label": "текущий месяц 2026-11 (по 2026-11-10)",
       "dateFrom": "2026-11-01",
-      "dateTo": "2026-11-09",
+      "dateTo": "2026-11-10",
       "units": {
-        "orders_delivered_net": 31,
+        "orders_delivered_net": 40,
         "orders_returned": 1,
         "realization_sold": null,
         "realization_ret": null,
@@ -267,101 +267,101 @@
         "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       },
       "money": {
-        "payout_derived": 996452,
-        "payout_matched": 996452,
-        "netting_by_order": 996452,
-        "orders_total": 32,
-        "orders_matched": 32,
+        "payout_derived": 1242012,
+        "payout_matched": 1242012,
+        "netting_by_order": 1242012,
+        "orders_total": 41,
+        "orders_matched": 41,
         "diff": 0,
         "key_check": {
-          "checked": 16960,
-          "agree": 16960,
+          "checked": 17055,
+          "agree": 17055,
           "pct": 100,
           "trusted": true,
-          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 16960/16960 строк (100%)"
+          "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 17055/17055 строк (100%)"
         },
         "legs": {
-          "accruals_orders": 2241571,
-          "accruals_ledger": 2241571,
+          "accruals_orders": 3089515,
+          "accruals_ledger": 3089515,
           "accruals_diff": 0,
-          "fees_derived": 1245119,
-          "fees_ledger": 1245119,
+          "fees_derived": 1847503,
+          "fees_ledger": 1847503,
           "fees_diff": 0,
-          "orders_fees_from_ledger": 32,
+          "orders_fees_from_ledger": 41,
           "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
           "allocation": {
-            "orders_from_ledger": 32,
+            "orders_from_ledger": 41,
             "orders_off": 0,
             "off_amount": 0,
             "off_orders": [],
-            "status": "разнесение сходится по всем 32 заказам (сборы по позициям = удержания реестра)"
+            "status": "разнесение сходится по всем 41 заказам (сборы по позициям = удержания реестра)"
           }
         },
-        "status": "сошлось по 32/32 заказам (допуск 4982 ₽)",
-        "accruals": 2241571,
-        "fees": 1245119,
+        "status": "сошлось по 41/41 заказам (допуск 6210 ₽)",
+        "accruals": 3089515,
+        "fees": 1847503,
         "predicted_share": 0,
         "payments": {
-          "buyer_leg_derived": 988587,
-          "payments_actual": 988587,
+          "buyer_leg_derived": 1372283,
+          "payments_actual": 1372283,
           "diff": 0,
-          "accruals": 2241571,
-          "subsidy_leg": 1252984,
-          "payout_full": 1013643,
-          "orders_with_payments": 31,
-          "orders_total": 32,
-          "coverage_pct": 96.9,
-          "orders_matched": 31,
+          "accruals": 3089515,
+          "subsidy_leg": 1717232,
+          "payout_full": 1259203,
+          "orders_with_payments": 40,
+          "orders_total": 41,
+          "coverage_pct": 97.6,
+          "orders_matched": 40,
           "orders_off": 0,
           "orders_off_pct": 0,
           "off_amount": 0,
           "off_orders": [],
           "by_type": {
-            "PAYMENT": 988587
+            "PAYMENT": 1372283
           },
-          "status": "сошлось позаказно: все 31 заказов с платежами (покупательская нога)",
+          "status": "сошлось позаказно: все 40 заказов с платежами (покупательская нога)",
           "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
         }
       },
       "revenue": null,
       "cogs": {
-        "sku_total": 41,
-        "sku_with_cogs": 35,
-        "rev_total": 6262064,
-        "rev_with_cogs": 4771517,
-        "pct_sku": 85.4,
-        "pct_rev": 76.2,
-        "status": "без СС 6 SKU (23.8% оборота) - маржа по ним завышена"
+        "sku_total": 44,
+        "sku_with_cogs": 38,
+        "rev_total": 6761189,
+        "rev_with_cogs": 5270642,
+        "pct_sku": 86.4,
+        "pct_rev": 78,
+        "status": "без СС 6 SKU (22% оборота) - маржа по ним завышена"
       }
     }
   ],
   "cumulative": {
-    "payout_derived": 31904602,
-    "payout_matched": 31904602,
-    "netting_by_order": 31738393,
-    "orders_total": 1352,
-    "orders_matched": 1352,
+    "payout_derived": 32186611,
+    "payout_matched": 32186611,
+    "netting_by_order": 32020402,
+    "orders_total": 1361,
+    "orders_matched": 1361,
     "diff": 166209,
     "key_check": {
-      "checked": 16960,
-      "agree": 16960,
+      "checked": 17055,
+      "agree": 17055,
       "pct": 100,
       "trusted": true,
-      "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 16960/16960 строк (100%)"
+      "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 17055/17055 строк (100%)"
     },
     "legs": {
-      "accruals_orders": 69192350,
-      "accruals_ledger": 69128899,
-      "accruals_diff": 63451,
-      "fees_derived": 37287748,
-      "fees_ledger": 37390506,
-      "fees_diff": -102758,
-      "orders_fees_from_ledger": 1352,
+      "accruals_orders": 70040294,
+      "accruals_ledger": 69977207,
+      "accruals_diff": 63087,
+      "fees_derived": 37853683,
+      "fees_ledger": 37956805,
+      "fees_diff": -103122,
+      "orders_fees_from_ledger": 1361,
       "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
       "allocation": {
-        "orders_from_ledger": 1352,
-        "orders_off": 38,
-        "off_amount": 102760,
+        "orders_from_ledger": 1361,
+        "orders_off": 39,
+        "off_amount": 103124,
         "off_orders": [
           {
             "order": "54138901377",
@@ -394,24 +394,24 @@
             "diff": -75
           }
         ],
-        "status": "РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у 38/1352 заказов сумма сборов по позициям не равна удержаниям реестра"
+        "status": "РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у 39/1361 заказов сумма сборов по позициям не равна удержаниям реестра"
       }
     },
-    "status": "расхождение 166209 ₽ по 1352/1352 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
+    "status": "расхождение 166209 ₽ по 1361/1361 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
     "netting_account": 440287,
     "netting_account_in_window": 385496,
     "netting_account_note": "440287 ₽ всего по реестру, из них 385496 ₽ попадает в окно дашборда (с 2026-01-01); разница 54792 ₽ - проводки до нижней границы, в pnl_account_daily их нет",
     "payments": {
-      "buyer_leg_derived": 36903825,
-      "payments_actual": 36786715,
+      "buyer_leg_derived": 37287521,
+      "payments_actual": 37170411,
       "diff": 117110,
-      "accruals": 69192350,
-      "subsidy_leg": 32288525,
-      "payout_full": 32413313,
-      "orders_with_payments": 1314,
-      "orders_total": 1352,
+      "accruals": 70040294,
+      "subsidy_leg": 32752773,
+      "payout_full": 32658873,
+      "orders_with_payments": 1323,
+      "orders_total": 1361,
       "coverage_pct": 97.2,
-      "orders_matched": 1307,
+      "orders_matched": 1316,
       "orders_off": 7,
       "orders_off_pct": 0.5,
       "off_amount": -117110,
@@ -460,45 +460,45 @@
         }
       ],
       "by_type": {
-        "PAYMENT": 37019455,
+        "PAYMENT": 37403151,
         "REFUND": -232730
       },
-      "status": "сошлось по 1307/1314 заказам (99.5%); не сошлись 7 на -117110 ₽ - краевые случаи (частичная доставка, полный возврат с софинансированием), см. off_orders",
+      "status": "сошлось по 1316/1323 заказам (99.5%); не сошлись 7 на -117110 ₽ - краевые случаи (частичная доставка, полный возврат с софинансированием), см. off_orders",
       "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
     }
   },
   "coverage": {
     "window": {
-      "dateFrom": "2026-10-11",
-      "dateTo": "2026-11-09"
+      "dateFrom": "2026-10-12",
+      "dateTo": "2026-11-10"
     },
-    "sku_total": 65,
+    "sku_total": 66,
     "cogs": {
-      "sku": 57,
-      "pct_sku": 87.7,
-      "pct_rev": 89.5
+      "sku": 58,
+      "pct_sku": 87.9,
+      "pct_rev": 89.6
     },
     "taxonomy": {
-      "sku": 56,
-      "pct_sku": 86.2,
-      "pct_rev": 88.4
+      "sku": 57,
+      "pct_sku": 86.4,
+      "pct_rev": 88.5
     },
     "all_period": {
       "dateFrom": "2026-01-01",
-      "dateTo": "2026-11-09",
-      "sku_total": 432,
-      "rev_total": 117822631,
+      "dateTo": "2026-11-10",
+      "sku_total": 433,
+      "rev_total": 118321756,
       "cogs": {
-        "sku": 420,
+        "sku": 421,
         "pct_sku": 97.2,
         "pct_rev": 98.1,
         "rev_without": 2201595
       },
       "taxonomy": {
-        "sku": 56,
-        "pct_sku": 13,
-        "pct_rev": 43.7,
-        "rev_without": 66312609
+        "sku": 57,
+        "pct_sku": 13.2,
+        "pct_rev": 44.2,
+        "rev_without": 66007601
       }
     },
     "realization": {
@@ -525,14 +525,14 @@
       }
     },
     "netting_key": {
-      "checked": 16960,
-      "agree": 16960,
+      "checked": 17055,
+      "agree": 17055,
       "pct": 100,
       "trusted": true,
-      "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 16960/16960 строк (100%)"
+      "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 17055/17055 строк (100%)"
     },
     "netting": {
-      "rows": 20980,
+      "rows": 21075,
       "months": [
         "2025-12",
         "2026-01",
@@ -547,22 +547,22 @@
         "2026-10",
         "2026-11"
       ],
-      "orders_with_number": 2153
+      "orders_with_number": 2162
     },
     "items": {
-      "rows": 3215,
-      "service_rows": 1151,
+      "rows": 3225,
+      "service_rows": 1152,
       "dup_sku_unrecognized": 0,
       "note": "позиции-услуги распознаны, дублей SKU без объяснения нет"
     },
     "fee_source": {
-      "orders_from_netting": 1700,
-      "orders_from_commissions": 344,
-      "accruals_from_netting": 69812191,
+      "orders_from_netting": 1703,
+      "orders_from_commissions": 350,
+      "accruals_from_netting": 70040294,
       "accruals_from_commissions": 0,
-      "fees_from_netting": 37544894.25,
+      "fees_from_netting": 38110827.77,
       "fees_from_commissions": 0,
-      "rate_netting": 53.8,
+      "rate_netting": 54.4,
       "rate_order": null,
       "by_month": {
         "2026-01": {
@@ -660,24 +660,24 @@
           "orders_order": 37,
           "accruals_netting": 8038181,
           "accruals_order": 0,
-          "fees_netting": 4859733.45,
+          "fees_netting": 5055981.12,
           "fees_order": 0,
-          "rate_netting": 60.5,
+          "rate_netting": 62.9,
           "rate_order": null
         },
         "2026-11": {
-          "orders_netting": 64,
-          "orders_order": 11,
-          "accruals_netting": 1054528,
+          "orders_netting": 67,
+          "orders_order": 17,
+          "accruals_netting": 1282631,
           "accruals_order": 0,
-          "fees_netting": 383145.65,
+          "fees_netting": 752831.5,
           "fees_order": 0,
-          "rate_netting": 36.3,
+          "rate_netting": 58.7,
           "rate_order": null
         }
       },
       "gaps": [],
-      "accruals_total": 69812191,
+      "accruals_total": 70040294,
       "pct_accruals_from_commissions": 0,
       "months_mostly_commissions": [],
       "gaps_named": [],
@@ -688,28 +688,28 @@
       "note": "строки взаиморасчётов без номера заказа -> pnl_account_daily"
     },
     "views": {
-      "days": 65,
-      "last": "2026-11-09",
+      "days": 66,
+      "last": "2026-11-10",
       "note": "показы per-SKU из отчёта shows-sales"
     },
-    "ads": "буст из реестра 184812 ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)",
+    "ads": "буст из реестра 178196 ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)",
     "bad_cells": 0,
     "by_business": {
       "1023124": {
-        "orders": 462,
-        "rows": 657,
-        "revenue": 23816414,
+        "orders": 466,
+        "rows": 661,
+        "revenue": 24049046,
         "delivered": 279,
-        "payout": 4394872,
+        "payout": 4425635,
         "skus": 94
       },
       "74986385": {
-        "orders": 1582,
-        "rows": 2558,
-        "revenue": 94006217,
-        "delivered": 1085,
-        "payout": 27872425,
-        "skus": 338
+        "orders": 1587,
+        "rows": 2564,
+        "revenue": 94272710,
+        "delivered": 1087,
+        "payout": 27503832,
+        "skus": 339
       }
     },
     "campaigns_skipped": [
@@ -729,7 +729,7 @@
         "reason": "API кампании отключён Маркетом из-за неактивности"
       }
     ],
-    "orders_rows": 3215,
+    "orders_rows": 3225,
     "orders_fake": 0,
     "gaps": {
       "GGT-35-2-1-100-180": [
@@ -773,7 +773,7 @@
   "blockers": [
     "штуки закрытого месяца расходятся с реализацией на -7",
     "выручка закрытого месяца vs реализация: расхождение 5533087 ₽; ближе всего состав цен BUYER (YM_REVENUE_PRICE_TYPES)",
-    "СС покрывает 89.5% оборота (<90%)",
+    "СС покрывает 89.6% оборота (<90%)",
     "кампания 21985942 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 23960471 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 40175277 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности"

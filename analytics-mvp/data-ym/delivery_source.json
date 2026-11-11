@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-10T18:24:13.438850+03:00",
-  "through": "2026-11-09",
+  "loaded_at": "2026-11-11T11:34:14.113511+03:00",
+  "through": "2026-11-10",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
     "tabs": {
@@ -11,26 +11,41 @@
     }
   },
   "window_from": "2026-10-03",
-  "rows": 688,
+  "rows": 689,
   "source_counts": {
     "active": {
-      "market_rows": 40,
+      "market_rows": 43,
       "historical_rows": 6,
       "accepted_rows": 15,
       "missing_cost_rows": 0,
       "unrecognized_offer_rows": 1,
-      "future_rows": 19
+      "future_rows": 20,
+      "undated_rows": 2
     },
     "archive": {
-      "market_rows": 550,
+      "market_rows": 551,
       "historical_rows": 474,
-      "accepted_rows": 75,
+      "accepted_rows": 76,
       "missing_cost_rows": 1,
       "undated_rows": 1,
       "unrecognized_offer_rows": 1
     }
   },
   "source_issues": [
+    {
+      "order": "64377752192",
+      "shipped": "",
+      "status": "В очереди",
+      "ship": null,
+      "reason": "в Google-таблице нет даты отгрузки; новая отправка пока не добавлена в расход"
+    },
+    {
+      "order": "64365041089",
+      "shipped": "",
+      "status": "В очереди",
+      "ship": null,
+      "reason": "в Google-таблице нет даты отгрузки; новая отправка пока не добавлена в расход"
+    },
     {
       "order": "62536179201",
       "shipped": "",
@@ -40,5 +55,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "deb3532e7d6011da0fd454c54755f17757b672e55df630c2f2c641dc9ecc3ba5"
+  "csv_sha256": "c428821454b156834e999f5524e58be805f356255c2f2c5ff5813c7a52bb1610"
 }

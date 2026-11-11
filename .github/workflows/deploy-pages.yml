@@ -48,7 +48,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [task-canvas/**, analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
+    paths: [dealer-landing-gm/**, task-canvas/**, analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -734,6 +734,14 @@ jobs:
           set -euo pipefail
           GG_REFERENCE_ROOT=/tmp/rop/analytics-mvp node --test analytics-mvp/gg-dg/check-widgets.cjs
           node analytics-mvp/gg-dg/build-redirect.cjs _site
+
+      - name: Assemble GLASS-MEMORY dealer landing
+        run: |
+          set -euo pipefail
+          test -s dealer-landing-gm/index.html
+          mkdir -p _site/dealer-landing-gm
+          cp dealer-landing-gm/index.html dealer-landing-gm/styles.css dealer-landing-gm/app.js _site/dealer-landing-gm/
+          cp -R dealer-landing-gm/assets _site/dealer-landing-gm/assets
 
       - uses: actions/upload-pages-artifact@v3
         with:

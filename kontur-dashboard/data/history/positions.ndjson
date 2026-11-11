@@ -116,3 +116,4 @@
 {"ai_answers": 10, "date": "2026-11-06", "project": "gm", "source": "keys.so", "top1": 7, "top10": 55, "top3": 13, "top50": 579, "visibility": 2}
 {"ai_answers": 69, "date": "2026-11-09", "project": "gg", "source": "keys.so", "top1": 26, "top10": 515, "top3": 107, "top50": 2441, "visibility": 94}
 {"ai_answers": 69, "date": "2026-11-10", "project": "gg", "source": "keys.so", "top1": 27, "top10": 520, "top3": 110, "top50": 2454, "visibility": 93}
+{"ai_answers": 68, "date": "2026-11-11", "project": "gg", "source": "keys.so", "top1": 28, "top10": 525, "top3": 111, "top50": 2460, "visibility": 93}

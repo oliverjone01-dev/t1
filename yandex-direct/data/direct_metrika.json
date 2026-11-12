@@ -1,106 +1,106 @@
 {
- "dateFrom": "2026-10-11",
- "dateTo": "2026-11-09",
- "generated_at": "2026-11-10T14:56:05.885Z",
+ "dateFrom": "2026-10-13",
+ "dateTo": "2026-11-11",
+ "generated_at": "2026-11-12T15:18:40.041Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2843,
-  "ad_visits_30d": 6798,
-  "yd_visits_30d": 5331,
-  "ad_leads_30d": 86
+  "direct_clicks_30d": 2950,
+  "ad_visits_30d": 7055,
+  "yd_visits_30d": 5574,
+  "ad_leads_30d": 94
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 5139,
-   "users": 4515,
-   "leads": 83,
-   "contacts": 76
+   "visits": 5386,
+   "users": 4705,
+   "leads": 90,
+   "contacts": 84
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1459,
+   "visits": 1472,
    "users": 616,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 192,
+   "visits": 188,
    "users": 156,
    "leads": 2,
    "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 8,
-   "users": 7,
-   "leads": 1,
+   "visits": 9,
+   "users": 8,
+   "leads": 2,
    "contacts": 0
   }
  ],
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2824,
-   "leads": 48,
-   "contacts": 38
+   "visits": 2968,
+   "leads": 54,
+   "contacts": 44
   },
   {
    "utm": "genglass",
-   "visits": 1457,
+   "visits": 1466,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 1040,
-   "leads": 2,
+   "visits": 1120,
+   "leads": 3,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 472,
-   "leads": 11,
-   "contacts": 16
+   "visits": 464,
+   "leads": 12,
+   "contacts": 17
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 353,
-   "leads": 13,
+   "visits": 365,
+   "leads": 12,
    "contacts": 10
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 176,
+   "visits": 179,
    "leads": 4,
    "contacts": 4
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 162,
-   "leads": 2,
-   "contacts": 1
+   "visits": 170,
+   "leads": 3,
+   "contacts": 2
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 105,
+   "visits": 104,
    "leads": 2,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 30,
-   "leads": 2,
+   "visits": 34,
+   "leads": 3,
    "contacts": 2
   },
   {
    "utm": "igrovaya_komnata_za_steklom",
-   "visits": 9,
+   "visits": 12,
    "leads": 0,
    "contacts": 0
   },
@@ -112,12 +112,18 @@
   },
   {
    "utm": "razdelit'_komnatu_bez_sten_i_remonta",
-   "visits": 4,
+   "visits": 5,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_v_inter'ere",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "rasprodazha_noyabr",
    "visits": 3,
    "leads": 0,
    "contacts": 0
@@ -129,7 +135,31 @@
    "contacts": 0
   },
   {
+   "utm": "test",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "zerkalo_s_podsvetkoj_v_vannoj",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "kak_vybrat_zerkalo",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "led_podsvetka_u_zerkala",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -141,7 +171,13 @@
    "contacts": 0
   },
   {
-   "utm": "test",
+   "utm": "primerte_peregorodku_do_pokupki",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "trendy_zerkal_2026",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -149,6 +185,18 @@
   {
    "utm": "vidy_mezhkomnatnyh_peregorodok",
    "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "akvarium_ili_kabinet",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "bolshoe_zerkalo_v_interere",
+   "visits": 1,
    "leads": 0,
    "contacts": 0
   },
@@ -165,19 +213,7 @@
    "contacts": 0
   },
   {
-   "utm": "kak_vybrat_zerkalo",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "kakie_byvayut_mezhkomnatnye_peregorodki",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "led_podsvetka_u_zerkala",
+   "utm": "instrukciya",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -213,6 +249,12 @@
    "contacts": 0
   },
   {
+   "utm": "peregorodka_dlya_spalni_v_odnushke",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "peregorodka_raspashnaya_genglass",
    "visits": 1,
    "leads": 0,
@@ -231,13 +273,13 @@
    "contacts": 0
   },
   {
-   "utm": "primerte_peregorodku_do_pokupki",
+   "utm": "raspashnye_peregorodki_i_dveri",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "raspashnye_peregorodki_i_dveri",
+   "utm": "steklo_i_kultura",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -249,19 +291,7 @@
    "contacts": 0
   },
   {
-   "utm": "trendy_zerkal_2026",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "zerkala_na_shtange",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "zerkalo_s_podsvetkoj_v_vannoj",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -282,49 +312,49 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 6798,
-   "users": 5278,
-   "bounce": 19.18211239,
-   "leads": 86,
-   "contacts": 77
+   "visits": 7055,
+   "users": 5468,
+   "bounce": 19.26293409,
+   "leads": 94,
+   "contacts": 85
   },
   {
    "source": "Link traffic",
-   "visits": 4572,
-   "users": 4491,
-   "bounce": 1.31233596,
-   "leads": 16,
+   "visits": 4574,
+   "users": 4488,
+   "bounce": 1.31176213,
+   "leads": 15,
    "contacts": 19
   },
   {
    "source": "Search engine traffic",
-   "visits": 3459,
-   "users": 2696,
-   "bounce": 18.44463718,
-   "leads": 128,
-   "contacts": 122
+   "visits": 3569,
+   "users": 2768,
+   "bounce": 18.29644158,
+   "leads": 132,
+   "contacts": 120
   },
   {
    "source": "Direct traffic",
-   "visits": 2152,
-   "users": 1792,
-   "bounce": 19.00557621,
-   "leads": 55,
-   "contacts": 42
+   "visits": 2372,
+   "users": 2008,
+   "bounce": 28.4148398,
+   "leads": 57,
+   "contacts": 39
   },
   {
    "source": "Internal traffic",
-   "visits": 690,
-   "users": 340,
-   "bounce": 15.94202899,
-   "leads": 10,
+   "visits": 669,
+   "users": 329,
+   "bounce": 15.3961136,
+   "leads": 11,
    "contacts": 4
   },
   {
    "source": "Social network traffic",
-   "visits": 27,
-   "users": 23,
-   "bounce": 51.85185185,
+   "visits": 28,
+   "users": 24,
+   "bounce": 53.57142857,
    "leads": 0,
    "contacts": 0
   },
@@ -340,6 +370,14 @@
    "source": "Recommendation system traffic",
    "visits": 2,
    "users": 2,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Clicks by QR code",
+   "visits": 1,
+   "users": 1,
    "bounce": 0,
    "leads": 0,
    "contacts": 0

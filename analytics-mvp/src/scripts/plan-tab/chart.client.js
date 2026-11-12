@@ -14,20 +14,37 @@ function smooth(pts){if(pts.length<3)return pts.map(function(p,i){return (i?'L':
 var gid=0;
 function chart(el,o){ // series [{v,color,name,area,dash,w,pale,dots}], band, vline, nodata, labels, fmtv
   var W=o.w||900,H=o.h||220,L=o.small?28:46,R=o.small?6:12,T=14,B=24,n=o.xs.length,g=++gid;
-  var all=[];o.series.forEach(function(s){s.v.forEach(function(x){if(x!=null)all.push(x)})});if(o.band)o.band.hi.forEach(function(x){all.push(x)});
+  var secondary=o.series.find(function(s){return s.right});
+  var right=secondary?secondary.v.filter(function(v){return v!=null}):[];
+  var lo,hi;
+  if(right.length){
+    R=Math.max(R,64);
+    lo=Math.floor(Math.min.apply(null,right)*10)/10;
+    hi=Math.ceil(Math.max.apply(null,right)*10)/10;
+    if(hi-lo<.4){lo-=.2;hi+=.2;}
+  }
+  var all=[];o.series.forEach(function(s){if(!s.right)s.v.forEach(function(x){if(x!=null)all.push(x)})});if(o.band)o.band.hi.forEach(function(x){all.push(x)});
   var mn=o.inv?Math.min.apply(null,all.length?all:[0]):0,mx=Math.max.apply(null,all.concat([1]));if(o.inv){var t=mx;mx=mn;mn=t}
   var span=(mx-mn)||1;mx+=span*.08*(o.inv?-1:1);
   var X=function(i){return L+(W-L-R)*i/Math.max(1,n-1)},Y=function(v){return H-B-(H-T-B)*(v-mn)/(mx-mn)};
+  var Yright=function(v){return H-B-(H-T-B)*(v-lo)/(hi-lo)};
   var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%"><defs>';
   o.series.forEach(function(sr,k){if(sr.area)s+='<linearGradient id="g'+g+'_'+k+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sr.color+'" stop-opacity=".35"/><stop offset="1" stop-color="'+sr.color+'" stop-opacity="0"/></linearGradient>'});
   s+='</defs>';
   for(var q=0;q<=(o.small?2:4);q++){var v=mn+(mx-mn)*q/(o.small?2:4),y=Y(v);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="'+C.soft+'" stroke-width="1"/><text x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end" class="gt">'+fmt(v,o.integer?0:Math.abs(mx-mn)<10?1:0)+'</text>'}
+  if(right.length){
+    s+='<line x1="'+(W-R)+'" x2="'+(W-R)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="'+secondary.color+'" opacity=".5"/>';
+    for(var j=0;j<=4;j++){
+      var pct=lo+(hi-lo)*j/4;
+      s+='<text x="'+(W-R+6)+'" y="'+(Yright(pct)+3)+'" class="gt" style="fill:'+secondary.color+'">'+fmt(pct,1)+'%</text>';
+    }
+  }
   var step=o.step||Math.max(1,Math.round(n/8));for(var i=0;i<n;i++)if(i%step===0||i===n-1)s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle" class="gt">'+o.xs[i]+'</text>';
   if(o.nodata!=null&&o.nodata<n){var x0=X(Math.max(0,o.nodata-.5));s+='<rect x="'+x0+'" y="'+T+'" width="'+(W-R-x0)+'" height="'+(H-T-B)+'" fill="rgba(93,116,132,.08)"/>'+(o.small?'':'<text x="'+(x0+6)+'" y="'+(T+12)+'" class="gt">ещё нет данных</text>')}
   if(o.band){var bp=o.band.lo.map(function(v,i){return [X(i),Y(v)]}),bq=o.band.hi.map(function(v,i){return [X(i),Y(v)]}).reverse();s+='<path d="'+smooth(bp)+' L'+bq.map(function(p){return p[0]+' '+p[1]}).join(' L')+'Z" fill="rgba(139,158,174,.14)"/>'}
   if(o.vline!=null){var xv=X(o.vline);s+='<line x1="'+xv+'" x2="'+xv+'" y1="'+T+'" y2="'+(H-B)+'" stroke="'+C.cy+'" stroke-dasharray="3 4" opacity=".7"/><text x="'+(xv+4)+'" y="'+(H-B-6)+'" class="gt" style="fill:'+C.cy+'">'+(o.small?'':'старт')+'</text>'}
   o.series.forEach(function(sr,k){
-    var seg=[],segs=[];sr.v.forEach(function(v,i){if(v==null){if(seg.length)segs.push(seg);seg=[]}else seg.push([X(i),Y(v),i])});if(seg.length)segs.push(seg);
+    var seg=[],segs=[];sr.v.forEach(function(v,i){if(v==null){if(seg.length)segs.push(seg);seg=[]}else seg.push([X(i),sr.right?Yright(v):Y(v),i])});if(seg.length)segs.push(seg);
     segs.forEach(function(pts){
       var main=sr.pale!=null?pts.filter(function(p){return p[2]<=sr.pale}):pts,pal=sr.pale!=null?pts.filter(function(p){return p[2]>=sr.pale}):[];
       if(sr.area&&pts.length>1)s+='<path d="'+smooth(pts)+' L'+pts[pts.length-1][0]+' '+(H-B)+' L'+pts[0][0]+' '+(H-B)+'Z" fill="url(#g'+g+'_'+k+')"/>';
@@ -42,7 +59,7 @@ function chart(el,o){ // series [{v,color,name,area,dash,w,pale,dots}], band, vl
   var svg=el.querySelector('svg'),xh=svg.querySelector('.xh');
   svg.querySelector('.hit').onmousemove=function(e){var b=svg.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W,i=Math.round((px-L)/(W-L-R)*(n-1));i=Math.max(0,Math.min(n-1,i));
     xh.setAttribute('x1',X(i));xh.setAttribute('x2',X(i));xh.setAttribute('opacity','.3');
-    showTip(e,'<b>'+o.xs[i]+'</b>'+o.series.filter(function(s){return s.name}).map(function(s){return '<br><span class="sw" style="background:'+s.color+'"></span>'+s.name+': '+(s.v[i]==null?'нет данных':(o.fmtv||fmt)(s.v[i]))}).join('')+(o.tipDetails&&o.tipDetails[i]?'<br>'+String(o.tipDetails[i]).replace(/&/g,'&amp;').replace(/</g,'&lt;'):'')+(o.band?'<br><span class="muted">коридор '+(o.fmtv||fmt)(o.band.lo[i])+'...'+(o.fmtv||fmt)(o.band.hi[i])+'</span>':''))};
+    showTip(e,'<b>'+o.xs[i]+'</b>'+o.series.filter(function(s){return s.name}).map(function(s){return '<br><span class="sw" style="background:'+s.color+'"></span>'+s.name+': '+(s.v[i]==null?'нет данных':(s.right?fmt(s.v[i],1)+'%':(o.fmtv||fmt)(s.v[i])))}).join('')+(o.band?'<br><span class="muted">коридор '+(o.fmtv||fmt)(o.band.lo[i])+'...'+(o.fmtv||fmt)(o.band.hi[i])+'</span>':''))};
   svg.querySelector('.hit').onmouseleave=function(){xh.setAttribute('opacity','0');hideTip()};
 }
 

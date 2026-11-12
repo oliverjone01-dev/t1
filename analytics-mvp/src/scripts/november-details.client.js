@@ -50,12 +50,12 @@ Array.prototype.forEach.call(document.querySelectorAll('.nd-price'),function(det
       xs:days.map(dm),
       series:[
         {v:own.map(function(row){return row?row.value:null}),color:'#F59E0B',dots:true,name:'Наша цена, ₽'},
-        {v:realized.map(function(row){return row?row.value:null}),color:'#22D3EE',dots:true,name:'Цена реализации, ₽'}
+        {v:realized.map(function(row){return row?row.value:null}),color:'#22D3EE',dots:true,name:'Цена реализации, ₽'},
+        {v:realized.map(function(row){return row?row.coinvest:null}),color:'#C084FC',dots:true,w:2.5,right:true,name:'Соинвест (оценка)'}
       ],
-      tipDetails:realized.map(function(row){return 'Соинвест (оценка): '+(row&&row.coinvest!=null?fmt(row.coinvest,1)+'%':'нет данных')}),
       title:'<h3 class="ch-h">'+esc(p.art)+' · цена по дням ноября</h3>'
-        +'<div><span style="color:#F59E0B">Наша цена</span> · <span style="color:#22D3EE">Цена реализации</span></div>',
-      h:220
+        +'<div><span style="color:#F59E0B">Наша цена</span> · <span style="color:#22D3EE">Цена реализации</span> · <span style="color:#C084FC">Соинвест, правая ось</span></div>',
+      w:600,h:200
     });
   });
 });

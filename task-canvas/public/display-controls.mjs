@@ -1,4 +1,4 @@
-import {DISPLAY_KEY,GROUP_KEY,GROUPS,readDisplay,readGroups,effectiveGroup,dayRange,validGroup} from './display-model.mjs?rev=20261112-groups-11';
+import {DISPLAY_KEY,GROUP_KEY,GROUPS,readDisplay,readGroups,effectiveGroup,dayRange,validGroup} from './display-model.mjs?rev=20261113-groups-12';
 import {periodRange} from './range-model.mjs?rev=20261111-status-8';
 export function installDisplayControls(host){
  const root=document.querySelector('#display-controls');let value=readDisplay(host.storage),groups=readGroups(host.storage,value.group);

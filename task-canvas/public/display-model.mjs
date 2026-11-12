@@ -1,5 +1,5 @@
 import {QUADRANTS,STATUSES,statusGroup} from './model.mjs?rev=20261111-status-8';
-import {dateShift,IMPORTANCE_LABELS} from './task-signals.mjs?rev=20261111-status-8';
+import {dateShift,IMPORTANCE_LABELS,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
 export const DISPLAY_KEY='gengroup.task-canvas.display.v1';
 export const GROUP_KEY='gengroup.task-canvas.grouping.v1';
 export const CARD_VIEWS=['detailed','compact','rows'];
@@ -27,3 +27,6 @@ export function taskSections(tasks,by='none'){
 export const canReorderPresentation=(sort,group)=>sort==='manual'&&group==='none';
 export const terminalRegistry=scope=>['done','cancelled','status:Готово','status:Отменено'].includes(scope);
 export function reconcileRegistry(archive,hideDone,changed){if(changed==='archive'&&terminalRegistry(archive))hideDone=false;if(changed==='hideDone'&&hideDone&&terminalRegistry(archive))archive='';return {archive,hideDone}}
+
+// The archive scope does not disable an explicitly selected visibility filter.
+export const presentationRegistry=(task,options={})=>!(options.hideDone&&statusGroup(task))&&registryMatch(task,options);

@@ -15,7 +15,7 @@ export const KPAGES: [string, string, string][] = [
   ["katya-report.html", "Отчет", "report"],
   // «Реклама по карточкам» временно скрыта до доработки (Иван 27.10).
   // Разбивка кампаний по карточкам перенесена на «Маркетинг»; сама страница сохранена.
-  [IS_OZON ? "katya-competitors-cabinet.html" : "katya-competitors.html", "Конкуренты", "competitors"],
+  [IS_OZON ? "katya-competitors-comparison.html" : "katya-competitors.html", "Конкуренты", "competitors"],
   ...(IS_OZON ? [["katya-problems.html", "Проблемы", "problems"] as [string,string,string]] : []),
   ["katya-reakciya.html", "Реакция", "reakciya"],
   ["katya-tests.html", "Тесты", "tests"],

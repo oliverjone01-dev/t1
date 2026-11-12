@@ -369,7 +369,7 @@ function main() {
   writePage(op("assistant.html"), redir("katya-command.html"));
   writePage(op("marketing.html"), redir("katya-marketing.html"));
   writePage(op("campaigns.html"), redir("katya-marketing.html"));
-  writePage(op("competitors.html"), redir("katya-competitors.html"));
+  writePage(op("competitors.html"), redir(IS_OZON ? "katya-competitors-comparison.html" : "katya-competitors.html"));
 
   console.log(`Готово: все старые страницы -> редиректы на KATYA (вход = katya-command.html)`);
   console.log(`Фактов ${facts.length} · SKU ${Object.keys(skus).length} · ${model.floor}..${model.max} · OOS ${oos.length} · закрытые Акты до ${closedMeta.lastLabel}${closedMeta.stale ? " (УСТАРЕЛИ)" : ""}`);

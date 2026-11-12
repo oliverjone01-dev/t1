@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-13",
   "dateTo": "2026-11-11",
-  "generated_at": "2026-11-12T08:26:25.262Z",
+  "generated_at": "2026-11-12T09:29:02.069Z",
   "totals": {
     "rev": 37114024,
     "units": 534,
@@ -2955,7 +2955,7 @@
       "retp": 0,
       "aov": 23526,
       "offer": "GGM-02-2-1",
-      "stock": 10,
+      "stock": 5,
       "pidx": 0.55,
       "pcol": "SUPER",
       "price": 23183,

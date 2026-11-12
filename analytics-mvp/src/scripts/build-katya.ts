@@ -3240,8 +3240,10 @@ function anDerive(x){
   var rent=(x.amt>0)?net/x.amt*100:null; // база «К выплате»<=0 -> рентаб не определена (не считаем ложный плюс)
   return {fees:fees,gp:gp,adm:adm,tax:tax,net:net,rent:rent};
 }
+function cpoRowBadge(row){
+  return row.cpoMissing?' <span class="cpo-missing" style="color:#E5B567" title="Расходы CPO разнесены не полностью. Сборы и выплата рассчитаны по доступным данным.">CPO неполный</span>':'';
+}
 function anCells(x){
-  var incomplete=function(td){return x.cpoMissing?'<td class="r cpo-missing" title="CPO за эти даты есть в агрегате, но точной разбивки по отправлениям нет. Не является нулевым расходом или подтверждённой прибылью">нет данных</td>':td;};
   var _dv=anDerive(x),fees=_dv.fees,gp=_dv.gp,adm=_dv.adm,tax=_dv.tax,net=_dv.net,rent=_dv.rent;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
@@ -3275,7 +3277,7 @@ function anCells(x){
   var eAll=(x.eCom||0)+(x.eDel||0)+(x.eOth||0)+(x.ePrt||0);
   var prtCell=(x.prt!=null)?ES(x.prt,x.ePrt):'';
   var mid=${IS_OZON}
-    ? ES(x.del,x.eDel)+R(x.acq)+R(x.sto)+ES(x.oth,x.eOth)+prtCell+incomplete(R(x.adv))
+    ? ES(x.del,x.eDel)+R(x.acq)+R(x.sto)+ES(x.oth,x.eOth)+prtCell+R(x.adv)
     : R(x.del)+R(x.acq)+R(x.sto)+R(x.cof)+R(x.promo)+R(x.oth);
   // «Доставлено» - только в блоке по заказам (там x.dlv определён); в таблице по артикулам колонки нет.
   var dlvCell=(x.dlv!=null)?('<td class="r">'+(x.dlv?fmtRu(x.dlv):'—')+'</td>'):'';
@@ -3291,7 +3293,7 @@ function anCells(x){
   // Доставлен (не возврат), а комиссии нет - оранжевым с пунктиром (не оценка, а возможно неполный факт).
   var comCell=ES(x.com,x.eCom);
   if(EST&&(x.nNoFee||0)>0&&!Math.round(x.eCom||0))comCell='<td class="r an-nofee" title="'+(x.order?NOFEE_TIP:('Доставленных заказов без начисленной комиссии: '+x.nNoFee+'. '+NOFEE_TIP))+'">'+(x.com?fmtRu(Math.round(x.com)):'—')+'</td>';
-  return I(x.units)+dlvCell+R(x.acc)+comCell+mid+incomplete(ES(fees,eAll,'В том числе оценка сборов'))+incomplete(ES(x.amt,-eAll,'В том числе за вычетом оценки сборов'))+shipCell+incCell+R(x.cc)+incomplete(EF(P(gp)))+incomplete(EF(R(adm)))+tbCell+taxCell+incomplete(EF(P(net)))+incomplete(EF(PC(rent)))+cityCell;
+  return I(x.units)+dlvCell+R(x.acc)+comCell+mid+ES(fees,eAll,'В том числе оценка сборов')+ES(x.amt,-eAll,'В том числе за вычетом оценки сборов')+shipCell+incCell+R(x.cc)+EF(P(gp))+EF(R(adm))+tbCell+taxCell+EF(P(net))+EF(PC(rent))+cityCell;
 }
 var skuGrandLast=null;
 // Расчёт таблицы «Аналитика по артикулам (за выбранный период)» без отрисовки: строки артикулов по
@@ -3505,7 +3507,7 @@ ${card ? CPC_CARD_CHECK : ""}  // «Доставка покупателя» (д�
     // падает при доставке. У летящих схема пуста (не показываем предварительный FBS - он может смениться).
     var schCat=(function(){var s={};g.arr.forEach(function(x){if(x.scheme&&x.st==='delivered')s[x.scheme]=(s[x.scheme]||0)+1;});return Object.keys(s).sort(function(a,b){return s[b]-s[a];}).join('/');})();
     html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' зак.)</span></td><td style="color:var(--ink-3)">'+schCat+'</td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?(x.ledDlv?' <span style="color:#FF5A5F" title="OZON заказ отменил, а в ведомости перевозчика есть дата фактической доставки: выручки OZON нет, наша доставка и оплата клиента за доставку - по ведомости">отменён, по ведомости доставлен</span>':' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>'):((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';${card ? CPC_CARD_BADGE : ""}if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
+    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?(x.ledDlv?' <span style="color:#FF5A5F" title="OZON заказ отменил, а в ведомости перевозчика есть дата фактической доставки: выручки OZON нет, наша доставка и оплата клиента за доставку - по ведомости">отменён, по ведомости доставлен</span>':' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>'):((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';${card ? CPC_CARD_BADGE : ""}if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb+cpoRowBadge(x);html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
   });
   // «Общие расходы» - как в таблице по артикулам: сборы уровня кабинета (остаток рекламы, штрафы,
   // realFBS, бейдж, эквайринг/компенсации) + доставка по заказам, чей артикул не сошёлся с каталогом.
@@ -3568,7 +3570,7 @@ function renderOrdSku(rows,SUMK,acctRow,grand){
   var html='';
   cats.forEach(function(g){var op=!!anOpenOrdSku[g.cat];var ck=g.cat.replace(/"/g,'');
     html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' арт., '+g.t.n+' зак.)</span></td><td style="color:var(--ink-3)">'+schOf(g.t.sch)+'</td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(a){html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(a.nm||'').replace(/"/g,'&quot;')+'">'+(a.off||a.sk)+' <span style="color:var(--ink-3);font-weight:400">'+a.n+' зак.</span></td><td>'+(schOf(a.sch)||'—')+'</td>'+anCells(a)+'</tr>';});
+    g.arr.forEach(function(a){html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(a.nm||'').replace(/"/g,'&quot;')+'">'+(a.off||a.sk)+' <span style="color:var(--ink-3);font-weight:400">'+a.n+' зак.</span>'+cpoRowBadge(a)+'</td><td>'+(schOf(a.sch)||'—')+'</td>'+anCells(a)+'</tr>';});
   });
   if(acctRow)html+='<tr style="cursor:default;font-weight:600" title="Та же строка, что в таблице по заказам: сборы кабинета без артикула и доставка по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td><td></td>'+anCells(acctRow)+'</tr>';
   el.innerHTML='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td><td></td>'+anCells(grand)+'</tr>'+html;

@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-13",
   "dateTo": "2026-11-11",
-  "generated_at": "2026-11-12T04:18:35.180Z",
+  "generated_at": "2026-11-12T08:26:25.262Z",
   "totals": {
     "rev": 37114024,
     "units": 534,
@@ -9,7 +9,7 @@
     "canc": 67,
     "views": 6245305,
     "sk": 165,
-    "oos": 13,
+    "oos": 16,
     "ad_spend": 2587864,
     "ad_drr": 24.9
   },
@@ -1656,12 +1656,12 @@
       "convOrd": 0,
       "retp": 0,
       "aov": 142900,
-      "offer": "GGT-42-2-25-120-K",
-      "stock": 10,
-      "pidx": 0,
-      "pcol": "WITHOUT_INDEX",
-      "price": 142900,
-      "oos": 0
+      "offer": "",
+      "stock": 0,
+      "pidx": null,
+      "pcol": "",
+      "price": null,
+      "oos": 1
     },
     {
       "sku": "3501468573",
@@ -1810,12 +1810,12 @@
       "convOrd": 0,
       "retp": 0,
       "aov": 119900,
-      "offer": "GGT-42-2-25-90-K",
-      "stock": 9,
-      "pidx": 0,
-      "pcol": "WITHOUT_INDEX",
-      "price": 119900,
-      "oos": 0
+      "offer": "",
+      "stock": 0,
+      "pidx": null,
+      "pcol": "",
+      "price": null,
+      "oos": 1
     },
     {
       "sku": "3734277653",
@@ -1898,12 +1898,12 @@
       "convOrd": 0.1,
       "retp": 0,
       "aov": 110900,
-      "offer": "GGT-42-2-22-100-G",
-      "stock": 9,
-      "pidx": 0,
-      "pcol": "WITHOUT_INDEX",
-      "price": 110900,
-      "oos": 0
+      "offer": "",
+      "stock": 0,
+      "pidx": null,
+      "pcol": "",
+      "price": null,
+      "oos": 1
     },
     {
       "sku": "3564827486",
@@ -2031,7 +2031,7 @@
       "retp": 0,
       "aov": 50900,
       "offer": "GGK-02-2-2-100",
-      "stock": 94,
+      "stock": 93,
       "pidx": 1.04,
       "pcol": "YELLOW",
       "price": 50900,
@@ -2845,7 +2845,7 @@
       "retp": 0,
       "aov": 71346,
       "offer": "GGT-03-2-1-L-100/MDF",
-      "stock": 29,
+      "stock": 28,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
       "price": 71346,

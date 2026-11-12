@@ -14,3 +14,13 @@ export function reorderGantt(tasks,id,target,after,group,visibleOrder){if(id===t
  const rank=generateKeyBetween(index?orders[index-1]:null,index<orders.length?orders[index]:null);const updates=new Map(items.map((x,i)=>[x.id,orders[i]]));updates.set(id,rank);return validateBoard(tasks.map(x=>updates.has(x.id)?{...x,positions:{...x.positions,gantt:{group:group+':'+key,x:0,y:0,order:updates.get(x.id)}}}:x))}
 
 export function assertGanttOrder(current,before,group){for(const old of before){const t=current.find(x=>x.id===old.id),field={owner:'owner',unit:'unit',status:'status'}[group];if(!t||(field&&(t[field]||'')!==(old[field]||''))||JSON.stringify(t.positions?.gantt)!==JSON.stringify(old.positions?.gantt))throw Error('Очередь или группа изменились на другом устройстве. Проверьте новую версию.');}return true}
+
+// Working dates never derive from or replace the immutable source timestamp.
+export function setGanttDates(task,start='',due=''){
+ if((task.start||'')===start&&(task.due||'')===due)return task;
+ const next={...task,start,due,dueNote:'',positions:structuredClone(task.positions||{})};delete next.positions.time;return validateBoard([next])[0];
+}
+export function selectedGanttWindow(anchor,months=3,range={}){
+ if(range.from&&range.to)return {start:range.from,end:range.to,days:dayDistance(range.from,range.to)+1};
+ return ganttWindow(anchor,months);
+}

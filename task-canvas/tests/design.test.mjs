@@ -45,12 +45,18 @@ test("document IDs are unique and static assets exist; all view buttons expose s
     assert.ok(files.includes(match[1].split("/")[0]), match[1]);
 });
 
-test('HTML, stylesheet and every local ES-module dependency use one deployment revision',async()=>{
-  const rev=html.match(/name="application-version" content="([^"]+)"/)?.[1];assert.ok(rev);
-  for(const file of await readdir(new URL('../public/',import.meta.url))) {
+test('HTML and module dependencies match the per-asset deployment manifest',async()=>{
+  const base=new URL('../public/',import.meta.url),manifest=JSON.parse(await readFile(new URL('asset-revisions.json',base),'utf8'));
+  assert.equal(html.match(/name="application-version" content="([^"]+)"/)?.[1],manifest.release);
+  const revision=path=>manifest.assets[path]||manifest.default;
+  for(const file of await readdir(base)){
     if(!file.endsWith('.mjs'))continue;
-    const code=await readFile(new URL('../public/'+file,import.meta.url),'utf8');
-    for(const m of code.matchAll(/from\s+["'](\.\/[^"']+\.mjs)([^"']*)["']/g))assert.equal(m[2],'?rev='+rev,file+' '+m[1]);
+    const code=await readFile(new URL(file,base),'utf8');
+    for(const m of code.matchAll(/from\s+["'](\.\/[^"']+\.mjs)([^"']*)["']/g)){
+      const path=new URL(m[1],new URL(file,base)).pathname.slice(base.pathname.length);
+      assert.equal(m[2],'?rev='+revision(path),file+' '+path);
+    }
   }
-  assert.ok(html.includes('./app.mjs?rev='+rev));assert.ok(html.includes('./styles.css?rev='+rev));
+  for(const m of html.matchAll(/(?:src|href)="\.\/([^"?]+)\?rev=([^"&]+)/g))assert.equal(m[2],revision(m[1]),m[1]);
+  assert.ok(html.includes('./app.mjs?rev='+revision('app.mjs')));
 });

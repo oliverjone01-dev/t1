@@ -1,4 +1,4 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261111-status-8';
+import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261112-compact-9';
 import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261111-status-8';
 import {icon} from './icons.mjs?rev=20261111-status-8';
 

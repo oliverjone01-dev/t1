@@ -1,4 +1,4 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261111-status-8';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261112-compact-9';
 import {ordered,orderKey} from './order.mjs?rev=20261111-status-8';
 import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261111-status-8';
 import {parseAssignee} from './people.mjs?rev=20261111-status-8';

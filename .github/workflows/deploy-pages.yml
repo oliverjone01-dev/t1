@@ -110,6 +110,7 @@ jobs:
           set -euo pipefail
           npm ci
           npm run fetch:live
+          npm run plan:fetch
           npm run build:site
           npm run katya
           npm run smoke

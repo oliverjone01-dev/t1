@@ -1,4 +1,4 @@
-import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261112-groups-11';
+import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261113-groups-12';
 import {overlapsRange,validDay} from './task-dates.mjs?rev=20261111-status-8';
 import {shiftSchedule} from './gantt-model.mjs?rev=20261112-compact-9';
 import {ordered,orderKey} from './order.mjs?rev=20261111-status-8';

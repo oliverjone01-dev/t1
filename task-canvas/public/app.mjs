@@ -1,7 +1,7 @@
 import {installGroupedBoard} from './grouped-board.mjs?rev=20261112-groups-11';
 import {installWorkspaceShell} from './workspace-shell.mjs?rev=20261112-groups-11';
-import {installDisplayControls} from './display-controls.mjs?rev=20261112-groups-11';
-import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry} from './display-model.mjs?rev=20261112-groups-11';
+import {installDisplayControls} from './display-controls.mjs?rev=20261113-groups-12';
+import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261113-groups-12';
 import {googleStatusLabel} from './sync-indicator.mjs?rev=20261111-status-8';
 import {installThemeToggle} from './appearance.mjs?rev=20261111-status-8';
 import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261111-status-8';
@@ -13,8 +13,8 @@ import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=2026111
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
 import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-groups-11';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261112-groups-11';
-import {installProductivity} from './productivity.mjs?rev=20261112-groups-11';
+import {installCalendar} from './calendar.mjs?rev=20261113-groups-12';
+import {installProductivity} from './productivity.mjs?rev=20261113-groups-12';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
 import {renderBoard} from './board-ui.mjs?rev=20261111-status-8';
@@ -676,7 +676,7 @@ function matchesFilters(task) {
     matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (productivity?.matches(task)??true)
   );
 }
-const isVisible = task=>matchesFilters(task)&&registryMatch(effectiveTask(task),{...dateRange,archive:archiveScope,hideDone:$('#hide-done').checked});
+const isVisible = task=>matchesFilters(task)&&presentationRegistry(effectiveTask(task),{...dateRange,archive:archiveScope,hideDone:$('#hide-done').checked});
 const formatDate = (value) =>
   value
     ? new Date(`${value}T12:00:00`).toLocaleDateString("ru", {
@@ -805,7 +805,7 @@ function listMarkup(visible) {
 function renderWorkEditor(){if(!$('#editor').open)return;const current=tasks.find(t=>t.id===editing);$('#editor-work').innerHTML=current?workProgress(current,canEdit()):'';if(current){const base=editorValues(editingBase);for(const key of ['status','progress'])if(field(key).value===base[key]){field(key).value=editorValues(current)[key];editingBase[key]=editorValues(current)[key];}}text('#editor-progress-value',field('progress').value+'%');}
 function renderCreatedAt(task){const value=task?.createdAt;field('createdAt').value=value?formatDate(createdDay(value))+(value.includes('T')?' · '+new Intl.DateTimeFormat('ru',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' МСК':''):'';field('createdAt').readOnly=true;text('#created-note',task?'Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.':'Дата появится при создании задачи.')}
 function renderRegistry(){
- const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>registryMatch(t,{...options,hideDone:terminalRegistry(options.archive)?false:$('#hide-done').checked})).length;
+ const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>presentationRegistry(t,{...options,hideDone:terminalRegistry(options.archive)?false:$('#hide-done').checked})).length;
  const options=[['','Текущие задачи',count({})],...STATUSES.map(status=>['status:'+status,status,count({archive:'status:'+status})]),['done','Архив · Готово',count({archive:'done'})],['cancelled','Архив · Отменено',count({archive:'cancelled'})],['all','Все с архивом',count({archive:'all'})]];
  setOptions($('#archive-scope'),options.map(([v,label,n])=>`<option value="${esc(v)}">${esc(label)} · ${n} шт</option>`).join(''));$('#archive-scope').value=archiveScope;
 }
@@ -825,7 +825,7 @@ function render() {
   const compactCanvas=usesGroupedBoard();
   $('#board-ui').hidden=mode!=='priority'||compactCanvas;
   const visible = productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),
-    matching = tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{...dateRange,archive:archiveScope})),
+    matching = tasks.filter(t=>matchesFilters(t)&&presentationRegistry(effectiveTask(t),{...dateRange,archive:archiveScope})),
     canvasMode = ["list","calendar","gantt"].includes(mode) ? lastCanvasMode : mode;
   layout = createLayout(visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})), canvasMode, today(), [
     ...new Set([...extraOwners.map(personName), ...tasks.map((t) => personName(t.owner)).filter(Boolean)]),
@@ -2711,7 +2711,7 @@ displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRang
 groupedBoard=installGroupedBoard({active:usesGroupedBoard,group:currentGroup,sections:taskSections,tasks:()=>presentationOrder(tasks.filter(isVisible).map(presentationTask)),esc,canEdit,openTask,selection:()=>[...selectedIds],selectTask});
 gantt=installGantt({esc,today,group:currentGroup,sortKind:currentSort,order:items=>presentationOrder(items,'gantt'),canReorder:canReorderView,sections:taskSections,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(presentationTask),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
-calendar=installCalendar({esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
+calendar=installCalendar({esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&presentationRegistry(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });
 installPlanningDrag({context:()=>[mode,currentSort(),currentGroup()].join('|'),tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit:()=>canEdit()&&canReorderView(),selection:()=>[...selectedIds],toast,

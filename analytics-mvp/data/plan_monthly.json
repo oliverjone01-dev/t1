@@ -15,5 +15,13 @@
     "realized": 330,
     "netProfit": 1700000,
     "accrued": 22000000
+  },
+  "2026-11": {
+    "adSpend": 2700000,
+    "rentab": 8,
+    "revenue": 30000000,
+    "realized": 450,
+    "netProfit": 2000000,
+    "accrued": 27000000
   }
 }

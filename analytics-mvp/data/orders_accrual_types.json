@@ -10,8 +10,8 @@
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2895361,
-  "n": 1729
+  "sum": -2895747,
+  "n": 1730
  },
  {
   "type_id": 3,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -385839,
-  "n": 1874
+  "sum": -386240,
+  "n": 1875
  },
  {
   "type_id": 74,
@@ -108,8 +108,8 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21300,
-  "n": 1377
+  "sum": -21310,
+  "n": 1378
  },
  {
   "type_id": 29,
@@ -143,8 +143,8 @@
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -3175,
-  "n": 129
+  "sum": -3200,
+  "n": 130
  },
  {
   "type_id": 45,

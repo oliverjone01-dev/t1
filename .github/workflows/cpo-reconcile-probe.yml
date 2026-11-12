@@ -1,0 +1,27 @@
+name: CPO API verification
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event.pull_request.number == 633
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Сверка с Performance API без публикации
+        env:
+          OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+          OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+        run: |
+          node --import tsx src/scripts/ozon/cpo-reconcile.ts
+          test -s data/cpo_orders_reconciled.json

@@ -37,6 +37,27 @@ lines.push({v:fact,color:'#F59E0B',w:2.6,area:true,name:'с 01.11',dots:fact.fil
 var chartEl=detail.querySelector('.nd-order-chart');chartEl.hidden=!fact.some(function(v){return v!=null});if(chartEl.hidden)return;var missing=fact.indexOf(null);window.planChart(detail.querySelector('.nd-order-chart'),{xs:ids.map(function(i){return dm(D.days[i])}),series:lines,integer:true,w:900,h:200,step:4,nodata:missing<0?null:missing,title:'<div class="mc-h">'+esc(set.name)+' <span>'+fmt(summary.total)+(summary.goal!=null?' / '+fmt(summary.goal):' · порог ноября не задан')+'</span></div>'});
 })});
 Array.prototype.forEach.call(document.querySelectorAll('#november-details .ob-pill'),function(button){button.addEventListener('click',function(){var section=button.closest('.order-breakdown'),open=button.getAttribute('aria-expanded')!=='true';Array.prototype.forEach.call(section.querySelectorAll('.ob-pill'),function(b){var active=b===button&&open;b.setAttribute('aria-expanded',String(active));$(b.getAttribute('aria-controls')).hidden=!active})})});
-Array.prototype.forEach.call(document.querySelectorAll('.nd-price'),function(details){details.addEventListener('toggle',function(){if(!details.open)return;var el=details.querySelector('.nd-price-chart'),p=D.prices[Number(el.dataset.price)],ids=ix(D.novStart,visibleDay<D.novEnd?visibleDay:D.novEnd);graph(el,ids.map(function(i){return D.days[i]}),[{v:ids.map(function(i){var r=p.history.find(function(r){return r.day===D.days[i]});return r?r.value:null}),c:'#F59E0B',dots:true,n:'Наблюдение нашей цены, ₽'}],p.art+' · цена по дням ноября')})});
+Array.prototype.forEach.call(document.querySelectorAll('.nd-price'),function(details){
+  details.addEventListener('toggle',function(){
+    if(!details.open)return;
+    var el=details.querySelector('.nd-price-chart'),p=D.prices[Number(el.dataset.price)];
+    var days=ix(D.novStart,visibleDay<D.novEnd?visibleDay:D.novEnd).map(function(i){return D.days[i]});
+    var own=days.map(function(day){return p.history.find(function(row){return row.day===day})});
+    var realized=days.map(function(day){return p.realizations.find(function(row){return row.day===day})});
+    el.hidden=!own.some(Boolean)&&!realized.some(function(row){return row&&row.value!=null});
+    if(el.hidden)return;
+    window.planChart(el,{
+      xs:days.map(dm),
+      series:[
+        {v:own.map(function(row){return row?row.value:null}),color:'#F59E0B',dots:true,name:'Наша цена, ₽'},
+        {v:realized.map(function(row){return row?row.value:null}),color:'#22D3EE',dots:true,name:'Цена реализации, ₽'}
+      ],
+      tipDetails:realized.map(function(row){return 'Соинвест (оценка): '+(row&&row.coinvest!=null?fmt(row.coinvest,1)+'%':'нет данных')}),
+      title:'<h3 class="ch-h">'+esc(p.art)+' · цена по дням ноября</h3>'
+        +'<div><span style="color:#F59E0B">Наша цена</span> · <span style="color:#22D3EE">Цена реализации</span></div>',
+      h:220
+    });
+  });
+});
 var store=D.series[D.series.length-1],ids=ix(D.novStart,closedDay<D.novEnd?closedDay:D.novEnd);graph($('nd-ads-chart'),ids.map(function(i){return D.days[i]}),[{v:ids.map(function(i){return store.s.sp[i]}),c:'#F59E0B',area:true,n:'CPC по кампаниям, ₽/день'}],'Расход на клики по дням ноября');
 })();

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {existsSync,readFileSync} from 'node:fs';
 export type CpoCapture={version:1;from:string;to:string;captured_at:string;source:'ozon-cpo-order-export';orders_sha256:string;source_sha256:string[];sku:Array<{d:string;sku:string;offer:string;sp:number;n:number}>;report_days:Array<{d:string;sp:number;n:number}>;order_days:Array<{d:string;sp:number;rev:number;units:number}>;miss:Array<{month:string;n:number;sp:number}>;no_sku_sp:number;settings:{captured_at:string;scope:'all';active:boolean;bid_percent:number;promoted_products:number;products_period_from:string;products_period_to:string}};
 const keys=(x:any,ks:string[])=>{if(!x||typeof x!=='object'||Array.isArray(x)||Object.keys(x).some(k=>!ks.includes(k))||ks.some(k=>!(k in x)))throw Error('CPO capture fields');};
@@ -28,6 +29,25 @@ export function validateCpo(x:any):CpoCapture{
  if(!stamp(s.captured_at)||s.scope!=='all'||typeof s.active!=='boolean'||!num(s.bid_percent)||s.bid_percent>100||!count(s.promoted_products)||!date(s.products_period_from)||!date(s.products_period_to)||s.products_period_from>s.products_period_to)throw Error('CPO settings');
  return x;
 }
-export function readCpo(dp:(f:string)=>string):CpoCapture|null{const p=dp('cabinet_capture.json');if(!existsSync(p))return null;const c=JSON.parse(readFileSync(p,'utf8')).cpo;return c===undefined?null:validateCpo(c);}
+export function readCpo(dp:(f:string)=>string):CpoCapture|null{
+ const p=dp('cabinet_capture.json');
+ if(!existsSync(p))return null;
+ const raw=JSON.parse(readFileSync(p,'utf8')).cpo;
+ if(raw===undefined)return null;
+ const capture=validateCpo(raw);
+ const sidecar=dp('cpo_orders_reconciled.json');
+ const orders=dp('orders_daily.ndjson');
+ if(!existsSync(sidecar)||!existsSync(orders))return capture;
+ try{
+  const join=JSON.parse(readFileSync(sidecar,'utf8'));
+  keys(join,['source_sha256','orders_sha256','report_sha256','order_days','miss']);
+  if(JSON.stringify(join.source_sha256)!==JSON.stringify(capture.source_sha256)
+    || !/^[a-f0-9]{64}$/.test(join.report_sha256)
+    || join.orders_sha256!==createHash('sha256').update(readFileSync(orders)).digest('hex'))return capture;
+  return validateCpo({...capture,orders_sha256:join.orders_sha256,order_days:join.order_days,miss:join.miss});
+ }catch{
+  return capture;
+ }
+}
 export function cpoSkuRows(dp:(f:string)=>string,legacy:any[]):any[]{const c=readCpo(dp);return c?[...legacy.filter(r=>r.d<c.from||r.d>c.to),...c.sku]:legacy;}
-export function cpoSettingsHtml(dp:(f:string)=>string){const c=readCpo(dp);if(!c)return '';const s=c.settings;return `<section class="kt-card" style="margin:16px;padding:16px;border:1px solid #334155"><h2>Оплата за заказ: текущая настройка</h2><p>«Все товары»: ${s.active?'продвижение активно':'продвижение остановлено'}, ставка ${s.bid_percent}%. В выбранном периоде кабинета ${s.products_period_from} — ${s.products_period_to} указано ${s.promoted_products} товаров в продвижении. Снято ${s.captured_at}.</p><p>Эта общая настройка не восстанавливает ставки прошлых дней и не подтверждает участие каждого отдельного SKU. Старый раздел «Выбранные товары» имеет самостоятельный статус.</p><p>Расход по товарам: ${c.from} — ${c.to}; даты и суммы из выгрузки CPO. Выручка связанных заказов относится к дате создания заказа, поэтому дневные ряды могут отличаться.</p><p>Точная разбивка нового CPO по отправлениям не опубликована. В таблицах по дате заказа расход и зависящие от него выплата/прибыль отмечены «нет данных» на затронутые даты. Расход по SKU и кампании доступен отдельно.</p></section>`;}
+export function cpoSettingsHtml(dp:(f:string)=>string){const c=readCpo(dp);if(!c)return '';const s=c.settings;return `<section class="kt-card" style="margin:16px;padding:16px;border:1px solid #334155"><h2>Оплата за заказ: текущая настройка</h2><p>«Все товары»: ${s.active?'продвижение активно':'продвижение остановлено'}, ставка ${s.bid_percent}%. В выбранном периоде кабинета ${s.products_period_from} — ${s.products_period_to} указано ${s.promoted_products} товаров в продвижении. Снято ${s.captured_at}.</p><p>Эта общая настройка не восстанавливает ставки прошлых дней и не подтверждает участие каждого отдельного SKU. Старый раздел «Выбранные товары» имеет самостоятельный статус.</p><p>Расход по товарам: ${c.from} — ${c.to}; даты и суммы из выгрузки CPO. Выручка связанных заказов относится к дате создания заказа, поэтому дневные ряды могут отличаться.</p><p>Точная разбивка нового CPO по отправлениям не опубликована. В таблицах по дате заказа расход и зависящие от него выплата/прибыль показаны по известным суммам с пометкой «CPO неполный» на затронутых строках. Расход по SKU и кампании доступен отдельно.</p></section>`;}

@@ -1,4 +1,4 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261111-status-8';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261112-compact-9';
 import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261111-status-8';
 import {groupFor,validateBoard,localDate} from './model.mjs?rev=20261111-status-8';
 import {ordered,orderKey,reorderTasks} from './order.mjs?rev=20261111-status-8';

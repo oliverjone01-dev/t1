@@ -1,16 +1,18 @@
+import {installDisplayControls} from './display-controls.mjs?rev=20261112-compact-9';
+import {taskSections} from './display-model.mjs?rev=20261112-compact-9';
 import {googleStatusLabel} from './sync-indicator.mjs?rev=20261111-status-8';
 import {installThemeToggle} from './appearance.mjs?rev=20261111-status-8';
 import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261111-status-8';
 import {installRangePicker} from './range-picker.mjs?rev=20261111-status-8';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261111-status-8';
-import {installGantt} from './gantt.mjs?rev=20261111-status-8';
+import {installGantt} from './gantt.mjs?rev=20261112-compact-9';
 import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261111-status-8';
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261111-status-8';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-compact-9';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261111-status-8';
-import {installProductivity} from './productivity.mjs?rev=20261111-status-8';
+import {installCalendar} from './calendar.mjs?rev=20261112-compact-9';
+import {installProductivity} from './productivity.mjs?rev=20261112-compact-9';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
 import {renderBoard} from './board-ui.mjs?rev=20261111-status-8';
@@ -92,7 +94,7 @@ const canEdit = () =>
 const directory=new Directory();
 const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
 let productivity=null,calendar=null,gantt=null,priorityEditor=null;
-let archiveScope="",dateRange={from:"",to:""},rangePicker=null,signalState=new Map();
+let archiveScope="",dateRange={from:"",to:""},rangePicker=null,displayControls=null,signalState=new Map();
 function setDateRange(range,syncCalendar=true){dateRange={...range};if(syncCalendar)calendar?.setRange(range);rangePicker?.render();render()}
 const effectiveTask=t=>observedTask(t,signalState.get(t.id));
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
@@ -782,12 +784,13 @@ function cardMarkup(task) {
   return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-signals">${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
-  return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${visible
+  const sections=taskSections(visible.map(t=>({...t,displayOwner:personName(t.owner)})),['owners','time'].includes(mode)?(mode==='owners'?'owner':'day'):displayControls?.group());
+  return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${sections.map(section=>(section.label?`<tr class="list-section"><th scope="rowgroup" colspan="5">${esc(section.label)} <span>${section.items.length}</span></th></tr>`:"" )+section.items
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}<button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
+      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><div class="list-task-main"><div class="list-task-tools">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="list-task-copy"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></div></div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
     })
-    .join("")}</tbody></table>`;
+    .join("")).join("")}</tbody></table>`;
 }
 function renderWorkEditor(){if(!$('#editor').open)return;const current=tasks.find(t=>t.id===editing);$('#editor-work').innerHTML=current?workProgress(current,canEdit()):'';if(current){const base=editorValues(editingBase);for(const key of ['status','progress'])if(field(key).value===base[key]){field(key).value=editorValues(current)[key];editingBase[key]=editorValues(current)[key];}}text('#editor-progress-value',field('progress').value+'%');}
 function renderCreatedAt(task){const value=task?.createdAt;field('createdAt').value=value?formatDate(createdDay(value))+(value.includes('T')?' · '+new Intl.DateTimeFormat('ru',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' МСК':''):'';field('createdAt').readOnly=true;text('#created-note',task?'Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.':'Дата появится при создании задачи.')}
@@ -804,10 +807,12 @@ function render() {
   renderedDay = today();
   text("#registry-note",dateRange.from?"Задачи по пересечению начала и срока":"Все даты");
   rangePicker?.render();
+  displayControls?.render();
   renderChanges();
   updateOptions();
   renderDraftBanner();
   renderRegistry();
+  const compactCanvas=!!displayControls&&['owners','time'].includes(mode)&&displayControls?.view()!=='detailed';
   const visible = productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),
     matching = tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{...dateRange,archive:archiveScope})),
     canvasMode = ["list","calendar","gantt"].includes(mode) ? lastCanvasMode : mode;
@@ -853,11 +858,11 @@ function render() {
     el.setAttribute("aria-pressed", String(el.dataset.mode === mode));
   });
   $("#new-owner").hidden = !canEdit() || mode !== "owners";
-  $("#lane-jump").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority";
-  $("#viewport").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority";
-  $("#task-list").hidden = mode !== "list";
-  $(".canvas-footer").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority";
-  $(".zoom-controls").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || !visible.length;
+  $("#lane-jump").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
+  $("#viewport").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
+  $("#task-list").hidden = mode !== "list" && !compactCanvas;
+  $(".canvas-footer").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
+  $(".zoom-controls").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas || !visible.length;
   const filterCount = [
     $("#unit-filter").value,
     $("#owner-filter").value,
@@ -868,7 +873,7 @@ function render() {
     productivity?.filterActive(),
   ].filter(Boolean).length;
   text("#filter-count", filterCount ? `Фильтры · ${filterCount}` : "Фильтры");
-  if (mode === "list") $("#task-list").innerHTML = listMarkup(visible);
+  if (mode === "list"||compactCanvas) $("#task-list").innerHTML = listMarkup(visible);
   else {
     $("#zones").innerHTML = layout.groups
       .map(
@@ -2685,7 +2690,8 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
 installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
-gantt=installGantt({esc,today,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
+displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRange,today,setRange:setDateRange,render,toast});
+gantt=installGantt({esc,today,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
 calendar=installCalendar({esc,today,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},

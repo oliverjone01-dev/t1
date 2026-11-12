@@ -1,0 +1,17 @@
+{
+  "release": "20261112-compact-9",
+  "default": "20261111-status-8",
+  "assets": {
+    "app.mjs": "20261112-compact-9",
+    "calendar.mjs": "20261112-compact-9",
+    "display-controls.mjs": "20261112-compact-9",
+    "display-model.mjs": "20261112-compact-9",
+    "gantt-model.mjs": "20261112-compact-9",
+    "gantt.mjs": "20261112-compact-9",
+    "planning-drag.mjs": "20261112-compact-9",
+    "planning-order.mjs": "20261112-compact-9",
+    "productivity-model.mjs": "20261112-compact-9",
+    "productivity.mjs": "20261112-compact-9",
+    "display.css": "20261112-compact-9"
+  }
+}

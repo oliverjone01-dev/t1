@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261111-status-8" />
+    <meta name="application-version" content="20261112-compact-9" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="./board-ui.css?rev=20261111-status-8" />
   <link rel="stylesheet" href="./priority-focus.css?rev=20261111-status-8"><link rel="stylesheet" href="./task-signals.css?rev=20261111-status-8&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261111-status-8">
   <link rel="stylesheet" href="./planning.css?rev=20261111-status-8&amp;layout=toolbar-wrap" />
-  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"></head>
+  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"></head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
@@ -180,6 +180,7 @@
           </button>
           <div class="toolbar-actions"><button id="source-info" class="source-summary-button" aria-haspopup="dialog" title="Источник, сохранение и доступ"><i id="summary-dot" class="connection-dot" aria-hidden="true"></i><span id="source-summary">Подключение</span></button><button id="changes-open" class="button changes-button" aria-haspopup="dialog">Изменения</button></div>
         </div>
+        <div id="display-controls" class="display-toolbar" aria-label="Вид и день задач"></div>
         <nav class="status-shortcuts" aria-label="Завершённые задачи">
           <span class="status-caption">Итог задачи</span
           ><button
@@ -781,7 +782,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261111-status-8"></script>
+    <script type="module" src="./app.mjs?rev=20261112-compact-9"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

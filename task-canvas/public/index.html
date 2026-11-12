@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261112-compact-9" />
+    <meta name="application-version" content="20261112-space-10" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -26,12 +26,13 @@
         document.documentElement.dataset.density =
           p.density === "compact" ? "compact" : "comfortable";
       } catch {}
+      try{const w=JSON.parse(localStorage.getItem("gengroup.task-canvas.workspace.v1")||"{}");document.documentElement.dataset.sidebarFolded=String(w.sidebar===true);document.documentElement.dataset.topFolded=String(w.top===true)}catch{}
     </script>
     <link rel="stylesheet" href="./styles.css?rev=20261111-status-8" />
     <link rel="stylesheet" href="./board-ui.css?rev=20261111-status-8" />
   <link rel="stylesheet" href="./priority-focus.css?rev=20261111-status-8"><link rel="stylesheet" href="./task-signals.css?rev=20261111-status-8&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261111-status-8">
   <link rel="stylesheet" href="./planning.css?rev=20261111-status-8&amp;layout=toolbar-wrap" />
-  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"></head>
+  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"><link rel="stylesheet" href="./workspace-shell.css?rev=20261112-space-10"></head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
@@ -42,6 +43,7 @@
         <strong>Задачи</strong
         ><span id="save-state">Копия на устройстве</span>
       </div>
+      <div class="panel-toggles" role="group" aria-label="Панели рабочего пространства"><button type="button" id="sidebar-toggle" class="icon-button" aria-controls="sidebar-content" aria-expanded="true" aria-label="Свернуть боковую панель" title="Свернуть боковую панель"></button><button type="button" id="controls-toggle" class="icon-button" aria-controls="workspace-controls" aria-expanded="true" aria-label="Свернуть верхнюю панель" title="Свернуть верхнюю панель"></button></div>
       <div class="header-actions">
         <button
           id="commands-open"
@@ -80,7 +82,7 @@
       ><button id="alert-reload" class="text-button">Обновить страницу</button>
     </div>
     <main id="workspace-main" tabindex="-1">
-      <aside class="sidebar" aria-label="Управление доской">
+      <aside class="sidebar" aria-label="Управление доской"><div class="sidebar-content" id="sidebar-content">
         <h1 class="sidebar-title">Рабочая доска</h1>
         <nav class="views" aria-label="Вид доски">
           <a class="view" href="./weekly/" style="text-decoration:none;color:inherit"><span data-icon="calendar"></span><span>План/факт</span></a>
@@ -132,7 +134,7 @@
             </button>
           </div>
         </div>
-      </aside>
+      </div></aside>
       <section class="workspace" aria-label="Доска задач">
         <div id="demo-banner" class="notice" hidden>
           <span
@@ -140,6 +142,8 @@
             Таблицей.</span
           ><a id="exit-demo" href="./">Рабочая доска</a>
         </div>
+        <div id="workspace-summary" class="workspace-summary-rail" hidden><strong data-shell-view></strong><span data-shell-period></span><span data-shell-count></span><button type="button" class="text-button" data-shell-search>Поиск</button><button type="button" class="text-button" data-shell-drafts hidden>Черновики</button></div>
+        <div id="workspace-controls" class="workspace-controls"><div class="workspace-controls-inner">
         <div id="draft-banner" class="notice" hidden>
           <span id="draft-summary"></span
           ><button id="drafts-open" class="text-button">Продолжить</button>
@@ -201,6 +205,7 @@
             <b data-status-count="status:cancelled">0</b></button
           ><span id="view-hint">Перенос меняет приоритет</span>
         </nav>
+        </div></div>
         <div class="board-area">
           <div id="board-ui"></div><section id="gantt-view" aria-label="Диаграмма Ганта" hidden></section><section id="calendar-view" aria-label="Календарь задач" hidden></section>
           <div
@@ -782,7 +787,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261112-compact-9"></script>
+    <script type="module" src="./app.mjs?rev=20261112-space-10"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

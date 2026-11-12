@@ -1,3 +1,4 @@
+import {installWorkspaceShell} from './workspace-shell.mjs?rev=20261112-space-10';
 import {installDisplayControls} from './display-controls.mjs?rev=20261112-compact-9';
 import {taskSections} from './display-model.mjs?rev=20261112-compact-9';
 import {googleStatusLabel} from './sync-indicator.mjs?rev=20261111-status-8';
@@ -11,7 +12,7 @@ import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=2026111
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
 import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-compact-9';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261112-compact-9';
+import {installCalendar} from './calendar.mjs?rev=20261112-space-10';
 import {installProductivity} from './productivity.mjs?rev=20261112-compact-9';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
@@ -2690,6 +2691,7 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
 installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
+installWorkspaceShell({storage,toast});
 displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRange,today,setRange:setDateRange,render,toast});
 gantt=installGantt({esc,today,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});

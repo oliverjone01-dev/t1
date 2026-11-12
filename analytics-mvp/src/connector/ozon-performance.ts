@@ -153,6 +153,19 @@ export class OzonPerformance {
     return String(data.UUID ?? data.uuid ?? data.id ?? "");
   }
 
+  async requestAllSkuCpoOrders(from: string, to: string): Promise<string> {
+    const query = new URLSearchParams({
+      "timeBounds.from": from + "T00:00:00+03:00",
+      "timeBounds.to": to + "T23:59:59+03:00",
+    });
+    const data = await this.get<{ UUID?: string; uuid?: string }>(
+      `/api/client/statistics/all_sku_promo/orders/generate?${query}`,
+    );
+    const uuid = data.UUID ?? data.uuid;
+    if (!uuid || !/^[a-z0-9-]{10,100}$/i.test(uuid)) throw new Error("Missing CPO report UUID");
+    return uuid;
+  }
+
   async statisticsState(uuid: string): Promise<any> {
     return this.get<any>(`/api/client/statistics/${encodeURIComponent(uuid)}`);
   }

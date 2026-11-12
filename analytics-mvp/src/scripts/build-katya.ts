@@ -2746,7 +2746,7 @@ renderTop=function(){
 
   const anOrders: any[] = [];
   const cpoAggregate=IS_OZON?readCpo(dp):null;
-  const cpoUnallocatedDays=new Set(cpoAggregate?.order_days.map(r=>r.d)??[]);
+  const cpoUnallocatedDays=new Set(cpoAggregate?.order_days.filter(r=>r.sp>0).map(r=>r.d)??[]);
   // Оценка сборов у заказов В ПУТИ (Иван 25.09.2026, п. 2.1, вариант 2). OZON начисляет комиссию,
   // логистику и прочие сборы только при доставке, поэтому у летящего заказа их нет и «К выплате»
   // равнялось 100% выручки. Теперь сборы летящего заказа оцениваются долей от выручки по его артикулу:

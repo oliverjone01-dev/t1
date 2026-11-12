@@ -68,6 +68,14 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
+      - name: Пересчёт CPO по датам заказов
+        if: steps.orders.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+          OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+        run: npx tsx src/scripts/ozon/cpo-reconcile.ts
       # Шаги начислений ниже ходят в тот же OZON и ловят 429 (16.10: «rate limit per second» в
       # pnl-sku-accrual). Раньше сбой рвал весь прогон до коммита, и пропадали уже собранные заказы.
       # Теперь сбой шага не мешает коммиту, а прогон краснеет в последнем шаге. Файлы скрипты пишут
@@ -136,6 +144,9 @@ jobs:
           # Все три могли завершиться ошибкой: тогда файла в старом checkout ещё нет.
           if [ -f analytics-mvp/data/collector_status.json ]; then
             git add analytics-mvp/data/collector_status.json
+          fi
+          if [ -f analytics-mvp/data/cpo_orders_reconciled.json ]; then
+            git add analytics-mvp/data/cpo_orders_reconciled.json
           fi
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"

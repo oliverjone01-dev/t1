@@ -32,6 +32,22 @@ def cells(path):
     finally:w.close()
 
 
+def join_orders(by_order,data):
+    posts=collections.defaultdict(list)
+    for line in (data/'orders_daily.ndjson').read_text().splitlines():
+        p=json.loads(line);posts[p['order'].rsplit('-',1)[0]].append(p)
+    od=collections.defaultdict(lambda:[0,0,0]);miss=collections.defaultdict(lambda:[0,0])
+    for order,rr in by_order.items():
+        sp=sum(money(r['sp']) for r in rr);ps=posts.get(order)
+        if not ps:
+            m=min(r['d'] for r in rr)[:7];miss[m][0]+=1;miss[m][1]+=sp;continue
+        day=min(p['d'] for p in ps);od[day][0]+=sp
+        for p in ps:
+            if p.get('status')!='cancelled':od[day][1]+=money(p['revenue']);od[day][2]+=int(p['units'])
+    return ([{'d':d,'sp':v[0]/100,'rev':v[1]/100,'units':v[2]} for d,v in sorted(od.items())],
+            [{'month':m,'n':v[0],'sp':v[1]/100} for m,v in sorted(miss.items())])
+
+
 def prepare(archive,data,captured_at,settings):
     archive,data=Path(archive),Path(data)
     pairs=sorted(archive.glob('*.orders.xlsx'))
@@ -72,9 +88,6 @@ def prepare(archive,data,captured_at,settings):
     if any(r.get('d','')>=lo for r in legacy):raise ValueError('Aggregate window overlaps legacy CPO report dates')
     old_ids={str(r['order']) for r in legacy}
     if any(r['order'] in old_ids for r in rows):raise ValueError('Order crosses legacy and aggregate boundary; review before publishing')
-    posts=collections.defaultdict(list)
-    for line in (data/'orders_daily.ndjson').read_text().splitlines():
-        p=json.loads(line);posts[p['order'].rsplit('-',1)[0]].append(p)
     sku=collections.defaultdict(lambda:[0,0]); offers={};by_order=collections.defaultdict(list)
     rd={d:{'d':d,'sp':0,'n':0} for d in days};no_sku=0
     for r in rows:
@@ -83,20 +96,12 @@ def prepare(archive,data,captured_at,settings):
         key=(r['d'],r['sku']);sku[key][0]+=sp;sku[key][1]+=1
         if key in offers and offers[key]!=r['offer']:raise ValueError('Conflicting SKU/article')
         offers[key]=r['offer']
-    od=collections.defaultdict(lambda:[0,0,0]);miss=collections.defaultdict(lambda:[0,0])
-    for order,rr in by_order.items():
-        sp=sum(money(r['sp']) for r in rr);ps=posts.get(order)
-        if not ps:
-            m=min(r['d'] for r in rr)[:7];miss[m][0]+=1;miss[m][1]+=sp;continue
-        day=min(p['d'] for p in ps);od[day][0]+=sp
-        for p in ps:
-            if p.get('status')!='cancelled':od[day][1]+=money(p['revenue']);od[day][2]+=int(p['units'])
+    order_days,miss=join_orders(by_order,data)
     return {'version':1,'from':lo,'to':hi,'captured_at':captured_at,'source':'ozon-cpo-order-export',
         'orders_sha256':hashlib.sha256((data/'orders_daily.ndjson').read_bytes()).hexdigest(),'source_sha256':hashes,
         'sku':[{'d':d,'sku':s,'offer':offers[d,s],'sp':v[0]/100,'n':v[1]} for (d,s),v in sorted(sku.items())],
         'report_days':[dict(r,sp=r['sp']/100) for r in rd.values()],
-        'order_days':[{'d':d,'sp':v[0]/100,'rev':v[1]/100,'units':v[2]} for d,v in sorted(od.items())],
-        'miss':[{'month':m,'n':v[0],'sp':v[1]/100} for m,v in sorted(miss.items())],
+        'order_days':order_days,'miss':miss,
         'no_sku_sp':no_sku/100,'settings':settings}
 
 

@@ -1,17 +1,19 @@
+import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261112-groups-11';
+import {overlapsRange,validDay} from './task-dates.mjs?rev=20261111-status-8';
 import {shiftSchedule} from './gantt-model.mjs?rev=20261112-compact-9';
 import {ordered,orderKey} from './order.mjs?rev=20261111-status-8';
 import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261111-status-8';
 import {parseAssignee} from './people.mjs?rev=20261111-status-8';
 import {normalizeQuery} from './ui-model.mjs?rev=20261111-status-8';
 
-export const FOCUS = [['all','Все задачи'],['today','Сегодня'],['overdue','Просрочено'],['week','Ближайшие 7 дней'],['unassigned','Без ответственного'],['undated','Без срока'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
+export const FOCUS = [['all','Все задачи'],['today','Активные сегодня'],['overdue','Просрочено'],['week','Активные на 7 дней'],['unassigned','Без ответственного'],['undated','Без рабочих дат'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];
 export function matchesFocus(task, focus, today, pins=[], unread=false) {
   if(focus==='all')return true;
   if(focus==='pinned')return pins.includes(task.id);
   if(focus==='unread')return !!unread;
   if(statusGroup(task))return false;
-  return ({today:()=>task.due===today,overdue:()=>!!task.due&&task.due<today,week:()=>!!task.due&&task.due>=today&&task.due<=shiftDate(today,6),unassigned:()=>!task.owner,undated:()=>!task.due,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
+  return ({today:()=>overlapsRange(task,today,today),overdue:()=>!!task.due&&task.due<today,week:()=>overlapsRange(task,today,shiftDate(today,6)),unassigned:()=>!task.owner,undated:()=>!task.due&&!task.start,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
 }
 export function sortTasks(tasks,sort,ownerName=value=>value,today=localDate()) {
   const priority=t=>statusGroup(t)?(t.status==='Готово'?5:6):({do:0,plan:1,delegate:2,later:3}[t.priority]??4);
@@ -20,8 +22,8 @@ export function sortTasks(tasks,sort,ownerName=value=>value,today=localDate()) {
   return sort==='manual'?['do','plan','delegate','later','inbox','status:done','status:cancelled'].flatMap(group=>ordered(tasks.filter(t=>groupFor(t,'priority','')===group),'priority','')):[...tasks].sort((a,b)=>(sort==='due'?compare(a.due||'9999',b.due||'9999'):sort==='importance'?Number(b.importance||0)-Number(a.importance||0):sort==='priority'?priority(a)-priority(b):sort==='owner'?Number(!a.owner)-Number(!b.owner)||compare(ownerName(a.owner),ownerName(b.owner)):compare(a.title,b.title))||(['due','owner','priority'].includes(sort)?rank(a,b):0)||compare(a.title,b.title)||compare(a.id,b.id));
 }
 export function cleanView(value={}) {
-  value=value||{};
-  return {query:String(value.query||'').slice(0,500),unit:String(value.unit||'').slice(0,100),owner:String(value.owner||'').slice(0,100),hideDone:!!value.hideDone,focus:FOCUS.some(([id])=>id===value.focus)?value.focus:'all',sort:SORTS.some(([id])=>id===value.sort)?value.sort:'manual',mode:['priority','owners','time','list','calendar','gantt'].includes(value.mode)?value.mode:'priority'};
+ value=value||{};const from=validDay(value.from)?value.from:'',to=validDay(value.to)?value.to:'',archive=['','all','done','cancelled',...STATUSES.map(s=>'status:'+s)].includes(value.archive)?value.archive:'',state=reconcileRegistry(archive,!!value.hideDone,'archive');
+ return {query:String(value.query||'').slice(0,500),unit:String(value.unit||'').slice(0,100),owner:String(value.owner||'').slice(0,100),hideDone:state.hideDone,focus:FOCUS.some(([id])=>id===value.focus)?value.focus:'all',sort:SORTS.some(([id])=>id===value.sort)?value.sort:'manual',mode:['priority','owners','time','list','calendar','gantt'].includes(value.mode)?value.mode:'priority',department:String(value.department||'').slice(0,200),from:from&&to&&from<=to?from:'',to:from&&to&&from<=to?to:'',archive:state.archive,group:validGroup(value.group)?value.group:'auto'};
 }
 export function cleanPersonal(value={}) {
   return {version:1,pins:[...new Set(Array.isArray(value?.pins)?value.pins.filter(x=>typeof x==='string'):[])].slice(0,2000),views:(Array.isArray(value?.views)?value.views:[]).filter(v=>v&&typeof v.id==='string'&&typeof v.name==='string'&&v.name.trim()).slice(0,12).map(v=>({id:v.id,name:v.name.trim().slice(0,60),view:cleanView(v.view)}))};

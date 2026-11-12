@@ -9,3 +9,15 @@ export function dayBoardLayout({width,height,count,view='detailed',narrow=width<
  const best=candidates.find(c=>c.needed<=h)||candidates.at(-1),fits=best.needed<=h;
  return {columns:best.columns,rows:best.rows,cardHeight:fits&&n?Math.min(220,Math.max(minHeight,Math.floor((h-Math.max(0,best.rows-1)*gap)/best.rows))):minHeight,fits};
 }
+
+// Compare group arrangements without changing item order, labels or the task set.
+export function groupedBoardLayout({width,height,counts,view='detailed',narrow=width<600}){
+ const groups=counts.filter(n=>n>0),base=dayBoardLayout({width,height,count:groups.reduce((a,b)=>a+b,0),view,narrow}),min=dayBoardLayout({width,height:0,count:1,view,narrow}).cardHeight,gap=10,header=24,max=Math.max(1,Math.min(6,Math.floor((width+gap)/310))),choices=[];
+ for(let columns=1;columns<=(narrow?1:max);columns++)for(let lanes=1;lanes<=Math.min(groups.length||1,columns);lanes++){
+  const inner=Math.max(1,Math.floor(columns/lanes));let cardRows=0,staticHeight=0;
+  for(let i=0;i<groups.length;i+=lanes){const rows=Math.max(...groups.slice(i,i+lanes).map(n=>Math.ceil(n/inner)));cardRows+=rows;staticHeight+=header+Math.max(0,rows-1)*gap+(i?gap:0)}
+  choices.push({columns,lanes,innerColumns:inner,cardRows,staticHeight,needed:cardRows*min+staticHeight});
+ }
+ const sorted=choices.sort((a,b)=>a.needed-b.needed||a.columns-b.columns||a.lanes-b.lanes),best=sorted[0],fits=best.needed<=height;
+ return {...base,...best,cardHeight:fits&&best.cardRows?Math.min(220,Math.max(min,Math.floor((height-best.staticHeight)/best.cardRows))):min,fits};
+}

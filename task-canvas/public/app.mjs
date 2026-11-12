@@ -1,19 +1,20 @@
-import {installWorkspaceShell} from './workspace-shell.mjs?rev=20261112-space-10';
-import {installDisplayControls} from './display-controls.mjs?rev=20261112-compact-9';
-import {taskSections} from './display-model.mjs?rev=20261112-compact-9';
+import {installGroupedBoard} from './grouped-board.mjs?rev=20261112-groups-11';
+import {installWorkspaceShell} from './workspace-shell.mjs?rev=20261112-groups-11';
+import {installDisplayControls} from './display-controls.mjs?rev=20261112-groups-11';
+import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry} from './display-model.mjs?rev=20261112-groups-11';
 import {googleStatusLabel} from './sync-indicator.mjs?rev=20261111-status-8';
 import {installThemeToggle} from './appearance.mjs?rev=20261111-status-8';
 import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261111-status-8';
 import {installRangePicker} from './range-picker.mjs?rev=20261111-status-8';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261111-status-8';
-import {installGantt} from './gantt.mjs?rev=20261112-compact-9';
+import {installGantt} from './gantt.mjs?rev=20261112-groups-11';
 import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261111-status-8';
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-compact-9';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-groups-11';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261112-space-10';
-import {installProductivity} from './productivity.mjs?rev=20261112-compact-9';
+import {installCalendar} from './calendar.mjs?rev=20261112-groups-11';
+import {installProductivity} from './productivity.mjs?rev=20261112-groups-11';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
 import {renderBoard} from './board-ui.mjs?rev=20261111-status-8';
@@ -94,16 +95,23 @@ const canEdit = () =>
   DEMO || (accessMode === "edit" && (!!cloudEngine?.connected || SHEETS_ONLY&&googleAuth?.rememberedEmail===MODE_OWNER&&cloudEngine?.enabled) && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
 const directory=new Directory();
 const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
-let productivity=null,calendar=null,gantt=null,priorityEditor=null;
+let productivity=null,calendar=null,gantt=null,groupedBoard=null,priorityEditor=null;
 let archiveScope="",dateRange={from:"",to:""},rangePicker=null,displayControls=null,signalState=new Map();
 function setDateRange(range,syncCalendar=true){dateRange={...range};if(syncCalendar)calendar?.setRange(range);rangePicker?.render();render()}
 const effectiveTask=t=>observedTask(t,signalState.get(t.id));
+const currentGroup=()=>displayControls?.group()||effectiveGroup(mode,'auto');
+const currentSort=()=>productivity?.sortKind()||'manual';
+function usesGroupedBoard(){const native={priority:'priority',owners:'owner',time:'day'}[mode];return !!native&&(currentGroup()!==native||currentSort()!=='manual'||mode!=='priority'&&displayControls?.view()!=='detailed')}
+function presentationTask(t){return {...effectiveTask(t),displayOwner:personName(t.owner),ownerKey:directory.resolve(t.owner)?.id||'',avatar:personAvatar(t.owner)}}
+function presentationOrder(items,view=mode){if(currentSort()!=='manual')return productivity.sort(items);if(['calendar','time','owners'].includes(view))return ordered(items,view==='owners'?'owners':'time',today());return view==='gantt'?items:productivity?.sort(items)||items}
+const canReorderView=()=>canReorderPresentation(currentSort(),currentGroup());
+
 let selectedIds=new Set(), selectionAnchor=null, matrixBasis=null, matrixFocus=null, matrixDragging=false, matrixMutationBusy=false;
 function selectTask(id,range=false){
   if(!canEdit())return;
   if(range && selectionAnchor){
     const task=tasks.find(t=>t.id===id), group=task&&groupFor(task,'priority',today());
-    const ids=ordered(tasks.filter(t=>isVisible(t)&&groupFor(t,'priority',today())===group),'priority',today()).map(t=>t.id);
+    const presented=presentationOrder(tasks.filter(isVisible).map(presentationTask)),sections=taskSections(presented,currentGroup());const ids=(usesGroupedBoard()||mode==='list'?sections.find(s=>s.items.some(t=>t.id===id))?.items||[]:ordered(tasks.filter(t=>isVisible(t)&&groupFor(t,'priority',today())===group),'priority',today())).map(t=>t.id);
     const a=ids.indexOf(selectionAnchor), b=ids.indexOf(id);
     if(a>=0&&b>=0)ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>selectedIds.add(x));
     else selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
@@ -114,7 +122,7 @@ function renderMatrix(){
   const visible=tasks.filter(isVisible), ids=new Set(visible.map(t=>t.id));
   selectedIds=new Set([...selectedIds].filter(id=>ids.has(id)));
   if(!canEdit())selectedIds.clear();
-  renderBoard($('#board-ui'),{active:mode==='priority',openId:$('#editor').open?editing:null,busy:matrixMutationBusy,tasks:visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})),avatars:Object.fromEntries(directory.people.filter(p=>directory.resolve(p.name)?.id===p.id).map(p=>[p.name,p.avatar])),today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
+  renderBoard($('#board-ui'),{active:mode==='priority'&&!usesGroupedBoard(),openId:$('#editor').open?editing:null,busy:matrixMutationBusy,tasks:visible.map(t=>({...effectiveTask(t),owner:personName(t.owner)})),avatars:Object.fromEntries(directory.people.filter(p=>directory.resolve(p.name)?.id===p.id).map(p=>[p.name,p.avatar])),today:today(),editable:canEdit(),selection:[...selectedIds],focus:matrixFocus,
     notices:Object.fromEntries(visible.filter(t=>inbox.get(t.id)).map(t=>[t.id,inbox.get(t.id).kind])),
     onImportance:(id,value)=>change(()=>{tasks=tasks.map(t=>t.id===id?{...t,importance:Number(value)}:t)}),onStatus:setTaskStatus,onOpen:openTask,onSelect:selectTask,pins:productivity?.pins()||[],onPin:id=>productivity?.togglePin(id),onBulkEdit:()=>productivity?.openBulk(),
     onSelectGroup:(ids,enabled)=>{for(const id of ids)enabled?selectedIds.add(id):selectedIds.delete(id);render()},
@@ -611,7 +619,8 @@ function placeFilters() {
 }
 placeFilters();
 matchMedia("(max-width:767px)").addEventListener("change", placeFilters);
-$("#filters-open").onclick = () => showDialog("filters-dialog");
+$("#filters-open").onclick = () => {$("#mobile-filters-slot").append($("#filter-panel"));showDialog("filters-dialog")};
+$("#filters-dialog").addEventListener("close",placeFilters);
 function setOptions(select, html) {
   if (select.dataset.options === html) return;
   const value = select.value;
@@ -785,19 +794,19 @@ function cardMarkup(task) {
   return `<article tabindex="0" role="button" aria-label="${esc(task.title)}. ${badge ? badge + ". " : ""}Открыть детали" class="task-card${selected === task.id || selectedIds.has(task.id) ? " selected" : ""}${notice ? " unread-change " + (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}" data-task-status="${esc(task.status)}" data-id="${esc(task.id)}" style="left:${p.x}px;top:${p.y}px">${notice ? `<span class="change-badge">${badge}</span>` : ""}<div class="card-top"><span class="unit-tag">${esc(task.unit || "Задача")}</span><span class="card-id">${task.sourceId ? "#" + esc(task.sourceId) : ""}</span>${statusBadge(task,canEdit())}</div><h3>${esc(task.title)}</h3><div class="card-direction">${esc(task.direction || task.description)}</div><div class="card-signals">${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="card-bottom"><span class="avatar">${personAvatar(task.owner)?`<img src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:esc(initials)}</span><span class="owner-name">${esc(personName(task.owner) || (task.ownerNote ? "Уточнить ответственного" : "Не назначен"))}</span><span class="date${task.due && task.due < today() && !statusGroup(task) ? " overdue" : ""}">${esc(formatDate(task.due))}</span></div></article>`;
 }
 function listMarkup(visible) {
-  const sections=taskSections(visible.map(t=>({...t,displayOwner:personName(t.owner)})),['owners','time'].includes(mode)?(mode==='owners'?'owner':'day'):displayControls?.group());
+  const sections=taskSections(visible.map(presentationTask),currentGroup());
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${sections.map(section=>(section.label?`<tr class="list-section"><th scope="rowgroup" colspan="5">${esc(section.label)} <span>${section.items.length}</span></th></tr>`:"" )+section.items
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><div class="list-task-main"><div class="list-task-tools">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перенос меняет очередь; в сортировке по сроку или человеку — соответствующее поле. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="list-task-copy"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></div></div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
+      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><div class="list-task-main"><div class="list-task-tools">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()&&canReorderView()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Очередь внутри приоритета. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="list-task-copy"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></div></div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
     })
     .join("")).join("")}</tbody></table>`;
 }
 function renderWorkEditor(){if(!$('#editor').open)return;const current=tasks.find(t=>t.id===editing);$('#editor-work').innerHTML=current?workProgress(current,canEdit()):'';if(current){const base=editorValues(editingBase);for(const key of ['status','progress'])if(field(key).value===base[key]){field(key).value=editorValues(current)[key];editingBase[key]=editorValues(current)[key];}}text('#editor-progress-value',field('progress').value+'%');}
 function renderCreatedAt(task){const value=task?.createdAt;field('createdAt').value=value?formatDate(createdDay(value))+(value.includes('T')?' · '+new Intl.DateTimeFormat('ru',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' МСК':''):'';field('createdAt').readOnly=true;text('#created-note',task?'Дата исходного сообщения или создания задачи. Синхронизируется с таблицей.':'Дата появится при создании задачи.')}
 function renderRegistry(){
- const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>registryMatch(t,options)).length;
- const options=[['','Текущие задачи',count({})],...STATUSES.map(status=>['status:'+status,status,count({archive:'status:'+status})]),['done','Архив · Готово',count({archive:'done'})],['cancelled','Архив · Отменено',count({archive:'cancelled'})],['all','Все с архивом',pool.length]];
+ const pool=tasks.filter(t=>matchesFilters(t)&&overlapsRange(t,dateRange.from,dateRange.to)).map(effectiveTask),count=options=>pool.filter(t=>registryMatch(t,{...options,hideDone:terminalRegistry(options.archive)?false:$('#hide-done').checked})).length;
+ const options=[['','Текущие задачи',count({})],...STATUSES.map(status=>['status:'+status,status,count({archive:'status:'+status})]),['done','Архив · Готово',count({archive:'done'})],['cancelled','Архив · Отменено',count({archive:'cancelled'})],['all','Все с архивом',count({archive:'all'})]];
  setOptions($('#archive-scope'),options.map(([v,label,n])=>`<option value="${esc(v)}">${esc(label)} · ${n} шт</option>`).join(''));$('#archive-scope').value=archiveScope;
 }
 function render() {
@@ -813,7 +822,8 @@ function render() {
   updateOptions();
   renderDraftBanner();
   renderRegistry();
-  const compactCanvas=!!displayControls&&['owners','time'].includes(mode)&&displayControls?.view()!=='detailed';
+  const compactCanvas=usesGroupedBoard();
+  $('#board-ui').hidden=mode!=='priority'||compactCanvas;
   const visible = productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),
     matching = tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{...dateRange,archive:archiveScope})),
     canvasMode = ["list","calendar","gantt"].includes(mode) ? lastCanvasMode : mode;
@@ -861,10 +871,11 @@ function render() {
   $("#new-owner").hidden = !canEdit() || mode !== "owners";
   $("#lane-jump").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
   $("#viewport").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
-  $("#task-list").hidden = mode !== "list" && !compactCanvas;
+  $("#task-list").hidden = mode !== "list";
   $(".canvas-footer").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas;
   $(".zoom-controls").hidden = ["list","calendar","gantt"].includes(mode) || mode === "priority" || compactCanvas || !visible.length;
   const filterCount = [
+    $("#search").value,
     $("#unit-filter").value,
     $("#owner-filter").value,
     $("#department-filter").value,
@@ -874,7 +885,7 @@ function render() {
     productivity?.filterActive(),
   ].filter(Boolean).length;
   text("#filter-count", filterCount ? `Фильтры · ${filterCount}` : "Фильтры");
-  if (mode === "list"||compactCanvas) $("#task-list").innerHTML = listMarkup(visible);
+  if (mode === "list") $("#task-list").innerHTML = listMarkup(visible);
   else {
     $("#zones").innerHTML = layout.groups
       .map(
@@ -889,6 +900,7 @@ function render() {
   productivity?.render();
   calendar?.render();
   gantt?.render();
+  groupedBoard?.render();
   renderEmpty();
   $("#no-results").hidden = ['calendar','gantt'].includes(mode) || !tasks.length || !!visible.length;
   if(['calendar','gantt'].includes(mode))$("#empty").hidden=true;
@@ -1671,7 +1683,7 @@ function clearFilters() {
 $("#clear-filters").onclick = clearFilters;
 $("#reset-search").onclick = clearFilters;
 for (const id of ["search", "unit-filter", "owner-filter", "department-filter", "hide-done"])
-  $("#" + id).addEventListener(id === "search" ? "input" : "change", render);
+  $("#" + id).addEventListener(id === "search" ? "input" : "change", ()=>{if(id==="hide-done"){const next=reconcileRegistry(archiveScope,$("#hide-done").checked,"hideDone");archiveScope=next.archive;}render()});
 function setMode(next) {
   if($("#editor").open){saveDraft();$("#editor").close();}
   mode = next;
@@ -2154,6 +2166,7 @@ function cloudState(state) {
   productivity?.render();
   calendar?.render();
   gantt?.render();
+  groupedBoard?.render();
   renderEmpty();
 }
 function renderViewerState(state = viewerState) {
@@ -2213,6 +2226,7 @@ function renderViewerState(state = viewerState) {
   productivity?.render();
   calendar?.render();
   gantt?.render();
+  groupedBoard?.render();
   renderEmpty();
 }
 function applyPublic(board, meta) {
@@ -2678,6 +2692,7 @@ document.addEventListener('keydown',e=>{if(e.isTrusted&&!e.repeat&&e.key==='Ente
 window.addEventListener('storage',e=>{if(e.key!==googleAuth?.sessionKey)return;if(e.newValue){googleAuth.restore();if(SHEETS_ONLY&&accessMode==='edit'&&!cloudEngine.connected&&!googleAuth.needsRefresh(5000))cloudEngine.connect()}else if(SHEETS_ONLY&&accessMode==='edit'){$('#google-disconnect').click()}});
 if(SHEETS_ONLY){text('#cloud-title','Личная доска · Google Таблица');text('#cloud-mode-note','Правки до отправки и черновики сохраняются на этом устройстве. История версий таблицы доступна в Google. Общая история Firestore в личном режиме не ведётся.');text('#cloud-mode-description','Вы редактируете через свой Google, коллеги смотрят по ссылке без входа. Карточки и порядок сохраняются прямо в таблице. Firestore в этом режиме не используется.');}
 productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,canEdit,requireEditor,personName,
+ isGrouped:usesGroupedBoard,viewState:()=>({department:$('#department-filter').value,...dateRange,archive:archiveScope,group:displayControls?.requestedGroup()||'auto'}),restoreView:v=>{const sel=$('#department-filter');if(v.department&&![...sel.options].some(o=>o.value===v.department))sel.add(new Option(v.department+' · нет на доске',v.department));sel.value=v.department;archiveScope=v.archive;dateRange={from:v.from,to:v.to};calendar?.setRange(dateRange);displayControls?.setGroup(v.group,v.mode,false)},
  tasks:()=>tasks,mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
  visible:()=>productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),unread:id=>inbox.get(id),
  render,setMode,clearFilters,openTask,saveDraft,submitTask,field,
@@ -2692,13 +2707,14 @@ installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.manag
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 installWorkspaceShell({storage,toast});
-displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRange,today,setRange:setDateRange,render,toast});
-gantt=installGantt({esc,today,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),displayOwner:personName(t.owner),avatar:personAvatar(t.owner)})),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
+displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRange,today,setRange:setDateRange,sort:currentSort,render,toast});
+groupedBoard=installGroupedBoard({active:usesGroupedBoard,group:currentGroup,sections:taskSections,tasks:()=>presentationOrder(tasks.filter(isVisible).map(presentationTask)),esc,canEdit,openTask,selection:()=>[...selectedIds],selectTask});
+gantt=installGantt({esc,today,group:currentGroup,sortKind:currentSort,order:items=>presentationOrder(items,'gantt'),canReorder:canReorderView,sections:taskSections,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(presentationTask),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
-calendar=installCalendar({esc,today,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...effectiveTask(t),owner:personName(t.owner),avatar:personAvatar(t.owner)})),openTask,
+calendar=installCalendar({esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&registryMatch(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });
-installPlanningDrag({tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit,selection:()=>[...selectedIds],toast,
+installPlanningDrag({context:()=>[mode,currentSort(),currentGroup()].join('|'),tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit:()=>canEdit()&&canReorderView(),selection:()=>[...selectedIds],toast,
  capture:()=>cloudEngine?.managed?cloudEngine.capture():null,start:()=>{matrixDragging=true},cancel:()=>{matrixDragging=false;render()},
  commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),manualOrder:()=>productivity.manualOrder(),
 });
@@ -2802,7 +2818,7 @@ if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id
 
 function setTaskStatus(id,status){if(!STATUSES.includes(status))return;return change(()=>{tasks=tasks.map(t=>t.id===id?{...t,status}:t)})}
 document.addEventListener('change',e=>{const el=e.target;if(el?.dataset?.importanceId){e.stopPropagation();change(()=>{tasks=tasks.map(t=>t.id===decodeURIComponent(el.dataset.importanceId)?{...t,importance:Number(el.value)}:t)})}},true);
-$('#archive-scope').onchange=e=>{archiveScope=e.target.value;render()};
+$('#archive-scope').onchange=e=>{const next=reconcileRegistry(e.target.value,$('#hide-done').checked,'archive');archiveScope=next.archive;$('#hide-done').checked=next.hideDone;render()};
 
 async function refreshSignalState(){if(DEMO)return;try{const c=new AbortController(),timer=setTimeout(()=>c.abort(),18000);let r;try{r=await fetch('https://docs.google.com/spreadsheets/d/1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY/export?format=csv&gid=1909260103&range=A1:D2500&_='+Date.now(),{credentials:'omit',cache:'no-store',signal:c.signal})}finally{clearTimeout(timer)}if(!r.ok)throw Error();const rows=parseDelimited(await r.text(),',');if(rows[0]?.[0]!=='Проверено'||rows.length>=2500)throw Error();signalState=new Map(rows.slice(2).filter(r=>r[2]).map(r=>[r[2],JSON.parse(r[3])]));render()}catch{if(archiveScope)text('#registry-note','Архив не обновлён: проверьте соединение с таблицей.')}finally{setTimeout(refreshSignalState,30000)}}
 if(!DEMO)refreshSignalState();

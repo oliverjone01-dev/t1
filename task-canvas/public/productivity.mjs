@@ -1,4 +1,4 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261112-compact-9';
+import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261112-groups-11';
 import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261111-status-8';
 import {icon} from './icons.mjs?rev=20261111-status-8';
 
@@ -7,6 +7,7 @@ export function installProductivity(host) {
  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)], esc=host.esc;
  const key=host.storageKey+'.personal.v1';
  let personal=cleanPersonal(), focus='all', sort='manual', review=[], navigating=false, busy=false, bulkBase=[], bulkBasis=null, intake=[], intakeBasis=null, linkPending=linkedTask(location.hash), linkScheduled=false;
+ try{const saved=host.storage.getItem(key+'.sort');if(SORTS.some(([id])=>id===saved))sort=saved}catch{}
  try{personal=cleanPersonal(JSON.parse(host.storage.getItem(key)||'{}'))}catch{host.toast('Личные настройки не прочитаны. Общие задачи не затронуты.');}
  const option=(id,label)=>`<option value="${esc(id)}">${esc(label)}</option>`;
  const closeButton=id=>`<button type="button" class="icon-button" data-product-close="${id}" aria-label="Закрыть">${icon('close')}</button>`;
@@ -27,7 +28,8 @@ export function installProductivity(host) {
  function show(id){$('#'+id).showModal()}
  $$('[data-product-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.productClose).close());
  function error(id,e){$('#'+id).textContent=e.message||e}
- function filters(){return cleanView({query:$('#search').value,unit:$('#unit-filter').value,owner:$('#owner-filter').value,hideDone:$('#hide-done').checked,focus,sort,mode:host.mode()})}
+ function filters(){return cleanView({...host.viewState?.(),query:$('#search').value,unit:$('#unit-filter').value,owner:$('#owner-filter').value,hideDone:$('#hide-done').checked,focus,sort,mode:host.mode()})}
+ function saveSort(){try{host.storage.setItem(key+'.sort',sort)}catch{host.toast('Сортировка не сохранилась на устройстве.')}}
  function renderViews(){
   $('#saved-views').innerHTML=personal.views.length?personal.views.map(v=>`<div class="saved-view"><button class="text-button" data-load-view="${esc(v.id)}">${esc(v.name)}</button><button class="icon-button" data-remove-view="${esc(v.id)}" aria-label="Удалить вид ${esc(v.name)}">${icon('close')}</button></div>`).join(''):'<p>Сохраните нужную выборку, чтобы возвращаться к ней одним нажатием.</p>';
  }
@@ -35,10 +37,10 @@ export function installProductivity(host) {
  $('#views-open').onclick=openViews;
  $('#view-save').onclick=()=>{openViews();$('#view-name').focus()};
  $('#save-view-form').onsubmit=e=>{e.preventDefault();const name=$('#view-name').value.trim();if(!name)return; if(personal.views.length>=12)return error('views-error','Можно сохранить до 12 видов. Удалите ненужный.');personal.views.push({id:crypto.randomUUID(),name,view:filters()});if(savePersonal()){error('views-error','');$('#view-name').value='';renderViews();host.toast('Вид сохранён в этом браузере');}};
- $('#saved-views').onclick=e=>{const remove=e.target.closest('[data-remove-view]'),load=e.target.closest('[data-load-view]');if(remove){personal.views=personal.views.filter(v=>v.id!==remove.dataset.removeView);savePersonal();renderViews();return}if(!load)return;const v=personal.views.find(v=>v.id===load.dataset.loadView)?.view;if(!v)return;$('#search').value=v.query;for(const [id,value] of [['unit-filter',v.unit],['owner-filter',v.owner]]){if(![...$('#'+id).options].some(o=>o.value===value))$('#'+id).insertAdjacentHTML('beforeend',option(value,value.replace(/^owner:/,'')+' · нет на доске'));$('#'+id).value=value;}$('#hide-done').checked=v.hideDone;focus=v.focus;sort=v.sort;$('#views-dialog').close();$('#filters-dialog').open&&$('#filters-dialog').close();host.setMode(v.mode)};
+ $('#saved-views').onclick=e=>{const remove=e.target.closest('[data-remove-view]'),load=e.target.closest('[data-load-view]');if(remove){personal.views=personal.views.filter(v=>v.id!==remove.dataset.removeView);savePersonal();renderViews();return}if(!load)return;const v=personal.views.find(v=>v.id===load.dataset.loadView)?.view;if(!v)return;$('#search').value=v.query;for(const [id,value] of [['unit-filter',v.unit],['owner-filter',v.owner]]){if(![...$('#'+id).options].some(o=>o.value===value))$('#'+id).insertAdjacentHTML('beforeend',option(value,value.replace(/^owner:/,'')+' · нет на доске'));$('#'+id).value=value;}$('#hide-done').checked=v.hideDone;focus=v.focus;sort=v.sort;saveSort();host.restoreView?.(v);$('#views-dialog').close();$('#filters-dialog').open&&$('#filters-dialog').close();host.setMode(v.mode)};
  $('#focus-filter').onchange=e=>{focus=e.target.value;host.render()};
  $('#active-focus').onclick=()=>{focus='all';host.render()};
- $('#list-sort').onchange=e=>{sort=e.target.value;host.render()};
+ $('#list-sort').onchange=e=>{sort=e.target.value;saveSort();host.render()};
  $('#list-select-all').onclick=()=>host.selectAll(host.visible().map(t=>t.id));
  const togglePin=id=>{if(!id)return;personal.pins=personal.pins.includes(id)?personal.pins.filter(p=>p!==id):[...personal.pins,id];savePersonal();host.render();if($('#editor').open)editorTools(id)};
  $('#task-pin').onclick=()=>togglePin(host.editing());
@@ -97,12 +99,12 @@ export function installProductivity(host) {
  window.addEventListener('hashchange',()=>{if($('#editor').open&&!host.saveDraft())return;linkPending=linkedTask(location.hash);checkLink()});
  function render(){
   $('#focus-filter').value=focus;$('#list-sort').value=sort;
-  const isList=host.mode()==='list',filtered=focus!=='all'||$('#search').value||$('#unit-filter').value||$('#owner-filter').value||$('#hide-done').checked,selection=host.selection();
-  $('#work-context').hidden=!isList&&!filtered&&(!selection.length||host.mode()==='priority');$('#active-focus').hidden=focus==='all';$('#active-focus').textContent=(FOCUS.find(([id])=>id===focus)?.[1]||'')+' ×';
+  const isList=host.mode()==='list'||!!host.isGrouped?.(),filtered=focus!=='all'||$('#search').value||$('#unit-filter').value||$('#owner-filter').value||$('#department-filter').value||host.viewState?.().from||host.viewState?.().archive||$('#hide-done').checked,selection=host.selection();
+  $('#work-context').hidden=!isList&&!filtered&&(!selection.length||host.mode()==='priority'&&!host.isGrouped?.());$('#active-focus').hidden=focus==='all';$('#active-focus').textContent=(FOCUS.find(([id])=>id===focus)?.[1]||'')+' ×';
   $('#result-context').textContent=filtered?`${host.visible().length} из ${host.tasks().length}`:'';
-  $('#sort-label').hidden=!isList;$('#list-select-all').hidden=!isList||!host.canEdit()||!host.visible().length;$('#context-bulk').hidden=!selection.length||!host.canEdit()||host.mode()==='priority';$('#context-bulk').textContent=`Изменить выбранные · ${selection.length}`;
+  $('#sort-label').hidden=false;$('#list-select-all').hidden=!isList||!host.canEdit()||!host.visible().length;$('#context-bulk').hidden=!selection.length||!host.canEdit()||host.mode()==='priority'&&!host.isGrouped?.();$('#context-bulk').textContent=`Изменить выбранные · ${selection.length}`;
   $('#intake-open').hidden=!host.canEdit();if($('#editor').open)editorTools(host.editing());checkLink();
  }
- return {render,sortKind:()=>sort,manualOrder:()=>{sort='manual';host.render()},matches:task=>matchesFocus(task,focus,host.today(),personal.pins,host.unread(task.id)),sort:tasks=>sortTasks(tasks,sort,host.personName,host.today()),reset:()=>{focus='all'},filterActive:()=>focus!=='all',beforeOpen,editorOpened,openBulk,togglePin,pins:()=>personal.pins,
+ return {render,sortKind:()=>sort,setSort:value=>{if(SORTS.some(([id])=>id===value)){sort=value;saveSort();host.render()}},manualOrder:()=>{sort='manual';host.render()},matches:task=>matchesFocus(task,focus,host.today(),personal.pins,host.unread(task.id)),sort:tasks=>sortTasks(tasks,sort,host.personName,host.today()),reset:()=>{focus='all'},filterActive:()=>focus!=='all',beforeOpen,editorOpened,openBulk,togglePin,pins:()=>personal.pins,
  commands:()=>[{title:'Добавить задачи списком',detail:'Одна строка — одна новая задача',run:openIntake},{title:'Мои сохранённые виды',detail:'Быстрый возврат к выборке',run:openViews},...FOCUS.filter(([id])=>id!=='all').map(([id,title])=>({title,detail:'Быстрая выборка задач',run:()=>{host.clearFilters();focus=id;host.render()}}))]};
 }

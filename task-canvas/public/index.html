@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261112-space-10" />
+    <meta name="application-version" content="20261112-groups-11" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -32,7 +32,7 @@
     <link rel="stylesheet" href="./board-ui.css?rev=20261111-status-8" />
   <link rel="stylesheet" href="./priority-focus.css?rev=20261111-status-8"><link rel="stylesheet" href="./task-signals.css?rev=20261111-status-8&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261111-status-8">
   <link rel="stylesheet" href="./planning.css?rev=20261111-status-8&amp;layout=toolbar-wrap" />
-  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"><link rel="stylesheet" href="./workspace-shell.css?rev=20261112-space-10"></head>
+  <link rel="stylesheet" href="./work-progress.css?rev=20261111-status-8"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"><link rel="stylesheet" href="./workspace-shell.css?rev=20261112-groups-11"><link rel="stylesheet" href="./presentation.css?rev=20261112-groups-11"></head>
   <body>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
@@ -142,7 +142,7 @@
             Таблицей.</span
           ><a id="exit-demo" href="./">Рабочая доска</a>
         </div>
-        <div id="workspace-summary" class="workspace-summary-rail" hidden><strong data-shell-view></strong><span data-shell-period></span><span data-shell-count></span><button type="button" class="text-button" data-shell-search>Поиск</button><button type="button" class="text-button" data-shell-drafts hidden>Черновики</button></div>
+        <div id="workspace-summary" class="workspace-summary-rail" hidden><strong data-shell-view></strong><span data-shell-period></span><span data-shell-count></span><button type="button" class="text-button" data-shell-search>Поиск</button><button type="button" class="text-button" data-shell-filters>Фильтры</button><div class="summary-presentation" data-shell-controls></div><button type="button" class="text-button" data-shell-drafts hidden>Черновики</button></div>
         <div id="workspace-controls" class="workspace-controls"><div class="workspace-controls-inner">
         <div id="draft-banner" class="notice" hidden>
           <span id="draft-summary"></span
@@ -207,7 +207,7 @@
         </nav>
         </div></div>
         <div class="board-area">
-          <div id="board-ui"></div><section id="gantt-view" aria-label="Диаграмма Ганта" hidden></section><section id="calendar-view" aria-label="Календарь задач" hidden></section>
+          <section id="grouped-board" aria-label="Задачи по группам" hidden></section><div id="board-ui"></div><section id="gantt-view" aria-label="Диаграмма Ганта" hidden></section><section id="calendar-view" aria-label="Календарь задач" hidden></section>
           <div
             id="viewport"
             tabindex="0"
@@ -787,7 +787,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./app.mjs?rev=20261112-space-10"></script>
+    <script type="module" src="./app.mjs?rev=20261112-groups-11"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

@@ -16,12 +16,24 @@ if(c){
  if(changed)for(const r of c.report_days){const api=readFileSync(dp('ads_daily.ndjson'),'utf8').trim().split('\n').map(x=>JSON.parse(x)).filter(x=>String(x.id)===camp.id&&x.d===r.d);assert.equal(api.length,1,'Missing campaign day');assert(Math.abs(api[0].sp-r.sp)<=1,'CPO daily vs campaign exceeds integer rounding');}
  if(out)for(const name of ['katya-tests.html','katya-reklama-kartochki.html']){const html=readFileSync(join(out,name),'utf8');assert(html.includes('Оплата за заказ: текущая настройка'));assert(html.includes(c.to));}
  if(out&&c.order_days.length){
-  const errors:string[]=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
-  const dom=new JSDOM(readFileSync(join(out,'katya-reklama-kartochki.html'),'utf8'),{runScripts:'dangerously',url:'https://dashboard.example',virtualConsole:vc});
-  const d=c.order_days.at(-1)!.d;(dom.window as any).renderOrdersAnalytics({from:d,to:d});
-  assert(dom.window.document.querySelectorAll('#ordan .cpo-missing').length>=7,'Missing CPO must not appear as complete zero/profit');
-  for(const cell of dom.window.document.querySelectorAll('#ordan .cpo-missing'))assert.equal(cell.textContent,'нет данных');
-  assert.deepEqual(errors,[]);dom.window.close();
+  for(const name of ['katya-money.html','katya-reklama-kartochki.html']){
+   const errors:string[]=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+   const dom=new JSDOM(readFileSync(join(out,name),'utf8'),{runScripts:'dangerously',url:'https://dashboard.example',virtualConsole:vc});
+   const d=c.order_days.at(-1)!.d;(dom.window as any).renderOrdersAnalytics({from:d,to:d});
+   const doc=dom.window.document;
+   const orders=doc.querySelector('#ordan'), skus=doc.querySelector('#ordsku');
+   assert(orders);
+   if(name==='katya-money.html')assert(skus);
+   for(const table of skus?[orders,skus]:[orders]){
+    const badges=[...table.querySelectorAll('.cpo-missing')];
+    assert(badges.length,'Expected incomplete CPO markers for '+name);
+    for(const badge of badges)assert(badge.matches('tr.ord-row > td:first-child > span'),'Mark only order or SKU labels');
+    assert(![...table.querySelectorAll('td')].some(cell=>cell.textContent==='нет данных'),'Known amounts must remain visible');
+   }
+   const totals=(table:Element)=>[...table.querySelectorAll('tr:first-child > td')].slice(2).map(cell=>cell.textContent);
+   if(skus)assert.deepEqual(totals(orders),totals(skus),'Order and SKU totals must match');
+   assert.deepEqual(errors,[]);dom.window.close();
+  }
  }
  console.log(JSON.stringify({cpo_from:c.from,cpo_to:c.to,sku_rows:c.sku.length,report_spend:c.report_days.reduce((a,r)=>a+r.sp,0),joined_days:c.order_days.length,missing_orders:co.miss,campaign:camp.id}));
 }

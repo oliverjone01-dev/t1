@@ -7,7 +7,7 @@ const data=JSON.parse(readFileSync('data/competitors/cabinet-2026-10-27.json','u
 function open(){const errors:string[]=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));const dom=new JSDOM(cabinetCompetitorPage(data),{url:'https://example.org/t1/katya-competitors-cabinet.html',runScripts:'dangerously',virtualConsole:vc,beforeParse(w:any){w.scrollTo=()=>{}}});return {dom,w:dom.window as any,d:dom.window.document,errors}}
 describe('Cabinet source integration',()=>{
  it('keeps source documents separate and links both ways',()=>{
-  for(const active of ['cabinet','mpstats'] as const){const d=new JSDOM(competitorSourceSwitch(active)).window.document;expect(d.querySelectorAll('a')).toHaveLength(2);expect(d.querySelectorAll('[aria-current="page"]')).toHaveLength(1);expect(d.querySelector('[aria-current]')!.textContent).toBe(active==='cabinet'?'Кабинет Ozon':'MPSTATS');}
+  for(const active of ['cabinet','mpstats','comparison'] as const){const d=new JSDOM(competitorSourceSwitch(active)).window.document;expect(d.querySelectorAll('a')).toHaveLength(3);expect(d.querySelectorAll('[aria-current="page"]')).toHaveLength(1);expect(d.querySelector('[aria-current]')!.textContent).toBe({cabinet:'Выгрузки Ozon',mpstats:'Архив MPSTATS',comparison:'Сравнение товаров'}[active]);}
   const {dom,d,errors}=open();expect(d.querySelector('.competitor-dashboard-nav a[href="katya-marketing.html"]')).not.toBeNull();expect(d.querySelector('#cm-data')).toBeNull();expect(JSON.parse(d.querySelector('#cabinet-data')!.textContent!)).toEqual(data);expect(errors).toEqual([]);dom.window.close();
  });
  it('switches all seven categories without carrying table market shares over',()=>{

@@ -14,6 +14,7 @@ import { cabinetCompetitorPage } from "./competitors/cabinet-page.js";
 import {loadProblemData} from './problems/data.js';
 import {problemsPage} from './problems/page.js';
 import { matchedCompetitorPage } from "./competitors/matched-page.js";
+import {cabinetComparisonPage} from './competitors/cabinet-comparison.js';
 import {cabinetDataPage,currentCompetitorPage} from './ozon/cabinet-data-page.js';
 import {supplements} from './ozon/cabinet-supplements.js';
 import { healthHtml } from "./ozon/source-health.js";
@@ -5754,14 +5755,16 @@ function render(cur,cmp){
 }
 
 // --- страница 7: Конкуренты ---
-// OZON: проверенный исторический снимок MPSTATS и явные связи Ивана из Excel.
+// OZON: сравнение по связям списка наблюдения и свежим выгрузкам кабинета, архив MPSTATS отдельно.
 // Маркет сохраняет свой прежний блок; источник OZON ему не подставляется.
 if (IS_OZON) {
   writeFileSync(op('katya-data.html'),cabinetDataPage(dp('')));
   const snapshot = loadMatchedSnapshot(dp("competitors/mpstats-matched-2026-10-22.json"));
   writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
   const cabinetSnapshot = JSON.parse(readFileSync(dp("competitors/cabinet-2026-10-27.json"), "utf8"));
-  writeFileSync(op("katya-competitors-cabinet.html"), supplements(dp('')).competitors ? currentCompetitorPage(supplements(dp('')).competitors) : cabinetCompetitorPage(cabinetSnapshot));
+  const cabinetCompetitors=supplements(dp('')).competitors;
+  writeFileSync(op("katya-competitors-comparison.html"), cabinetComparisonPage(cabinetCompetitors));
+  writeFileSync(op("katya-competitors-cabinet.html"), cabinetCompetitors ? currentCompetitorPage(cabinetCompetitors) : cabinetCompetitorPage(cabinetSnapshot));
   writeFileSync(op('katya-problems.html'),problemsPage({...loadProblemData(dp('')),periodBounds:{from:pageFloor,to:maxD}}));
 } else {
 // ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.

@@ -98,15 +98,17 @@ describe('November detailed blocks',()=>{
     (doc.querySelector('#nd-metrics button') as any).click();expect(doc.querySelector('#nd-funnel-chart h3')!.textContent).toContain('Магазин');
     const order=doc.querySelector('.nd-order-toggle') as any;order.click();expect(order.getAttribute('aria-expanded')).toBe('true');expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(false);expect(doc.querySelector('.nd-order-detail svg')).not.toBeNull();order.click();expect((doc.querySelector('.nd-order-detail') as any).hidden).toBe(true);
     for(const cls of ['nd-price']){const el=doc.querySelector('.'+cls) as any;el.open=true;el.dispatchEvent(new dom.window.Event('toggle'));expect(el.querySelector('svg')).not.toBeNull();}
-    expect(doc.querySelectorAll('.nd-order-chart circle')).toHaveLength(1);expect(doc.querySelectorAll('.nd-price-chart circle')).toHaveLength(3);
+    expect(doc.querySelectorAll('.nd-order-chart circle')).toHaveLength(1);expect(doc.querySelectorAll('.nd-price-chart circle')).toHaveLength(4);
     const chart=doc.querySelector('.nd-price-chart svg')!;
     expect(chart.querySelector('circle[fill="#22D3EE"]')).not.toBeNull();
-    chart.getBoundingClientRect=()=>new dom.window.DOMRect(0,0,900,220);
+    expect(chart.querySelector('circle[fill="#C084FC"]')).not.toBeNull();
+    expect(chart.textContent).toContain('33,3%');
+    chart.getBoundingClientRect=()=>new dom.window.DOMRect(0,0,600,200);
     const hit=chart.querySelector('.hit')!;
     hit.dispatchEvent(new dom.window.MouseEvent('mousemove',{clientX:46}));
     expect(doc.querySelector('.pt-tip')!.textContent).toContain('Цена реализации, ₽: 60');
     expect(doc.querySelector('.pt-tip')!.textContent).toContain('Соинвест (оценка): 33,3%');
-    hit.dispatchEvent(new dom.window.MouseEvent('mousemove',{clientX:888}));
+    hit.dispatchEvent(new dom.window.MouseEvent('mousemove',{clientX:536}));
     expect(doc.querySelector('.pt-tip')!.textContent).toContain('Соинвест (оценка): нет данных');
     expect(errors).toEqual([]);dom.window.close();
   });

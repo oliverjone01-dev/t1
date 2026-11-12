@@ -22,7 +22,9 @@ const metrics = [
  ['Доля рекламных расходов, %','%'],
 ];
 
-export function cabinetComparisonPage(c:Cabinet|null){
+type TargetedExports = Pick<Cabinet,'source_updated_at'|'exports'>;
+
+export function cabinetComparisonPage(c:Cabinet|null,targeted?:TargetedExports){
  const nav=competitorSourceSwitch('comparison');
  const title='GENGLASS · Сравнение с конкурентами';
  if(!c) return cabinetShell(title,nav+'<section><p>Проверенные выгрузки Ozon ещё не доступны.</p></section>','','competitors');
@@ -38,10 +40,12 @@ export function cabinetComparisonPage(c:Cabinet|null){
  const pairs=[...groups.values()];
  const needed=new Set(pairs.flatMap(g=>[g.product.sku,...g.rivals.map(r=>r.sku)]));
  const columns=metrics.map(([header])=>competitorHeaders.indexOf(header!));
+ // A targeted report can fill gaps only within the same source snapshot and window.
+ const extra=targeted?.source_updated_at===c.source_updated_at ? targeted.exports : [];
  const windows=Object.fromEntries([7,28].map(days=>{
   const rows=new Map<string,{name:string|null;seller:string|null;values:(number|null)[]}>();
-  const exports=c.exports.filter(e=>e.days===days);
-  for(const kind of ['genglass-all','tables','mirrors']){
+  const exports=[...c.exports,...extra].filter(e=>e.days===days);
+  for(const kind of ['genglass-all','tables','mirrors','targeted']){
    for(const row of exports.find(e=>e.kind===kind)?.rows??[]){
     const sku=String(row[0]);
     if(!needed.has(sku)||rows.has(sku))continue;
@@ -53,7 +57,7 @@ export function cabinetComparisonPage(c:Cabinet|null){
  }));
 
  const html=nav+`<section><h2>Наши товары и их конкуренты</h2>
- <p class="note">Кабинет Ozon обновил данные ${esc(stamp(c.source_updated_at))}. Выгрузки получены ${esc(stamp(c.captured_at))}.</p>
+ <p class="note">Кабинет Ozon обновил данные ${esc(stamp(c.source_updated_at))}. Общие выгрузки получены ${esc(stamp(c.captured_at))}. ${extra.length ? "Сравнение включает отдельные выгрузки по SKU зеркал." : ""}</p>
  <label>Период <select id="compare-window"><option value="28">28 дней</option><option value="7">7 дней</option></select></label>
  <label>Наш товар <select id="compare-product"></select></label>
  <label>Показатель графика <select id="compare-metric">${metrics.map(([name],i)=>`<option value="${i}">${esc(name)}</option>`).join('')}</select></label>

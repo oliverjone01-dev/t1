@@ -5,7 +5,7 @@ import {cpoSkuRows,cpoSettingsHtml,readCpo} from "./ozon/cpo-capture.js";
 // Берём её CSS/DOM/JS, балансной заменой подставляем только константы-данные.
 // Реальные числа - канал OZON. Прочие каналы, клиенты, план - нет данных (честно пусто).
 // Запуск: tsx src/scripts/build-katya.ts (после fetch:live). Источник: data/, не fixtures.
-import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import {novemberFinancePage} from "./november-finance.js";
@@ -5763,7 +5763,9 @@ if (IS_OZON) {
   writeFileSync(op("katya-competitors.html"), matchedCompetitorPage(snapshot, KCSS ?? "", BUILD_TS));
   const cabinetSnapshot = JSON.parse(readFileSync(dp("competitors/cabinet-2026-10-27.json"), "utf8"));
   const cabinetCompetitors=supplements(dp('')).competitors;
-  writeFileSync(op("katya-competitors-comparison.html"), cabinetComparisonPage(cabinetCompetitors));
+  const targetedPath=dp('competitors/ozon-targeted-mirrors-2026-11-12.json');
+  const targeted=existsSync(targetedPath) ? JSON.parse(readFileSync(targetedPath,'utf8')) : undefined;
+  writeFileSync(op("katya-competitors-comparison.html"), cabinetComparisonPage(cabinetCompetitors,targeted));
   writeFileSync(op("katya-competitors-cabinet.html"), cabinetCompetitors ? currentCompetitorPage(cabinetCompetitors) : cabinetCompetitorPage(cabinetSnapshot));
   writeFileSync(op('katya-problems.html'),problemsPage({...loadProblemData(dp('')),periodBounds:{from:pageFloor,to:maxD}}));
 } else {

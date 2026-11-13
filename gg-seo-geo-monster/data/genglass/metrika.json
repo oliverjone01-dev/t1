@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-11-12",
+ "measured": "2026-11-13",
  "visits_30d": [
-  {
-   "date": "2026-10-13",
-   "visits": 683,
-   "search_visits": 128
-  },
   {
    "date": "2026-10-14",
    "visits": 685,
@@ -149,8 +144,13 @@
   },
   {
    "date": "2026-11-11",
-   "visits": 938,
+   "visits": 939,
    "search_visits": 121
+  },
+  {
+   "date": "2026-11-12",
+   "visits": 782,
+   "search_visits": 102
   }
  ],
  "top_phrases": [
@@ -164,7 +164,7 @@
   },
   {
    "phrase": "генгласс зеркала",
-   "visits": 14
+   "visits": 13
   },
   {
    "phrase": "genglass",
@@ -191,11 +191,11 @@
    "visits": 5
   },
   {
-   "phrase": "дженгласс ру",
+   "phrase": "лучшие зеркала 2026",
    "visits": 5
   },
   {
-   "phrase": "лучшие зеркала 2026",
+   "phrase": "стол genglass",
    "visits": 5
   },
   {
@@ -203,11 +203,23 @@
    "visits": 4
   },
   {
-   "phrase": "зеркала на заказ",
+   "phrase": "genglass стол",
    "visits": 4
   },
   {
-   "phrase": "стол genglass",
+   "phrase": "генглас",
+   "visits": 4
+  },
+  {
+   "phrase": "дженгласс ру",
+   "visits": 4
+  },
+  {
+   "phrase": "зеркала genglass",
+   "visits": 4
+  },
+  {
+   "phrase": "зеркала на заказ",
    "visits": 4
   },
   {
@@ -219,10 +231,6 @@
    "visits": 3
   },
   {
-   "phrase": "genglass стол",
-   "visits": 3
-  },
-  {
    "phrase": "ген гласс",
    "visits": 3
   },
@@ -231,19 +239,11 @@
    "visits": 3
   },
   {
-   "phrase": "генглас",
-   "visits": 3
-  },
-  {
-   "phrase": "зеркала genglass",
+   "phrase": "генгласс столы",
    "visits": 3
   },
   {
    "phrase": "интернет магазин зеркало в раме",
-   "visits": 3
-  },
-  {
-   "phrase": "перегородки межкомнатные",
    "visits": 3
   },
   {
@@ -291,14 +291,6 @@
    "visits": 2
   },
   {
-   "phrase": "генгласс столы",
-   "visits": 2
-  },
-  {
-   "phrase": "дизайнерские зеркала",
-   "visits": 2
-  },
-  {
    "phrase": "зеркало на заказ по индивидуальным размерам",
    "visits": 2
   },
@@ -324,6 +316,10 @@
   },
   {
    "phrase": "перегородка из реек купить москва",
+   "visits": 2
+  },
+  {
+   "phrase": "перегородки межкомнатные",
    "visits": 2
   },
   {
@@ -353,71 +349,75 @@
   {
    "phrase": "стеклянные межкомнатные перегородки",
    "visits": 2
+  },
+  {
+   "phrase": "стеклянный стол на заказ",
+   "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 435
+   "visits": 423
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 99
-  },
-  {
-   "url": "/stoly-na-zakaz/",
-   "visits": 89
+   "visits": 95
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 86
+  },
+  {
+   "url": "/stoly-na-zakaz/",
    "visits": 85
   },
   {
    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-   "visits": 76
+   "visits": 77
   },
   {
    "url": "/product-category/tables/",
-   "visits": 72
+   "visits": 73
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 67
+   "visits": 68
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 65
+   "visits": 67
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 49
+   "visits": 51
   },
   {
    "url": "/blog/peregorodka-garmoshka-ili-razdvizhnaya-sistema-chto-udobnee-dlya-shirokogo-proyoma/",
-   "visits": 37
+   "visits": 42
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 37
+   "visits": 39
   },
   {
    "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
    "visits": 34
   },
   {
-   "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 34
-  },
-  {
-   "url": "/product-category/steklyannye-doski/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
    "visits": 33
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 32
+   "visits": 33
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "url": "/stellazhi-i-polki-na-zakaz/",
+   "visits": 33
+  },
+  {
+   "url": "/product-category/steklyannye-doski/",
    "visits": 31
   },
   {
@@ -425,20 +425,20 @@
    "visits": 30
   },
   {
-   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
-   "visits": 30
-  },
-  {
    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
    "visits": 29
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
    "visits": 29
   },
   {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 28
+  },
+  {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 27
+   "visits": 26
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
@@ -446,38 +446,38 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 25
-  },
-  {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
    "visits": 24
   },
   {
-   "url": "/blog/luchshie-varianty-zerkal-2026/",
-   "visits": 23
-  },
-  {
-   "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm/",
-   "visits": 23
-  },
-  {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "visits": 24
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
    "visits": 23
+  },
+  {
+   "url": "/blog/luchshie-varianty-zerkal-2026/",
+   "visits": 22
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
    "visits": 21
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 18
+   "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm/",
+   "visits": 21
   },
   {
    "url": "/blog/zerkalo-nad-rakovinoj-kak-podobrat-shirinu-i-vysotu-pod-tumbu/",
+   "visits": 18
+  },
+  {
+   "url": "/product-category/mezhkomnatnye-peregorodki/",
    "visits": 16
   }
  ],
  "goals": [],
- "bounce_rate": 15.7,
+ "bounce_rate": 16.4,
  "depth": 2.5
 }

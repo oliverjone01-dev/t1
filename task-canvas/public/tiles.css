@@ -89,3 +89,5 @@
  :root:not([data-card-view=rows]) .actions-open .execution-actions{display:flex}
  .actions-open{z-index:10}
 }
+/* The free matrix/canvas has its own viewport, not the measured tile grid. */
+body:is([data-board-mode=priority],[data-board-mode=owners],[data-board-mode=time]):has(#grouped-board[hidden]) .tile-capacity{display:none}

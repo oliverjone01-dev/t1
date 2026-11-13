@@ -1,6 +1,6 @@
-import {workProgress} from './work-progress.mjs?rev=20261111-status-8';
+import {workProgress} from './work-progress.mjs?rev=20261113-fix25-14';
 import {temperature} from './task-signals.mjs?rev=20261111-status-8';
-import {statusBadge} from './quick-controls.mjs?rev=20261111-status-8';
-import {icon} from './icons.mjs?rev=20261111-status-8';
+import {statusBadge} from './quick-controls.mjs?rev=20261113-fix25-14';
+import {icon} from './icons.mjs?rev=20261113-fix25-14';
 export function presentationCard(t,{esc,editable=false,reorder=false,selectable=false,selected=false,openAttribute='data-calendar-task'}={}){return `<article class="calendar-task-wrap day-board-card" data-task-status="${esc(t.status)}" data-drop-task="${esc(t.id)}"><div class="day-board-signals">${selectable?`<input type="checkbox" class="presentation-select" data-presentation-select="${esc(t.id)}" aria-label="Выбрать: ${esc(t.title)}" ${selected?'checked':''}>`:''}${temperature(t,editable)}${statusBadge(t,editable)}</div><button class="calendar-task" ${openAttribute}="${esc(t.id)}" title="${esc(t.title)}"><span class="calendar-task-title">${esc(t.title)}</span><span>${t.avatar?`<img class="inline-avatar" src="${esc(t.avatar)}" alt="">`:''}${esc(t.displayOwner||t.owner||'Не назначен')}</span></button><div class="day-board-footer">${workProgress(t,editable)}${editable&&reorder?`<button class="planning-grip" data-plan-grip="${esc(t.id)}" aria-label="Переместить в календаре: ${esc(t.title)}" title="Изменить очередь">${icon('grip')}</button>`:''}</div></article>`}
 export function sectionMarkup(sections,card,esc){return sections.map(s=>s.label?`<section class="presentation-section" data-group-key="${esc(s.key)}"><h4 title="${esc(s.label)}"><span>${esc(s.label)}</span><b>${s.total??s.items.length}</b></h4><div class="presentation-section-cards">${s.items.map(card).join('')}</div></section>`:s.items.map(card).join('')).join('')}

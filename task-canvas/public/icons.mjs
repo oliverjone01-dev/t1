@@ -1,4 +1,13 @@
 const shapes = {
+  'arrow-left':'<path d="M19 12H5m6-6-6 6 6 6"/>',
+  'arrow-right':'<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  'chevron-left':'<path d="m15 5-7 7 7 7"/>',
+  'chevron-right':'<path d="m9 5 7 7-7 7"/>',
+  'chevron-down':'<path d="m5 9 7 7 7-7"/>',
+  'play':'<path d="m8 4 12 8-12 8Z"/>',
+  'stop':'<rect x="5" y="5" width="14" height="14" rx="1"/>',
+  'milestone':'<path d="m12 3 9 9-9 9-9-9Z" fill="currentColor" stroke="none"/>',
+  'panel-left':'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m7-11-3 3 3 3"/>',
   settings:'<path d="M4 7h8m6 0h2M4 17h2m6 0h8"/><circle cx="15" cy="7" r="3"/><circle cx="9" cy="17" r="3"/>',
   moon:'<path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/>',
   gantt:'<path d="M4 4v16h16M8 6h7M11 10h9M7 14h6M14 18h6"/>',

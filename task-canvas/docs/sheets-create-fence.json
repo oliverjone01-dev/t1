@@ -1,0 +1,21 @@
+{
+  "protocol": "direct-sheets-task-create-v1",
+  "scope": "New task IDs created by upgraded DirectSheetsApi clients, including independent browsers and devices without Web Locks.",
+  "batch": ["AddNamedRange with deterministic ID/name derived from SHA-256(task ID)", "Existing buildWriteRequests output, including appendCells"],
+  "anchor": "Primary task sheet S1. The named range is a permanent create claim, not a pointer to the appended row.",
+  "on_collision": "Google rejects the complete batch. Reread both task tabs and rerun the engine's three-way merge; never acknowledge the rejected batch. Different task contents remain an explicit conflict.",
+  "on_missing_claimed_row": "If no colliding task row can be found, retain the local changes and report a data error. Do not remove the claim or append blindly.",
+  "on_lost_response": "Read the remote task IDs before retrying. An already committed task is not appended again.",
+  "limitations": [
+    "Not a compare-and-swap for edits to existing rows.",
+    "Legacy clients, third-party scripts and manual edits do not participate in this create protocol.",
+    "Deleting reserved named ranges removes the server create fence for their task IDs.",
+    "Web Locks remains an optimization within one browser; correctness of upgraded creates no longer relies on it."
+  ],
+  "official_contracts": [
+    "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/request#AddNamedRangeRequest",
+    "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/batchUpdate"
+  ],
+  "tests": "tests/fix25.test.mjs",
+  "server_probe": "Two independent requests to an isolated native Google Sheet: one accepted, one rejected with 400, one appended row confirmed by reread."
+}

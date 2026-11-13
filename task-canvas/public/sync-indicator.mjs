@@ -6,3 +6,8 @@ export function googleStatusLabel(state={}, {editing=false,remembered=false}={})
 }
 
 export const sheetFailureStatus=error=>error?.auth?'signin':/повторяется ID|ID карточки повторяется|нет ID|Служебные колонки|Повреждены|Неизвестный приоритет|содержит формулу|не разрешено/.test(error?.message||'')?'data-error':'offline';
+
+export function connectionAction(state={},connected=false){
+ const retry=connected&&!['signin','access-denied','cache-error'].includes(state.status);
+ return {retry,label:state.status==='data-error'&&retry?'Проверить таблицу':retry?'Повторить синхронизацию':'Войти и подключить'};
+}

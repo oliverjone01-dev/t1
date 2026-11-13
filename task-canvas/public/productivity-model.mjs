@@ -1,6 +1,6 @@
 import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261113-groups-12';
 import {overlapsRange,validDay} from './task-dates.mjs?rev=20261111-status-8';
-import {shiftSchedule} from './gantt-model.mjs?rev=20261113-system-13';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261113-fix25-14';
 import {ordered,orderKey} from './order.mjs?rev=20261111-status-8';
 import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261111-status-8';
 import {parseAssignee} from './people.mjs?rev=20261111-status-8';

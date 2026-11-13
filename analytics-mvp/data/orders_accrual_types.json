@@ -10,8 +10,8 @@
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2902013,
-  "n": 1736
+  "sum": -2903729,
+  "n": 1738
  },
  {
   "type_id": 3,
@@ -52,8 +52,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -320581,
-  "n": 214
+  "sum": -322307,
+  "n": 216
  },
  {
   "type_id": 22,
@@ -108,15 +108,15 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21370,
-  "n": 1384
+  "sum": -21390,
+  "n": 1386
  },
  {
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -7885,
-  "n": 879
+  "sum": -7893,
+  "n": 880
  },
  {
   "type_id": 14,

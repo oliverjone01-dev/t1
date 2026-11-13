@@ -1,22 +1,22 @@
-import {installGroupedBoard} from './grouped-board.mjs?rev=20261112-groups-11';
-import {installDisplayControls} from './display-controls.mjs?rev=20261113-groups-12';
+import {installGroupedBoard} from './grouped-board.mjs?rev=20261113-fix25-14';
+import {installDisplayControls} from './display-controls.mjs?rev=20261113-fix25-14';
 import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261113-groups-12';
-import {googleStatusLabel,sheetFailureStatus} from './sync-indicator.mjs?rev=20261113-system-13';
-import {installThemeToggle} from './appearance.mjs?rev=20261111-status-8';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261111-status-8';
-import {installRangePicker} from './range-picker.mjs?rev=20261111-status-8';
+import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261113-fix25-14';
+import {installThemeToggle} from './appearance.mjs?rev=20261113-fix25-14';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261113-fix25-14';
+import {installRangePicker} from './range-picker.mjs?rev=20261113-fix25-14';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261111-status-8';
-import {installGantt} from './gantt.mjs?rev=20261113-system-13';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261111-status-8';
+import {installGantt} from './gantt.mjs?rev=20261113-fix25-14';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261113-fix25-14';
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261113-system-13';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261113-fix25-14';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261113-system-13';
-import {installProductivity} from './productivity.mjs?rev=20261113-system-13';
+import {installCalendar} from './calendar.mjs?rev=20261113-fix25-14';
+import {installProductivity} from './productivity.mjs?rev=20261113-fix25-14';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
-import {renderBoard} from './board-ui.mjs?rev=20261111-status-8';
+import {renderBoard} from './board-ui.mjs?rev=20261113-fix25-14';
 import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261111-status-8';
 import {
   QUADRANTS,
@@ -33,16 +33,16 @@ import {
   fitCamera,
   importBoard,parseDelimited,
 } from "./model.mjs?rev=20261111-status-8";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261113-system-13";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261113-fix25-14";
 import { TeamSyncEngine } from "./team-engine.mjs?rev=20261111-status-8";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261111-status-8";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261113-fix25-14";
 import { BoardViewer } from "./board-viewer.mjs?rev=20261111-status-8";
 import { remoteChanges } from "./changes.mjs?rev=20261111-status-8";
 import { TeamApi } from "./team-api.mjs?rev=20261111-status-8";
 import { TeamSourceBridge } from "./team-source.mjs?rev=20261111-status-8";
 import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261111-status-8";
 import { GoogleAuth } from "./google-auth.mjs?rev=20261111-status-8";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261111-status-8";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261113-fix25-14";
 import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261111-status-8";
 import { dataSignature, writeBoard } from "./storage.mjs?rev=20261111-status-8";
 import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261111-status-8";
@@ -53,7 +53,7 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261111-status-8";
+} from "./editor.mjs?rev=20261113-fix25-14";
 import { parseAssignee } from "./people.mjs?rev=20261111-status-8";
 import {
   matchesTask,
@@ -64,7 +64,7 @@ import {
   demoTasks,
   synchronizationHint,
 } from "./ui-model.mjs?rev=20261113-system-13";
-import { icon } from "./icons.mjs?rev=20261111-status-8";
+import { icon } from "./icons.mjs?rev=20261113-fix25-14";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -724,7 +724,7 @@ function renderProvenance() {
   const source = DEMO
     ? "Демонстрационные данные"
     : syncState.lastReadAt
-      ? "Google Таблица, первая вкладка"
+      ? "Google Таблица · основные задачи и Telegram"
       : "Копия на этом устройстве";
   const checked = syncState.lastReadAt
     ? `Прочитана ${new Date(syncState.lastReadAt).toLocaleString("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.`
@@ -2162,7 +2162,7 @@ function cloudState(state) {
   $("#google-authorize").disabled =
     connecting || state.status === "cache-error";
   $('#connection-explanation').dataset.kind=state.status;
-  $('#google-authorize').textContent=state.status==='data-error'?'Проверить таблицу':'Войти и подключить';
+  $('#google-authorize').textContent=connectionAction(state,cloudEngine?.connected).label;
   if(state.status==='data-error'&&$('#google-error').textContent===state.message)text('#google-error','');
   renderChanges();
   renderProvenance();
@@ -2409,7 +2409,7 @@ $("#google-connect").onclick = () => {
 };
 $("#google-authorize").onclick = async () => {
   if (DEMO) return;
-  if(syncState.status==='data-error'&&cloudEngine.connected){await cloudEngine.flush();return}
+  if(connectionAction(syncState,cloudEngine.connected).retry){await cloudEngine.flush();return}
   const attempt = ++connectionAttempt;
   pendingConnection(true);
   text("#google-error", "");
@@ -2695,7 +2695,7 @@ function renewPersonalSession(){
 document.addEventListener('click',e=>{if(e.isTrusted&&!e.target.closest('#google-disconnect,#google-authorize,#google-cancel,#cloud-reset'))renewPersonalSession()},true);
 document.addEventListener('keydown',e=>{if(e.isTrusted&&!e.repeat&&e.key==='Enter')renewPersonalSession()},true);
 window.addEventListener('storage',e=>{if(e.key!==googleAuth?.sessionKey)return;if(e.newValue){googleAuth.restore();if(SHEETS_ONLY&&accessMode==='edit'&&!cloudEngine.connected&&!googleAuth.needsRefresh(5000))cloudEngine.connect()}else if(SHEETS_ONLY&&accessMode==='edit'){$('#google-disconnect').click()}});
-if(SHEETS_ONLY){text('#cloud-title','Личная доска · Google Таблица');text('#cloud-mode-note','Правки до отправки и черновики сохраняются на этом устройстве. История версий таблицы доступна в Google. Общая история Firestore в личном режиме не ведётся.');text('#cloud-mode-description','Вы редактируете через свой Google, коллеги смотрят по ссылке без входа. Карточки и порядок сохраняются прямо в таблице. Firestore в этом режиме не используется.');}
+if(SHEETS_ONLY){text('#cloud-title','Сохранение в Google Таблице');text('#cloud-mode-note','Если связи нет, правки остаются на этом устройстве и отправятся после подключения.');text('#cloud-mode-description','Задачи сохраняются в вашей таблице. Вы редактируете доску, коллеги могут смотреть её по ссылке.');}
 productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,canEdit,requireEditor,personName,
  isGrouped:usesGroupedBoard,viewState:()=>({department:$('#department-filter').value,...dateRange,archive:archiveScope,group:displayControls?.requestedGroup()||'auto'}),restoreView:v=>{const sel=$('#department-filter');if(v.department&&![...sel.options].some(o=>o.value===v.department))sel.add(new Option(v.department+' · нет на доске',v.department));sel.value=v.department;archiveScope=v.archive;dateRange={from:v.from,to:v.to};calendar?.setRange(dateRange);displayControls?.setGroup(v.group,v.mode,false)},
  tasks:()=>tasks,mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
@@ -2826,3 +2826,8 @@ $('#archive-scope').onchange=e=>{const next=reconcileRegistry(e.target.value,$('
 
 async function refreshSignalState(){if(DEMO)return;try{const c=new AbortController(),timer=setTimeout(()=>c.abort(),18000);let r;try{r=await fetch('https://docs.google.com/spreadsheets/d/1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY/export?format=csv&gid=1909260103&range=A1:D2500&_='+Date.now(),{credentials:'omit',cache:'no-store',signal:c.signal})}finally{clearTimeout(timer)}if(!r.ok)throw Error();const rows=parseDelimited(await r.text(),',');if(rows[0]?.[0]!=='Проверено'||rows.length>=2500)throw Error();signalState=new Map(rows.slice(2).filter(r=>r[2]).map(r=>[r[2],JSON.parse(r[3])]));render()}catch{if(archiveScope)text('#registry-note','Архив не обновлён: проверьте соединение с таблицей.')}finally{setTimeout(refreshSignalState,30000)}}
 if(!DEMO)refreshSignalState();
+
+// The initial mode check is a loading state, never an empty board or permission to write.
+document.documentElement.dataset.boardLoading="false";
+$(".workspace").setAttribute("aria-busy","false");
+$("#bootstrap-status").hidden=true;

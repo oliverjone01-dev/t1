@@ -1,4 +1,4 @@
-import {sheetFailureStatus} from './sync-indicator.mjs?rev=20261113-system-13';
+import {sheetFailureStatus} from './sync-indicator.mjs?rev=20261113-fix25-14';
 import {
   bootstrapBoard,
   mergeBoards,
@@ -323,6 +323,9 @@ export class SyncEngine {
     } catch (error) {
       if (error.cancelled) {
         this.state(this.connected ? "pending" : "signin");
+      } else if (error.retryMerge) {
+        this.state('pending',error.message);
+        this.later(0);
       } else if (error.auth) {
         this.connected = false;
         this.state("signin", error.message);

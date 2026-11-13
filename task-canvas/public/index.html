@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261113-system-13" />
+    <meta name="application-version" content="20261113-fix25-14" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -32,8 +32,10 @@
     <link rel="stylesheet" href="./board-ui.css?rev=20261111-status-8" />
   <link rel="stylesheet" href="./priority-focus.css?rev=20261111-status-8"><link rel="stylesheet" href="./task-signals.css?rev=20261111-status-8&palette=done-green"><link rel="stylesheet" href="./gantt.css?rev=20261111-status-8">
   <link rel="stylesheet" href="./planning.css?rev=20261111-status-8&amp;layout=toolbar-wrap" />
-  <link rel="stylesheet" href="./work-progress.css?rev=20261113-system-13"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"><link rel="stylesheet" href="./workspace-shell.css?rev=20261113-system-13"><link rel="stylesheet" href="./presentation.css?rev=20261113-system-13"></head>
+  <link rel="stylesheet" href="./work-progress.css?rev=20261113-system-13"><link rel="stylesheet" href="./display.css?rev=20261112-compact-9"><link rel="stylesheet" href="./workspace-shell.css?rev=20261113-system-13"><link rel="stylesheet" href="./presentation.css?rev=20261113-system-13"><link rel="stylesheet" href="./design-system.css?rev=20261111-status-8"></head>
   <body>
+    <script>document.documentElement.dataset.boardLoading=String(new URLSearchParams(location.search).get("demo")!=="1")</script>
+    <div id="bootstrap-status" role="status" class="bootstrap-status"><strong>Загружаем рабочую доску</strong><span>Проверяем источник задач и доступ к сохранению…</span></div>
     <a class="skip-link" href="#workspace-main">Перейти к задачам</a>
     <header class="topbar">
       <a class="brand" href="./" aria-label="Рабочая доска GENGROUP"
@@ -135,7 +137,7 @@
           </div>
         </div>
       </div></aside>
-      <section class="workspace" aria-label="Доска задач">
+      <section class="workspace" aria-label="Доска задач" aria-busy="true">
         <div id="demo-banner" class="notice" hidden>
           <span
             >Демонстрация. Эти карточки не связаны с вашей Google
@@ -668,14 +670,12 @@
       </div>
       <h2 id="cloud-title">Задачи на ваших устройствах</h2>
       <p id="cloud-mode-description">
-        Просмотр доступен по ссылке без входа. Для изменения задач войдите через
-        свой Google-аккаунт команды. Владелец добавляет редакторов через «Доступ».
-        Когда фоновый обмен включён, таблица обновляется по расписанию даже при закрытой доске. До его включения таблицу подключает владелец.
+        Коллеги видят доску по ссылке. Для изменения задач войдите через Google.
+        Владелец управляет доступом команды.
       </p>
       <p class="source-note" id="cloud-mode-note">
-        Неотправленные правки и черновики остаются на этом устройстве отдельно
-        от общего просмотра. После входа доска проверит их версии перед
-        отправкой. История и сравнение конфликтов доступны после входа.
+        Неотправленные правки и черновики остаются на этом устройстве.
+        После входа доска проверит изменения перед отправкой.
       </p>
       <div id="google-pending" class="notice" hidden>
         Завершите вход во всплывающем окне Google. Можно отменить и попробовать
@@ -787,8 +787,8 @@
     <div id="toast" role="status" hidden></div>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script type="module" src="./workspace-start.mjs?rev=20261113-system-13"></script>
-    <script type="module" src="./app.mjs?rev=20261113-system-13"></script>
+    <script type="module" src="./workspace-start.mjs?rev=20261113-fix25-14"></script>
+    <script type="module" src="./app.mjs?rev=20261113-fix25-14"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

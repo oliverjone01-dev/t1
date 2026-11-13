@@ -1,6 +1,6 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261113-system-13';
+import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261113-fix25-14';
 import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261111-status-8';
-import {icon} from './icons.mjs?rev=20261111-status-8';
+import {icon} from './icons.mjs?rev=20261113-fix25-14';
 
 // UI-only preferences live separately from the shared board and its outbox.
 export function installProductivity(host) {
@@ -16,7 +16,7 @@ export function installProductivity(host) {
  $('.side-tools').insertAdjacentHTML('afterbegin','<button id="intake-open" class="text-button">Добавить списком</button>');
  $('#filter-panel').append($('#intake-open'));
  $('.toolbar').insertAdjacentHTML('afterend',`<div id="work-context" class="work-context" hidden><button id="active-focus" class="context-chip" title="Сбросить быструю выборку" hidden></button><span id="result-context"></span><label id="sort-label" hidden><span class="visually-hidden">Сортировка списка</span><select id="list-sort" aria-label="Сортировка списка">${SORTS.map(([id,label])=>option(id,label)).join('')}</select></label><button id="list-select-all" class="text-button" hidden>Выбрать все</button><button id="context-bulk" class="text-button" hidden>Изменить выбранные</button></div>`);
- $('#editor-title').insertAdjacentHTML('afterend',`<div class="task-tools"><button type="button" id="task-pin" class="text-button" aria-pressed="false" title="Личное избранное в этом браузере">В избранное</button><button type="button" id="task-share" class="text-button">Ссылка</button><button type="button" id="task-duplicate" class="text-button">По образцу</button></div><div class="review-nav"><button type="button" id="review-prev" class="icon-button" aria-label="Предыдущая задача">←</button><span id="review-position"></span><button type="button" id="review-next" class="icon-button" aria-label="Следующая задача">→</button></div>`);
+ $('#editor-title').insertAdjacentHTML('afterend',`<div class="task-tools"><button type="button" id="task-pin" class="text-button" aria-pressed="false" title="Личное избранное в этом браузере">В избранное</button><button type="button" id="task-share" class="text-button">Ссылка</button><button type="button" id="task-duplicate" class="text-button">По образцу</button></div><div class="review-nav"><button type="button" id="review-prev" class="icon-button" aria-label="Предыдущая задача">${icon('arrow-left')}</button><span id="review-position"></span><button type="button" id="review-next" class="icon-button" aria-label="Следующая задача">${icon('arrow-right')}</button></div>`);
  $('#due-note').insertAdjacentHTML('beforebegin',`<div id="due-presets" class="date-presets" aria-label="Быстрый срок">${[['today','Сегодня'],['tomorrow','Завтра'],['week','Через неделю'],['clear','Без срока']].map(([id,label])=>`<button type="button" class="text-button" data-due-preset="${id}">${label}</button>`).join('')}</div>`);
  $('#save-task').insertAdjacentHTML('beforebegin','<button type="button" id="save-next" class="button quiet">Сохранить и далее</button>');
  document.body.insertAdjacentHTML('beforeend',

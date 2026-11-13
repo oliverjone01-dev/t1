@@ -7,6 +7,7 @@ import {
   buildWriteRequests,
 } from "./sync-model.mjs?rev=20261111-status-8";
 import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261111-status-8';
+import {taskClaim,isClaimCollision} from './sheets-claims.mjs?rev=20261111-status-8';
 export class SheetsApi {
   constructor(
     auth,
@@ -134,6 +135,20 @@ export class SheetsApi {
 export class DirectSheetsApi extends SheetsApi {
   async write(snapshot,writes,owners){
     assertSheetWriter(await this.readStorageControl());
-    return super.write(snapshot,writes,owners);
+    const requests=buildWriteRequests(snapshot,writes,owners);
+    if(!requests.length)return;
+    const existing=new Set(snapshot.records.map(r=>r.id));
+    const created=[...new Set(writes.filter(w=>w.type!=='archive'&&!existing.has(w.id)).map(w=>w.id))];
+    const claims=await Promise.all(created.map(id=>taskClaim(id,TAB_ID)));
+    this.beforeWrite();
+    try{return await this.request(':batchUpdate',{requests:[...claims,...requests]})}
+    catch(error){
+      if(!claims.length||!isClaimCollision(error))throw error;
+      // The whole batch was rejected, including unrelated cell edits. Reread
+      // before asking the engine to merge; never acknowledge the rejected batch.
+      const fresh=await this.read(),present=new Set(fresh.records.map(r=>r.id));
+      if(created.some(id=>present.has(id)))throw Object.assign(new Error('Задача уже сохранена с другого устройства. Сверяем правки.'),{retryMerge:true});
+      throw new Error('Повреждены служебные записи: ID задачи зарезервирован, но строка не найдена. Правки сохранены на устройстве; восстановите строку в таблице.');
+    }
   }
 }

@@ -1,3 +1,4 @@
+import {sheetFailureStatus} from './sync-indicator.mjs?rev=20261113-system-13';
 import {
   bootstrapBoard,
   mergeBoards,
@@ -62,8 +63,10 @@ export class SyncEngine {
     readOnly = false,
     schedule = (...args) => setTimeout(...args),
     cancel = (...args) => clearTimeout(...args),
+    withWriterLock = action => globalThis.navigator?.locks?.request ? navigator.locks.request('gengroup.task-canvas.sheets-writer.v1',action) : action(),
   }) {
     this.api = api;
+    this.withWriterLock = withWriterLock;this.flushPromise=null;
     this.getLocal = getLocal;
     this.apply = apply;
     this.onState = onState;
@@ -187,6 +190,12 @@ export class SyncEngine {
     this.state("local");
   }
   async flush() {
+    if(this.flushPromise)return this.flushPromise;
+    if(this.readOnly||!this.connected||this.busy)return;
+    this.flushPromise=Promise.resolve(this.withWriterLock(()=>this.flushLocked()));
+    try{return await this.flushPromise}finally{this.flushPromise=null}
+  }
+  async flushLocked() {
     if (this.readOnly) return;
     if (!this.connected || this.busy) return;
     if (this.conflicts.length) {
@@ -317,6 +326,8 @@ export class SyncEngine {
       } else if (error.auth) {
         this.connected = false;
         this.state("signin", error.message);
+      } else if(sheetFailureStatus(error)==='data-error') {
+        this.state('data-error',error.message);
       } else {
         this.state("offline", error.message);
         this.later(this.retryDelay);

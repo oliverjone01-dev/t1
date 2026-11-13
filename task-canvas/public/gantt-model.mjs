@@ -24,3 +24,12 @@ export function selectedGanttWindow(anchor,months=3,range={}){
  if(range.from&&range.to)return {start:range.from,end:range.to,days:dayDistance(range.from,range.to)+1};
  return ganttWindow(anchor,months);
 }
+
+export function drawGantt(task,delta,edge='draw'){
+ const span=taskSpan(task);if(!span||!Number.isInteger(delta))return task;
+ if(edge==='move')return shiftGantt(task,delta,'move');
+ if(!span.milestone)return shiftGantt(task,delta,edge==='draw'?'move':edge);
+ if(!delta)return task;
+ const anchor=span.start,end=dateShift(anchor,delta),start=end<anchor?end:anchor,due=end<anchor?anchor:end;
+ return setGanttDates(task,start,due);
+}

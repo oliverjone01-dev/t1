@@ -1,20 +1,19 @@
 import {installGroupedBoard} from './grouped-board.mjs?rev=20261112-groups-11';
-import {installWorkspaceShell} from './workspace-shell.mjs?rev=20261112-groups-11';
 import {installDisplayControls} from './display-controls.mjs?rev=20261113-groups-12';
 import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261113-groups-12';
-import {googleStatusLabel} from './sync-indicator.mjs?rev=20261111-status-8';
+import {googleStatusLabel,sheetFailureStatus} from './sync-indicator.mjs?rev=20261113-system-13';
 import {installThemeToggle} from './appearance.mjs?rev=20261111-status-8';
 import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261111-status-8';
 import {installRangePicker} from './range-picker.mjs?rev=20261111-status-8';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261111-status-8';
-import {installGantt} from './gantt.mjs?rev=20261112-groups-11';
+import {installGantt} from './gantt.mjs?rev=20261113-system-13';
 import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261111-status-8';
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261112-groups-11';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261113-system-13';
 import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261113-groups-12';
-import {installProductivity} from './productivity.mjs?rev=20261113-groups-12';
+import {installCalendar} from './calendar.mjs?rev=20261113-system-13';
+import {installProductivity} from './productivity.mjs?rev=20261113-system-13';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
 import {renderBoard} from './board-ui.mjs?rev=20261111-status-8';
@@ -34,7 +33,7 @@ import {
   fitCamera,
   importBoard,parseDelimited,
 } from "./model.mjs?rev=20261111-status-8";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261111-status-8";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261113-system-13";
 import { TeamSyncEngine } from "./team-engine.mjs?rev=20261111-status-8";
 import { TeamDraftStore } from "./team-drafts.mjs?rev=20261111-status-8";
 import { BoardViewer } from "./board-viewer.mjs?rev=20261111-status-8";
@@ -64,7 +63,7 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261111-status-8";
+} from "./ui-model.mjs?rev=20261113-system-13";
 import { icon } from "./icons.mjs?rev=20261111-status-8";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -689,7 +688,7 @@ function renderSourceBadge(){
  $('#cloud-status').hidden=!DEMO&&accessMode==='view';
  const viewing=accessMode==='view',status=DEMO?'demo':viewing?viewerState.status:syncState.status;
  const stamp=viewing?viewerReadAt:syncState.lastReadAt,at=stamp?new Date(stamp).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
- const labels={'view-live':'Просмотр','view-loading':'Подключение','view-offline':'Копия','view-error':'Нет связи',synced:'Сохранено',syncing:'Сохраняем',pending:'Есть правки',signin:'Нужен вход',offline:'Нет связи',conflict:'Конфликт','cache-error':'Ошибка очереди',local:'На устройстве',demo:'Демонстрация'};
+ const labels={'view-live':'Просмотр','view-loading':'Подключение','view-offline':'Копия','view-error':'Нет связи',synced:'Сохранено',syncing:'Сохраняем',pending:'Есть правки',signin:'Нужен вход','data-error':'Ошибка данных',offline:'Нет связи',conflict:'Конфликт','cache-error':'Ошибка очереди',local:'На устройстве',demo:'Демонстрация'};
  const ok=['view-live','synced','demo'].includes(status),label=labels[status]||'Подключение';
  text('#source-summary',label+(at&&['view-live','synced','view-offline'].includes(status)?' · '+at:''));
  $('#source-info').dataset.state=ok?'ready':['view-loading','syncing'].includes(status)?'loading':'warning';
@@ -2112,6 +2111,7 @@ function cloudState(state) {
       pending: "Ожидает отправки",
       syncing: "Синхронизация...",
       synced: state.managed ? "Сохранено для команды" : "Сохранено в Google",
+      'data-error': "Нужно исправить данные таблицы",
       offline: "Нет связи с Google",
       conflict: "Нужно сравнить версии",
       "cache-error": "Ошибка очереди",
@@ -2147,7 +2147,7 @@ function cloudState(state) {
   );
   text(
     "#connection-explanation",
-    label + ". " + $("#cloud-status").textContent,
+    $("#cloud-status").textContent.startsWith(label)?$("#cloud-status").textContent:label + ". " + $("#cloud-status").textContent,
   );
   for (const id of ["cloud-dot", "header-cloud-dot"])
     $("#" + id).className =
@@ -2161,6 +2161,9 @@ function cloudState(state) {
   $("#cloud-recovery").hidden = state.status !== "cache-error";
   $("#google-authorize").disabled =
     connecting || state.status === "cache-error";
+  $('#connection-explanation').dataset.kind=state.status;
+  $('#google-authorize').textContent=state.status==='data-error'?'Проверить таблицу':'Войти и подключить';
+  if(state.status==='data-error'&&$('#google-error').textContent===state.message)text('#google-error','');
   renderChanges();
   renderProvenance();
   productivity?.render();
@@ -2406,6 +2409,7 @@ $("#google-connect").onclick = () => {
 };
 $("#google-authorize").onclick = async () => {
   if (DEMO) return;
+  if(syncState.status==='data-error'&&cloudEngine.connected){await cloudEngine.flush();return}
   const attempt = ++connectionAttempt;
   pendingConnection(true);
   text("#google-error", "");
@@ -2472,6 +2476,7 @@ $("#google-authorize").onclick = async () => {
     }
     if (attempt !== connectionAttempt || error.cancelled) return;
     showDialog("cloud-dialog");
+    if(sheetFailureStatus(error)==='data-error'){cloudEngine.state('data-error',error.message);text('#google-error','');return}
     text("#google-error", error.code==='resource-exhausted'?'Google временно отклоняет запросы из-за квоты проекта. Показана последняя копия; неотправленные правки сохранены. Повторите вход позже.':error.message);
   } finally {
     if (attempt === connectionAttempt) pendingConnection(false);
@@ -2706,7 +2711,6 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
 installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
-installWorkspaceShell({storage,toast});
 displayControls=installDisplayControls({storage,mode:()=>mode,range:()=>dateRange,today,setRange:setDateRange,sort:currentSort,render,toast});
 groupedBoard=installGroupedBoard({active:usesGroupedBoard,group:currentGroup,sections:taskSections,tasks:()=>presentationOrder(tasks.filter(isVisible).map(presentationTask)),esc,canEdit,openTask,selection:()=>[...selectedIds],selectTask});
 gantt=installGantt({esc,today,group:currentGroup,sortKind:currentSort,order:items=>presentationOrder(items,'gantt'),canReorder:canReorderView,sections:taskSections,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(presentationTask),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});

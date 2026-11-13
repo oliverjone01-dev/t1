@@ -1,37 +1,37 @@
 {
- "dateFrom": "2026-10-13",
- "dateTo": "2026-11-11",
- "generated_at": "2026-11-12T15:18:40.041Z",
+ "dateFrom": "2026-10-14",
+ "dateTo": "2026-11-12",
+ "generated_at": "2026-11-13T14:37:49.191Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2950,
-  "ad_visits_30d": 7055,
-  "yd_visits_30d": 5574,
-  "ad_leads_30d": 94
+  "direct_clicks_30d": 2972,
+  "ad_visits_30d": 7056,
+  "yd_visits_30d": 5570,
+  "ad_leads_30d": 96
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 5386,
-   "users": 4705,
-   "leads": 90,
-   "contacts": 84
+   "visits": 5392,
+   "users": 4700,
+   "leads": 92,
+   "contacts": 87
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1472,
-   "users": 616,
+   "visits": 1477,
+   "users": 622,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 188,
-   "users": 156,
+   "visits": 178,
+   "users": 152,
    "leads": 2,
    "contacts": 1
   },
@@ -46,61 +46,67 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2968,
-   "leads": 54,
-   "contacts": 44
+   "visits": 2966,
+   "leads": 56,
+   "contacts": 47
   },
   {
    "utm": "genglass",
-   "visits": 1466,
+   "visits": 1470,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 1120,
+   "visits": 1137,
    "leads": 3,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 464,
-   "leads": 12,
-   "contacts": 17
+   "visits": 458,
+   "leads": 10,
+   "contacts": 15
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 365,
-   "leads": 12,
+   "visits": 354,
+   "leads": 11,
    "contacts": 10
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 179,
-   "leads": 4,
-   "contacts": 4
+   "visits": 176,
+   "leads": 7,
+   "contacts": 6
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 170,
+   "visits": 173,
    "leads": 3,
    "contacts": 2
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 104,
+   "visits": 103,
    "leads": 2,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 34,
-   "leads": 3,
+   "visits": 36,
+   "leads": 4,
    "contacts": 2
   },
   {
    "utm": "igrovaya_komnata_za_steklom",
-   "visits": 12,
+   "visits": 13,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 5,
    "leads": 0,
    "contacts": 0
   },
@@ -124,6 +130,24 @@
   },
   {
    "utm": "rasprodazha_noyabr",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "zerkalo_s_podsvetkoj_v_vannoj",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "bolshoe_zerkalo_v_interere",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "kak_vybrat_zerkalo",
    "visits": 3,
    "leads": 0,
    "contacts": 0
@@ -141,19 +165,13 @@
    "contacts": 0
   },
   {
-   "utm": "zerkalo_s_podsvetkoj_v_vannoj",
-   "visits": 3,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "kak_vybrat_zerkalo",
+   "utm": "cvetnye_steklyannye_peregorodki",
    "visits": 2,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "keramogranit_steklo_ili_mdf",
+   "utm": "instrukciya",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -189,13 +207,13 @@
    "contacts": 0
   },
   {
-   "utm": "akvarium_ili_kabinet",
-   "visits": 1,
+   "utm": "zonirovanie_bez_sten",
+   "visits": 2,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "bolshoe_zerkalo_v_interere",
+   "utm": "akvarium_ili_kabinet",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -207,19 +225,31 @@
    "contacts": 0
   },
   {
-   "utm": "cvetnye_steklyannye_peregorodki",
+   "utm": "kak_snyat_zerkalo_i_ne_popast_v_kadr",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "instrukciya",
+   "utm": "kakoe_steklo_ne_carapaetsya",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "krugloe_zerkalo_v_rame",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "loft_peregorodki_v_kvartire",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "matovye_tonirovannye_i_cvetnye_steklyannye_peregorodki",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -279,6 +309,12 @@
    "contacts": 0
   },
   {
+   "utm": "skladnaya_peregorodka_garmoshka",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "steklo_i_kultura",
    "visits": 1,
    "leads": 0,
@@ -301,68 +337,62 @@
    "visits": 1,
    "leads": 0,
    "contacts": 0
-  },
-  {
-   "utm": "zonirovanie_bez_sten",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
   }
  ],
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 7055,
-   "users": 5468,
-   "bounce": 19.26293409,
-   "leads": 94,
-   "contacts": 85
+   "visits": 7056,
+   "users": 5463,
+   "bounce": 19.24603175,
+   "leads": 96,
+   "contacts": 88
   },
   {
    "source": "Link traffic",
-   "visits": 4574,
-   "users": 4488,
-   "bounce": 1.31176213,
+   "visits": 4580,
+   "users": 4492,
+   "bounce": 1.31004367,
    "leads": 15,
    "contacts": 19
   },
   {
    "source": "Search engine traffic",
-   "visits": 3569,
-   "users": 2768,
-   "bounce": 18.29644158,
-   "leads": 132,
-   "contacts": 120
+   "visits": 3564,
+   "users": 2758,
+   "bounce": 18.49046016,
+   "leads": 139,
+   "contacts": 124
   },
   {
    "source": "Direct traffic",
-   "visits": 2372,
-   "users": 2008,
-   "bounce": 28.4148398,
+   "visits": 2475,
+   "users": 2126,
+   "bounce": 32.96969697,
    "leads": 57,
-   "contacts": 39
+   "contacts": 37
   },
   {
    "source": "Internal traffic",
-   "visits": 669,
-   "users": 329,
-   "bounce": 15.3961136,
-   "leads": 11,
-   "contacts": 4
+   "visits": 666,
+   "users": 324,
+   "bounce": 15.31531532,
+   "leads": 9,
+   "contacts": 3
   },
   {
    "source": "Social network traffic",
-   "visits": 28,
-   "users": 24,
-   "bounce": 53.57142857,
+   "visits": 26,
+   "users": 22,
+   "bounce": 53.84615385,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Messenger traffic",
-   "visits": 6,
-   "users": 5,
-   "bounce": 16.66666667,
+   "visits": 5,
+   "users": 4,
+   "bounce": 20,
    "leads": 0,
    "contacts": 0
   },
@@ -376,9 +406,9 @@
   },
   {
    "source": "Clicks by QR code",
-   "visits": 1,
+   "visits": 2,
    "users": 1,
-   "bounce": 0,
+   "bounce": 50,
    "leads": 0,
    "contacts": 0
   }

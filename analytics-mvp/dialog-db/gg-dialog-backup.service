@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup PostgreSQL dialogue database
+After=postgresql.service
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /srv/gg/dialog-db/current/backup.sh

@@ -1,5 +1,5 @@
 {
-  "release": "20261113-tiles-17",
+  "release": "20261113-tiles-18",
   "default": "20261111-status-8",
   "assets": {
     "app.mjs": "20261113-tiles-17",
@@ -41,6 +41,7 @@
     "board-ui.mjs": "20261113-fix25-14",
     "design-system.css": "20261113-fix25-15",
     "public/tile-layout.mjs": "20261113-tiles-17",
-    "public/tiles.css": "20261113-tiles-17"
+    "public/tiles.css": "20261113-tiles-17",
+    "tiles.css": "20261113-tiles-18"
   }
 }

@@ -12,3 +12,5 @@
 #calendar-view[data-day-board=true] .calendar-grid>.calendar-day>header{display:none}:is(#calendar-view,#grouped-board) .day-board-add{min-width:34px;min-height:34px;height:34px;width:34px;margin-left:3px}:root[data-top-folded=true] .workspace>#demo-banner{min-height:28px;margin:4px 16px;padding:5px 12px;font-size:11px;line-height:1.4}
 #calendar-view[data-day-board=true]{padding-top:8px;padding-bottom:8px}#calendar-view[data-day-board=true] .calendar-grid>.calendar-day{padding-bottom:0}
 @media(max-width:767px){:root[data-shell-ready=true] .sidebar{transition:none}}
+
+@media(max-width:767px){#sidebar-toggle{display:grid}.panel-toggles{margin-left:0}:root[data-sidebar-folded=true] .sidebar{width:100%;max-height:0;height:0;overflow:hidden;padding:0;border:0}:root[data-sidebar-folded=true] .sidebar-content{opacity:0;pointer-events:none}.topbar .brand-asset{width:28px}.panel-toggles .icon-button{width:34px;min-width:34px;padding:5px}.header-actions{gap:2px}.header-actions>#google-connect{max-width:142px;font-size:11px}.topbar .board-name{display:none}}

@@ -33,9 +33,13 @@ select,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=
 .summary-presentation select{min-height:var(--control-compact);height:var(--control-compact);font-size:var(--font-compact);border-radius:var(--radius-control)}
 .panel-toggles .icon-button{width:var(--control-compact);min-width:var(--control-compact);height:var(--control-compact);min-height:var(--control-compact);border-radius:var(--radius-control)}
 .topbar,.week-header{height:var(--header-height);min-height:var(--header-height)}
-:is([data-display-today],[data-calendar-today],[data-gantt-today]){border:0;border-radius:var(--radius-control);background:var(--primary-soft);color:var(--primary);min-height:var(--control-default);padding:8px 12px;font-size:var(--font-compact);font-weight:500}
+:is(.period-button,.period-shifts button,.day-shortcuts button,.calendar-views button,.period-presets button){min-height:var(--control-default);height:var(--control-default);border-radius:var(--radius-control);font-size:var(--font-compact);line-height:1.4}
+.period-button,.period-button.has-range{box-shadow:inset 0 0 0 1px var(--field-line)}
+.period-days button{min-width:var(--control-compact);min-height:var(--control-compact);height:var(--control-compact);border-radius:var(--radius-control)}
+:root :is(.day-shortcuts [data-display-today],.calendar-period [data-calendar-today],.gantt-period [data-gantt-today]){border:0;border-radius:var(--radius-control);background:var(--primary-soft);color:var(--primary);min-height:var(--control-default);height:var(--control-default);padding:8px 12px;font-size:var(--font-compact);font-weight:500}
+:root :is(.day-shortcuts [data-display-today],.calendar-period [data-calendar-today],.gantt-period [data-gantt-today]):hover{background:color-mix(in srgb,var(--primary-soft) 85%,var(--primary) 15%)}
 :is(.task-card,.map-task,.matrix-card,.day-board-card,.calendar-task-wrap,.calendar-day,.calendar-month-card,.metric){border-radius:var(--radius-card)}
-:is(.modal,.quick-task-dialog,.gantt-date-dialog,.range-dialog){border-radius:var(--radius-popover);box-shadow:var(--shadow-popover)}
+:is(.modal,.quick-task-dialog,.gantt-date-dialog,.range-dialog,.period-dialog){border-radius:var(--radius-popover);box-shadow:var(--shadow-popover)}
 .execution-actions{border-radius:var(--radius-control);box-shadow:var(--shadow-popover)}
 .execution-actions button{width:var(--control-compact);min-width:var(--control-compact);height:var(--control-compact);min-height:var(--control-compact);border-radius:var(--radius-control)}
 .execution-actions .ui-icon{width:16px;height:16px}

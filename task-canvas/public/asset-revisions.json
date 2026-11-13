@@ -1,5 +1,5 @@
 {
-  "release": "20261113-fix25-15",
+  "release": "20261113-fix25-16",
   "default": "20261111-status-8",
   "assets": {
     "app.mjs": "20261113-fix25-14",
@@ -23,7 +23,7 @@
     "ui-model.mjs": "20261113-system-13",
     "work-progress.css": "20261113-system-13",
     "sync-engine.mjs": "20261113-fix25-14",
-    "weekly/weekly-shell.mjs": "20261113-fix25-14",
+    "weekly/weekly-shell.mjs": "20261113-fix25-16",
     "weekly/weekly-shell.css": "20261113-system-13",
     "workspace-start.mjs": "20261113-fix25-14",
     "quick-controls.mjs": "20261113-fix25-14",

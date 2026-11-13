@@ -1,5 +1,5 @@
 {
-  "release": "20261113-fix25-14",
+  "release": "20261113-fix25-15",
   "default": "20261111-status-8",
   "assets": {
     "app.mjs": "20261113-fix25-14",
@@ -38,6 +38,7 @@
     "sheets-api.mjs": "20261113-fix25-14",
     "public/design-system.css": "20261113-fix25-14",
     "work-progress.mjs": "20261113-fix25-14",
-    "board-ui.mjs": "20261113-fix25-14"
+    "board-ui.mjs": "20261113-fix25-14",
+    "design-system.css": "20261113-fix25-15"
   }
 }

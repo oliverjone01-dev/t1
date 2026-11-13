@@ -1,13 +1,13 @@
 {
-  "release": "20261113-fix25-16",
+  "release": "20261113-tiles-17",
   "default": "20261111-status-8",
   "assets": {
-    "app.mjs": "20261113-fix25-14",
-    "calendar.mjs": "20261113-fix25-14",
-    "display-controls.mjs": "20261113-fix25-14",
+    "app.mjs": "20261113-tiles-17",
+    "calendar.mjs": "20261113-tiles-17",
+    "display-controls.mjs": "20261113-tiles-17",
     "display-model.mjs": "20261113-groups-12",
     "gantt-model.mjs": "20261113-fix25-14",
-    "gantt.mjs": "20261113-fix25-14",
+    "gantt.mjs": "20261113-tiles-17",
     "planning-drag.mjs": "20261113-fix25-14",
     "planning-order.mjs": "20261113-fix25-14",
     "productivity-model.mjs": "20261113-fix25-14",
@@ -16,8 +16,8 @@
     "workspace-model.mjs": "20261113-fix25-14",
     "workspace-shell.mjs": "20261113-fix25-14",
     "workspace-shell.css": "20261113-system-13",
-    "grouped-board.mjs": "20261113-fix25-14",
-    "presentation-cards.mjs": "20261113-fix25-14",
+    "grouped-board.mjs": "20261113-tiles-17",
+    "presentation-cards.mjs": "20261113-tiles-17",
     "presentation.css": "20261113-system-13",
     "sync-indicator.mjs": "20261113-fix25-14",
     "ui-model.mjs": "20261113-system-13",
@@ -39,6 +39,8 @@
     "public/design-system.css": "20261113-fix25-14",
     "work-progress.mjs": "20261113-fix25-14",
     "board-ui.mjs": "20261113-fix25-14",
-    "design-system.css": "20261113-fix25-15"
+    "design-system.css": "20261113-fix25-15",
+    "public/tile-layout.mjs": "20261113-tiles-17",
+    "public/tiles.css": "20261113-tiles-17"
   }
 }

@@ -1,0 +1,91 @@
+/* Tile density is a presentation choice, independent of filters and task data. */
+.tile-columns-label[hidden]{display:none!important}.tile-fit{border:1px solid var(--field-line);background:var(--panel);color:var(--text);padding:6px 12px;min-height:40px;white-space:nowrap}.tile-capacity{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}.tile-actions-toggle{display:none}
+:is(.display-options,.summary-presentation) #tile-columns{min-width:68px;max-width:90px}.summary-presentation{align-items:center}.summary-presentation .tile-fit{min-height:32px}.summary-presentation .tile-capacity{font-size:11px}
+#calendar-view[data-day-board=true] .calendar-day-tasks{grid-template-columns:repeat(var(--day-columns,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px);max-width:none;width:100%}
+.presentation-board-grid{grid-template-columns:repeat(var(--group-lanes,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px)}.presentation-section-cards{grid-template-columns:repeat(var(--group-columns,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px)}.presentation-section h4{height:28px}
+#calendar-view[data-day-board=true] .calendar-day-tasks.is-grouped{grid-template-columns:repeat(var(--group-lanes,1),minmax(0,1fr));grid-auto-rows:auto}
+#calendar-view[data-day-board=true] .presentation-section-cards{grid-auto-rows:var(--tile-height,172px)}
+:is(#calendar-view,#grouped-board) .day-board-card{position:relative;min-width:0;gap:4px;overflow:visible}
+:is(#calendar-view,#grouped-board) .day-board-card .calendar-task{font-size:16px;min-height:0;overflow:hidden;justify-content:flex-start;line-height:1.4}
+:is(#calendar-view,#grouped-board) .day-board-card .calendar-task-title{-webkit-line-clamp:2;flex-shrink:0}
+:is(#calendar-view,#grouped-board) .day-board-card .day-board-signals{min-height:28px;gap:4px}
+:is(#calendar-view,#grouped-board) .day-board-card .day-board-footer{min-height:32px;gap:4px}
+:is(#calendar-view,#grouped-board) .day-board-card .task-execution{flex-wrap:nowrap;max-width:none;gap:4px}
+:is(#calendar-view,#grouped-board) .day-board-card .execution-actions{flex-wrap:nowrap}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card{padding:8px;gap:4px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task{font-size:14px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task>span:last-child{font-size:11px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .day-board-signals .task-status{min-height:26px;padding:3px 5px;max-width:130px;white-space:nowrap;overflow:hidden}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr) 36px;padding:8px;gap:4px}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task{grid-column:1/-1;grid-row:1;font-size:14px;gap:0}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task>span:last-child:not(.calendar-task-title){display:none}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-signals{grid-row:2;grid-column:2;justify-content:flex-end}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-signals .temperature{display:none}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-signals .task-status{width:32px;min-width:32px;height:32px;padding:4px;justify-content:center;overflow:hidden}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-signals .task-status>span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-footer{grid-column:1;grid-row:2;justify-content:flex-start}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-footer .planning-grip{display:none}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .tile-actions-toggle{display:grid;place-items:center;width:32px;min-width:32px;height:32px;padding:5px;border:0;border-radius:8px;background:transparent;color:var(--text);cursor:pointer}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .execution-actions{display:none;position:absolute;left:44px;bottom:8px;padding:2px;background:var(--panel);box-shadow:var(--shadow-popover);border:1px solid var(--line);border-radius:8px;z-index:5;opacity:1;transform:none;pointer-events:auto}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .actions-open{z-index:10}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .actions-open .execution-actions{display:flex;bottom:44px;left:8px}
+#calendar-view:not([data-day-board=true]) .day-board-card{min-height:156px;height:auto}#calendar-view:not([data-day-board=true]) .day-board-card .calendar-task{flex:none;min-height:56px}
+:root[data-card-view=compact] #calendar-view:not([data-day-board=true]) .day-board-card{min-height:140px}
+:root[data-card-view=rows] #calendar-view:not([data-day-board=true]) .day-board-card{height:108px;min-height:108px}
+:root[data-card-view=rows] #calendar-view:not([data-day-board=true]) .day-board-card .calendar-task{min-height:0}
+:root[data-card-view=compact] .gantt-row{min-height:128px}:root[data-card-view=rows] .gantt-row{min-height:92px}
+:root[data-card-view=rows] .gantt-title-block{display:block}:root[data-card-view=rows] .gantt-task-title{-webkit-line-clamp:2;font-size:14px}:root[data-card-view=rows] .gantt-signals{margin-top:4px}
+@media(min-width:768px) and (hover:hover) and (pointer:fine){:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card:is(:hover,:focus-within) .execution-actions{display:flex;bottom:44px;left:8px}:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card:is(:hover,:focus-within){z-index:9}}
+@media(max-width:767px),(pointer:coarse){
+ :is(#calendar-view,#grouped-board) .day-board-card .calendar-task-title{-webkit-line-clamp:2}
+ :is(#calendar-view,#grouped-board) .day-board-card :is(.work-progress,.tile-actions-toggle,.task-status){min-width:40px;min-height:40px}
+ :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card{grid-template-rows:minmax(0,1fr) 44px}
+ :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-footer{min-height:44px}
+ :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-signals .task-status{width:40px;height:40px}
+ :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .actions-open .execution-actions{bottom:52px}
+ :root[data-card-view=rows] .gantt-row{min-height:118px}
+ :root[data-card-view=rows] #calendar-view:not([data-day-board=true]) .day-board-card{min-height:128px;height:128px}
+}
+@media(max-width:767px){
+ :is(.display-options,.summary-presentation) .tile-columns-label{grid-column:auto}
+ :is(.display-options,.summary-presentation) #tile-columns{width:100%;max-width:none}
+ :is(.display-options,.summary-presentation) .tile-fit{height:44px;min-height:44px}
+ :is(.display-options,.summary-presentation) .tile-capacity{align-self:center;white-space:normal;font-size:11px}
+ :is(.display-options,.summary-presentation) #list-group-label{grid-column:auto}
+}
+/* Keep the assignee line intact at the compact tile's minimum height. */
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task{line-height:1.3;gap:2px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task>span:last-child:not(.calendar-task-title){line-height:1.2;flex-shrink:0}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .day-board-signals{min-height:26px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .planning-grip{min-height:32px}
+@media(min-width:768px) and (pointer:fine){:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .work-progress{width:32px;height:32px;min-width:32px;min-height:32px}:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .execution-actions button{height:32px;min-height:32px}}
+:root[data-card-view=rows] :is(#calendar-view,#grouped-board) .task-execution:is([data-task-status="Готово"],[data-task-status="Отменено"]) .execution-actions{display:none}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task-title{line-height:1.3}
+@media(min-width:768px) and (pointer:fine){:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-signals .temperature{height:26px;min-height:26px;padding-top:2px;padding-bottom:2px}}
+.calendar-title-short{display:none}.tile-extra{grid-column:1/-1;min-width:0}.tile-extra summary{font-size:12px;color:var(--muted);min-height:32px;padding:6px 0;cursor:pointer}.tile-extra-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0 8px}.tile-extra-fields label{display:flex;flex-direction:column;align-items:stretch;gap:4px;color:var(--muted);font-size:12px}.tile-extra-fields select{width:100%;max-width:100%;min-width:0}
+@media(max-width:767px){
+ .summary-presentation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.summary-presentation .tile-extra{width:100%}.tile-extra-fields #sort-label{grid-column:auto}.tile-extra-fields #context-bulk{grid-column:1/-1}
+ #calendar-view[data-day-board=true] .calendar-toolbar{gap:8px;margin-bottom:8px;padding-bottom:0}
+ #calendar-view[data-day-board=true] .calendar-period{width:100%;gap:4px}
+ #calendar-view[data-day-board=true] .calendar-period h3{font-size:18px;line-height:1.3;min-width:0;flex:1;white-space:nowrap}
+ #calendar-view[data-day-board=true] .calendar-title-full{display:none}#calendar-view[data-day-board=true] .calendar-title-short{display:inline}
+ #calendar-view[data-day-board=true] .calendar-views{padding:2px;gap:0}#calendar-view[data-day-board=true] .calendar-views button{font-size:12px;min-height:36px;padding:5px 8px}
+ #calendar-view[data-day-board=true] [data-calendar-view=range]{display:none}
+ #calendar-view[data-day-board=true] .calendar-undated{font-size:12px;margin-left:0;min-height:32px}
+ :root[data-top-folded=true] .workspace>#demo-banner{padding:6px 10px;font-size:10px;gap:6px;min-height:32px;line-height:1.3;display:block}
+ :root[data-top-folded=true] .workspace>#demo-banner a{display:inline;margin-left:6px}
+}
+@media(max-width:767px){:is(.display-options,.summary-presentation)>label.tile-columns-label{grid-column:auto}.tile-extra-fields label:last-of-type{grid-column:auto}}
+#grouped-board{height:100%;max-height:100%;box-sizing:border-box}
+:root:is([data-card-view=compact],[data-card-view=rows]) #gantt-view .gantt-bar{top:50%;transform:translateY(-50%)}
+/* Calendar cells can be narrower than a day-board tile. Keep their controls inside. */
+.day-board-card{container-type:inline-size}
+@container (max-width:210px){
+ .day-board-signals .task-status{width:32px;min-width:32px;max-width:32px;justify-content:center}
+ .day-board-signals .task-status>span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ :root:not([data-card-view=rows]) .day-board-footer .planning-grip{display:none}
+ :root:not([data-card-view=rows]) .tile-actions-toggle{display:grid;place-items:center;width:32px;min-width:32px;height:32px;padding:5px;border:0;border-radius:8px;background:transparent;color:var(--text);cursor:pointer}
+ :root:not([data-card-view=rows]) .day-board-footer .execution-actions{display:none;position:absolute;bottom:44px;left:8px;background:var(--panel);padding:2px;border:1px solid var(--line);box-shadow:var(--shadow-popover);border-radius:8px;z-index:5;opacity:1;pointer-events:auto}
+ :root:not([data-card-view=rows]) .actions-open .execution-actions{display:flex}
+ .actions-open{z-index:10}
+}

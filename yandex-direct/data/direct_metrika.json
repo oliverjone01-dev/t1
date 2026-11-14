@@ -1,44 +1,44 @@
 {
- "dateFrom": "2026-10-14",
- "dateTo": "2026-11-12",
- "generated_at": "2026-11-13T14:37:49.191Z",
+ "dateFrom": "2026-10-15",
+ "dateTo": "2026-11-13",
+ "generated_at": "2026-11-14T13:34:45.378Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 2972,
-  "ad_visits_30d": 7056,
-  "yd_visits_30d": 5570,
-  "ad_leads_30d": 96
+  "direct_clicks_30d": 2961,
+  "ad_visits_30d": 7054,
+  "yd_visits_30d": 5552,
+  "ad_leads_30d": 93
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 5392,
-   "users": 4700,
-   "leads": 92,
-   "contacts": 87
+   "visits": 5377,
+   "users": 4686,
+   "leads": 90,
+   "contacts": 86
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1477,
-   "users": 622,
+   "visits": 1492,
+   "users": 628,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 178,
-   "users": 152,
-   "leads": 2,
+   "visits": 175,
+   "users": 151,
+   "leads": 1,
    "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 9,
-   "users": 8,
+   "visits": 10,
+   "users": 9,
    "leads": 2,
    "contacts": 0
   }
@@ -46,57 +46,75 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2966,
-   "leads": 56,
-   "contacts": 47
+   "visits": 2965,
+   "leads": 55,
+   "contacts": 48
   },
   {
    "utm": "genglass",
-   "visits": 1470,
+   "visits": 1485,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 1137,
+   "visits": 1157,
    "leads": 3,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 458,
+   "visits": 456,
    "leads": 10,
    "contacts": 15
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 354,
-   "leads": 11,
-   "contacts": 10
-  },
-  {
-   "utm": "peregorodki_712877517",
-   "visits": 176,
-   "leads": 7,
-   "contacts": 6
+   "visits": 335,
+   "leads": 10,
+   "contacts": 8
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 173,
+   "visits": 171,
    "leads": 3,
    "contacts": 2
   },
   {
+   "utm": "peregorodki_712877517",
+   "visits": 170,
+   "leads": 7,
+   "contacts": 6
+  },
+  {
    "utm": "peregorodki_713496953",
-   "visits": 103,
+   "visits": 99,
    "leads": 2,
    "contacts": 4
   },
   {
    "utm": "organization",
-   "visits": 36,
+   "visits": 39,
    "leads": 4,
    "contacts": 2
+  },
+  {
+   "utm": "vidy_mezhkomnatnyh_peregorodok",
+   "visits": 22,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 18,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_v_inter'ere",
+   "visits": 14,
+   "leads": 0,
+   "contacts": 0
   },
   {
    "utm": "igrovaya_komnata_za_steklom",
@@ -105,55 +123,79 @@
    "contacts": 0
   },
   {
-   "utm": "keramogranit_steklo_ili_mdf",
-   "visits": 5,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "populyarnye_modeli_zerkal_2026",
-   "visits": 5,
+   "utm": "stacionarnye_peregorodki",
+   "visits": 13,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "razdelit'_komnatu_bez_sten_i_remonta",
-   "visits": 5,
+   "visits": 12,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "peregorodki_v_inter'ere",
-   "visits": 4,
+   "utm": "loft_peregorodki_v_kvartire",
+   "visits": 10,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "rasprodazha_noyabr",
-   "visits": 4,
+   "utm": "populyarnye_modeli_zerkal_2026",
+   "visits": 8,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "zonirovanie_bez_sten",
+   "visits": 8,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "skladnaya_peregorodka_garmoshka",
+   "visits": 7,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "zerkalo_s_podsvetkoj_v_vannoj",
-   "visits": 4,
+   "visits": 7,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "raspashnye_peregorodki_i_dveri",
+   "visits": 6,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "rasprodazha_noyabr",
+   "visits": 5,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "bolshoe_zerkalo_v_interere",
-   "visits": 3,
+   "visits": 4,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "kak_vybrat_zerkalo",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "matovye_tonirovannye_i_cvetnye_steklyannye_peregorodki",
    "visits": 3,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "stacionarnye_peregorodki",
+   "utm": "steklo_i_kultura",
    "visits": 3,
    "leads": 0,
    "contacts": 0
@@ -189,7 +231,19 @@
    "contacts": 0
   },
   {
+   "utm": "peregorodka_dlya_spalni_v_odnushke",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "primerte_peregorodku_do_pokupki",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "pyat_oshibok_s_zerkalami",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -201,19 +255,13 @@
    "contacts": 0
   },
   {
-   "utm": "vidy_mezhkomnatnyh_peregorodok",
-   "visits": 2,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "zonirovanie_bez_sten",
-   "visits": 2,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "akvarium_ili_kabinet",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "alyuminij_ili_stal",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -243,18 +291,6 @@
    "contacts": 0
   },
   {
-   "utm": "loft_peregorodki_v_kvartire",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "matovye_tonirovannye_i_cvetnye_steklyannye_peregorodki",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "mirors",
    "visits": 1,
    "leads": 0,
@@ -279,7 +315,7 @@
    "contacts": 0
   },
   {
-   "utm": "peregorodka_dlya_spalni_v_odnushke",
+   "utm": "osnashhenie_ofisa",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -297,25 +333,25 @@
    "contacts": 0
   },
   {
+   "utm": "peregorodki_v_inter\\'ere",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "pochemu_prozrachnye_steny_menyayut_povedenie_lyudej",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "pochemu_v_skandinavskom_dizajne_tak_mnogo_stekla_i_sveta",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "primer_zonirovaniya_prostranstva",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "raspashnye_peregorodki_i_dveri",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "skladnaya_peregorodka_garmoshka",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "steklo_i_kultura",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -342,42 +378,42 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 7056,
-   "users": 5463,
-   "bounce": 19.24603175,
-   "leads": 96,
-   "contacts": 88
+   "visits": 7054,
+   "users": 5455,
+   "bounce": 19.43578112,
+   "leads": 93,
+   "contacts": 87
   },
   {
    "source": "Link traffic",
-   "visits": 4580,
-   "users": 4492,
-   "bounce": 1.31004367,
-   "leads": 15,
-   "contacts": 19
+   "visits": 4564,
+   "users": 4472,
+   "bounce": 1.35845749,
+   "leads": 16,
+   "contacts": 20
   },
   {
    "source": "Search engine traffic",
-   "visits": 3564,
-   "users": 2758,
-   "bounce": 18.49046016,
-   "leads": 139,
-   "contacts": 124
+   "visits": 3576,
+   "users": 2770,
+   "bounce": 18.20469799,
+   "leads": 137,
+   "contacts": 122
   },
   {
    "source": "Direct traffic",
-   "visits": 2475,
-   "users": 2126,
-   "bounce": 32.96969697,
-   "leads": 57,
-   "contacts": 37
+   "visits": 2870,
+   "users": 2515,
+   "bounce": 42.89198606,
+   "leads": 52,
+   "contacts": 35
   },
   {
    "source": "Internal traffic",
-   "visits": 666,
-   "users": 324,
-   "bounce": 15.31531532,
-   "leads": 9,
+   "visits": 632,
+   "users": 309,
+   "bounce": 16.29746835,
+   "leads": 10,
    "contacts": 3
   },
   {
@@ -398,8 +434,8 @@
   },
   {
    "source": "Recommendation system traffic",
-   "visits": 2,
-   "users": 2,
+   "visits": 3,
+   "users": 3,
    "bounce": 0,
    "leads": 0,
    "contacts": 0

@@ -1,0 +1,10 @@
+[Unit]
+Description=GENGROUP бэкап данных и секретов (restic -> S3)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/gg-backup
+TimeoutStartSec=3h
+Nice=10

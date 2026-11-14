@@ -1,0 +1,38 @@
+name: GG VPS HTTPS transport check
+on:
+  push:
+    paths:
+      - '.github/workflows/gg-vps-https-check.yml'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  transport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify trusted IP TLS, VPS health and protected callback reachability
+        run: |
+          python3 - <<'PY'
+          import json,ssl,urllib.request,urllib.error,uuid
+          base='https://201.51.7.251:8443'
+          context=ssl.create_default_context()
+          def request(path,expected,data=None):
+              raw=None if data is None else json.dumps(data).encode()
+              req=urllib.request.Request(base+path,data=raw,headers={'Content-Type':'application/json'})
+              try:
+                  with urllib.request.urlopen(req,context=context,timeout=25) as r:
+                      code=r.status;body=r.read(2048)
+              except urllib.error.HTTPError as e:
+                  code=e.code;body=e.read(2048)
+              assert code==expected,(path,code,expected)
+              print(path.split('?')[0],code)
+              return body
+          assert request('/healthz',200).strip()==b'ok'
+          request('/rop/',401)
+          request('/_audit-bridge/health',401)
+          fixture='transport-fixture-'+uuid.uuid4().hex
+          request('/_audit-bridge/jobs/'+fixture,401)
+          request('/_audit-bridge/jobs/'+fixture+'/result',401,{'job_id':fixture,'fixture':True})
+          print('PASS: trusted HTTPS, GitHub-to-VPS requests and VPS-to-GitHub responses; protected routes reject unauthenticated requests.')
+          print('No credentials, business jobs, AI requests or Telegram messages were used.')
+          PY

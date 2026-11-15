@@ -288,7 +288,7 @@
 {"d":"2026-10-30","accruals":596217,"commission":-2914,"delivery":-2077,"fees":381604,"payout":214613,"ops":12,"platform":"ym"}
 {"d":"2026-11-01","accruals":120428,"commission":-1369,"delivery":-2922,"fees":82336,"payout":38092,"ops":2,"platform":"ym"}
 {"d":"2026-11-02","accruals":334824,"commission":-1692,"delivery":-1023,"fees":197380,"payout":137444,"ops":7,"platform":"ym"}
-{"d":"2026-11-03","accruals":408831,"commission":-1919,"delivery":-2036,"fees":252263,"payout":156568,"ops":8,"platform":"ym"}
+{"d":"2026-11-03","accruals":291997,"commission":-1375,"delivery":-2036,"fees":178735,"payout":113262,"ops":6,"platform":"ym"}
 {"d":"2026-11-04","accruals":246630,"commission":-1164,"delivery":-2064,"fees":158847,"payout":87783,"ops":4,"platform":"ym"}
 {"d":"2026-11-05","accruals":129286,"commission":-12451,"delivery":-5034,"fees":80681,"payout":48605,"ops":3,"platform":"ym"}
 {"d":"2026-11-06","accruals":237894,"commission":-21389,"delivery":-2949,"fees":140293,"payout":97601,"ops":7,"platform":"ym"}
@@ -298,5 +298,6 @@
 {"d":"2026-11-10","accruals":847944,"commission":-10092,"delivery":-2083,"fees":490019,"payout":357925,"ops":16,"platform":"ym"}
 {"d":"2026-11-11","accruals":317571,"commission":-1497,"delivery":-3027,"fees":190040,"payout":127531,"ops":7,"platform":"ym"}
 {"d":"2026-11-12","accruals":433645,"commission":-2036,"delivery":-2070,"fees":259305,"payout":174340,"ops":6,"platform":"ym"}
-{"d":"2026-11-13","accruals":422065,"commission":-487,"delivery":0,"fees":234749,"payout":187316,"ops":7,"platform":"ym"}
-{"d":"2026-11-14","accruals":257669,"commission":0,"delivery":0,"fees":1,"payout":257668,"ops":5,"platform":"ym"}
+{"d":"2026-11-13","accruals":422065,"commission":-2018,"delivery":-7128,"fees":252387,"payout":169678,"ops":7,"platform":"ym"}
+{"d":"2026-11-14","accruals":374503,"commission":-544,"delivery":0,"fees":195055,"payout":179448,"ops":7,"platform":"ym"}
+{"d":"2026-11-15","accruals":109244,"commission":0,"delivery":0,"fees":0,"payout":109244,"ops":2,"platform":"ym"}

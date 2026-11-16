@@ -2,7 +2,7 @@
   "domain": "vo-zavod.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-09T10:11:01.258Z",
+  "measured": "2026-11-16T10:06:30.667Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=vo-zavod.ru",
   "data": {
     "id": 30965359,
@@ -12,89 +12,89 @@
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 537,
-        "it50": 47231304,
-        "vis": 10357483,
-        "perc": 0.0011369578108620503
+        "cnt": 553,
+        "it50": 47111823,
+        "vis": 10197334,
+        "perc": 0.0011738030175567607
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 469,
-        "it50": 20568061,
-        "vis": 2325538,
-        "perc": 0.002280234388647525
+        "cnt": 479,
+        "it50": 20668494,
+        "vis": 2319777,
+        "perc": 0.0023175370203557164
       },
       {
         "did": 29917679,
         "name": "2gis.ru",
-        "cnt": 360,
-        "it50": 16459660,
-        "vis": 2843588,
-        "perc": 0.0021871654700036333
+        "cnt": 369,
+        "it50": 16427394,
+        "vis": 2751204,
+        "perc": 0.002246247944135266
       },
       {
         "did": 29918392,
         "name": "zoon.ru",
-        "cnt": 359,
-        "it50": 13346003,
-        "vis": 413116,
-        "perc": 0.0026899439480120003
+        "cnt": 366,
+        "it50": 13338280,
+        "vis": 413256,
+        "perc": 0.0027439819826844242
       },
       {
         "did": 31079457,
         "name": "vk.ru",
-        "cnt": 316,
-        "it50": 49174170,
-        "vis": 6288196,
-        "perc": 0.0006426137950066061
+        "cnt": 325,
+        "it50": 49579338,
+        "vis": 6159294,
+        "perc": 0.0006555150050611809
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 284,
-        "it50": 3050780,
-        "vis": 149331,
-        "perc": 0.00930909472331666
+        "cnt": 288,
+        "it50": 3041268,
+        "vis": 151578,
+        "perc": 0.009469734334494691
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 261,
-        "it50": 49549827,
-        "vis": 4993271,
-        "perc": 0.0005267425050747402
+        "cnt": 280,
+        "it50": 49686252,
+        "vis": 5003373,
+        "perc": 0.0005635361669058878
       },
       {
         "did": 258022726,
         "name": "oknafactoria.ru",
-        "cnt": 250,
-        "it50": 46866,
-        "vis": 1320,
-        "perc": 0.5334357529979089
-      },
-      {
-        "did": 30678142,
-        "name": "oknazavr.ru",
-        "cnt": 233,
-        "it50": 16308,
-        "vis": 254,
-        "perc": 1.428746627422124
+        "cnt": 256,
+        "it50": 46880,
+        "vis": 1307,
+        "perc": 0.5460750853242321
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 232,
-        "it50": 50155054,
-        "vis": 3546389,
-        "perc": 0.00046256554723278736
+        "cnt": 241,
+        "it50": 50279585,
+        "vis": 3523352,
+        "perc": 0.0004793197875439903
+      },
+      {
+        "did": 30678142,
+        "name": "oknazavr.ru",
+        "cnt": 237,
+        "it50": 16220,
+        "vis": 255,
+        "perc": 1.4611590628853268
       }
     ],
     "it1": 35,
-    "it3": 95,
+    "it3": 94,
     "it5": 155,
-    "it10": 282,
-    "it50": 889,
+    "it10": 280,
+    "it50": 916,
     "childsCount": 0,
     "keys": [
       {
@@ -158,26 +158,26 @@
         "wsk": 12
       }
     ],
-    "topkeys": 269752,
+    "topkeys": 264838,
     "pages": [
       {
-        "it50": 142,
+        "it50": 147,
         "url": "/"
       },
       {
-        "it50": 96,
+        "it50": 99,
         "url": "/article/plesen-na-okne"
       },
       {
-        "it50": 45,
+        "it50": 46,
         "url": "/plastikokna-rostov-na-donu"
       },
       {
-        "it50": 45,
+        "it50": 46,
         "url": "/kontakty"
       },
       {
-        "it50": 36,
+        "it50": 34,
         "url": "/article/zamenaokna-gid-po-cenam"
       },
       {
@@ -185,25 +185,25 @@
         "url": "/article/tihie-okna"
       },
       {
-        "it50": 29,
+        "it50": 28,
         "url": "/osteklenie-balkonov-i-lodzhij"
       },
       {
-        "it50": 23,
+        "it50": 25,
         "url": "/plastikovye-okna-tambov"
       },
       {
-        "it50": 22,
-        "url": "/article/duet-iz-okna"
+        "it50": 25,
+        "url": "/article/kak-vybrat-okno"
       },
       {
-        "it50": 20,
-        "url": "/article/kak-vybrat-okno"
+        "it50": 24,
+        "url": "/article/duet-iz-okna"
       }
     ],
-    "pagesinindex": 91,
+    "pagesinindex": 92,
     "vis": 21,
-    "topvis": 179639,
+    "topvis": 180631,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -432,15 +432,15 @@
       },
       "2026.11": {
         "it1": 35,
-        "it3": 95,
+        "it3": 94,
         "it5": 155,
-        "it10": 282,
-        "it50": 889,
-        "pagesInIndex": 91,
+        "it10": 280,
+        "it50": 916,
+        "pagesInIndex": 92,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 21,
-        "aiCnt": 80
+        "aiCnt": 83
       }
     },
     "linksHistory": {
@@ -571,14 +571,14 @@
         202
       ],
       "2026.11": [
-        268,
-        2821,
-        101,
+        258,
+        2940,
+        105,
         18,
-        210
+        197
       ]
     },
-    "aiAnswersCnt": 80,
+    "aiAnswersCnt": 83,
     "aiState": 0,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/40d128efa4c1feca98bc0c1170146507c444f66c3df6e53dc09fede90c30a249.png",

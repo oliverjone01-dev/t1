@@ -2,7 +2,7 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-09T10:10:10.009Z",
+  "measured": "2026-11-16T10:05:41.169Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
     "id": 309180640,
@@ -12,101 +12,95 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 160,
-        "it50": 20568061,
-        "vis": 2325538,
-        "perc": 0.000777905121926661
+        "cnt": 159,
+        "it50": 20668494,
+        "vis": 2319777,
+        "perc": 0.0007692868188654674
       },
       {
         "did": 30700481,
         "name": "gstrong.ru",
-        "cnt": 140,
-        "it50": 3520,
-        "vis": 49,
-        "perc": 3.977272727272727
+        "cnt": 137,
+        "it50": 3419,
+        "vis": 48,
+        "perc": 4.007019596373209
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 135,
-        "it50": 9663,
-        "vis": 139,
-        "perc": 1.397081651660975
+        "cnt": 134,
+        "it50": 9637,
+        "vis": 134,
+        "perc": 1.390474213967002
       },
       {
         "did": 278166136,
         "name": "zavod-peregorodok.ru",
-        "cnt": 133,
-        "it50": 998,
-        "vis": 7,
-        "perc": 13.326653306613226
+        "cnt": 132,
+        "it50": 999,
+        "vis": 8,
+        "perc": 13.213213213213212
       },
       {
         "did": 30670319,
         "name": "oki-doki.ru",
-        "cnt": 126,
-        "it50": 1858,
-        "vis": 132,
-        "perc": 6.7814854682454255
+        "cnt": 122,
+        "it50": 1842,
+        "vis": 127,
+        "perc": 6.623235613463626
       },
       {
         "did": 239735018,
         "name": "glgrup.ru",
-        "cnt": 116,
-        "it50": 1662,
+        "cnt": 117,
+        "it50": 1700,
         "vis": 14,
-        "perc": 6.979542719614922
+        "perc": 6.882352941176471
       },
       {
         "did": 322813373,
         "name": "lain-loft.ru",
+        "cnt": 117,
+        "it50": 6684,
+        "vis": 306,
+        "perc": 1.7504488330341113
+      },
+      {
+        "did": 329921063,
+        "name": "doors4u.ru",
         "cnt": 115,
-        "it50": 6665,
-        "vis": 284,
-        "perc": 1.7254313578394598
+        "it50": 9863,
+        "vis": 778,
+        "perc": 1.1659738416303356
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
         "cnt": 112,
-        "it50": 2248,
-        "vis": 112,
-        "perc": 4.98220640569395
-      },
-      {
-        "did": 329921063,
-        "name": "doors4u.ru",
-        "cnt": 112,
-        "it50": 9826,
-        "vis": 781,
-        "perc": 1.1398330958681049
+        "it50": 2238,
+        "vis": 102,
+        "perc": 5.004468275245755
       },
       {
         "did": 30773214,
         "name": "zerist.ru",
-        "cnt": 104,
-        "it50": 3781,
-        "vis": 43,
-        "perc": 2.75059508066649
+        "cnt": 107,
+        "it50": 3689,
+        "vis": 42,
+        "perc": 2.9005150447275683
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 5,
-    "it50": 209,
+    "it50": 210,
     "childsCount": 0,
     "keys": [
       {
         "pos": 6,
         "word": "перегородки офисные стеклянные калькулятор",
         "ws": 1,
-        "wsk": 1
-      },
-      {
-        "pos": 6,
-        "word": "изготовление стеклянной перегородки цена",
-        "ws": 6,
         "wsk": 1
       },
       {
@@ -126,6 +120,12 @@
         "word": "стекло в проеме",
         "ws": 1576,
         "wsk": 0
+      },
+      {
+        "pos": 10,
+        "word": "заказать стеклянную перегородку",
+        "ws": 458,
+        "wsk": 7
       },
       {
         "pos": 11,
@@ -158,10 +158,10 @@
         "wsk": 19
       }
     ],
-    "topkeys": 679862,
+    "topkeys": 678046,
     "pages": [
       {
-        "it50": 138,
+        "it50": 141,
         "url": "/"
       },
       {
@@ -169,7 +169,7 @@
         "url": "/our-works/mobilnyie-peregorodki"
       },
       {
-        "it50": 12,
+        "it50": 11,
         "url": "/our-works/loft-peregorodki"
       },
       {
@@ -181,27 +181,27 @@
         "url": "/articles/mobilnyie-peregorodki-dlya-zonirovaniya-prostranstva"
       },
       {
-        "it50": 7,
+        "it50": 6,
+        "url": "/our-works/skladnyie-peregorodki"
+      },
+      {
+        "it50": 5,
         "url": "/our-works/peregorodki-dlya-zonirovaniya-komnat"
       },
       {
-        "it50": 6,
-        "url": "/our-works/skladnyie-peregorodki"
+        "it50": 3,
+        "url": "/articles/kak-professionalno-ustanovit-steklyannuyu-peregorodku"
       },
       {
         "it50": 3,
         "url": "/our-works/peregorodki-v-kvartire"
       },
       {
-        "it50": 3,
-        "url": "/our-works/nedorogie-peregorodki"
-      },
-      {
         "it50": 2,
-        "url": "/articles/kak-professionalno-ustanovit-steklyannuyu-peregorodku"
+        "url": "/our-works/nedorogie-peregorodki"
       }
     ],
-    "pagesinindex": 15,
+    "pagesinindex": 16,
     "vis": 0,
     "topvis": 1000000,
     "adconcs": [],
@@ -435,12 +435,12 @@
         "it3": 0,
         "it5": 0,
         "it10": 5,
-        "it50": 209,
-        "pagesInIndex": 15,
+        "it50": 210,
+        "pagesInIndex": 16,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
-        "aiCnt": 15
+        "aiCnt": 17
       }
     },
     "linksHistory": {
@@ -565,15 +565,15 @@
       ],
       "2026.11": [
         1,
-        30,
+        28,
         1,
         2,
         1
       ]
     },
-    "aiAnswersCnt": 15,
+    "aiAnswersCnt": 17,
     "aiState": 0,
-    "dr": 3,
+    "dr": 4,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/10df735f4ea2b936f65758356dd87113282d06ab4b80560bea1bf14626d01a24.png",
     "name": "peregorodki-glass.ru"
   }

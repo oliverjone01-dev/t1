@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-09T10:13:45.462Z",
+  "measured": "2026-11-16T10:10:43.347Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5055,
-        "it50": 49549827,
-        "vis": 4993271,
-        "perc": 0.010201851966102727
+        "cnt": 5099,
+        "it50": 49686252,
+        "vis": 5003373,
+        "perc": 0.01026239612518972
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 4560,
-        "it50": 20568061,
-        "vis": 2325538,
-        "perc": 0.02217029597490984
+        "cnt": 4592,
+        "it50": 20668494,
+        "vis": 2319777,
+        "perc": 0.02221739039138507
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3807,
-        "it50": 50155054,
-        "vis": 3546389,
-        "perc": 0.007590461372048368
-      },
-      {
-        "did": 29918164,
-        "name": "yandex.ru",
-        "cnt": 3029,
-        "it50": 47231304,
-        "vis": 10357483,
-        "perc": 0.006413119570020764
+        "cnt": 3796,
+        "it50": 50279585,
+        "vis": 3523352,
+        "perc": 0.007549783873514469
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 2959,
-        "it50": 17519345,
-        "vis": 1178626,
-        "perc": 0.01688990084960368
+        "cnt": 3005,
+        "it50": 17551679,
+        "vis": 1188553,
+        "perc": 0.017120869177245094
+      },
+      {
+        "did": 29918164,
+        "name": "yandex.ru",
+        "cnt": 2988,
+        "it50": 47111823,
+        "vis": 10197334,
+        "perc": 0.006342356991789514
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 2948,
-        "it50": 1400385,
-        "vis": 19401,
-        "perc": 0.2105135373486577
+        "cnt": 2959,
+        "it50": 1422290,
+        "vis": 18960,
+        "perc": 0.2080447728662931
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2896,
-        "it50": 3122173,
-        "vis": 394550,
-        "perc": 0.09275591070706204
+        "cnt": 2892,
+        "it50": 3099943,
+        "vis": 387452,
+        "perc": 0.09329203795037522
       },
       {
         "did": 31079457,
         "name": "vk.ru",
-        "cnt": 2491,
-        "it50": 49174170,
-        "vis": 6288196,
-        "perc": 0.005065667605574227
-      },
-      {
-        "did": 30015208,
-        "name": "ivd.ru",
-        "cnt": 2157,
-        "it50": 880183,
-        "vis": 14018,
-        "perc": 0.2450626744665598
+        "cnt": 2514,
+        "it50": 49579338,
+        "vis": 6159294,
+        "perc": 0.005070660685304027
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2119,
-        "it50": 18653776,
-        "vis": 3423736,
-        "perc": 0.011359630350444863
+        "cnt": 2186,
+        "it50": 18848864,
+        "vis": 3480390,
+        "perc": 0.011597515903345686
+      },
+      {
+        "did": 30015208,
+        "name": "ivd.ru",
+        "cnt": 2136,
+        "it50": 883544,
+        "vis": 13623,
+        "perc": 0.24175366478636037
       }
     ],
-    "it1": 232,
-    "it3": 639,
-    "it5": 1069,
-    "it10": 2274,
-    "it50": 9663,
+    "it1": 228,
+    "it3": 625,
+    "it5": 1040,
+    "it10": 2225,
+    "it50": 9637,
     "childsCount": 1,
     "keys": [
       {
@@ -158,7 +158,7 @@
         "wsk": 72
       }
     ],
-    "topkeys": 42633,
+    "topkeys": 42897,
     "pages": [
       {
         "it50": 315,
@@ -166,53 +166,53 @@
       },
       {
         "it50": 256,
-        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
-      },
-      {
-        "it50": 250,
         "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 198,
-        "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
+        "it50": 253,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
         "it50": 191,
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
-        "it50": 187,
+        "it50": 190,
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 146,
+        "it50": 185,
+        "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
+      },
+      {
+        "it50": 143,
         "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
       },
       {
-        "it50": 128,
+        "it50": 126,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "it50": 99,
+        "it50": 102,
         "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
       },
       {
-        "it50": 98,
-        "url": "/shower-enclosures/kak-pravilno-splanirovat-dushevoe-ograzhdenie-bez-poddona"
+        "it50": 95,
+        "url": "/steklyannye-dveri-dlya-doma/dver-v-parnuyu-razmery"
       }
     ],
-    "pagesinindex": 1174,
-    "vis": 139,
-    "topvis": 50937,
+    "pagesinindex": 1186,
+    "vis": 134,
+    "topvis": 52665,
     "adconcs": [
       {
         "did": 29969733,
         "name": "ofimall.ru",
         "cnt": 11,
-        "it50": 2356,
+        "it50": 2317,
         "vis": 9,
-        "adkeyscnt": 1846,
-        "adscnt": 335
+        "adkeyscnt": 2528,
+        "adscnt": 389
       }
     ],
     "adkeys": [
@@ -628,16 +628,16 @@
         "aiCnt": 1247
       },
       "2026.11": {
-        "it1": 232,
-        "it3": 639,
-        "it5": 1069,
-        "it10": 2274,
-        "it50": 9663,
-        "pagesInIndex": 1174,
+        "it1": 228,
+        "it3": 625,
+        "it5": 1040,
+        "it10": 2225,
+        "it50": 9637,
+        "pagesInIndex": 1186,
         "adsCount": 11,
         "adKeysCount": 12,
-        "visAvg": 139,
-        "aiCnt": 920
+        "visAvg": 134,
+        "aiCnt": 993
       }
     },
     "linksHistory": {
@@ -768,14 +768,14 @@
         1344
       ],
       "2026.11": [
-        3740,
-        28450,
+        3692,
+        29230,
         488,
-        24,
-        1334
+        25,
+        1314
       ]
     },
-    "aiAnswersCnt": 920,
+    "aiAnswersCnt": 993,
     "aiState": 0,
     "dr": 26,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

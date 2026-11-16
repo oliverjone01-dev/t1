@@ -2,7 +2,7 @@
   "domain": "lain-loft.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-09T10:13:40.083Z",
+  "measured": "2026-11-16T10:09:53.328Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
   "data": {
     "id": 322813373,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5228,
-        "it50": 20568061,
-        "vis": 2325538,
-        "perc": 0.02541804985895365
+        "cnt": 5268,
+        "it50": 20668494,
+        "vis": 2319777,
+        "perc": 0.02548806894203322
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3686,
-        "it50": 17519345,
-        "vis": 1178626,
-        "perc": 0.021039599368583697
+        "cnt": 3755,
+        "it50": 17551679,
+        "vis": 1188553,
+        "perc": 0.021393964645775483
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2972,
-        "it50": 18653776,
-        "vis": 3423736,
-        "perc": 0.015932431053101527
+        "cnt": 3079,
+        "it50": 18848864,
+        "vis": 3480390,
+        "perc": 0.016335201951693214
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 2832,
-        "it50": 14818691,
-        "vis": 1857175,
-        "perc": 0.019110999750247847
+        "cnt": 2930,
+        "it50": 14970448,
+        "vis": 1903889,
+        "perc": 0.019571892571284437
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2752,
-        "it50": 3122173,
-        "vis": 394550,
-        "perc": 0.08814373835146226
+        "cnt": 2773,
+        "it50": 3099943,
+        "vis": 387452,
+        "perc": 0.0894532576889317
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 2031,
-        "it50": 3050780,
-        "vis": 149331,
-        "perc": 0.06657313867273287
+        "cnt": 2015,
+        "it50": 3041268,
+        "vis": 151578,
+        "perc": 0.06625525931946806
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 1955,
-        "it50": 49549827,
-        "vis": 4993271,
-        "perc": 0.003945523361766732
+        "cnt": 1987,
+        "it50": 49686252,
+        "vis": 5003373,
+        "perc": 0.003999094155864282
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
-        "cnt": 1466,
-        "it50": 2779198,
-        "vis": 82105,
-        "perc": 0.052749030475698386
+        "cnt": 1495,
+        "it50": 2769684,
+        "vis": 79762,
+        "perc": 0.053977276830136575
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 1443,
-        "it50": 20568061,
-        "vis": 2325538,
-        "perc": 0.007015731818376074
+        "cnt": 1419,
+        "it50": 20668494,
+        "vis": 2319777,
+        "perc": 0.006865521987233322
       },
       {
         "did": 333146076,
         "name": "glassstore.org",
-        "cnt": 1354,
-        "it50": 4269,
+        "cnt": 1359,
+        "it50": 4301,
         "vis": 575,
-        "perc": 31.717029749355824
+        "perc": 31.597302952801677
       }
     ],
-    "it1": 199,
-    "it3": 645,
-    "it5": 1127,
-    "it10": 2247,
-    "it50": 6665,
+    "it1": 201,
+    "it3": 661,
+    "it5": 1149,
+    "it10": 2272,
+    "it50": 6684,
     "childsCount": 0,
     "keys": [
       {
@@ -111,21 +111,9 @@
       },
       {
         "pos": 1,
-        "word": "теплица стеклянная купить",
-        "ws": 2068,
-        "wsk": 524
-      },
-      {
-        "pos": 1,
         "word": "покраска суппортов",
         "ws": 4860,
         "wsk": 444
-      },
-      {
-        "pos": 1,
-        "word": "сантехнические перегородки",
-        "ws": 7381,
-        "wsk": 407
       },
       {
         "pos": 1,
@@ -156,54 +144,66 @@
         "word": "стеновой паркет на балкон",
         "ws": 376,
         "wsk": 224
+      },
+      {
+        "pos": 1,
+        "word": "рифленое стекло купить",
+        "ws": 2281,
+        "wsk": 208
+      },
+      {
+        "pos": 1,
+        "word": "реечные двери для гардеробной",
+        "ws": 313,
+        "wsk": 158
       }
     ],
-    "topkeys": 58677,
+    "topkeys": 58752,
     "pages": [
       {
-        "it50": 516,
+        "it50": 508,
         "url": "/kupit-steklo/kalenoe-steklo"
       },
       {
-        "it50": 242,
-        "url": "/dver-garmoshka"
-      },
-      {
-        "it50": 238,
+        "it50": 243,
         "url": "/"
       },
       {
-        "it50": 183,
+        "it50": 240,
+        "url": "/dver-garmoshka"
+      },
+      {
+        "it50": 187,
         "url": "/razdvizhnye-peregorodki"
       },
       {
-        "it50": 182,
-        "url": "/shkafy-na-balkon"
-      },
-      {
-        "it50": 181,
+        "it50": 184,
         "url": "/santehnicheskie-peregorodki"
       },
       {
-        "it50": 180,
+        "it50": 182,
         "url": "/kupit-steklo/riflenoe-steklo"
       },
       {
-        "it50": 176,
+        "it50": 181,
+        "url": "/shkafy-na-balkon"
+      },
+      {
+        "it50": 174,
         "url": "/dekorativnye-peregorodki"
       },
       {
-        "it50": 151,
+        "it50": 149,
         "url": "/kupit-steklo/smart-steklo"
       },
       {
-        "it50": 150,
+        "it50": 148,
         "url": "/kupit-steklo/skinali-dlya-kuhni"
       }
     ],
-    "pagesinindex": 193,
-    "vis": 284,
-    "topvis": 29813,
+    "pagesinindex": 192,
+    "vis": 306,
+    "topvis": 28191,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,16 +431,16 @@
         "aiCnt": 299
       },
       "2026.11": {
-        "it1": 199,
-        "it3": 645,
-        "it5": 1127,
-        "it10": 2247,
-        "it50": 6665,
-        "pagesInIndex": 193,
+        "it1": 201,
+        "it3": 661,
+        "it5": 1149,
+        "it10": 2272,
+        "it50": 6684,
+        "pagesInIndex": 192,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 284,
-        "aiCnt": 311
+        "visAvg": 306,
+        "aiCnt": 312
       }
     },
     "linksHistory": {
@@ -572,13 +572,13 @@
       ],
       "2026.11": [
         103,
-        591,
+        636,
         34,
         2,
         68
       ]
     },
-    "aiAnswersCnt": 311,
+    "aiAnswersCnt": 312,
     "aiState": 0,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",

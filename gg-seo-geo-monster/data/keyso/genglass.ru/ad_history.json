@@ -2,14 +2,14 @@
   "domain": "genglass.ru",
   "report": "ad_history",
   "db": "msk",
-  "measured": "2026-11-09T10:05:56.415Z",
+  "measured": "2026-11-16T10:01:35.624Z",
   "url": "https://api.keys.so/report/simple/domain_ad_history?base=msk&domain=genglass.ru",
   "data": {
     "2026-11": {
-      "adCost": 81017,
-      "adsCount": 210,
-      "adTraf": 4,
-      "adKeysCount": 404
+      "adCost": 98789,
+      "adsCount": 241,
+      "adTraf": 5,
+      "adKeysCount": 491
     },
     "2026-10": {
       "adCost": 161513,

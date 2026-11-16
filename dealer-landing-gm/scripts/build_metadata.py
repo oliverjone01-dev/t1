@@ -34,27 +34,33 @@ for heading in [n for n in tree.walk() if n.t in {'h1','h2','h3'}]:
   if isinstance(child,N) and child.t=='br' and i+1<len(heading.c):
    following=heading.c[i+1]
    if isinstance(following,str) and not following.startswith(' '):heading.c[i+1]=' '+following
-text(bydata('94:119'),'GLASS-MEMORY · ПАМЯТНИКИ И ПОРТРЕТЫ')
-text(bydata('94:143'),'Стекло под задачу')
-text(bydata('94:144'),'Триплекс, закалённое или наборное.')
-text(bydata('94:137'),'Стойкий цвет керамической печати')
-text(bydata('94:264'),'По данным каталога GLASS-MEMORY, керамическая печать сохраняет цвет 20+ лет. Срок и условия гарантии уточняют для конкретного изделия.')
-for n in tree.walk():
- if n.t=='p' and n.text()=='Керамическая печать сохраняет цвет 20+ лет. Срок и условия гарантии уточняются при согласовании заказа.':
-  text(n,'В каталоге GLASS-MEMORY заявлено сохранение цвета 20+ лет. Это характеристика печати, а срок и условия гарантии согласуют для конкретного изделия.')
- if n.t=='p' and n.text().startswith('Изготовление — 30 календарных дней'):
-  text(n,'В каталоге GLASS-MEMORY указан цикл 30 календарных дней после утверждения макета; для мемориальных комплексов — 45–90 дней. Срок конкретного заказа зависит от изделия и сложности и согласуется до изготовления.')
+# Public copy is editorial content, not audit commentary. Keep source evidence in docs.
+editorial=json.loads((ROOT/'content.ru.json').read_text())
+for node_id,value in editorial.items():
+ n=bydata(node_id)
+ if '\n' in value:
+  old_spans=[c for c in n.c if isinstance(c,N) and c.t=='span']
+  lines=value.split('\n');children=[]
+  for i,line in enumerate(lines):
+   span=old_spans[i] if i<len(old_spans) else N('span')
+   span.c=[line];span.p=n
+   if i:children.append(' ')
+   children.append(span)
+  n.c=children
+ else:text(n,value)
 copy=bydata('94:338')
-if not any(n.a.get('class')=='material-note' for n in copy.walk()):
- for n in fragment('<div class="material-note"><h3>Триплекс и наборное стекло — разные конструкции</h3><p>В триплексе слои соединены полимерной плёнкой. Наборный памятник собирают из отдельных стеклянных элементов на УФ-клее; для него используется незакалённое стекло. Конструкцию и крепление подбирают под изделие.</p></div>'):copy.append(n)
+notes=[n for n in copy.walk() if n.a.get('class')=='material-note']
+if notes:note=notes[0];note.c=[]
+else:note=copy.append(N('div',[('class','material-note')]))
+for n in fragment('<h3>Наборное стекло соединяем УФ-клеем</h3><p>Для наборных памятников используем незакалённое стекло. Соединяем отдельные элементы УФ-клеем, без полимерной плёнки. Конструкцию и крепление подбираем под изделие.</p>'):note.append(n)
+form=byid('request-form')
+form_notes=[n for n in form.walk() if n.a.get('class')=='form-note']
+text(form_notes[0],'Контакт добавим в текст запроса.')
+text(form_notes[1],'Подготовим запрос на этой странице. Данные никуда не отправляем.')
 footer=next(n for n in tree.walk() if n.t=='footer')
-if not any(n.a.get('class')=='source-note' for n in footer.walk()):
- for n in fragment('<p class="source-note">Технические сведения — по каталогу GLASS-MEMORY. <a href="https://glass-memory.ru/ceramic-printing-on-glass" target="_blank" rel="noopener">Описание керамической печати у производителя ↗</a></p>'):footer.append(n)
-times=[n for n in footer.walk() if n.t=='time']
-if times:t=times[0]
-else:
- n=footer.append(N('p',[('class','updated-note')]));n.c=['Обновлено '];t=n.append(N('time'))
-t.a['datetime']=config['updated_at'];t.c=[str(updated.day)+' '+['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][updated.month-1]+' '+str(updated.year)]
+footer.c=[n for n in footer.c if not (isinstance(n,N) and n.a.get('class') in {'source-note','updated-note'})]
+for n in footer.walk():
+ if n.a.get('class')=='demo-note':text(n,'Используем шаблонные контакты. Запрос можно подготовить и скачать; данные никуда не отправляем.')
 
 # Use existing subject media, not stock substitutes. Exported derivatives preserve geometry.
 manifest_path=ROOT/'assets/responsive-images.json'
@@ -80,7 +86,7 @@ for n in head.c:
  if n.t=='script' and n.a.get('src'):keep.append(n)
 head.c=keep
 title='Памятники и портреты на стекле — GLASS-MEMORY'
-description='Памятники из триплекса, портреты с керамической печатью, стеклянные цветники и ограждения GLASS-MEMORY. Варианты оформления, крепления и порядок заказа.'
+description='Подберём памятник из стекла, портрет с керамической печатью, стеклянный цветник или ограждение GLASS-MEMORY. Согласуем форму, крепление и оформление.'
 head.append(N('title')).c=[title]
 for name,content in [('description',description),('robots','index, follow, max-image-preview:large' if production else 'noindex, follow'),('twitter:card','summary_large_image'),('twitter:title',title),('twitter:description',description),('twitter:image',url+'assets/7c708.webp')]:head.append(N('meta',[('name',name),('content',content)]))
 head.append(N('link',[('rel','canonical'),('href',url)]))

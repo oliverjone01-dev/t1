@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -88627435,
-  "n": 3585
+  "sum": -88692308,
+  "n": 3587
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2918534,
-  "n": 1749
+  "sum": -2919865,
+  "n": 1751
  },
  {
   "type_id": 3,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -413635,
-  "n": 1930
+  "sum": -414478,
+  "n": 1932
  },
  {
   "type_id": 74,
@@ -87,8 +87,8 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -62440,
-  "n": 225
+  "sum": -62720,
+  "n": 226
  },
  {
   "type_id": 68,
@@ -108,8 +108,8 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21500,
-  "n": 1397
+  "sum": -21520,
+  "n": 1399
  },
  {
   "type_id": 29,

@@ -739,10 +739,13 @@ jobs:
       - name: Assemble GLASS-MEMORY dealer landing
         run: |
           set -euo pipefail
+          python3 dealer-landing-gm/scripts/build_metadata.py
+          python3 dealer-landing-gm/scripts/validate_site.py
           test -s dealer-landing-gm/index.html
           mkdir -p _site/dealer-landing-gm
           cp dealer-landing-gm/index.html dealer-landing-gm/styles.css dealer-landing-gm/app.js _site/dealer-landing-gm/
           cp -R dealer-landing-gm/assets _site/dealer-landing-gm/assets
+          if [ -f dealer-landing-gm/sitemap.xml ]; then cp dealer-landing-gm/sitemap.xml _site/dealer-landing-gm/; fi
 
       - uses: actions/upload-pages-artifact@v3
         with:

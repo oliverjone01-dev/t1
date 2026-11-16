@@ -3,7 +3,7 @@
   "dateFrom": "2026-10-17",
   "dateTo": "2026-11-15",
   "skuCount": 55,
-  "singleItemOps": 117,
+  "singleItemOps": 116,
   "multiItemOps": 2,
   "bySku": {
     "GGT-47-3-2-80": {
@@ -253,10 +253,10 @@
       "ops": 2
     },
     "GGT-35-2-1-100-180": {
-      "accruals": 230577,
+      "accruals": 121333,
       "commission": -558,
-      "amount": 102378,
-      "ops": 4
+      "amount": 52415,
+      "ops": 2
     },
     "GGT-03-5-1-O-20090": {
       "accruals": 114066,

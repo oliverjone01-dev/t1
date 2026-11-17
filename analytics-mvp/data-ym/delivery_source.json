@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-16T19:31:53.041467+03:00",
-  "through": "2026-11-15",
+  "loaded_at": "2026-11-17T11:32:38.657241+03:00",
+  "through": "2026-11-16",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
     "tabs": {
@@ -11,14 +11,15 @@
     }
   },
   "window_from": "2026-10-03",
-  "rows": 700,
+  "rows": 707,
   "source_counts": {
     "active": {
-      "market_rows": 37,
+      "market_rows": 39,
       "historical_rows": 3,
-      "accepted_rows": 7,
+      "accepted_rows": 14,
       "missing_cost_rows": 0,
-      "future_rows": 27
+      "future_rows": 21,
+      "undated_rows": 1
     },
     "archive": {
       "market_rows": 573,
@@ -31,6 +32,13 @@
   },
   "source_issues": [
     {
+      "order": "64026652739",
+      "shipped": "",
+      "status": "В очереди",
+      "ship": null,
+      "reason": "в Google-таблице нет даты отгрузки; новая отправка пока не добавлена в расход"
+    },
+    {
       "order": "62536179201",
       "shipped": "",
       "status": "Доставлен",
@@ -39,5 +47,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "4d147dd669a42280670444975cd2dec27fc59f8702d05da8f8d2fc269148bebd"
+  "csv_sha256": "d3ca4d21e97fc46f37b387478066adeaa9cee3310b5cf555f19266fb9f502919"
 }

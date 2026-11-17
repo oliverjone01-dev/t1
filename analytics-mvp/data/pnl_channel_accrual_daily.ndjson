@@ -261,7 +261,7 @@
 {"d":"2026-10-24","accruals":1412287,"commission":-719764,"delivery":-13685,"fees":-757175,"payout":655112,"ops":20}
 {"d":"2026-10-25","accruals":701008,"commission":-353744,"delivery":-14886,"fees":-377218,"payout":323790,"ops":15}
 {"d":"2026-10-26","accruals":938861,"commission":-447396,"delivery":-4275,"fees":-465335,"payout":473526,"ops":15}
-{"d":"2026-10-27","accruals":1022706,"commission":-516221,"delivery":-6786,"fees":-538498,"payout":484208,"ops":14}
+{"d":"2026-10-27","accruals":1022706,"commission":-516221,"delivery":-9191,"fees":-540903,"payout":481803,"ops":14}
 {"d":"2026-10-28","accruals":379293,"commission":-169401,"delivery":-4831,"fees":-183026,"payout":196267,"ops":6}
 {"d":"2026-10-29","accruals":969778,"commission":-491132,"delivery":-5667,"fees":-518350,"payout":451428,"ops":11}
 {"d":"2026-10-30","accruals":955042,"commission":-488423,"delivery":-3152,"fees":-509294,"payout":445748,"ops":12}
@@ -276,9 +276,10 @@
 {"d":"2026-11-08","accruals":413805,"commission":-207159,"delivery":-11309,"fees":-244394,"payout":169411,"ops":7}
 {"d":"2026-11-09","accruals":283887,"commission":-142592,"delivery":-5575,"fees":-156472,"payout":127415,"ops":5}
 {"d":"2026-11-10","accruals":0,"commission":0,"delivery":0,"fees":-9725,"payout":-9725,"ops":0}
-{"d":"2026-11-11","accruals":158999,"commission":-63161,"delivery":-2250,"fees":-74554,"payout":84445,"ops":5}
+{"d":"2026-11-11","accruals":188354,"commission":-77838,"delivery":-2673,"fees":-89846,"payout":98508,"ops":6}
 {"d":"2026-11-12","accruals":0,"commission":0,"delivery":0,"fees":-3232,"payout":-3232,"ops":0}
 {"d":"2026-11-13","accruals":0,"commission":0,"delivery":0,"fees":-4551,"payout":-4551,"ops":0}
 {"d":"2026-11-14","accruals":0,"commission":0,"delivery":0,"fees":-6933,"payout":-6933,"ops":0}
 {"d":"2026-11-15","accruals":0,"commission":0,"delivery":0,"fees":-9199,"payout":-9199,"ops":0}
 {"d":"2026-11-16","accruals":0,"commission":0,"delivery":0,"fees":-10355,"payout":-10355,"ops":0}
+{"d":"2026-11-17","accruals":0,"commission":0,"delivery":0,"fees":-7782,"payout":-7782,"ops":0}

@@ -1347,4 +1347,11 @@
 {"d":"2026-11-16","sku":"GGT-35-2-3-100-180","units":1,"pay":50385,"accruals":114525,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-61100,"promo":0,"otherSvc":0,"amount":53425,"platform":"ym"}
 {"d":"2026-11-16","sku":"GGT-47-3-3-80","units":1,"pay":19581,"accruals":53100,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-35468,"promo":0,"otherSvc":0,"amount":17631,"platform":"ym"}
 {"d":"2026-11-16","sku":"GGTP-03-2-E","units":1,"pay":30974,"accruals":62807,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-31436,"promo":0,"otherSvc":0,"amount":31371,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGL-02-M-2","units":1,"pay":15206,"accruals":31900,"commission":-156,"delivery":-1006,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":30738,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGL-09-2","units":1,"pay":26279,"accruals":58158,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":58158,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGM-16-2-1","units":1,"pay":10635,"accruals":25841,"commission":0,"delivery":-1003,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":24838,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGR-10-1","units":1,"pay":8912,"accruals":24163,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":24163,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGR-11-2","units":1,"pay":11120,"accruals":27216,"commission":-133,"delivery":-1019,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":26063,"platform":"ym"}
 {"d":"2026-11-17","sku":"GGT-03-2-1-E-14080/MDF","units":1,"pay":40192,"accruals":92589,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":92589,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGT-35-3-3-100-180","units":1,"pay":51882,"accruals":115634,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":115634,"platform":"ym"}
+{"d":"2026-11-17","sku":"GGTP-03-1-O","units":1,"pay":28076,"accruals":68952,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":68952,"platform":"ym"}

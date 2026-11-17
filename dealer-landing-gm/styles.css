@@ -617,3 +617,34 @@
 @media(max-width:1023px){#landing [data-name="Gallery controls"]{flex-direction:column;align-items:stretch;gap:16px}#landing [data-name="Gallery controls"]>a{width:100%}#landing [data-name="Gallery controls"]>.gallery-controls{width:100%;margin:0}.gallery-controls .gallery-status{margin-right:auto}}
 
 @media(min-width:1024px) and (max-width:1199px){#landing [data-name="Product benefits"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 40px}#landing [data-name^="Product benefit / "]{width:auto;min-width:0}}
+
+/* Canonical Desktop/Mobile alignment: FENIKS, 17 November 2026. */
+.demo-note{margin-top:40px}
+.gallery-controls button{font-size:24px;line-height:1.5}
+.gallery-status{margin-right:0}
+@media(min-width:1024px){
+  #faq [data-name="Installation and questions"]{grid-template-columns:minmax(0,520fr) minmax(0,720fr);gap:40px}
+  .site-footer [data-name="Footer links"]{grid-template-columns:minmax(0,900px) 200px;justify-content:start;gap:24px}
+}
+@media(max-width:1023px){
+  .demo-note{margin-top:28px}
+  .gallery-status{font-size:14px}
+  #landing h2{letter-spacing:0}
+  #landing #ready h2,#landing #flowerbeds h2,#landing #fences h2{letter-spacing:-.03em}
+  #landing #technology h2,#landing #contact h2{letter-spacing:-.04em}
+  #home h1{font-size:clamp(38px,12vw,46px)!important}
+  #landing .catalog-grid+.catalog-grid{margin-top:0}
+  #frames [data-name="Stand CTA / copy"]>p{line-height:1.5}
+  .header-inner{grid-template-columns:124px minmax(0,1fr) 56px;gap:8px 16px;grid-template-rows:66px 44px}
+  .logo,.logo img{width:124px}
+  .logo{flex-basis:124px}
+  .logo img{height:66px}
+  .mobile-contact{display:flex;align-items:center;min-height:44px;text-align:left;padding-left:16px}
+  .header-contacts .phone{min-height:44px;font-size:18px;line-height:27px}
+}
+@media(max-width:379px){
+  .header-inner{grid-template-columns:104px minmax(0,1fr) 44px}
+  .logo,.logo img{width:104px}
+  .logo{flex-basis:104px}
+  .mobile-contact{padding-left:0;font-size:14px}
+}

@@ -4,7 +4,7 @@
   const menu = $('#mobile-menu'), toggle = $('.menu-toggle'), viewer = $('#photo-viewer');
   const form = $('#request-form'), result = $('#request-result');
   const contact = $('[name="contact"]', form), consent = $('[name="consent"]', form), subject = $('[name="subject"]', form);
-  let requestText = '', photoTrigger = null;
+  let requestText = '', photoTrigger = null, photoRequestChosen = false;
   const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   function syncDialogs() {
     document.body.classList.toggle('dialog-open', menu.open || viewer.open);
@@ -27,7 +27,10 @@
   }
   document.addEventListener('click', e => {
     const action = e.target.closest('[data-subject]');
-    if (action) { editRequest(action.dataset.subject); closeMenu(); if (viewer.open) viewer.close(); }
+    if (action) {
+      editRequest(action.dataset.subject); closeMenu();
+      if (viewer.open) { photoRequestChosen = true; viewer.close(); }
+    }
     const photo = e.target.closest('[data-photo-src]');
     if (photo) {
       photoTrigger = photo;
@@ -39,7 +42,12 @@
     }
   });
   $('#close-photo').addEventListener('click', () => viewer.close());
-  viewer.addEventListener('close', () => { syncDialogs(); if (photoTrigger?.isConnected) photoTrigger.focus({ preventScroll: true }); });
+  viewer.addEventListener('close', () => {
+    syncDialogs();
+    if (photoRequestChosen) {
+      photoRequestChosen = false; contact.focus({ preventScroll: true });
+    } else if (photoTrigger?.isConnected) photoTrigger.focus({ preventScroll: true });
+  });
   viewer.addEventListener('click', e => {
     const r = viewer.getBoundingClientRect();
     if (e.target === viewer && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) viewer.close();
@@ -52,7 +60,10 @@
       const max = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
       for (const b of controls) b.disabled = Number(b.dataset.slide) < 0 ? viewport.scrollLeft <= 2 : viewport.scrollLeft >= max - 2;
       const r = viewport.getBoundingClientRect();
-      const visible = cards.map((c, i) => ({ r: c.getBoundingClientRect(), i })).filter(c => c.r.right > r.left + 24 && c.r.left < r.right - 24);
+      const visible = cards.map((c, i) => ({ r: c.getBoundingClientRect(), i })).filter(c => {
+        const intersection = Math.max(0, Math.min(c.r.right, r.right) - Math.max(c.r.left, r.left));
+        return intersection >= Math.min(c.r.width, r.width) / 2;
+      });
       if (status && visible.length) {
         const first = visible[0].i + 1, last = visible.at(-1).i + 1;
         status.textContent = `${first === last ? first : `${first}–${last}`} из ${cards.length}`;

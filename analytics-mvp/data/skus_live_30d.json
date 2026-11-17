@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-18",
   "dateTo": "2026-11-16",
-  "generated_at": "2026-11-17T13:48:03.761Z",
+  "generated_at": "2026-11-17T14:23:35.603Z",
   "totals": {
     "rev": 35715736,
     "units": 513,
@@ -2472,9 +2472,9 @@
       "aov": 83647,
       "offer": "GGT-03-2-1-E-14080",
       "stock": 191,
-      "pidx": 1.06,
-      "pcol": "YELLOW",
-      "price": 92900,
+      "pidx": 0.95,
+      "pcol": "SUPER",
+      "price": 82759,
       "oos": 0
     },
     {
@@ -2494,9 +2494,9 @@
       "aov": 83144,
       "offer": "GGT-03-3-1-E-14080",
       "stock": 196,
-      "pidx": 1.06,
-      "pcol": "YELLOW",
-      "price": 92900,
+      "pidx": 0.94,
+      "pcol": "SUPER",
+      "price": 82261,
       "oos": 0
     },
     {

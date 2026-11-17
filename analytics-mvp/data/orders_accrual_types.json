@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -88692308,
-  "n": 3587
+  "sum": -88751711,
+  "n": 3589
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2919865,
-  "n": 1751
+  "sum": -2922805,
+  "n": 1752
  },
  {
   "type_id": 3,
@@ -31,15 +31,15 @@
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
   "bucket": "partner",
-  "sum": -886859,
-  "n": 175
+  "sum": -894622,
+  "n": 176
  },
  {
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -414478,
-  "n": 1932
+  "sum": -415230,
+  "n": 1934
  },
  {
   "type_id": 74,
@@ -101,15 +101,15 @@
   "type_id": 10,
   "name": "Compensation",
   "bucket": "other",
-  "sum": -27969,
-  "n": 8
+  "sum": -31883,
+  "n": 9
  },
  {
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21520,
-  "n": 1399
+  "sum": -21530,
+  "n": 1400
  },
  {
   "type_id": 29,
@@ -136,15 +136,15 @@
   "type_id": 63,
   "name": "RfbsDomesticAgentFee",
   "bucket": "partner",
-  "sum": -3440,
-  "n": 172
+  "sum": -3460,
+  "n": 173
  },
  {
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -3250,
-  "n": 132
+  "sum": -3275,
+  "n": 133
  },
  {
   "type_id": 45,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 2267502,
-  "n": 574
+  "sum": 2319820,
+  "n": 585
  }
 ]

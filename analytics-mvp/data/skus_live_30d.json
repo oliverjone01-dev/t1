@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-19",
   "dateTo": "2026-11-17",
-  "generated_at": "2026-11-18T13:39:17.890Z",
+  "generated_at": "2026-11-18T17:09:54.191Z",
   "totals": {
     "rev": 35148166,
     "units": 509,
@@ -1877,10 +1877,10 @@
       "retp": 0,
       "aov": 57900,
       "offer": "GGM-15-1-2",
-      "stock": 198,
+      "stock": 30,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 57900,
+      "price": 98900,
       "oos": 0
     },
     {
@@ -3308,9 +3308,9 @@
       "aov": 21900,
       "offer": "GGM-02-3-1",
       "stock": 30,
-      "pidx": 1.2,
-      "pcol": "RED",
-      "price": 42900,
+      "pidx": 0,
+      "pcol": "WITHOUT_INDEX",
+      "price": 50900,
       "oos": 0
     },
     {

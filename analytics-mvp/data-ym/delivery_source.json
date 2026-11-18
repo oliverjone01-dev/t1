@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "platform": "ym",
-  "loaded_at": "2026-11-18T11:26:32.003370+03:00",
+  "loaded_at": "2026-11-18T19:09:55.236517+03:00",
   "through": "2026-11-17",
   "source": {
     "spreadsheet_id": "1D312esBrGMvtAkMUdI4mI4tkF3rOsxnAVAq9vDUgNwY",
@@ -14,11 +14,11 @@
   "rows": 718,
   "source_counts": {
     "active": {
-      "market_rows": 40,
+      "market_rows": 44,
       "historical_rows": 3,
       "accepted_rows": 25,
       "missing_cost_rows": 0,
-      "future_rows": 12
+      "future_rows": 16
     },
     "archive": {
       "market_rows": 573,
@@ -39,5 +39,5 @@
     }
   ],
   "retained_documents": 604,
-  "csv_sha256": "fc2123968e300f6d4c5254822827ea274b72183dffff548f78e02cf4dfab6d16"
+  "csv_sha256": "25d029e05eb289a39f2cf6fc67c6689f22b6b7f24984f3eb56f5e23eced37638"
 }

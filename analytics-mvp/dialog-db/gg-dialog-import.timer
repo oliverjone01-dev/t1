@@ -1,0 +1,8 @@
+[Unit]
+Description=Refresh dialogue database from successful published snapshot
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=15min
+Persistent=true
+[Install]
+WantedBy=timers.target

@@ -1,12 +1,12 @@
 {
-  "at": "2026-11-19T08:34:17.252Z",
+  "at": "2026-11-19T16:14:09.312Z",
   "orders_from_netting": 1759,
   "orders_from_commissions": 355,
-  "accruals_from_netting": 74113202,
+  "accruals_from_netting": 74344985,
   "accruals_from_commissions": 0,
   "fees_from_netting": 40509718.35,
   "fees_from_commissions": 0,
-  "rate_netting": 54.7,
+  "rate_netting": 54.5,
   "rate_order": null,
   "by_month": {
     "2026-01": {
@@ -112,11 +112,11 @@
     "2026-11": {
       "orders_netting": 123,
       "orders_order": 22,
-      "accruals_netting": 5103046,
+      "accruals_netting": 5334829,
       "accruals_order": 0,
       "fees_netting": 2989655.96,
       "fees_order": 0,
-      "rate_netting": 58.6,
+      "rate_netting": 56,
       "rate_order": null
     }
   },

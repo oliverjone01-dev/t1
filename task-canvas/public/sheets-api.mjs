@@ -5,9 +5,9 @@ import {
   combineSheets,
   decodeSheet,
   buildWriteRequests,
-} from "./sync-model.mjs?rev=20261120-canon-19";
-import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261120-canon-19';
-import {taskClaim,isClaimCollision} from './sheets-claims.mjs?rev=20261120-canon-19';
+} from "./sync-model.mjs?rev=20261120-canon-20";
+import {readModeControl,modeWriteRequest,assertSheetWriter} from './storage-mode.mjs?rev=20261120-canon-20';
+import {taskClaim,isClaimCollision} from './sheets-claims.mjs?rev=20261120-canon-20';
 export class SheetsApi {
   constructor(
     auth,

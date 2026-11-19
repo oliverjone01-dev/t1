@@ -1,5 +1,5 @@
-import {icon} from '../icons.mjs?rev=20261120-canon-19';
-import {installWorkspaceShell} from '../workspace-shell.mjs?rev=20261120-canon-19';
+import {icon} from '../icons.mjs?rev=20261120-canon-20';
+import {installWorkspaceShell} from '../workspace-shell.mjs?rev=20261120-canon-20';
 const main=document.querySelector('.week-main'),layout=document.createElement('div'),side=document.createElement('aside');layout.className='week-workspace';side.className='sidebar';side.setAttribute('aria-label','Навигация и фильтры отчёта');side.innerHTML='<div id="sidebar-content" class="sidebar-content"><nav class="week-navigation" aria-label="Планирование"><a href="../">Рабочая доска</a><a href="./" aria-current="page">План/факт</a></nav><h2>Фильтры</h2></div>';main.before(layout);layout.append(side,main);side.firstElementChild.append(main.querySelector('.filters'));
 const panel=document.createElement('div');panel.id='workspace-controls';panel.className='workspace-controls';panel.innerHTML='<div class="workspace-controls-inner"></div>';const inner=panel.firstElementChild;for(const selector of ['.title-row','.context','#summary'])inner.append(main.querySelector(selector));main.prepend(panel);
 const summary=document.createElement('div');summary.id='workspace-summary';summary.className='workspace-summary-rail';summary.hidden=true;summary.innerHTML='<strong data-shell-view>План/факт</strong><span data-shell-period></span><span data-shell-count></span>';main.prepend(summary);

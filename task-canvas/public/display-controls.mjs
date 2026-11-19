@@ -1,7 +1,7 @@
-import {TILE_KEY,readTiles,cleanTile,tileGridContext} from './tile-layout.mjs?rev=20261120-canon-19';
-import {icon} from './icons.mjs?rev=20261120-canon-19';
-import {DISPLAY_KEY,GROUP_KEY,GROUPS,readDisplay,readGroups,effectiveGroup,dayRange,validGroup} from './display-model.mjs?rev=20261120-canon-19';
-import {periodRange} from './range-model.mjs?rev=20261120-canon-19';
+import {TILE_KEY,readTiles,cleanTile,tileGridContext} from './tile-layout.mjs?rev=20261120-canon-20';
+import {icon} from './icons.mjs?rev=20261120-canon-20';
+import {DISPLAY_KEY,GROUP_KEY,GROUPS,readDisplay,readGroups,effectiveGroup,dayRange,validGroup} from './display-model.mjs?rev=20261120-canon-20';
+import {periodRange} from './range-model.mjs?rev=20261120-canon-20';
 export function installDisplayControls(host){
  const root=document.querySelector('#display-controls');let value=readDisplay(host.storage),groups=readGroups(host.storage,value.group);
  let tiles=readTiles(host.storage,value),pendingFit=null,limits=new Map();const context=()=>host.context?.()||host.mode(),settings=()=>({...tiles[context()],fit:pendingFit===context()});

@@ -1,4 +1,4 @@
-import {FIELD_NAMES, equal} from './sync-model.mjs?rev=20261120-canon-19';
+import {FIELD_NAMES, equal} from './sync-model.mjs?rev=20261120-canon-20';
 
 export const CHANGE_FIELDS = {...FIELD_NAMES, sourceId:'ID', ownerNote:'Формулировка ответственного', dueNote:'Формулировка срока', dependency:'Зависимости', requester:'Постановщик', link:'Ссылка'};
 const fields = Object.keys(CHANGE_FIELDS).filter(key=>key!=='task');

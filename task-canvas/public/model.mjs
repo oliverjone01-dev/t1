@@ -1,5 +1,5 @@
-import {parseCreatedAt} from './task-dates.mjs?rev=20261120-canon-19';
-import {parseAssignee} from './people.mjs?rev=20261120-canon-19';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261120-canon-20';
+import {parseAssignee} from './people.mjs?rev=20261120-canon-20';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [

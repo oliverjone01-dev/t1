@@ -1,24 +1,27 @@
-import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-canon-19';
-import {installDisplayControls} from './display-controls.mjs?rev=20261120-canon-19';
-import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-canon-19';
-import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-canon-19';
-import {installThemeToggle} from './appearance.mjs?rev=20261120-canon-19';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-canon-19';
-import {installCmoShell} from './cmo-shell.mjs?rev=20261120-canon-19';
-import {installRangePicker} from './range-picker.mjs?rev=20261120-canon-19';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-canon-19';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-canon-19';
-import {installGantt} from './gantt.mjs?rev=20261120-canon-19';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261120-canon-19';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-canon-19';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-canon-19';
-import {Directory} from './directory.mjs?rev=20261120-canon-19';
-import {installCalendar} from './calendar.mjs?rev=20261120-canon-19';
-import {installProductivity} from './productivity.mjs?rev=20261120-canon-19';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-canon-19';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-canon-19';
-import {renderBoard} from './board-ui.mjs?rev=20261120-canon-19';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261120-canon-19';
+import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-canon-20';
+import {installDisplayControls} from './display-controls.mjs?rev=20261120-canon-20';
+import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-canon-20';
+import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-canon-20';
+import {installThemeToggle} from './appearance.mjs?rev=20261120-canon-20';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-canon-20';
+import {installBoardZoom} from './board-zoom.mjs?rev=20261120-canon-20';
+import {installQuickMenu} from './quick-menu.mjs?rev=20261120-canon-20';
+import {installEditorLayout} from './editor-layout.mjs?rev=20261120-canon-20';
+import {installCmoShell} from './cmo-shell.mjs?rev=20261120-canon-20';
+import {installRangePicker} from './range-picker.mjs?rev=20261120-canon-20';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-canon-20';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-canon-20';
+import {installGantt} from './gantt.mjs?rev=20261120-canon-20';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261120-canon-20';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-canon-20';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-canon-20';
+import {Directory} from './directory.mjs?rev=20261120-canon-20';
+import {installCalendar} from './calendar.mjs?rev=20261120-canon-20';
+import {installProductivity} from './productivity.mjs?rev=20261120-canon-20';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-canon-20';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-canon-20';
+import {renderBoard} from './board-ui.mjs?rev=20261120-canon-20';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261120-canon-20';
 import {
   QUADRANTS,
   CARD,
@@ -33,20 +36,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261120-canon-19";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261120-canon-19";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261120-canon-19";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261120-canon-19";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261120-canon-19";
-import { remoteChanges } from "./changes.mjs?rev=20261120-canon-19";
-import { TeamApi } from "./team-api.mjs?rev=20261120-canon-19";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261120-canon-19";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261120-canon-19";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261120-canon-19";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261120-canon-19";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261120-canon-19";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261120-canon-19";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261120-canon-19";
+} from "./model.mjs?rev=20261120-canon-20";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261120-canon-20";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261120-canon-20";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261120-canon-20";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261120-canon-20";
+import { remoteChanges } from "./changes.mjs?rev=20261120-canon-20";
+import { TeamApi } from "./team-api.mjs?rev=20261120-canon-20";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261120-canon-20";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261120-canon-20";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261120-canon-20";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261120-canon-20";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261120-canon-20";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261120-canon-20";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261120-canon-20";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -54,8 +57,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261120-canon-19";
-import { parseAssignee } from "./people.mjs?rev=20261120-canon-19";
+} from "./editor.mjs?rev=20261120-canon-20";
+import { parseAssignee } from "./people.mjs?rev=20261120-canon-20";
 import {
   matchesTask,
   matchesWords,
@@ -64,8 +67,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261120-canon-19";
-import { icon } from "./icons.mjs?rev=20261120-canon-19";
+} from "./ui-model.mjs?rev=20261120-canon-20";
+import { icon } from "./icons.mjs?rev=20261120-canon-20";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -2711,11 +2714,12 @@ productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,can
 });
 installExecutionControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
 installQuickControls({canEdit,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
+installQuickMenu({esc,canEdit,today,toast,tasks:()=>tasks,people:()=>{try{return (Array.isArray(directory.people)?directory.people:[]).map(p=>p.name).filter(Boolean)}catch{return []}},openTask:id=>openTask(id),capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis)});
 priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),mode:()=>mode,save:saveDraft,taskId:()=>editing,onToggle:renderMatrix});
 displayControls=installDisplayControls({storage,mode:()=>mode,context:()=>mode==='calendar'?(calendar?.context()||'calendar:month'):mode,range:()=>dateRange,today,setRange:setDateRange,sort:currentSort,render,toast});
 groupedBoard=installGroupedBoard({settings:()=>displayControls.settings(),context:()=>mode,report:info=>displayControls.report(info),applyFit:info=>displayControls.applyFit(info),active:usesGroupedBoard,group:currentGroup,sections:taskSections,tasks:()=>presentationOrder(tasks.filter(isVisible).map(presentationTask)),esc,canEdit,openTask,selection:()=>[...selectedIds],selectTask});
 gantt=installGantt({esc,today,group:currentGroup,sortKind:currentSort,order:items=>presentationOrder(items,'gantt'),canReorder:canReorderView,sections:taskSections,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(presentationTask),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
-rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});installCmoShell();
+rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});installCmoShell();installBoardZoom({storage,toast});installEditorLayout();
 calendar=installCalendar({settings:()=>displayControls.settings(),presentationChanged:()=>displayControls.render(),report:info=>displayControls.report(info),applyFit:info=>displayControls.applyFit(info),esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&presentationRegistry(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });

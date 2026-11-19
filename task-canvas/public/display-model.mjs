@@ -1,5 +1,5 @@
-import {QUADRANTS,STATUSES,statusGroup} from './model.mjs?rev=20261120-canon-19';
-import {dateShift,IMPORTANCE_LABELS,registryMatch} from './task-signals.mjs?rev=20261120-canon-19';
+import {QUADRANTS,STATUSES,statusGroup} from './model.mjs?rev=20261120-canon-20';
+import {dateShift,IMPORTANCE_LABELS,registryMatch} from './task-signals.mjs?rev=20261120-canon-20';
 export const DISPLAY_KEY='gengroup.task-canvas.display.v1';
 export const GROUP_KEY='gengroup.task-canvas.grouping.v1';
 export const CARD_VIEWS=['detailed','compact','rows'];

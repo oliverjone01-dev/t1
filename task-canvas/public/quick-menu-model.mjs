@@ -1,0 +1,24 @@
+import {shiftSchedule} from './gantt-model.mjs?rev=20261120-canon-20';
+import {shiftDate} from './model.mjs?rev=20261120-canon-20';
+// Pure rules for the quick edit menu: deadline shortcuts and a minimal, validated patch.
+export function dueShortcuts(today){
+ const day=new Date(`${today}T12:00:00`).getDay(),toFriday=(5-day+7)%7||7;
+ return [['Сегодня',today],['Завтра',shiftDate(today,1)],['Пятница',shiftDate(today,toFriday)],['Через неделю',shiftDate(today,7)],['Без срока','']];
+}
+export const QUICK_FIELDS=['title','priority','owner','due','status'];
+// Only fields the person actually changed go into the patch; the deadline keeps the start date valid.
+export function quickPatch(task,form){
+ const next={...task},changed=[];
+ const title=String(form.title??task.title).replace(/\s+/g,' ').trim();
+ if(!title)throw new Error('Название задачи не может быть пустым.');
+ if(title!==task.title){next.title=title;changed.push('title')}
+ const priority=form.priority||null;if((task.priority||null)!==priority){next.priority=priority;changed.push('priority')}
+ const owner=String(form.owner??task.owner??'').trim();if(owner!==(task.owner||'')){next.owner=owner;next.ownerNote='';changed.push('owner')}
+ const due=form.due??task.due??'';if(due!==(task.due||'')){Object.assign(next,shiftSchedule(next,due));next.dueNote='';changed.push('due')}
+ const status=form.status||task.status||'';if(status!==(task.status||'')&&!(status==='Не указан'&&!task.status)){next.status=status;changed.push('status')}
+ if(changed.includes('priority')&&next.positions)next.positions={...next.positions,priority:undefined};
+ if(changed.includes('owner')&&next.positions)next.positions={...next.positions,owners:undefined};
+ if(changed.includes('due')&&next.positions)next.positions={...next.positions,time:undefined};
+ for(const k of ['priority','owners','time'])if(next.positions&&next.positions[k]===undefined)delete next.positions[k];
+ return {task:next,changed};
+}

@@ -1,13 +1,13 @@
-import {sheetFailureStatus} from './sync-indicator.mjs?rev=20261120-canon-19';
+import {sheetFailureStatus} from './sync-indicator.mjs?rev=20261120-canon-20';
 import {
   bootstrapBoard,
   mergeBoards,
   comparable,
   equal,
   SYNC_FIELDS,
-} from "./sync-model.mjs?rev=20261120-canon-19";
-import { validateBoard } from "./model.mjs?rev=20261120-canon-19";
-import { remoteChanges } from "./changes.mjs?rev=20261120-canon-19";
+} from "./sync-model.mjs?rev=20261120-canon-20";
+import { validateBoard } from "./model.mjs?rev=20261120-canon-20";
+import { remoteChanges } from "./changes.mjs?rev=20261120-canon-20";
 const cleanBoard = (board) => {
   if (
     board?.owners &&

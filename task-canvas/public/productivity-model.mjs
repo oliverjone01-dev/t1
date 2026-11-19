@@ -1,10 +1,10 @@
-import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261120-canon-19';
-import {overlapsRange,validDay} from './task-dates.mjs?rev=20261120-canon-19';
-import {shiftSchedule} from './gantt-model.mjs?rev=20261120-canon-19';
-import {ordered,orderKey} from './order.mjs?rev=20261120-canon-19';
-import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261120-canon-19';
-import {parseAssignee} from './people.mjs?rev=20261120-canon-19';
-import {normalizeQuery} from './ui-model.mjs?rev=20261120-canon-19';
+import {validGroup,reconcileRegistry} from './display-model.mjs?rev=20261120-canon-20';
+import {overlapsRange,validDay} from './task-dates.mjs?rev=20261120-canon-20';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261120-canon-20';
+import {ordered,orderKey} from './order.mjs?rev=20261120-canon-20';
+import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QUADRANTS} from './model.mjs?rev=20261120-canon-20';
+import {parseAssignee} from './people.mjs?rev=20261120-canon-20';
+import {normalizeQuery} from './ui-model.mjs?rev=20261120-canon-20';
 
 export const FOCUS = [['all','Все задачи'],['today','Активные сегодня'],['overdue','Просрочено'],['inbox','Не разобрано'],['week','Активные на 7 дней'],['unassigned','Без ответственного'],['undated','Без рабочих дат'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];

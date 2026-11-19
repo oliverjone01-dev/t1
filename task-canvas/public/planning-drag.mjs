@@ -1,5 +1,5 @@
-import {groupFor,QUADRANTS} from './model.mjs?rev=20261120-canon-19';
-import {dateInMonth,insertion,moveInContext,assertDragUnchanged} from './planning-order.mjs?rev=20261120-canon-19';
+import {groupFor,QUADRANTS} from './model.mjs?rev=20261120-canon-20';
+import {dateInMonth,insertion,moveInContext,assertDragUnchanged} from './planning-order.mjs?rev=20261120-canon-20';
 export function installPlanningDrag(host){
  let gesture=null,frame=0,blockedClick=false,committing=false;
  const root=document,live=document.createElement('div');live.className='visually-hidden';live.setAttribute('aria-live','polite');root.body.append(live);

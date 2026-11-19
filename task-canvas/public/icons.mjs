@@ -24,6 +24,7 @@ const shapes = {
   list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
   search: '<circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.3 9a2.8 2.8 0 0 1 5.4 1c0 2-2.7 2-2.7 4M12 17h.01"/>',

@@ -102,3 +102,186 @@
  #task-list tbody td{padding-top:8px;padding-bottom:8px;vertical-align:middle}
 }
 @media(min-width:768px){#task-list table{table-layout:auto}#task-list th.title-col{width:50%}#task-list :is(th,td):not(:first-child){white-space:nowrap}}
+
+/* Filters as a context block. On a phone the existing «Фильтры» dialog stays. */
+.ctx-count{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--primary);color:var(--panel);font-size:12px;font-weight:600;line-height:20px;text-align:center}
+.ctx-count[hidden]{display:none}
+#ctx-filters{min-width:300px}
+#ctx-filters #filter-panel{display:grid;gap:16px;margin:0;padding:0;background:none}
+#ctx-filters .filter-heading{display:flex;align-items:center;justify-content:space-between;margin:0}
+#ctx-filters .filter-heading h2{margin:0;font-size:12px;font-weight:600;color:var(--muted)}
+#ctx-filters label.filter{display:grid;gap:8px;font-size:12px;color:var(--muted)}
+#ctx-filters label.filter select{width:100%;font-size:14px;color:var(--text)}
+#ctx-filters label:has(#focus-filter){display:none}
+#ctx-filters .section-title:empty{display:none}
+#ctx-filters + .ctx-trigger,.ctx:has(#ctx-filters)>.ctx-trigger{gap:8px}
+@media(min-width:768px){.toolbar #filters-open{display:none}}
+@media(max-width:767px){.ctx:has(#ctx-filters){display:none}}
+
+/* Compact sidebar on desktop: a rail of views with icons over short labels; tools at the bottom. */
+@media(min-width:768px){
+ #workspace-main>.sidebar{--sidebar-width:88px;padding:16px 8px;overflow-x:hidden}
+ #workspace-main>.sidebar .sidebar-content{width:72px;gap:16px}
+ #workspace-main>.sidebar .sidebar-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #workspace-main>.sidebar .views{display:grid;grid-template-columns:1fr;gap:4px}
+ #workspace-main>.sidebar .view{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:72px;min-height:56px;padding:8px 4px;border-radius:var(--radius-control);font-size:12px;line-height:1.2;text-align:center;white-space:nowrap}
+ #workspace-main>.sidebar .view .ui-icon{width:20px;height:20px}
+ #workspace-main>.sidebar .side-bottom{margin-top:auto}
+ #workspace-main>.sidebar .side-tools{display:grid;gap:4px}
+ #workspace-main>.sidebar .side-tools .text-button{display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;min-height:52px;padding:6px 4px;font-size:12px;color:var(--muted)}
+ #workspace-main>.sidebar .side-tools .text-button:hover{background:var(--fill);color:var(--text)}
+}
+
+/* Zoom pill: one floating control for every view. Glass is allowed here: it floats over the board. */
+:is(.board-zoom,.zoom-controls){position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:4px;padding:4px;border:0;border-radius:12px;background:var(--raised);box-shadow:0 8px 32px #0f172a2e}
+:root[data-theme=dark] :is(.board-zoom,.zoom-controls){box-shadow:0 8px 32px #00000080}
+@supports(backdrop-filter:blur(16px)){:is(.board-zoom,.zoom-controls){background:color-mix(in srgb,var(--raised) 84%,transparent);backdrop-filter:blur(16px) saturate(160%)}}
+@media(prefers-reduced-transparency:reduce){:is(.board-zoom,.zoom-controls){backdrop-filter:none;background:var(--raised)}}
+.board-zoom[hidden],.zoom-controls[hidden]{display:none}
+:is(.board-zoom,.zoom-controls) button{display:grid;place-items:center;min-width:40px;height:40px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:500;cursor:pointer;font-variant-numeric:tabular-nums}
+:is(.board-zoom,.zoom-controls) button:hover{background:var(--fill)}
+:is(.board-zoom,.zoom-controls) .ui-icon{width:18px;height:18px}
+.board-zoom-value{min-width:56px}
+.board-zoom input[type=range]{-webkit-appearance:none;appearance:none;width:144px;height:40px;margin:0 4px;background:transparent;cursor:pointer;--fill:50%}
+.board-zoom input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--primary) var(--fill),var(--line) var(--fill))}
+.board-zoom input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+.board-zoom input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--primary)}
+.board-zoom input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:var(--text);box-shadow:0 1px 4px #0006;transition:transform .12s ease-out}
+.board-zoom input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--text)}
+.board-zoom input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
+.board-zoom input[type=range]:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
+/* The matrix had its own 80-120% text slider; the pill replaces it. */
+.matrix-display{display:none}
+/* Pinch on touch stays with the board, one finger still scrolls. */
+@media(pointer:coarse){:root[data-content-zoom=true] .board-area{touch-action:pan-x pan-y}}
+@media(max-width:767px){:is(.board-zoom,.zoom-controls){bottom:16px}.board-zoom input[type=range]{width:96px}}
+@media(prefers-reduced-motion:reduce){.board-zoom input[type=range]::-webkit-slider-thumb{transition:none}}
+.board-zoom input[type=range],.board-zoom input[type=range]:hover{border:0;border-radius:8px;min-height:0;padding:0;box-shadow:none}
+
+/* Quick edit: a floating card next to the pointer; a bottom sheet on a phone. */
+.quick-menu{position:fixed;width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:0;border:0;border-radius:var(--radius-popover);background:var(--raised);color:var(--text);box-shadow:0 24px 64px #0f172a40}
+:root[data-theme=dark] .quick-menu{box-shadow:0 24px 64px #000000a0}
+.quick-menu::backdrop{background:#0000001a}
+.quick-menu[open]{animation:qm-in .16s cubic-bezier(.2,.8,.2,1)}
+@keyframes qm-in{from{opacity:0;transform:translateY(4px) scale(.98)}to{opacity:1;transform:none}}
+.quick-menu-form{display:grid;gap:16px;padding:16px}
+.quick-menu header{display:flex;align-items:flex-start;gap:8px}
+.quick-menu textarea{flex:1;min-height:0;height:auto;padding:8px 12px;border:1px solid transparent;border-radius:var(--radius-control);background:var(--fill);color:var(--text);font:inherit;font-size:16px;font-weight:600;line-height:1.4;resize:none}
+.quick-menu .qm-group{display:grid;gap:8px;margin:0;padding:0;border:0;min-width:0;font-size:12px;color:var(--muted)}
+.quick-menu legend{padding:0;margin:0 0 8px;font-size:12px;color:var(--muted)}
+.quick-menu .qm-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quick-menu .qm-row input{width:100%;font-size:14px;color:var(--text)}
+.quick-menu .qm-segments{display:flex;flex-wrap:wrap;gap:4px}
+.quick-menu .qm-segments>button,.quick-menu .qm-chips>button{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px;border:0;border-radius:var(--radius-control);background:var(--fill);color:var(--body);font:inherit;font-size:14px;cursor:pointer;transition:background-color .12s,color .12s}
+.quick-menu .qm-segments>button:hover,.quick-menu .qm-chips>button:hover{background:var(--fill-hover)}
+.quick-menu .qm-quadrants>button[aria-pressed=true],.quick-menu .qm-chips>button[aria-pressed=true]{background:var(--action);color:var(--on-action)}
+.quick-menu .qm-statuses>.task-status{background:var(--status-badge);color:var(--status-ink);opacity:.72}
+.quick-menu .qm-statuses>.task-status[aria-pressed=true]{opacity:1;box-shadow:inset 0 0 0 2px var(--status-ink)}
+.quick-menu .qm-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:-8px}
+.quick-menu .qm-error{margin:0;font-size:14px;color:var(--danger)}
+.quick-menu .qm-error:empty{display:none}
+.quick-menu footer{display:flex;align-items:center;gap:8px}
+.quick-menu .qm-hint{margin-left:auto;font-size:12px;color:var(--muted)}
+.quick-menu.is-sheet{inset:auto 0 0 0;width:100%;max-width:none;margin:0;border-radius:var(--radius-popover) var(--radius-popover) 0 0;padding-bottom:env(safe-area-inset-bottom)}
+.quick-menu.is-sheet[open]{animation:qm-sheet .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes qm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.quick-menu.is-sheet .qm-hint{display:none}
+@media(pointer:coarse){.quick-menu .qm-segments>button,.quick-menu .qm-chips>button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.quick-menu[open],.quick-menu.is-sheet[open]{animation:none}}
+
+/* Full task view: heading, properties as label/value rows, texts as sections, sticky actions. */
+#editor.drawer:not(.priority-editor){width:min(600px,100vw);padding:0 32px 0;border-radius:var(--radius-popover) 0 0 var(--radius-popover);box-shadow:-24px 0 64px #0f172a33}
+:root[data-theme=dark] #editor.drawer:not(.priority-editor){box-shadow:-24px 0 64px #00000080}
+#editor::backdrop{background:#0f172a40;backdrop-filter:blur(2px)}
+#editor .dialog-top{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:8px;margin:0 -32px 8px;padding:16px 32px 8px;background:var(--raised)}
+#editor.priority-editor .dialog-top{margin:0 -18px 8px;padding:12px 18px 8px;top:-18px}
+#editor .dialog-top .eyebrow{font-size:12px;color:var(--muted);white-space:nowrap}
+#editor .ed-tools{display:flex;align-items:center;gap:4px;margin-left:auto;min-width:0}
+#editor .ed-tools .review-nav{margin:0;padding:0 4px;background:none;gap:4px}
+#editor .ed-tools .review-nav[hidden]{display:none}
+#editor .ed-tools .task-tools{margin:0;gap:0;flex-wrap:nowrap}
+#editor .ed-tools .text-button{min-height:32px;padding:4px 8px;border-radius:var(--radius-control);font-size:12px;color:var(--muted);text-decoration:none}
+#editor .ed-tools .text-button:hover{background:var(--fill);color:var(--text)}
+#editor .ed-title{display:block;margin:0 0 8px;font-size:0;color:transparent}
+#editor .ed-title textarea{display:block;width:calc(100% + 16px);margin:0 -8px;min-height:0;height:auto;field-sizing:content;max-height:240px;padding:4px 8px;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:var(--text);font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.02em;resize:none}
+#editor .ed-title textarea:hover{background:var(--fill)}
+#editor .ed-props{display:grid;gap:2px;margin:16px 0 32px}
+#editor .ed-prop{display:grid;grid-template-columns:136px minmax(0,1fr);align-items:center;column-gap:12px;min-height:40px;margin:0;font-size:14px;color:var(--muted)}
+#editor .ed-prop :is(input,select){width:100%;min-height:36px;height:36px;padding:4px 8px;border-color:transparent;background:transparent;color:var(--text);font-size:14px}
+#editor .ed-prop :is(input,select):hover{background:var(--fill);border-color:transparent}
+#editor .ed-prop:has([name=progress]){grid-template-columns:136px minmax(0,1fr) 48px}
+#editor .ed-prop [name=progress]{order:1;padding:0;background:transparent}
+#editor .ed-prop #editor-progress-value{order:2;text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+#editor #editor-work{display:grid;grid-template-columns:136px minmax(0,1fr);align-items:center;column-gap:12px;min-height:40px}
+#editor #editor-work::before{content:'Работа';font-size:14px;color:var(--muted)}
+#editor #editor-work:empty{display:none}
+#editor .ed-props>:is(.field-hint,.source-note,.date-presets,.owner-profile){margin:0 0 8px 148px;font-size:12px;line-height:1.5}
+#editor .ed-props>.date-presets{display:flex;flex-wrap:wrap;gap:4px}
+#editor .ed-props>.date-presets button{min-height:28px;padding:2px 8px;border-radius:var(--radius-control);background:var(--fill);font-size:12px;text-decoration:none}
+#editor .ed-props>:is(.source-note,.field-hint):empty{display:none}
+#editor .ed-texts{display:grid;gap:24px;margin-bottom:24px}
+#editor .ed-texts>label{display:grid;gap:8px;margin:0;font-size:14px;font-weight:600;color:var(--text)}
+#editor .ed-texts textarea{min-height:96px;field-sizing:content;max-height:360px;padding:12px;font-size:14px;font-weight:400;line-height:1.5;resize:vertical}
+#editor .ed-texts details{font-size:14px;color:var(--muted)}
+#editor .form-actions{position:sticky;bottom:0;z-index:4;display:flex;align-items:center;gap:8px;margin:0 -32px;padding:16px 32px max(16px,env(safe-area-inset-bottom));background:var(--raised);border:0}
+#editor .form-actions #delete-task{order:0;flex:0 0 auto;margin-right:auto;background:transparent;color:var(--danger);border:0}
+#editor .form-actions #delete-task:hover{background:var(--danger-soft)}
+#editor .form-actions :is(#save-next,#save-task,#recreate-task){order:1;flex:0 0 auto}
+#editor:not(.priority-editor) .form-actions .button{flex:0 0 auto}
+#editor.priority-editor .ed-prop,#editor.priority-editor #editor-work{grid-template-columns:104px minmax(0,1fr)}
+#editor.priority-editor .ed-prop:has([name=progress]){grid-template-columns:104px minmax(0,1fr) 44px}
+#editor.priority-editor .ed-props>:is(.field-hint,.source-note,.date-presets,.owner-profile){margin-left:116px}
+#editor.priority-editor .ed-title textarea{font-size:20px}
+#editor.priority-editor .form-actions{margin:0 -18px -18px;padding:12px 18px 18px;flex-wrap:wrap}
+#editor.priority-editor .form-actions #save-task{order:2}
+@media(prefers-reduced-motion:no-preference){#editor.drawer:not(.priority-editor)[open]{animation:ed-in .22s cubic-bezier(.2,.8,.2,1)}@keyframes ed-in{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}}
+@media(max-width:767px){
+ #editor.drawer:not(.priority-editor){width:100vw;padding:0 16px;border-radius:0}
+ #editor .dialog-top,#editor .form-actions{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+ #editor .ed-tools .task-tools .text-button{padding:4px 6px}
+ #editor .ed-prop,#editor #editor-work{grid-template-columns:112px minmax(0,1fr)}
+ #editor .ed-prop:has([name=progress]){grid-template-columns:112px minmax(0,1fr) 44px}
+ #editor .ed-props>:is(.field-hint,.source-note,.date-presets,.owner-profile){margin-left:124px}
+ #editor .form-actions{flex-wrap:wrap}
+ #editor .form-actions :is(#save-task){flex:1 1 100%;order:-1}
+}
+#editor .ed-tools :is(.text-button,#review-position){white-space:nowrap}
+#editor .ed-tools #review-position{font-size:12px;color:var(--muted)}
+#editor:not(.priority-editor) .dialog-top .eyebrow{display:none}
+@media(max-width:767px){#editor .ed-tools #review-position{display:none}}
+#editor.priority-editor .dialog-top{flex-wrap:wrap;row-gap:4px}#editor.priority-editor .dialog-top>[data-close=editor]{margin-left:auto}#editor.priority-editor .ed-tools{order:3;flex:1 1 100%;margin-left:-8px;justify-content:space-between}
+#editor.priority-editor .ed-tools{flex-wrap:wrap;row-gap:0}#editor.priority-editor .ed-tools .task-tools{flex-wrap:wrap}
+
+/* Motion and depth. One curve, short durations, depth only for what floats or is being moved.
+   Deviation from S9 by user choice: a quiet hover shadow on cards for responsiveness, no movement. */
+:root{--ease-out:cubic-bezier(.2,.8,.2,1);--lift:0 20px 48px #0f172a40,0 2px 6px #0f172a1f;--hover-shadow:0 4px 16px #0f172a1a}
+:root[data-theme=dark]{--lift:0 20px 48px #000000a0,0 2px 6px #00000060;--hover-shadow:0 4px 16px #00000059}
+/* Press feedback on controls */
+:is(.button,.ctx-trigger,.triage-chip,.board-zoom button,.zoom-controls button,.view,.status-shortcut,.quick-menu button,.icon-button){transition:transform .1s var(--ease-out),background-color .15s,color .15s}
+:is(.button,.ctx-trigger,.triage-chip,.board-zoom button,.zoom-controls button,.view,.status-shortcut,.quick-menu button,.icon-button):active:not(:disabled){transform:scale(.97)}
+/* Cards answer the pointer with a soft shadow; nothing jumps */
+@media(hover:hover) and (pointer:fine){
+ :is(.matrix-card,.task-card,.day-board-card,.map-task,.calendar-task-wrap){transition:box-shadow .18s var(--ease-out),background-color .18s}
+ :is(.matrix-card,.task-card,.day-board-card,.map-task,.calendar-task-wrap):hover{box-shadow:var(--hover-shadow)}
+ #task-list tbody tr>td{transition:background-color .12s}
+}
+/* The lifted copy floats: glass, lift shadow, a slight tilt. The place it left is outlined. */
+:is(.matrix-drag-preview,.planning-ghost){background:color-mix(in srgb,var(--raised) 86%,transparent);box-shadow:var(--lift);transform:rotate(-1.5deg) scale(1.02);cursor:grabbing}
+@supports(backdrop-filter:blur(12px)){:is(.matrix-drag-preview,.planning-ghost){backdrop-filter:blur(12px) saturate(150%)}}
+.task-card.dragging{box-shadow:var(--lift);opacity:.94;z-index:50;cursor:grabbing}
+:is(.matrix-card,.map-task).dragging{opacity:.4;outline:2px dashed var(--field-line);outline-offset:-2px;box-shadow:none}
+.planning-source{opacity:.4;outline:2px dashed var(--field-line);outline-offset:-2px}
+.planning-drop{outline:2px solid var(--primary);outline-offset:-2px;background-color:color-mix(in srgb,var(--primary-soft) 50%,transparent)}
+/* Things that appear, appear softly */
+.ctx-panel:not([hidden]){animation:soft-in .14s var(--ease-out)}
+#toast:not([hidden]){animation:toast-in .2s var(--ease-out)}
+.triage-chip,.triage-chip b{transition:background-color .15s,color .15s}
+@keyframes soft-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+ :is(.matrix-drag-preview,.planning-ghost){transform:none}
+}
+/* A drag overlay rendered inside a zoomed view cancels the zoom, so the lifted card stays under the pointer. */
+#board-ui div:has(>.matrix-drag-preview){zoom:calc(1 / var(--board-zoom,1))}
+.quick-menu.is-sheet footer [type=submit]{margin-left:auto;min-width:160px}

@@ -6,14 +6,19 @@ import {statusGroup, groupFor, localDate, shiftDate, validateBoard, STATUSES, QU
 import {parseAssignee} from './people.mjs?rev=20261120-canon-19';
 import {normalizeQuery} from './ui-model.mjs?rev=20261120-canon-19';
 
-export const FOCUS = [['all','Все задачи'],['today','Активные сегодня'],['overdue','Просрочено'],['week','Активные на 7 дней'],['unassigned','Без ответственного'],['undated','Без рабочих дат'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
+export const FOCUS = [['all','Все задачи'],['today','Активные сегодня'],['overdue','Просрочено'],['inbox','Не разобрано'],['week','Активные на 7 дней'],['unassigned','Без ответственного'],['undated','Без рабочих дат'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];
 export function matchesFocus(task, focus, today, pins=[], unread=false) {
   if(focus==='all')return true;
   if(focus==='pinned')return pins.includes(task.id);
   if(focus==='unread')return !!unread;
   if(statusGroup(task))return false;
-  return ({today:()=>overlapsRange(task,today,today),overdue:()=>!!task.due&&task.due<today,week:()=>overlapsRange(task,today,shiftDate(today,6)),unassigned:()=>!task.owner,undated:()=>!task.due&&!task.start,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
+  return ({today:()=>overlapsRange(task,today,today),overdue:()=>!!task.due&&task.due<today,week:()=>overlapsRange(task,today,shiftDate(today,6)),inbox:()=>!task.priority,unassigned:()=>!task.owner,undated:()=>!task.due&&!task.start,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
+}
+// The triage strip: the questions a manager asks every morning, each with its count in the current scope.
+export const TRIAGE = [['all','Все'],['today','Сегодня'],['overdue','Просрочено'],['inbox','Не разобрано'],['unassigned','Без ответственного'],['waiting','В ожидании'],['unread','Новые'],['pinned','Избранное']];
+export function focusCounts(tasks, today, pins=[], unread=()=>false) {
+  return Object.fromEntries(TRIAGE.map(([id])=>[id,tasks.filter(t=>matchesFocus(t,id,today,pins,!!unread(t.id))).length]));
 }
 export function sortTasks(tasks,sort,ownerName=value=>value,today=localDate()) {
   const priority=t=>statusGroup(t)?(t.status==='Готово'?5:6):({do:0,plan:1,delegate:2,later:3}[t.priority]??4);

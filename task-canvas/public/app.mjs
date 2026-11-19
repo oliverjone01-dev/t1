@@ -4,6 +4,7 @@ import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,ter
 import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-canon-19';
 import {installThemeToggle} from './appearance.mjs?rev=20261120-canon-19';
 import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-canon-19';
+import {installCmoShell} from './cmo-shell.mjs?rev=20261120-canon-19';
 import {installRangePicker} from './range-picker.mjs?rev=20261120-canon-19';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-canon-19';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-canon-19';
@@ -664,7 +665,7 @@ function updateOptions() {
     units.map((v) => `<option value="${esc(v)}"></option>`).join(""),
   );
 }
-function matchesFilters(task) {
+function matchesFilters(task, withFocus = true) {
   return (
     (!$("#department-filter").value || (directory.resolve(task.owner)?.department||"").split(" · ").includes($("#department-filter").value)) &&
     (!$("#unit-filter").value || task.unit === $("#unit-filter").value) &&
@@ -672,7 +673,7 @@ function matchesFilters(task) {
       ($("#owner-filter").value === "__none"
         ? !task.owner
         : personName(task.owner) === personName($("#owner-filter").value.replace(/^owner:/,"")))) &&
-    matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (productivity?.matches(task)??true)
+    matchesTask({...task,owner:personName(task.owner)+" "+task.owner}, $("#search").value) && (!withFocus || (productivity?.matches(task)??true))
   );
 }
 const isVisible = task=>matchesFilters(task)&&presentationRegistry(effectiveTask(task),{...dateRange,archive:archiveScope,hideDone:$('#hide-done').checked});
@@ -2698,7 +2699,7 @@ window.addEventListener('storage',e=>{if(e.key!==googleAuth?.sessionKey)return;i
 if(SHEETS_ONLY){text('#cloud-title','Сохранение в Google Таблице');text('#cloud-mode-note','Если связи нет, правки остаются на этом устройстве и отправятся после подключения.');text('#cloud-mode-description','Задачи сохраняются в вашей таблице. Вы редактируете доску, коллеги могут смотреть её по ссылке.');}
 productivity=installProductivity({storage,storageKey:STORAGE,esc,toast,today,canEdit,requireEditor,personName,
  isGrouped:usesGroupedBoard,viewState:()=>({department:$('#department-filter').value,...dateRange,archive:archiveScope,group:displayControls?.requestedGroup()||'auto'}),restoreView:v=>{const sel=$('#department-filter');if(v.department&&![...sel.options].some(o=>o.value===v.department))sel.add(new Option(v.department+' · нет на доске',v.department));sel.value=v.department;archiveScope=v.archive;dateRange={from:v.from,to:v.to};calendar?.setRange(dateRange);displayControls?.setGroup(v.group,v.mode,false)},
- tasks:()=>tasks,mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
+ tasks:()=>tasks,scope:()=>tasks.filter(t=>matchesFilters(t,false)&&presentationRegistry(effectiveTask(t),{...dateRange,archive:archiveScope,hideDone:$('#hide-done').checked})),mode:()=>mode,selection:()=>[...selectedIds],editing:()=>editing,
  visible:()=>productivity?.sort(tasks.filter(isVisible))||tasks.filter(isVisible),unread:id=>inbox.get(id),
  render,setMode,clearFilters,openTask,saveDraft,submitTask,field,
  loaded:()=>DEMO||viewerState.status==='view-live'||syncState.status==='synced',
@@ -2714,7 +2715,7 @@ priorityEditor=installPriorityEditor({dialog:$('#editor'),area:$('.board-area'),
 displayControls=installDisplayControls({storage,mode:()=>mode,context:()=>mode==='calendar'?(calendar?.context()||'calendar:month'):mode,range:()=>dateRange,today,setRange:setDateRange,sort:currentSort,render,toast});
 groupedBoard=installGroupedBoard({settings:()=>displayControls.settings(),context:()=>mode,report:info=>displayControls.report(info),applyFit:info=>displayControls.applyFit(info),active:usesGroupedBoard,group:currentGroup,sections:taskSections,tasks:()=>presentationOrder(tasks.filter(isVisible).map(presentationTask)),esc,canEdit,openTask,selection:()=>[...selectedIds],selectTask});
 gantt=installGantt({esc,today,group:currentGroup,sortKind:currentSort,order:items=>presentationOrder(items,'gantt'),canReorder:canReorderView,sections:taskSections,range:()=>dateRange,setRange:setDateRange,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(presentationTask),tasks:()=>tasks,openTask,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),toast});
-rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});
+rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>dateRange,onChange:setDateRange,esc});installCmoShell();
 calendar=installCalendar({settings:()=>displayControls.settings(),presentationChanged:()=>displayControls.render(),report:info=>displayControls.report(info),applyFit:info=>displayControls.applyFit(info),esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&presentationRegistry(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });

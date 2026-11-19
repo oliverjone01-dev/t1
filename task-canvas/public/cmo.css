@@ -1,0 +1,104 @@
+/* CMO layer, loaded last. One radius scale, tonal controls instead of outlines, one toolbar row,
+   context blocks for fine settings and the triage strip. Separation comes from tone and air, not lines. */
+:root{--r-field:var(--radius-control);--r-box:var(--radius-card);--r-selector:var(--radius-control);--fill:var(--subtle);--fill-hover:color-mix(in srgb,var(--subtle) 82%,var(--text) 10%)}
+
+/* Fewer lines: the header keeps one divider under the top bar; the zones below differ by tone. */
+.workspace-summary-rail,.display-toolbar,.status-shortcuts,.workspace-controls,.toolbar{border-top:0;border-bottom:0}
+#task-list td,#task-list th{border-bottom-color:color-mix(in srgb,var(--line) 40%,transparent)}
+#task-list tbody tr:hover>td{background-color:color-mix(in srgb,var(--subtle) 60%,transparent)}
+
+/* Tonal fields and buttons. The outline appears on hover; focus keeps its ring. Deviation from W5 by user choice:
+   at rest a field is recognised by its fill, value and chevron. */
+:root :is(input,select,textarea):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=hidden]),
+:root :is(.work-context,.display-options,.summary-presentation,.gantt-options,.week-picker,.filters,.sidebar) select{border:1px solid transparent;background-color:var(--fill)}
+:root :is(input,select,textarea):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=hidden]):hover{border-color:var(--field-line)}
+:root .toolbar .search input,:root .toolbar .search input:hover{border-color:transparent;background:transparent}
+.period-button,.period-button.has-range{box-shadow:none;background:var(--fill)}
+.tile-fit{border:0;background:var(--fill)}
+:is(.period-button,.tile-fit,.period-shifts button,.day-shortcuts button):hover{background:var(--fill-hover)}
+
+/* One toolbar row: title and count, search, Период, Вид, filters, undo, source. */
+.toolbar{flex-wrap:nowrap;align-items:center;gap:8px;min-height:64px;padding:12px var(--workspace-pad);position:relative}
+.toolbar .search{flex:1 1 240px;max-width:400px;min-height:40px;border-radius:var(--radius-control)}
+.toolbar #display-controls{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;flex:0 0 auto;min-height:0}
+.ctx{position:relative}
+.ctx-trigger{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:0;border-radius:var(--radius-control);background:var(--fill);color:var(--text);font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap}
+.ctx-trigger .ui-icon{width:16px;height:16px;flex-shrink:0}
+.ctx-trigger>.ui-icon:last-child{color:var(--muted);transition:transform .15s ease-out}
+.ctx-trigger:hover{background:var(--fill-hover)}
+.ctx-trigger:is([aria-expanded=true],.is-set){background:var(--primary-soft);color:var(--primary)}
+.ctx-trigger[aria-expanded=true]>.ui-icon:last-child{transform:rotate(180deg)}
+.ctx-label{max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.ctx-panel{position:absolute;top:calc(100% + 8px);left:0;z-index:60;display:grid;gap:24px;width:max-content;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:24px;border-radius:var(--radius-popover);background:var(--raised);box-shadow:var(--shadow-popover)}
+:root[data-theme=dark] .ctx-panel{box-shadow:0 16px 48px #00000080}
+.ctx-panel[hidden]{display:none}
+.ctx-section{display:grid;gap:8px;min-width:0}
+.ctx-section>h3{margin:0;font-size:12px;font-weight:600;line-height:1.4;color:var(--muted);text-transform:none;letter-spacing:0}
+.ctx-panel .period-picker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0}
+.ctx-panel .day-shortcuts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ctx-panel .registry-select{display:flex;margin:0;font-size:0}
+.ctx-panel .registry-select select{flex:1;min-width:240px;font-size:14px}
+.ctx-panel .display-options{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:16px;align-items:end;margin:0;padding:0}
+.ctx-panel .display-options label{display:flex;flex-direction:column;align-items:stretch;gap:8px;font-size:12px;color:var(--muted);min-width:0}
+.ctx-panel .display-options select{width:100%;font-size:14px;color:var(--text)}
+.ctx-panel .display-options .tile-fit{height:40px;min-height:40px}
+.ctx-panel .tile-capacity{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.ctx-panel .presentation-hint{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.ctx-panel .presentation-hint:empty{display:none}
+
+/* Triage strip: the morning questions with live counts. It stays visible when the panel is folded. */
+.triage-strip{display:flex;align-items:center;gap:16px;min-width:0;padding:0 var(--workspace-pad) 12px;background:var(--canvas);flex-shrink:0}
+.triage-chips{display:flex;align-items:center;gap:4px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:none}
+.triage-chips::-webkit-scrollbar{display:none}
+.triage-chip{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;height:32px;padding:0 12px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--body);font:inherit;font-size:14px;line-height:1;cursor:pointer;white-space:nowrap}
+.triage-chip b{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.triage-chip:hover{background:var(--fill)}
+.triage-chip[data-empty=true]{color:var(--muted)}
+.triage-chip.is-alert b{color:var(--danger)}
+.triage-chip[aria-pressed=true]{background:var(--action);color:var(--on-action)}
+.triage-chip[aria-pressed=true] b{color:inherit}
+.triage-chip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.triage-strip .status-shortcuts{display:flex;align-items:center;gap:8px;flex:0 0 auto;margin:0 0 0 auto;padding:0;min-height:0;background:none}
+.triage-strip .status-shortcuts .status-caption,.triage-strip #view-hint{display:none}
+.triage-strip .status-shortcut{height:32px;min-height:32px;border:0;border-radius:var(--radius-control);font-size:14px}
+
+@media(max-width:1100px){.ctx-label{max-width:140px}.toolbar .search{flex-basis:160px}}
+@media(max-width:767px){
+ .toolbar{flex-wrap:wrap;padding:8px var(--workspace-pad);row-gap:8px}
+ .toolbar .search{flex:1 1 100%;max-width:none;order:5}
+ .toolbar #display-controls{order:6}
+ .ctx{position:static}
+ .ctx-panel{left:var(--workspace-pad);right:var(--workspace-pad);width:auto;min-width:0;max-width:none;padding:16px;gap:16px}
+ .ctx-panel .display-options{grid-template-columns:1fr 1fr}
+ .ctx-panel .registry-select select{min-width:0}
+ .triage-strip{padding:8px var(--workspace-pad);gap:8px;flex-wrap:wrap}
+ .triage-strip .status-shortcuts{margin-left:0}
+}
+@media(pointer:coarse){.triage-chip,.triage-strip .status-shortcut{height:44px;min-height:44px}.ctx-trigger{height:44px}}
+@media(prefers-reduced-motion:reduce){.ctx-trigger>.ui-icon:last-child{transition:none}}
+/* «Вид»: four selects in a 2x2 grid, the action under them across the full width. */
+.ctx-panel .display-options>*{order:1}
+.ctx-panel .display-options .tile-fit{grid-column:1/-1;order:2;width:100%}
+.ctx-panel .display-options .tile-capacity{order:3}
+.ctx-panel :is(#tile-columns,#card-view),.ctx-panel .display-options label select{width:100%;max-width:none;min-width:0}
+.ctx-panel .display-options label[hidden]{display:none}
+.ctx-panel .display-options label{justify-content:flex-start;text-align:left;margin:0;padding:0}.ctx-panel .display-options label>span{align-self:flex-start;margin:0;padding:0}
+/* Selection tools live in the strip: the pressed chip already names the focus, so its duplicate is hidden. */
+.triage-strip .work-context{display:flex;align-items:center;gap:8px;flex:0 0 auto;margin:0;padding:0;min-height:0;border:0;background:none;font-size:12px;color:var(--muted)}
+.triage-strip .work-context[hidden],.triage-strip #active-focus{display:none}
+.triage-strip .work-context :is(button,.text-button){min-height:32px;font-size:14px}
+/* Every view names itself in the toolbar; the calendar adds its month below. */
+.toolbar-heading #view-title[hidden]{display:block}
+/* List row on one line: select, grip, title with meta, progress, urgency. The title comes first to the eye. */
+@media(min-width:768px){
+ #task-list .list-task-main{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;align-items:center;column-gap:8px}
+ #task-list .list-task-tools{display:contents}
+ #task-list .list-task-tools>input[type=checkbox]{order:1;margin:0}
+ #task-list .list-task-tools>.planning-grip{order:2}
+ #task-list .list-task-copy{order:3;min-width:0}
+ #task-list .list-task-tools>.task-execution{order:4}
+ #task-list .list-task-tools>.temperature{order:5}
+ #task-list .row-open{min-height:32px;padding:0;text-align:left}
+ #task-list tbody td{padding-top:8px;padding-bottom:8px;vertical-align:middle}
+}
+@media(min-width:768px){#task-list table{table-layout:auto}#task-list th.title-col{width:50%}#task-list :is(th,td):not(:first-child){white-space:nowrap}}

@@ -1,9 +1,9 @@
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
-import {progressValue,progressPatch,assertWorkUnchanged} from './work-progress.mjs?rev=20261113-fix25-14';
-import {IMPORTANCE_LABELS} from './task-signals.mjs?rev=20261111-status-8';
-import {STATUS_STYLE,statusStyle} from './status-model.mjs?rev=20261111-status-8';
+import {icon} from './icons.mjs?rev=20261120-canon-19';
+import {progressValue,progressPatch,assertWorkUnchanged} from './work-progress.mjs?rev=20261120-canon-19';
+import {IMPORTANCE_LABELS} from './task-signals.mjs?rev=20261120-canon-19';
+import {STATUS_STYLE,statusStyle} from './status-model.mjs?rev=20261120-canon-19';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function statusBadge(task,editable=false){const s=statusStyle(task.status),label=task.status||'Не указан',body=`<span aria-hidden="true">${s.symbol}</span><span>${esc(label)}</span>`;return editable?`<button type="button" class="task-status ${s.key}" data-quick-field="status" data-quick-id="${encodeURIComponent(task.id)}" aria-label="Изменить статус: ${esc(task.title)}" aria-haspopup="dialog" title="Изменить статус">${body}</button>`:`<span class="task-status ${s.key}">${body}</span>`}
+export function statusBadge(task,editable=false){const s=statusStyle(task.status),label=task.status||'Не указан',body=`<span class="status-icon" aria-hidden="true">${icon(s.icon)}</span><span>${esc(label)}</span>`;return editable?`<button type="button" class="task-status ${s.key}" data-quick-field="status" data-quick-id="${encodeURIComponent(task.id)}" aria-label="Изменить статус: ${esc(task.title)}" aria-haspopup="dialog" title="Изменить статус">${body}</button>`:`<span class="task-status ${s.key}">${body}</span>`}
 export function installQuickControls(host){
  const dialog=document.createElement('dialog');dialog.className='quick-task-dialog';dialog.setAttribute('aria-labelledby','quick-title');document.body.append(dialog);let context=null;
  function position(anchor){const r=anchor?.getBoundingClientRect?.();if(!r)return;dialog.style.margin='0';dialog.style.left=Math.max(12,Math.min(innerWidth-dialog.offsetWidth-12,r.left))+'px';dialog.style.top=Math.max(12,Math.min(innerHeight-dialog.offsetHeight-12,r.bottom+8))+'px'}

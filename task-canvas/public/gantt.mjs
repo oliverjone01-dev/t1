@@ -1,10 +1,10 @@
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
-import {createdDay} from './task-dates.mjs?rev=20261111-status-8';
-import {workProgress} from './work-progress.mjs?rev=20261113-fix25-14';
-import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance,setGanttDates,selectedGanttWindow,drawGantt,fitGanttScale} from './gantt-model.mjs?rev=20261113-fix25-14';
-import {temperature,dateShift} from './task-signals.mjs?rev=20261111-status-8';
-import {statusBadge} from './quick-controls.mjs?rev=20261113-fix25-14';
-import {statusStyle} from './status-model.mjs?rev=20261111-status-8';
+import {icon} from './icons.mjs?rev=20261120-canon-19';
+import {createdDay} from './task-dates.mjs?rev=20261120-canon-19';
+import {workProgress} from './work-progress.mjs?rev=20261120-canon-19';
+import {ganttGroups,ganttKey,ganttWindow,taskSpan,timelinePosition,shiftGantt,assertGanttUnchanged,assertGanttOrder,reorderGantt,dayDistance,setGanttDates,selectedGanttWindow,drawGantt,fitGanttScale} from './gantt-model.mjs?rev=20261120-canon-19';
+import {temperature,dateShift} from './task-signals.mjs?rev=20261120-canon-19';
+import {statusBadge} from './quick-controls.mjs?rev=20261120-canon-19';
+import {statusStyle} from './status-model.mjs?rev=20261120-canon-19';
 export function installGantt(host){
  const root=document.querySelector('#gantt-view'),esc=host.esc;let group='unit',sort='manual',scale=28,months=3,anchor=host.today(),collapsed=new Set(),drag=null,busy=false,scroll={x:0,y:0},groups=[],optionsOpen=false,autoFit=false;
  let labelsFolded=false;try{labelsFolded=localStorage.getItem('gengroup.task-canvas.gantt-labels.v1')==='folded'}catch{}

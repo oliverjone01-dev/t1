@@ -1,6 +1,6 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261113-fix25-14';
-import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261111-status-8';
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
+import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261120-canon-19';
+import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261120-canon-19';
+import {icon} from './icons.mjs?rev=20261120-canon-19';
 
 // UI-only preferences live separately from the shared board and its outbox.
 export function installProductivity(host) {

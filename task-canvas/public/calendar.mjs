@@ -1,15 +1,15 @@
-import {applyTileGrid} from './tile-layout.mjs?rev=20261111-status-8';
-import {presentationCard,sectionMarkup,installTileActions} from './presentation-cards.mjs?rev=20261113-tiles-17';
-import {taskSections} from './display-model.mjs?rev=20261113-groups-12';
-import {workProgress} from './work-progress.mjs?rev=20261113-fix25-14';
-import {overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
-import {periodRange,shiftRange} from './range-model.mjs?rev=20261111-status-8';
-import {statusBadge} from './quick-controls.mjs?rev=20261113-fix25-14';
-import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261111-status-8';
-import {sortTasks} from './productivity-model.mjs?rev=20261113-fix25-14';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261111-status-8';
-import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261111-status-8';
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
+import {applyTileGrid} from './tile-layout.mjs?rev=20261120-canon-19';
+import {presentationCard,sectionMarkup,installTileActions} from './presentation-cards.mjs?rev=20261120-canon-19';
+import {taskSections} from './display-model.mjs?rev=20261120-canon-19';
+import {workProgress} from './work-progress.mjs?rev=20261120-canon-19';
+import {overlapsRange} from './task-dates.mjs?rev=20261120-canon-19';
+import {periodRange,shiftRange} from './range-model.mjs?rev=20261120-canon-19';
+import {statusBadge} from './quick-controls.mjs?rev=20261120-canon-19';
+import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261120-canon-19';
+import {sortTasks} from './productivity-model.mjs?rev=20261120-canon-19';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261120-canon-19';
+import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261120-canon-19';
+import {icon} from './icons.mjs?rev=20261120-canon-19';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view=host.range?.().from?'range':'month',anchor=host.today(),undated=false,peek=null,rangePage=0;

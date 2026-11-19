@@ -1,5 +1,5 @@
-import {parseCreatedAt} from './task-dates.mjs?rev=20261111-status-8';
-import {parseAssignee} from './people.mjs?rev=20261111-status-8';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261120-canon-19';
+import {parseAssignee} from './people.mjs?rev=20261120-canon-19';
 export const GRID = 24;
 export const CARD = { width: 288, height: 192 };
 export const QUADRANTS = [
@@ -37,7 +37,7 @@ export function timeLanes(today) {
   return [
     { id: 'overdue', title: 'Просрочено', subtitle: 'Срок уже прошёл', color: 'coral' },
     { id: 'today', title: 'Сегодня', subtitle: today, due: today, color: 'violet' },
-    { id: 'week', title: 'До конца недели', subtitle: `до ${end}`, due: end, color: 'blue' },
+    { id: 'week', title: 'До конца недели', subtitle: end === today ? 'Неделя заканчивается сегодня' : `до ${end}`, due: end, color: 'blue' },
     { id: 'next', title: 'Следующая неделя', subtitle: `до ${shiftDate(end, 7)}`, due: shiftDate(end, 7), color: 'green' },
     { id: 'future', title: 'Позже', subtitle: 'Через две недели и дальше', due: shiftDate(end, 8), color: 'slate' },
     { id: 'undated', title: 'Без срока', subtitle: 'Дата пока не назначена', due: '', color: 'slate' },
@@ -56,7 +56,7 @@ export function createLayout(tasks, mode, today, extraOwners = []) {
        ...QUADRANTS.map((q, i) => ({ ...q, x: 384 + (i % 2) * laneWidth, y: 0, w: 648, h: 552 }))]
     : (mode === 'owners'
        ? [{ id: 'unassigned', title: 'Без ответственного', subtitle: 'Назначьте исполнителя', color: 'slate' },
-          ...[...new Set([...tasks.map(t => t.owner).filter(Boolean), ...extraOwners])].map(owner => ({ id: `owner:${owner}`, title: owner, subtitle: 'Ответственный', color: 'violet' }))]
+          ...[...new Set([...tasks.map(t => t.owner).filter(Boolean), ...extraOwners])].map(owner => ({ id: `owner:${owner}`, title: owner, subtitle: '', color: 'violet' }))]
        : timeLanes(today)).map((g, i) => ({ ...g, x: i * laneWidth, y: 0, w: 648, h: 1032 }));
   const statusX=Math.max(...groups.map(g=>g.x+g.w))+24;
   groups.push(...STATUS_LANES.map((group,i)=>({...group,x:statusX+i*laneWidth,y:0,w:648,h:mode==='priority'?552:1032})));
@@ -103,6 +103,8 @@ export function fitCamera(positions, width, height) {
 }
 export function moveTask(task, mode, group, worldX, worldY, today) {
   if (mode === 'time' && group.id === 'overdue' && timeBucket(task, today) !== 'overdue') throw new Error('Прошедший срок задайте точной датой в карточке.');
+  // On Sunday the week ends today: a drop here would silently land in «Сегодня».
+  if (mode === 'time' && group.id === 'week' && group.due === today && timeBucket(task, today) !== 'week') throw new Error('Неделя заканчивается сегодня. Перенесите задачу в «Сегодня» или «Следующая неделя».');
   const next = structuredClone(task);
   const terminal=STATUS_LANES.find(lane=>lane.id===group.id);
   if(terminal)next.status=terminal.status;
@@ -110,7 +112,7 @@ export function moveTask(task, mode, group, worldX, worldY, today) {
     if(statusGroup(task))next.status='В работе';
     if (mode === 'priority') next.priority = group.id === 'inbox' ? null : group.id;
     if (mode === 'owners') next.owner = group.id === 'unassigned' ? '' : group.id.slice(6);
-    if (mode === 'time' && group.id !== timeBucket(task, today)) {next.due = group.due;if(next.start&&task.due&&next.due)next.start=new Date(Date.parse(next.start+'T12:00:00Z')+Date.parse(next.due+'T12:00:00Z')-Date.parse(task.due+'T12:00:00Z')).toISOString().slice(0,10);}
+    if (mode === 'time' && group.id !== timeBucket(task, today)) {next.due = group.due;if(next.start&&task.due&&next.due)next.start=new Date(Date.parse(next.start+'T12:00:00Z')+Date.parse(next.due+'T12:00:00Z')-Date.parse(task.due+'T12:00:00Z')).toISOString().slice(0,10);if(next.start&&next.due&&next.start>next.due)next.start=next.due;}
   }
   next.positions ||= {};
   next.positions[mode] = { group: group.id, x: Math.max(24, Math.min(group.w - CARD.width - 24, snap(worldX - group.x))), y: Math.max(96, snap(worldY - group.y)) };

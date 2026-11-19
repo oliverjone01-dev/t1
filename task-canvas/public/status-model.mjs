@@ -1,10 +1,10 @@
 export const STATUS_STYLE={
- 'Не указан':{key:'none',symbol:'○',card:'#f3f4f6',badge:'#e5e7eb',ink:'#374151'},
- 'В ожидании':{key:'waiting',symbol:'◷',card:'#edf6ff',badge:'#cce6ff',ink:'#245578'},
- 'В работе':{key:'working',symbol:'◐',card:'#fff3e5',badge:'#ffd9ad',ink:'#774015'},
- 'Приостановлено':{key:'paused',symbol:'Ⅱ',card:'#fff0f4',badge:'#f8ccda',ink:'#84334e'},
- 'Готово':{key:'done',symbol:'✓',card:'#eaf5ed',badge:'#c6e7d1',ink:'#246342'},
- 'Отменено':{key:'cancelled',symbol:'×',card:'#f2f1f3',badge:'#e6dfe5',ink:'#665362'},
+ 'Не указан':{key:'none',icon:'status-none',symbol:'○',card:'#f3f4f6',badge:'#e5e7eb',ink:'#374151'},
+ 'В ожидании':{key:'waiting',icon:'clock',symbol:'◷',card:'#edf6ff',badge:'#cce6ff',ink:'#245578'},
+ 'В работе':{key:'working',icon:'status-working',symbol:'◐',card:'#fff3e5',badge:'#ffd9ad',ink:'#774015'},
+ 'Приостановлено':{key:'paused',icon:'pause',symbol:'Ⅱ',card:'#fff0f4',badge:'#f8ccda',ink:'#84334e'},
+ 'Готово':{key:'done',icon:'check',symbol:'✓',card:'#eaf5ed',badge:'#c6e7d1',ink:'#246342'},
+ 'Отменено':{key:'cancelled',icon:'close',symbol:'×',card:'#f2f1f3',badge:'#e6dfe5',ink:'#665362'},
 };
 export const statusStyle=s=>STATUS_STYLE[s]||STATUS_STYLE['Не указан'];
 const rgb=hex=>Object.fromEntries(['red','green','blue'].map((k,i)=>[k,parseInt(hex.slice(1+i*2,3+i*2),16)/255]));

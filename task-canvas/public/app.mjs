@@ -1,23 +1,23 @@
-import {installGroupedBoard} from './grouped-board.mjs?rev=20261113-tiles-17';
-import {installDisplayControls} from './display-controls.mjs?rev=20261113-tiles-17';
-import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261113-groups-12';
-import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261113-fix25-14';
-import {installThemeToggle} from './appearance.mjs?rev=20261113-fix25-14';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261113-fix25-14';
-import {installRangePicker} from './range-picker.mjs?rev=20261113-fix25-14';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261111-status-8';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261111-status-8';
-import {installGantt} from './gantt.mjs?rev=20261113-tiles-17';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261113-fix25-14';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261111-status-8';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261113-fix25-14';
-import {Directory} from './directory.mjs?rev=20261111-status-8';
-import {installCalendar} from './calendar.mjs?rev=20261113-tiles-17';
-import {installProductivity} from './productivity.mjs?rev=20261113-fix25-14';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261111-status-8';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261111-status-8';
-import {renderBoard} from './board-ui.mjs?rev=20261113-fix25-14';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261111-status-8';
+import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-canon-19';
+import {installDisplayControls} from './display-controls.mjs?rev=20261120-canon-19';
+import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-canon-19';
+import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-canon-19';
+import {installThemeToggle} from './appearance.mjs?rev=20261120-canon-19';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-canon-19';
+import {installRangePicker} from './range-picker.mjs?rev=20261120-canon-19';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-canon-19';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-canon-19';
+import {installGantt} from './gantt.mjs?rev=20261120-canon-19';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261120-canon-19';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-canon-19';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-canon-19';
+import {Directory} from './directory.mjs?rev=20261120-canon-19';
+import {installCalendar} from './calendar.mjs?rev=20261120-canon-19';
+import {installProductivity} from './productivity.mjs?rev=20261120-canon-19';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-canon-19';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-canon-19';
+import {renderBoard} from './board-ui.mjs?rev=20261120-canon-19';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261120-canon-19';
 import {
   QUADRANTS,
   CARD,
@@ -32,20 +32,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261111-status-8";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261113-fix25-14";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261111-status-8";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261113-fix25-14";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261111-status-8";
-import { remoteChanges } from "./changes.mjs?rev=20261111-status-8";
-import { TeamApi } from "./team-api.mjs?rev=20261111-status-8";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261111-status-8";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261111-status-8";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261111-status-8";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261113-fix25-14";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261111-status-8";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261111-status-8";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261111-status-8";
+} from "./model.mjs?rev=20261120-canon-19";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261120-canon-19";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261120-canon-19";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261120-canon-19";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261120-canon-19";
+import { remoteChanges } from "./changes.mjs?rev=20261120-canon-19";
+import { TeamApi } from "./team-api.mjs?rev=20261120-canon-19";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261120-canon-19";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261120-canon-19";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261120-canon-19";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261120-canon-19";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261120-canon-19";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261120-canon-19";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261120-canon-19";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -53,8 +53,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261113-fix25-14";
-import { parseAssignee } from "./people.mjs?rev=20261111-status-8";
+} from "./editor.mjs?rev=20261120-canon-19";
+import { parseAssignee } from "./people.mjs?rev=20261120-canon-19";
 import {
   matchesTask,
   matchesWords,
@@ -63,8 +63,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261113-system-13";
-import { icon } from "./icons.mjs?rev=20261113-fix25-14";
+} from "./ui-model.mjs?rev=20261120-canon-19";
+import { icon } from "./icons.mjs?rev=20261120-canon-19";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -889,7 +889,7 @@ function render() {
     $("#zones").innerHTML = layout.groups
       .map(
         (g, i) =>
-          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header"><span class="zone-number">${g.symbol || String(i + 1).padStart(2, "0")}</span><div><h3>${g.id.startsWith("owner:")&&personAvatar(g.id.slice(6))?`<img class="team-lane-avatar" src="${esc(personAvatar(g.id.slice(6)))}" alt="" loading="lazy">`:""}${esc(g.title)}</h3><p>${esc(g.subtitle)}</p></div><span class="zone-count">${visible.filter((t) => groupFor({...t,owner:personName(t.owner)}, canvasMode, today()) === g.id).length}</span></div></section>`,
+          `<section class="zone ${g.id === "status:done" ? "green" : g.id === "status:cancelled" ? "cancelled" : ""}" data-group="${esc(g.id)}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px"><div class="zone-header">${g.symbol ? `<span class="zone-number" aria-hidden="true">${icon(g.id === "status:done" ? "check" : "close")}</span>` : canvasMode === "time" ? `<span class="zone-number">${String(i + 1).padStart(2, "0")}</span>` : ""}<div><h3>${g.id.startsWith("owner:")&&personAvatar(g.id.slice(6))?`<img class="team-lane-avatar" src="${esc(personAvatar(g.id.slice(6)))}" alt="" loading="lazy">`:""}${esc(g.title)}</h3>${g.subtitle ? `<p>${esc(g.subtitle)}</p>` : ""}</div><span class="zone-count">${visible.filter((t) => groupFor({...t,owner:personName(t.owner)}, canvasMode, today()) === g.id).length}</span></div></section>`,
       )
       .join("");
     $("#cards").innerHTML = visible.map(cardMarkup).join("");

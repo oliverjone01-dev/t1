@@ -1,4 +1,4 @@
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
+import {icon} from './icons.mjs?rev=20261120-canon-19';
 const terminal=t=>['Готово','Отменено'].includes(t?.status);
 export const progressValue=t=>Number.isInteger(t?.progress)?t.progress:t?.status==='Готово'?100:0;
 export const workRunning=t=>t?.status==='В работе';

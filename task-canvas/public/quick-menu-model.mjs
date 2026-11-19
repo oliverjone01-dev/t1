@@ -25,3 +25,11 @@ export function quickPatch(task,form){
  for(const k of ['priority','owners','time'])if(next.positions&&next.positions[k]===undefined)delete next.positions[k];
  return {task:next,changed};
 }
+// Saving applies only the fields the person changed against the task as it is now. Fields they left alone
+// keep whatever a colleague or the Sheet wrote while the menu was open; nothing is written back from the snapshot.
+export function applyQuickEdit(current,base,form){
+ const {changed}=quickPatch(base,form);
+ const own={title:current.title,priority:current.priority||'',owner:current.owner||'',due:current.due||'',status:current.status||'Не указан'};
+ for(const k of changed)own[k]=form[k];
+ return {task:quickPatch(current,own).task,changed};
+}

@@ -30,3 +30,14 @@ test('the Sheet receives only the fields the person changed in the quick menu',(
   assert.deepEqual(sheetCells(base,quickPatch(base,{...untouched,due:'2026-11-18'}).task),['due','start']);
   assert.deepEqual(sheetCells(base,quickPatch(base,{...untouched,owner:'  Иван  '}).task),[]);
 });
+
+test('a colleague edit made while the quick menu was open survives: only the touched field is written',async()=>{
+  const {applyQuickEdit}=await import('../public/quick-menu-model.mjs');
+  const base={id:'q',title:'Старое название',status:'В работе',owner:'Иван',due:'2026-11-25',priority:'do',positions:{}};
+  const form={title:base.title,priority:'plan',owner:'Иван',due:'2026-11-25',status:'В работе'};
+  const remote={...base,title:'Новое название коллеги',due:'2026-11-30',status:'Готово',owner:'Софа'};
+  const r=applyQuickEdit(remote,base,form);
+  assert.deepEqual(r.changed,['priority']);
+  assert.deepEqual(sheetCells(remote,r.task),['priority']);
+  assert.equal(r.task.title,'Новое название коллеги');assert.equal(r.task.due,'2026-11-30');assert.equal(r.task.status,'Готово');assert.equal(r.task.owner,'Софа');
+});

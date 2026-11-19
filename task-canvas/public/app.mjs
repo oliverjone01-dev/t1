@@ -2387,7 +2387,7 @@ cloudEngine.flush = async () => {
   }
   if (
     !cloudEngine.managed &&
-    (gesture || editorBlocksSync($("#editor")) || $("#import-dialog").open)
+    (gesture || editorBlocksSync($("#editor")) || $("#import-dialog").open || document.querySelector("dialog.quick-menu")?.open)
   ) {
     cloudEngine.later(1500);
     return;

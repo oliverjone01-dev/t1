@@ -1,7 +1,7 @@
 import {icon} from './icons.mjs?rev=20261120-canon-20';
 import {QUADRANTS,STATUSES} from './model.mjs?rev=20261120-canon-20';
 import {statusStyle} from './status-model.mjs?rev=20261120-canon-20';
-import {dueShortcuts,quickPatch,QUICK_FIELDS} from './quick-menu-model.mjs?rev=20261120-canon-20';
+import {dueShortcuts,quickPatch,applyQuickEdit,QUICK_FIELDS} from './quick-menu-model.mjs?rev=20261120-canon-20';
 // Quick edit without the full card: right click, the context-menu key or a long press on any task.
 // Every view renders a [data-quick-id] control inside its card, so the card is found by walking up to it.
 const CARD='.matrix-card,.task-card,.map-task,.day-board-card,.calendar-task-wrap,tr[data-row],.gantt-row';
@@ -31,7 +31,7 @@ export function installQuickMenu(host){
   c.busy=true;dialog.querySelectorAll('button,input,textarea').forEach(b=>b.disabled=true);
   try{const ok=await host.commit(current=>{const t=current.find(t=>t.id===c.base.id);if(!t)throw Error('Задача удалена. Обновите доску.');
     for(const k of patch.changed){if(!QUICK_FIELDS.includes(k))continue;if(String(t[k]||'')!==String(c.base[k]||''))throw Error('Это поле уже изменили на другом устройстве. Откройте задачу и проверьте новую версию.')}
-    return current.map(x=>x.id===t.id?quickPatch(t,c.form).task:x)},c.basis);
+    const next=applyQuickEdit(t,c.base,c.form).task;return current.map(x=>x.id===t.id?next:x)},c.basis);
    if(ok!==false){dialog.close();host.toast('Сохранено')}}
   catch(e){dialog.querySelector('.qm-error').textContent=e.message||String(e)}
   finally{if(c===context){c.busy=false;dialog.querySelectorAll('button,input,textarea').forEach(b=>b.disabled=false)}}}

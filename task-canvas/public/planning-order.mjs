@@ -1,7 +1,7 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261113-fix25-14';
-import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261111-status-8';
-import {groupFor,validateBoard,localDate} from './model.mjs?rev=20261111-status-8';
-import {ordered,orderKey,reorderTasks} from './order.mjs?rev=20261111-status-8';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261120-canon-20';
+import {generateNKeysBetween} from './vendor/fractional-indexing.mjs?rev=20261120-canon-20';
+import {groupFor,validateBoard,localDate} from './model.mjs?rev=20261120-canon-20';
+import {ordered,orderKey,reorderTasks} from './order.mjs?rev=20261120-canon-20';
 export function dateInMonth(due,month){
  const day=Number((due||'').slice(8))||1,last=new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate();
  return month+'-'+String(Math.min(day,last)).padStart(2,'0');
@@ -33,6 +33,6 @@ export function moveInContext(tasks,ids,{field,value,before=null},today,ownerNam
  const lo=index?orderKey(rest[index-1],mode,today):null,hi=index<rest.length?orderKey(rest[index],mode,today):null;
  if(lo&&hi&&lo===hi)throw new Error('Порядок здесь одновременно изменился. Выберите соседнее место.');
  const ranks=generateNKeysBetween(lo,hi,moving.length);if(ranks.some(r=>r.length>512))throw new Error('Слишком плотная очередь. Выберите соседнее место.');
- const updates=new Map(moving.map((t,i)=>{const next={...(field==='due'&&t.due&&value?shiftSchedule(t,value):t),[field]:value,positions:structuredClone(t.positions||{})};if((t[field]||'')!==value)next[field==='due'?'dueNote':'ownerNote']='';next.positions[mode]={group:groupFor(next,mode,today),x:24,y:96,order:ranks[i]};return [t.id,next]}));
+ const updates=new Map(moving.map((t,i)=>{const next={...(field==='due'&&value?shiftSchedule(t,value):t),[field]:value,positions:structuredClone(t.positions||{})};if((t[field]||'')!==value)next[field==='due'?'dueNote':'ownerNote']='';next.positions[mode]={group:groupFor(next,mode,today),x:24,y:96,order:ranks[i]};return [t.id,next]}));
  return validateBoard(tasks.map(t=>updates.get(t.id)||t));
 }

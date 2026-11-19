@@ -1,6 +1,6 @@
 /* Tile density is a presentation choice, independent of filters and task data. */
 .tile-columns-label[hidden]{display:none!important}.tile-fit{border:1px solid var(--field-line);background:var(--panel);color:var(--text);padding:6px 12px;min-height:40px;white-space:nowrap}.tile-capacity{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}.tile-actions-toggle{display:none}
-:is(.display-options,.summary-presentation) #tile-columns{min-width:68px;max-width:90px}.summary-presentation{align-items:center}.summary-presentation .tile-fit{min-height:32px}.summary-presentation .tile-capacity{font-size:11px}
+:is(.display-options,.summary-presentation) #tile-columns{min-width:68px;max-width:90px}.summary-presentation{align-items:center}.summary-presentation .tile-fit{min-height:32px}.summary-presentation .tile-capacity{font-size:12px}
 #calendar-view[data-day-board=true] .calendar-day-tasks{grid-template-columns:repeat(var(--day-columns,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px);max-width:none;width:100%}
 .presentation-board-grid{grid-template-columns:repeat(var(--group-lanes,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px)}.presentation-section-cards{grid-template-columns:repeat(var(--group-columns,1),minmax(0,1fr));grid-auto-rows:var(--tile-height,172px);gap:var(--tile-gap,16px)}.presentation-section h4{height:28px}
 #calendar-view[data-day-board=true] .calendar-day-tasks.is-grouped{grid-template-columns:repeat(var(--group-lanes,1),minmax(0,1fr));grid-auto-rows:auto}
@@ -14,7 +14,7 @@
 :is(#calendar-view,#grouped-board) .day-board-card .execution-actions{flex-wrap:nowrap}
 :root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card{padding:8px;gap:4px}
 :root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task{font-size:14px}
-:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task>span:last-child{font-size:11px}
+:root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task>span:last-child{font-size:12px}
 :root[data-card-view=compact] :is(#calendar-view,#grouped-board) .day-board-card .day-board-signals .task-status{min-height:26px;padding:3px 5px;max-width:130px;white-space:nowrap;overflow:hidden}
 :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr) 36px;padding:8px;gap:4px}
 :root[data-card-view=rows] :is(#calendar-view,#grouped-board) .day-board-card .calendar-task{grid-column:1/-1;grid-row:1;font-size:14px;gap:0}
@@ -50,7 +50,7 @@
  :is(.display-options,.summary-presentation) .tile-columns-label{grid-column:auto}
  :is(.display-options,.summary-presentation) #tile-columns{width:100%;max-width:none}
  :is(.display-options,.summary-presentation) .tile-fit{height:44px;min-height:44px}
- :is(.display-options,.summary-presentation) .tile-capacity{align-self:center;white-space:normal;font-size:11px}
+ :is(.display-options,.summary-presentation) .tile-capacity{align-self:center;white-space:normal;font-size:12px}
  :is(.display-options,.summary-presentation) #list-group-label{grid-column:auto}
 }
 /* Keep the assignee line intact at the compact tile's minimum height. */
@@ -72,7 +72,7 @@
  #calendar-view[data-day-board=true] .calendar-views{padding:2px;gap:0}#calendar-view[data-day-board=true] .calendar-views button{font-size:12px;min-height:36px;padding:5px 8px}
  #calendar-view[data-day-board=true] [data-calendar-view=range]{display:none}
  #calendar-view[data-day-board=true] .calendar-undated{font-size:12px;margin-left:0;min-height:32px}
- :root[data-top-folded=true] .workspace>#demo-banner{padding:6px 10px;font-size:10px;gap:6px;min-height:32px;line-height:1.3;display:block}
+ :root[data-top-folded=true] .workspace>#demo-banner{padding:6px 10px;font-size:12px;gap:6px;min-height:32px;line-height:1.3;display:block}
  :root[data-top-folded=true] .workspace>#demo-banner a{display:inline;margin-left:6px}
 }
 @media(max-width:767px){:is(.display-options,.summary-presentation)>label.tile-columns-label{grid-column:auto}.tile-extra-fields label:last-of-type{grid-column:auto}}

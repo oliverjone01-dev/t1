@@ -1,6 +1,6 @@
-import {FOCUS,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261113-fix25-14';
-import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261111-status-8';
-import {icon} from './icons.mjs?rev=20261113-fix25-14';
+import {FOCUS,TRIAGE,focusCounts,SORTS,matchesFocus,sortTasks,cleanView,cleanPersonal,deadlinePreset,bulkPatch,applyBulk,parseTaskLines,duplicateValues,taskLink,linkedTask} from './productivity-model.mjs?rev=20261120-canon-20';
+import {QUADRANTS,STATUSES,validateBoard} from './model.mjs?rev=20261120-canon-20';
+import {icon} from './icons.mjs?rev=20261120-canon-20';
 
 // UI-only preferences live separately from the shared board and its outbox.
 export function installProductivity(host) {
@@ -97,7 +97,13 @@ export function installProductivity(host) {
  }catch(e){error('intake-error',e)}finally{busy=false;updateIntakeCount()}};
  function checkLink(){if(!linkPending||linkScheduled)return;const task=host.tasks().find(t=>t.id===linkPending);if(!task&&!host.loaded())return;linkScheduled=true;queueMicrotask(()=>{const id=linkPending;linkPending=null;linkScheduled=false;if(task)host.openTask(id);else host.toast('Задача по этой ссылке не найдена. Возможно, её убрали с доски.');})}
  window.addEventListener('hashchange',()=>{if($('#editor').open&&!host.saveDraft())return;linkPending=linkedTask(location.hash);checkLink()});
+ // Triage strip: one click per morning question. Counts follow every other filter, so the number equals what opens.
+ function renderTriage(){const strip=document.querySelector('#triage-chips');if(!strip)return;
+  if(strip.childElementCount!==TRIAGE.length){strip.innerHTML=TRIAGE.map(([id,label])=>`<button type="button" class="triage-chip" data-triage="${id}"><span>${label}</span><b></b></button>`).join('');strip.onclick=e=>{const b=e.target.closest('[data-triage]');if(!b)return;focus=b.dataset.triage===focus&&focus!=='all'?'all':b.dataset.triage;host.render()}}
+  const counts=focusCounts(host.scope?.()||host.tasks(),host.today(),personal.pins,id=>host.unread(id));
+  for(const b of strip.children){const id=b.dataset.triage,n=counts[id]??0;b.querySelector('b').textContent=n;b.setAttribute('aria-pressed',String(focus===id));b.dataset.empty=String(!n&&id!=='all'&&focus!==id);b.classList.toggle('is-alert',id==='overdue'&&n>0)}}
  function render(){
+  renderTriage();
   $('#focus-filter').value=focus;$('#list-sort').value=sort;
   const isList=host.mode()==='list'||!!host.isGrouped?.(),filtered=focus!=='all'||$('#search').value||$('#unit-filter').value||$('#owner-filter').value||$('#department-filter').value||host.viewState?.().from||host.viewState?.().archive||$('#hide-done').checked,selection=host.selection();
   $('#work-context').hidden=!isList&&!filtered&&(!selection.length||host.mode()==='priority'&&!host.isGrouped?.());$('#active-focus').hidden=focus==='all';$('#active-focus').textContent=(FOCUS.find(([id])=>id===focus)?.[1]||'')+' ×';

@@ -1,11 +1,11 @@
-import {parseCreatedAt} from './task-dates.mjs?rev=20261111-status-8';
-import {packedPositions} from './task-signals.mjs?rev=20261111-status-8';
+import {parseCreatedAt} from './task-dates.mjs?rev=20261120-canon-20';
+import {packedPositions} from './task-signals.mjs?rev=20261120-canon-20';
 import {
   validateBoard,
   fromSheet,
   parseDeadline,
-} from "./model.mjs?rev=20261111-status-8";
-import { parseAssignee } from "./people.mjs?rev=20261111-status-8";
+} from "./model.mjs?rev=20261120-canon-20";
+import { parseAssignee } from "./people.mjs?rev=20261120-canon-20";
 export const SHEET_ID = "1qh-pi5I76k8ssUc6DxjeytFDrAta1N4ZdmVjaUFCUYY";
 export const TAB_ID = 1102202601;
 export const TELEGRAM_TAB_ID = 1478506234;

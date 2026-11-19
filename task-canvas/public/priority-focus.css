@@ -16,5 +16,5 @@ body.priority-editor-open #board-ui{right:420px}
 #editor.priority-editor .form-actions .button{font-size:12px;min-height:38px;min-width:0;flex:1 1 140px;white-space:normal}
 #editor.priority-editor .form-actions #save-task{flex-basis:100%;order:-1}
 #editor.priority-editor :is(.source-note,.error,.notice):empty{display:none}
-#editor.priority-editor #draft-state{font-size:11px;margin:8px 0 12px}
+#editor.priority-editor #draft-state{font-size:12px;margin:8px 0 12px}
 @media(prefers-reduced-motion:no-preference){#editor.priority-editor{animation:priority-editor-enter .18s ease-out}@keyframes priority-editor-enter{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}}

@@ -21,3 +21,4 @@ button.temperature{appearance:none;border:0;background:none;font-family:inherit;
 :root[data-theme=dark] .temperature.level-0{--heat:#b8c8da}
 
 button.task-status.done:focus-visible{outline-color:var(--status-ink)}
+.task-status>.status-icon{display:inline-grid;place-items:center;flex-shrink:0}.task-status>.status-icon .ui-icon{width:14px;height:14px;stroke-width:2}

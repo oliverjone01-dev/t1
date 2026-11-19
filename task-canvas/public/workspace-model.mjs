@@ -1,6 +1,7 @@
 export const SHELL_KEY='gengroup.task-canvas.workspace.v1';
-export function cleanShell(value){return {sidebar:value?.sidebar===true,top:value?.top===true}}
-export function readShell(storage){try{return cleanShell(JSON.parse(storage.getItem(SHELL_KEY)||'{}'))}catch{return cleanShell(null)}}
+// A saved choice wins. Without one, a phone opens with the top controls folded so the first screen shows tasks.
+export function cleanShell(value,defaults={}){const pick=key=>typeof value?.[key]==='boolean'?value[key]:value&&key in value?false:defaults[key]===true;return {sidebar:pick('sidebar'),top:pick('top')}}
+export function readShell(storage,defaults={}){try{return cleanShell(JSON.parse(storage.getItem(SHELL_KEY)||'{}'),defaults)}catch{return cleanShell(null,defaults)}}
 // Use more columns before reducing readable card space. Overflow never removes tasks.
 export function dayBoardLayout({width,height,count,view='detailed',narrow=width<600}){
  const n=Math.max(0,Math.floor(Number(count)||0)),w=Math.max(1,Number(width)||1),h=Math.max(0,Number(height)||0),gap=16,minWidth=w<600?260:300,minHeight=narrow?190:view==='rows'?164:view==='compact'?166:172;

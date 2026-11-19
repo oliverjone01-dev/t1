@@ -1,9 +1,10 @@
-import {dateShift} from './task-signals.mjs?rev=20261111-status-8';
-import {validateBoard} from './model.mjs?rev=20261111-status-8';
-import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261111-status-8';
+import {dateShift} from './task-signals.mjs?rev=20261120-canon-20';
+import {validateBoard} from './model.mjs?rev=20261120-canon-20';
+import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261120-canon-20';
 export const dayDistance=(a,b)=>Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
 export const taskSpan=t=>t.start||t.due?{start:t.start||t.due,end:t.due||t.start,milestone:!t.start||!t.due}:null;
-export function shiftSchedule(t,due){if(!due||!t.due)return {...t,due};return {...t,due,...(t.start?{start:dateShift(t.start,dayDistance(t.due,due))}:{})}}
+// A start-only task keeps its start unless the new deadline comes first: then the period collapses to that day.
+export function shiftSchedule(t,due){if(!due||!t.due)return {...t,due,...(due&&t.start&&t.start>due?{start:due}:{})};return {...t,due,...(t.start?{start:dateShift(t.start,dayDistance(t.due,due))}:{})}}
 export function shiftGantt(t,delta,edge='move'){const p=taskSpan(t);if(!p)return t;let next={...t,dueNote:'',positions:structuredClone(t.positions||{})};if(edge==='start'){if(!t.start||!t.due)return t;next.start=dateShift(t.start,Math.min(delta,dayDistance(t.start,t.due)))}else if(edge==='end'){if(!t.start||!t.due)return t;next.due=dateShift(t.due,Math.max(delta,-dayDistance(t.start,t.due)))}else{if(t.start)next.start=dateShift(t.start,delta);if(t.due)next.due=dateShift(t.due,delta)}delete next.positions.time;return validateBoard([next])[0]}
 export function ganttKey(t,group){return group==='unit'?t.unit||'Без юнита':group==='owner'?t.displayOwner||t.owner||'Без ответственного':group==='status'?t.status||'Не указан':'Все задачи'}
 export function ganttGroups(tasks,group='unit',sort='due'){const map=new Map();for(const t of tasks){const k=ganttKey(t,group);if(!map.has(k))map.set(k,[]);map.get(k).push(t)}return [...map].sort(([a],[b])=>a.localeCompare(b,'ru')).map(([key,items])=>({key,items:items.sort((a,b)=>{if(sort==='manual'){const rank=t=>t.positions?.gantt?.group===group+':'+key?t.positions.gantt.order||'':'';const x=rank(a),y=rank(b);if(x||y)return ((x||'a0')<(y||'a0')?-1:(x||'a0')>(y||'a0')?1:0)}return (sort==='importance'?Number(b.importance||0)-Number(a.importance||0):sort==='title'?a.title.localeCompare(b.title,'ru'):(a.due||a.start||'9999').localeCompare(b.due||b.start||'9999'))||a.title.localeCompare(b.title,'ru')||a.id.localeCompare(b.id)})}))}

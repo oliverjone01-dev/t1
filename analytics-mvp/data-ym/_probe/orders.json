@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-19T16:01:59.602Z",
+  "at": "2026-11-20T08:23:03.787Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "items": [
@@ -18,24 +18,12 @@
         "warehouse": {
           "id": "number",
           "name": "string"
-        }
+        },
+        "bidFee": "number"
       }
     ],
-    "payments": [
-      {
-        "id": "string",
-        "date": "string",
-        "type": "string",
-        "source": "string",
-        "total": "number"
-      }
-    ],
-    "commissions": [
-      {
-        "type": "string",
-        "actual": "number"
-      }
-    ],
+    "payments": [],
+    "commissions": [],
     "currency": "string",
     "id": "number",
     "creationDate": "string",
@@ -48,13 +36,6 @@
       "id": "number",
       "name": "string"
     },
-    "subsidies": [
-      {
-        "operationType": "string",
-        "type": "string",
-        "amount": "number"
-      }
-    ],
     "buyerType": "string"
   },
   "creationDateSample": "9999-99-99"

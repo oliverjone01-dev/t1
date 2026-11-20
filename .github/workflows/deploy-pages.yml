@@ -24,6 +24,7 @@ name: Deploy to GitHub Pages
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
 #   /integra/          - ИНТЕГРА 2.0, план GENTERO (из ветки claude/gentero-plan-03609o, статика public/)
 #   /kp-gm/            - КП GLASS-MEMORY для физлица (из ветки kp-glass-memory, статика kp-glass-memory/)
+#   /gm-plan/          - GLASS-MEMORY: декомпозиция цели x3 на 2027 (из main, gm-plan-x3/, сборка build.py)
 #   /academy/          - GG Sales Academy: библиотека отдела (контур 1A) плюс запечатанные
 #                        кабинеты менеджеров и сводка штаба (контуры 2 и 3, из sealed/)
 #   /ozon-research/    - Карта ниш Ozon: исследование 180 ниш для цехов (из main,
@@ -48,7 +49,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [dealer-landing-gm/**, task-canvas/**, analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
+    paths: [dealer-landing-gm/**, task-canvas/**, analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, gm-plan-x3/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -746,6 +747,16 @@ jobs:
           cp dealer-landing-gm/index.html dealer-landing-gm/styles.css dealer-landing-gm/app.js _site/dealer-landing-gm/
           cp -R dealer-landing-gm/assets _site/dealer-landing-gm/assets
           if [ -f dealer-landing-gm/sitemap.xml ]; then cp dealer-landing-gm/sitemap.xml _site/dealer-landing-gm/; fi
+
+      # GLASS-MEMORY план x3 на 2027: статика, данные только агрегированные. Падение не валит сайт.
+      - name: Assemble GLASS-MEMORY plan x3 (/gm-plan/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 gm-plan-x3/build.py
+          test -s gm-plan-x3/index.html
+          mkdir -p _site/gm-plan
+          cp gm-plan-x3/index.html _site/gm-plan/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

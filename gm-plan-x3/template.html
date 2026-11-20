@@ -182,7 +182,7 @@ footer p{margin:0}
   <section>
     <div class="hero">
       <div><b id="h27-year"></b><p>цель на&nbsp;2027 год: три выручки 2026-го</p></div>
-      <div><b id="h27-mo"></b><p>в среднем за&nbsp;месяц. По&nbsp;сезонности спроса от&nbsp;<span id="h27-min"></span> в&nbsp;декабре до&nbsp;<span id="h27-max"></span> в&nbsp;апреле</p></div>
+      <div><b id="h27-mo"></b><p>в среднем за&nbsp;месяц. По&nbsp;сезонности спроса и&nbsp;продаж 2026 от&nbsp;<span id="h27-min"></span> до&nbsp;<span id="h27-max"></span></p></div>
       <div><b class="neg" id="h27-gap"></b><p>столько нужно прибавить к&nbsp;темпу октября–ноября в&nbsp;январе по&nbsp;сезонному плану</p></div>
     </div>
   </section>
@@ -217,7 +217,7 @@ footer p{margin:0}
 
   <section>
     <h2>План по&nbsp;месяцам с&nbsp;сезонностью <span class="chip calc">расчёт</span></h2>
-    <p class="sub">Годовая цель разложена по&nbsp;сезонному коэффициенту спроса: среднее <span id="p27-mo"></span>, в&nbsp;апреле в&nbsp;1,4 раза больше среднего, в&nbsp;декабре и&nbsp;январе на&nbsp;треть меньше. Нормы дилеров, сделок и&nbsp;производства в&nbsp;дереве выше даны для среднего месяца, в&nbsp;каждом месяце их нужно умножать на&nbsp;тот&nbsp;же коэффициент. Коэффициенты февраля и&nbsp;августа ненадёжны: в&nbsp;2025 и&nbsp;2026 годах спрос в&nbsp;эти месяцы отличался в&nbsp;2 раза, план февраля может оказаться до&nbsp;40% ниже.</p>
+    <p class="sub" id="p27-sub"></p>
     <div class="chart">
       <ul class="legend">
         <li><span class="sw" style="background:var(--plan)"></span>План месяца</li>
@@ -257,7 +257,7 @@ footer p{margin:0}
     <h2>Месяц к&nbsp;месяцу</h2>
     <p class="sub" id="tmon-sub"></p>
     <div class="tbl"><table>
-      <thead><tr><th>Месяц</th><th class="num">Сезонный коэффициент</th><th class="num">2026</th><th class="num">План 2027</th><th class="num">Рост</th></tr></thead>
+      <thead><tr><th>Месяц</th><th class="num">Коэф. Вордстата</th><th class="num">Коэф. продаж 2026</th><th class="num">Коэф. плана</th><th class="num">2026</th><th class="num">План 2027</th><th class="num">Рост</th></tr></thead>
       <tbody id="tmon"></tbody>
     </table></div>
   </section>
@@ -293,9 +293,11 @@ $('h26-now').textContent=mlnU(now);
 $('h27-year').textContent=mlnU(M.y27);
 $('h27-mo').textContent=mlnU(M.mo27);
 $('h27-gap').textContent='+'+mlnU(M.plan27[0]-now);
-$('p27-mo').textContent=mlnU(M.mo27);
 const DM=M.demand,P27=M.plan27,SE=M.season;
-$('h27-min').textContent=mlnU(P27[11]);$('h27-max').textContent=mlnU(P27[3]);
+{const lo=P27.indexOf(Math.min(...P27)),hi=P27.indexOf(Math.max(...P27));const MONP=['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
+ $('h27-min').textContent=mlnU(P27[lo])+' в '+MONP[lo];$('h27-max').textContent=mlnU(P27[hi])+' в '+MONP[hi];
+ const f2=v=>v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+ $('p27-sub').innerHTML=`Коэффициент месяца: ${Math.round(M.wWs*100)}% сезонность спроса в&nbsp;Вордстате (два года) и&nbsp;${Math.round((1-M.wWs)*100)}% форма продаж 2026 по&nbsp;месяцам. Годовая сумма та&nbsp;же, ${mlnU(M.y27)}. Самый сильный месяц ${MONF[hi].toLowerCase()}, ×${f2(SE[hi])} к&nbsp;среднему, самый слабый ${MONF[lo].toLowerCase()}, ×${f2(SE[lo])}. Нормы дилеров, сделок и&nbsp;производства в&nbsp;дереве даны для среднего месяца, в&nbsp;каждом месяце их нужно умножать на&nbsp;тот&nbsp;же коэффициент. Слабые места: январь и&nbsp;февраль 2026 были самыми низкими месяцами продаж, и&nbsp;причина не&nbsp;установлена, а&nbsp;спрос в&nbsp;феврале и&nbsp;августе в&nbsp;2025 и&nbsp;2026 годах различался в&nbsp;2 раза. Вес 50/50 <span class="chip hyp">гипотеза</span>.`;}
 $('d-corr').textContent=DM.corr.toLocaleString('ru-RU');
 $('d-yoy').textContent=(DM.growth*100).toLocaleString('ru-RU',{maximumFractionDigits:0})+'%';
 $('d-k26').textContent=tysU(DM.revPerK26);$('d-k27').textContent=mlnU(DM.revPerK27).replace(nb+'₽','')+nb+'₽';
@@ -358,7 +360,7 @@ $('q27').innerHTML=[0,1,2,3].map(q=>{const idx=[0,1,2].map(k=>q*3+k);const v=idx
 const jan=Math.round(K7.active*SE[0]);
 $('gap27').innerHTML=`<b>Главный риск плана: январь</b>
   <p>Январь сезонно слабый, его план ${mlnU(P27[0])}, это ×${(P27[0]/M.nov2026.oct).toLocaleString('ru-RU',{maximumFractionDigits:1})} к&nbsp;октябрю 2026. Активных дилеров в&nbsp;январе нужно около ${jan}, а&nbsp;в&nbsp;октябре 2026 их было ${M.nov2026.activeOct}, по&nbsp;19&nbsp;ноября ${M.nov2026.active}. Это ×${(jan/M.nov2026.activeOct).toLocaleString('ru-RU',{maximumFractionDigits:1})} за&nbsp;два с&nbsp;половиной месяца.</p>
-  <p>Главная нагрузка приходится на&nbsp;апрель: план ${mlnU(P27[3])}, активных дилеров нужно около ${Math.round(K7.active*SE[3])}. Производство и&nbsp;команда должны быть готовы к&nbsp;этому пику в&nbsp;марте, то&nbsp;есть найм и&nbsp;обзвон ушедших дилеров нужно начинать в&nbsp;декабре.</p>`;
+  <p>Пик плана приходится на&nbsp;март–август: от&nbsp;${mlnU(Math.min(...P27.slice(2,8)))} до&nbsp;${mlnU(Math.max(...P27.slice(2,8)))} в&nbsp;месяц, активных дилеров нужно до&nbsp;${Math.round(K7.active*Math.max(...SE))}. Производство и&nbsp;команда должны быть готовы к&nbsp;этому уже в&nbsp;марте, то&nbsp;есть найм и&nbsp;обзвон ушедших дилеров нужно начинать в&nbsp;декабре.</p>`;
 
 /* ---------- сравнение ---------- */
 const rows=[
@@ -393,7 +395,7 @@ $('tcmp').innerHTML=rows.map(r=>r.length===1?`<tr class="sep"><td colspan="5">${
 {const mx=P27.map((p,i)=>[p/M.rev2026[i],i]).sort((a,b)=>b[0]-a[0]);const f=v=>'×'+v.toLocaleString('ru-RU',{maximumFractionDigits:1});
  const rest=mx.slice(3).map(x=>x[0]);
  $('tmon-sub').innerHTML=`Сильнее всего план растёт в&nbsp;месяцах, где 2026 был слабым: ${mx.slice(0,3).map(x=>MONF[x[1]].toLowerCase()+' '+f(x[0])).join(', ')}. В&nbsp;остальных месяцах рост от&nbsp;${f(Math.min(...rest))} до&nbsp;${f(Math.max(...rest))}.`;}
-$('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${SE[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(P27[i])}${nb}млн</td><td class="num x">${xf(v,P27[i])}</td></tr>`).join('');
+$('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${M.seasonWs[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${M.seasonRev[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num strong">${SE[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(P27[i])}${nb}млн</td><td class="num x">${xf(v,P27[i])}</td></tr>`).join('');
 
 /* ---------- графики ---------- */
 const NS='http://www.w3.org/2000/svg';
@@ -442,7 +444,7 @@ function chart26d(){
 function chart27d(){
   const H=240,[s,W]=mk('c27d',H),pt=24,pb=28;
   const hist=DM.core,base=hist.slice(12,24).reduce((a,b)=>a+b,0)/12;
-  const tail=[base*SE[10],base*SE[11]].map(Math.round);
+  const tail=[base*M.seasonWs[10],base*M.seasonWs[11]].map(Math.round);
   const all=hist.concat(tail,DM.core27),n=all.length,slot=W/n,max=Math.max(...all)*1.15,y=v=>pt+(H-pt-pb)*(1-v/max);
   el(s,'line',{x1:0,x2:W,y1:H-pb,y2:H-pb,stroke:css('--grid')});
   const P=all.map((v,i)=>[slot*i+slot/2,y(v)]);

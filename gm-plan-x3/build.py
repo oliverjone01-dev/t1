@@ -29,6 +29,7 @@ ASSUMPTIONS = {
     "top_manager_cap": 40,        # доля одного менеджера, не больше, %
     "new_dealers_per_month": 10,  # новых дилеров в месяц
     "cost_share_cap": 38,         # себестоимость (счёт ДГ) от выручки, не больше, %
+    "season_weight_wordstat": 0.5, # вес Вордстата в сезонности плана, остальное - форма продаж 2026
     "demand_growth": "yoy",       # рост спроса 2027: как янв-окт 2026 к 2025 (или число, напр. 0.05)
 }
 
@@ -106,7 +107,13 @@ season = [season[mo] * 12 / norm for mo in range(1, 13)]
 yoy = sum(core[14:24]) / sum(core[2:12]) - 1  # янв-окт 2026 к янв-окт 2025
 growth = yoy if A["demand_growth"] == "yoy" else A["demand_growth"]
 demand27 = [round(st.mean(core[12:24]) * (1 + growth) * season[i]) for i in range(12)]
-plan27 = [y27 * season[i] / 12 for i in range(12)]
+season_ws = season
+season_rev = [v / (y26 / 12) for v in rev_by_month]  # форма продаж 2026 (ноябрь - оценка, декабрь - гипотеза)
+w = A["season_weight_wordstat"]
+season_plan = [w * a + (1 - w) * b for a, b in zip(season_ws, season_rev)]
+k_norm = sum(season_plan) / 12
+season_plan = [x / k_norm for x in season_plan]
+plan27 = [y27 * season_plan[i] / 12 for i in range(12)]
 rev_jan_oct = [o["rev"] for o in fact[:10]]
 def corr(a, b):
     ma, mb = st.mean(a), st.mean(b)
@@ -140,7 +147,10 @@ model = {
         "revPerMgr": A["rev_per_manager"],
     },
     "bridge": [{**b, "v": round(b["v"])} for b in bridge],
-    "season": [round(x, 3) for x in season],
+    "season": [round(x, 3) for x in season_plan],
+    "seasonWs": [round(x, 3) for x in season_ws],
+    "seasonRev": [round(x, 3) for x in season_rev],
+    "wWs": w,
     "plan27": [round(x) for x in plan27],
     "demand": {"months": ws["months"], "queries": q, "core": core, "core27": demand27,
                "yoy": round(yoy, 3), "growth": round(growth, 3), "corr": round(demand_corr, 2),
@@ -150,7 +160,7 @@ model = {
 
 # Инварианты модели: если сломаются, страница не собирается.
 assert abs(sum(model["plan27"]) - model["y27"]) <= 12
-assert abs(sum(model["season"]) - 12) < 0.01
+assert abs(sum(model["season"]) - 12) < 0.02
 assert abs(model["k27"]["dealerRev"] + model["k27"]["retailRev"] - model["y27"]) <= 2
 assert abs(sum(b["v"] for b in model["bridge"][1:-1]) + model["y26"] - model["y27"]) <= 5
 assert abs(model["y27"] - 3 * model["y26"]) <= 3

@@ -20,6 +20,7 @@ NOV_DONE, NOV_TOTAL = 13, 20
 
 ASSUMPTIONS = {
     "multiplier": 3,              # цель: выручка 2027 = 3 x выручка 2026
+    "dealer_share": "2026",       # доля дилеров в выручке 2027: как в 2026 (или число 0..1)
     "dealer_check_growth": 0.10,  # средний чек дилера +10%
     "deals_per_dealer": 3.5,      # сделок на активного дилера в месяц
     "retail_check_growth": 0.10,  # средний чек розницы +10%
@@ -59,7 +60,8 @@ scale = y26 / (d_rev + r_rev)  # приведение янв-ноя к оцен�
 
 A = ASSUMPTIONS
 y27 = y26 * A["multiplier"]
-d27 = y27 * dealer_share
+share27 = dealer_share if A["dealer_share"] == "2026" else A["dealer_share"]
+d27 = y27 * share27
 r27 = y27 - d27
 check_d27 = check_d * (1 + A["dealer_check_growth"])
 check_r27 = check_r * (1 + A["retail_check_growth"])
@@ -103,7 +105,7 @@ model = {
         "revPerMgr": round(y26 / 12 / 2),
     },
     "k27": {
-        "dealerRev": round(d27), "retailRev": round(r27), "dealerShare": round(dealer_share * 100),
+        "dealerRev": round(d27), "retailRev": round(r27), "dealerShare": round(share27 * 100),
         "active": round(active27), "freq": A["deals_per_dealer"], "checkD": round(check_d27),
         "retailN": round(retail_n27), "checkR": round(check_r27), "deals": round(deals27),
         "managers": round(managers27), "topShare": A["top_manager_cap"], "newDealers": A["new_dealers_per_month"],
@@ -112,7 +114,7 @@ model = {
         "revPerMgr": A["rev_per_manager"],
     },
     "bridge": [{**b, "v": round(b["v"])} for b in bridge],
-    "nov2026": {"active": fact[10]["act"], "rev": nov["rev_full"], "oct": fact[9]["rev"]},
+    "nov2026": {"active": fact[10]["act"], "rev": nov["rev_full"], "oct": fact[9]["rev"], "activeOct": fact[9]["act"]},
 }
 
 # Инварианты модели: если сломаются, страница не собирается.

@@ -61,6 +61,7 @@ h3{font-size:18px;font-weight:700;margin:0 0 8px}
 .chip.est{background:var(--accent-soft);color:var(--ink)}
 .chip.hyp{background:transparent;color:var(--alert);box-shadow:inset 0 0 0 1.5px var(--alert)}
 .chip.goal{background:var(--plan);color:var(--bg)}
+.chip.calc{background:transparent;color:var(--plan);box-shadow:inset 0 0 0 1.5px var(--plan)}
 
 /* дерево показателей */
 .tree{display:grid;gap:16px}
@@ -175,7 +176,7 @@ footer p{margin:0}
 
   <section>
     <h2>Дерево цели: месячная норма каждого показателя</h2>
-    <p class="sub">Средний чек растёт умеренно, на&nbsp;10%. Основную часть роста дают число активных дилеров и&nbsp;розничных сделок. Значения с&nbsp;пометкой «гипотеза» выбраны мной и&nbsp;требуют подтверждения.</p>
+    <p class="sub">Цель задана: x3. Остальные числа рассчитаны из&nbsp;неё при гипотезах: доля дилеров как в&nbsp;2026, чек +10%, 3,5 сделки на&nbsp;дилера. При этих гипотезах основную часть роста дают число активных дилеров и&nbsp;розничных сделок. Значения с&nbsp;пометкой «гипотеза» выбраны мной и&nbsp;требуют подтверждения.</p>
     <div class="tree" id="tree27"></div>
   </section>
 
@@ -209,7 +210,7 @@ footer p{margin:0}
 <div class="panel" id="compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
   <section>
     <h2>Откуда берутся дополнительные <span id="cmp-add"></span></h2>
-    <p class="sub">Мост от&nbsp;выручки 2026 к&nbsp;цели 2027. Самый большой вклад даёт число активных дилеров, а&nbsp;не&nbsp;чек.</p>
+    <p class="sub">Мост от&nbsp;выручки 2026 к&nbsp;цели 2027. При чеке +10% и&nbsp;3,5 сделки на&nbsp;дилера основной прирост приходится на&nbsp;число дилеров. Другие гипотезы дадут другой мост.</p>
     <div class="chart"><div id="cBridge"></div></div>
   </section>
 
@@ -219,7 +220,7 @@ footer p{margin:0}
       <thead><tr><th>Показатель</th><th class="num">2026</th><th class="num">2027</th><th class="num">Рост</th><th>Статус нормы</th></tr></thead>
       <tbody id="tcmp"></tbody>
     </table></div>
-    <p class="note">«Факт» посчитан из&nbsp;таблицы. «Цель» следует из&nbsp;x3. «Гипотеза» задана мной как рабочая норма, её нужно согласовать с&nbsp;отделом продаж и&nbsp;производством.</p>
+    <p class="note">«Факт» посчитан из&nbsp;таблицы. «Цель» задана: x3. «Расчёт» следует из&nbsp;цели при гипотезах и&nbsp;меняется вместе с&nbsp;ними. «Гипотеза» задана мной как рабочая норма, её нужно согласовать с&nbsp;отделом продаж и&nbsp;производством.</p>
   </section>
 
   <section>
@@ -239,7 +240,7 @@ footer p{margin:0}
 </div>
 
 <script>
-const M={"months2026": [{"mo": 1, "rev": 991281, "n": 32, "dRev": 703721, "dN": 23, "rRev": 287560, "rN": 9, "act": 11, "mgrs": 2, "top": 56, "cost": 41, "lt": 192, "status": "факт"}, {"mo": 2, "rev": 1118449, "n": 44, "dRev": 928739, "dN": 40, "rRev": 189710, "rN": 4, "act": 13, "mgrs": 2, "top": 53, "cost": 36, "lt": 150, "status": "факт"}, {"mo": 3, "rev": 3209648, "n": 65, "dRev": 1628678, "dN": 54, "rRev": 1580970, "rN": 11, "act": 18, "mgrs": 3, "top": 41, "cost": 41, "lt": 136, "status": "факт"}, {"mo": 4, "rev": 2445096, "n": 78, "dRev": 1511675, "dN": 60, "rRev": 933421, "rN": 18, "act": 19, "mgrs": 2, "top": 63, "cost": 37, "lt": null, "status": "факт"}, {"mo": 5, "rev": 3478750, "n": 100, "dRev": 1915594, "dN": 74, "rRev": 1563156, "rN": 26, "act": 15, "mgrs": 2, "top": 59, "cost": 39, "lt": 73, "status": "факт"}, {"mo": 6, "rev": 2081055, "n": 74, "dRev": 1725355, "dN": 68, "rRev": 355700, "rN": 6, "act": 18, "mgrs": 2, "top": 88, "cost": 40, "lt": 43, "status": "факт"}, {"mo": 7, "rev": 3429365, "n": 92, "dRev": 2532014, "dN": 77, "rRev": 897351, "rN": 15, "act": 25, "mgrs": 4, "top": 66, "cost": 36, "lt": 41, "status": "факт"}, {"mo": 8, "rev": 2873517, "n": 81, "dRev": 1838942, "dN": 70, "rRev": 1034575, "rN": 11, "act": 20, "mgrs": 2, "top": 91, "cost": 36, "lt": 39, "status": "факт"}, {"mo": 9, "rev": 2132587, "n": 64, "dRev": 1233109, "dN": 55, "rRev": 899478, "rN": 9, "act": 24, "mgrs": 2, "top": 82, "cost": 34, "lt": 34, "status": "факт"}, {"mo": 10, "rev": 1599016, "n": 46, "dRev": 1274488, "dN": 39, "rRev": 324528, "rN": 7, "act": 17, "mgrs": 2, "top": 69, "cost": 41, "lt": 26, "status": "факт"}, {"mo": 11, "rev": 1412703, "n": 36, "dRev": 904703, "dN": 32, "rRev": 508000, "rN": 4, "act": 11, "mgrs": 2, "top": 80, "cost": 35, "lt": null, "status": "факт по 19.11 + прогноз по темпу", "fact_partial": 1412703, "rev_full": 2173389}, {"mo": 12, "rev": null, "rev_full": 1886202, "status": "гипотеза: среднее октября и прогноза ноября"}], "rev2026": [991281, 1118449, 3209648, 2445096, 3478750, 2081055, 3429365, 2873517, 2132587, 1599016, 2173389, 1886202], "y26": 27418355, "factJanNov": 24771467, "decRev": 1886202, "novFull": 2173389, "y27": 82255065, "mo27": 6854589, "assumptions": {"multiplier": 3, "dealer_check_growth": 0.1, "deals_per_dealer": 3.5, "retail_check_growth": 0.1, "rev_per_manager": 1400000, "top_manager_cap": 40, "new_dealers_per_month": 10, "cost_share_cap": 38}, "k26": {"dealerRev": 17927706, "retailRev": 9490649, "dealerShare": 65, "active": 17.4, "freq": 3.1, "checkD": 27360, "retailN": 10.9, "checkR": 71454, "deals": 65, "managers": 2, "topShare": 68, "newDealers": 4.8, "cost": 38, "lead": 38, "gross": 17049232, "revPerMgr": 1142431}, "k27": {"dealerRev": 53783119, "retailRev": 28471946, "dealerShare": 65, "active": 43, "freq": 3.5, "checkD": 30096, "retailN": 30, "checkR": 78599, "deals": 179, "managers": 5, "topShare": 40, "newDealers": 10, "cost": 38, "lead": 38, "gross": 50998140, "revPerMgr": 1400000}, "bridge": [{"label": "Выручка 2026", "v": 27418355, "kind": "base"}, {"label": "Больше активных дилеров", "v": 25445838, "kind": "step"}, {"label": "Чаще заказывают", "v": 5555162, "kind": "step"}, {"label": "Чек дилера +10%", "v": 4854413, "kind": "step"}, {"label": "Розница", "v": 18981297, "kind": "step"}, {"label": "Цель 2027", "v": 82255065, "kind": "base"}], "nov2026": {"active": 11, "rev": 2173389, "oct": 1599016}};
+const M={"months2026": [{"mo": 1, "rev": 991281, "n": 32, "dRev": 703721, "dN": 23, "rRev": 287560, "rN": 9, "act": 11, "mgrs": 2, "top": 56, "cost": 41, "lt": 192, "status": "факт"}, {"mo": 2, "rev": 1118449, "n": 44, "dRev": 928739, "dN": 40, "rRev": 189710, "rN": 4, "act": 13, "mgrs": 2, "top": 53, "cost": 36, "lt": 150, "status": "факт"}, {"mo": 3, "rev": 3209648, "n": 65, "dRev": 1628678, "dN": 54, "rRev": 1580970, "rN": 11, "act": 18, "mgrs": 3, "top": 41, "cost": 41, "lt": 136, "status": "факт"}, {"mo": 4, "rev": 2445096, "n": 78, "dRev": 1511675, "dN": 60, "rRev": 933421, "rN": 18, "act": 19, "mgrs": 2, "top": 63, "cost": 37, "lt": null, "status": "факт"}, {"mo": 5, "rev": 3478750, "n": 100, "dRev": 1915594, "dN": 74, "rRev": 1563156, "rN": 26, "act": 15, "mgrs": 2, "top": 59, "cost": 39, "lt": 73, "status": "факт"}, {"mo": 6, "rev": 2081055, "n": 74, "dRev": 1725355, "dN": 68, "rRev": 355700, "rN": 6, "act": 18, "mgrs": 2, "top": 88, "cost": 40, "lt": 43, "status": "факт"}, {"mo": 7, "rev": 3429365, "n": 92, "dRev": 2532014, "dN": 77, "rRev": 897351, "rN": 15, "act": 25, "mgrs": 4, "top": 66, "cost": 36, "lt": 41, "status": "факт"}, {"mo": 8, "rev": 2873517, "n": 81, "dRev": 1838942, "dN": 70, "rRev": 1034575, "rN": 11, "act": 20, "mgrs": 2, "top": 91, "cost": 36, "lt": 39, "status": "факт"}, {"mo": 9, "rev": 2132587, "n": 64, "dRev": 1233109, "dN": 55, "rRev": 899478, "rN": 9, "act": 24, "mgrs": 2, "top": 82, "cost": 34, "lt": 34, "status": "факт"}, {"mo": 10, "rev": 1599016, "n": 46, "dRev": 1274488, "dN": 39, "rRev": 324528, "rN": 7, "act": 17, "mgrs": 2, "top": 69, "cost": 41, "lt": 26, "status": "факт"}, {"mo": 11, "rev": 1412703, "n": 36, "dRev": 904703, "dN": 32, "rRev": 508000, "rN": 4, "act": 11, "mgrs": 2, "top": 80, "cost": 35, "lt": null, "status": "факт по 19.11 + прогноз по темпу", "fact_partial": 1412703, "rev_full": 2173389}, {"mo": 12, "rev": null, "rev_full": 1886202, "status": "гипотеза: среднее октября и прогноза ноября"}], "rev2026": [991281, 1118449, 3209648, 2445096, 3478750, 2081055, 3429365, 2873517, 2132587, 1599016, 2173389, 1886202], "y26": 27418355, "factJanNov": 24771467, "decRev": 1886202, "novFull": 2173389, "y27": 82255065, "mo27": 6854589, "assumptions": {"multiplier": 3, "dealer_share": "2026", "dealer_check_growth": 0.1, "deals_per_dealer": 3.5, "retail_check_growth": 0.1, "rev_per_manager": 1400000, "top_manager_cap": 40, "new_dealers_per_month": 10, "cost_share_cap": 38}, "k26": {"dealerRev": 17927706, "retailRev": 9490649, "dealerShare": 65, "active": 17.4, "freq": 3.1, "checkD": 27360, "retailN": 10.9, "checkR": 71454, "deals": 65, "managers": 2, "topShare": 68, "newDealers": 4.8, "cost": 38, "lead": 38, "gross": 17049232, "revPerMgr": 1142431}, "k27": {"dealerRev": 53783119, "retailRev": 28471946, "dealerShare": 65, "active": 43, "freq": 3.5, "checkD": 30096, "retailN": 30, "checkR": 78599, "deals": 179, "managers": 5, "topShare": 40, "newDealers": 10, "cost": 38, "lead": 38, "gross": 50998140, "revPerMgr": 1400000}, "bridge": [{"label": "Выручка 2026", "v": 27418355, "kind": "base"}, {"label": "Больше активных дилеров", "v": 25445838, "kind": "step"}, {"label": "Чаще заказывают", "v": 5555162, "kind": "step"}, {"label": "Чек дилера +10%", "v": 4854413, "kind": "step"}, {"label": "Розница", "v": 18981297, "kind": "step"}, {"label": "Цель 2027", "v": 82255065, "kind": "base"}], "nov2026": {"active": 11, "rev": 2173389, "oct": 1599016, "activeOct": 17}};
 const MON=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 const MONF=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const nb=' ';
@@ -249,7 +250,7 @@ const tys=v=>Math.round(v/1e3).toLocaleString('ru-RU');
 const tysU=v=>tys(v)+nb+'тыс.'+nb+'₽';
 const n1=v=>(+v).toLocaleString('ru-RU',{maximumFractionDigits:1});
 const xf=(a,b)=>'×'+(b/a).toLocaleString('ru-RU',{maximumFractionDigits:1});
-const chip=s=>({fact:'<span class="chip fact">факт</span>',est:'<span class="chip est">оценка</span>',hyp:'<span class="chip hyp">гипотеза</span>',goal:'<span class="chip goal">цель</span>'})[s];
+const chip=s=>({fact:'<span class="chip fact">факт</span>',est:'<span class="chip est">оценка</span>',hyp:'<span class="chip hyp">гипотеза</span>',goal:'<span class="chip goal">цель</span>',calc:'<span class="chip calc">расчёт</span>'})[s];
 const $=id=>document.getElementById(id);
 const K6=M.k26,K7=M.k27,A=M.assumptions;
 
@@ -273,7 +274,7 @@ function tree(id,K,yearRev,st){
     node('Выручка за&nbsp;год '+(s.root?chip(s.root):''),mlnU(yearRev),'в месяц '+mlnU(yearRev/12),'root')+
     `<div class="branches">
       <div class="branch">
-        ${node('Дилеры, '+K.dealerShare+'% '+(s.root?chip(s.root):''),mlnU(K.dealerRev),'в месяц '+mlnU(K.dealerRev/12))}
+        ${node('Дилеры, '+K.dealerShare+'% '+(s.branch?chip(s.branch):''),mlnU(K.dealerRev),'в месяц '+mlnU(K.dealerRev/12))}
         <span class="op">= активных дилеров × сделок на&nbsp;дилера × чек</span>
         <div class="factors">
           ${node('Активных дилеров в&nbsp;месяц '+chip(s.active||'fact'),n1(K.active))}
@@ -282,7 +283,7 @@ function tree(id,K,yearRev,st){
         </div>
       </div>
       <div class="branch">
-        ${node('Розница, '+(100-K.dealerShare)+'% '+(s.root?chip(s.root):''),mlnU(K.retailRev),'в месяц '+mlnU(K.retailRev/12))}
+        ${node('Розница, '+(100-K.dealerShare)+'% '+(s.branch?chip(s.branch):''),mlnU(K.retailRev),'в месяц '+mlnU(K.retailRev/12))}
         <span class="op">= розничных сделок × чек</span>
         <div class="factors" style="--cols:2">
           ${node('Розничных сделок в&nbsp;месяц '+chip(s.retailN||'fact'),n1(K.retailN))}
@@ -292,7 +293,7 @@ function tree(id,K,yearRev,st){
     </div>`;
 }
 tree('tree26',K6,M.y26,{});
-tree('tree27',K7,M.y27,{root:'goal',active:'goal',freq:'hyp',checkD:'hyp',retailN:'goal',checkR:'hyp'});
+tree('tree27',K7,M.y27,{root:'goal',branch:'calc',active:'calc',freq:'hyp',checkD:'hyp',retailN:'calc',checkR:'hyp'});
 
 /* ---------- таблица 2026 ---------- */
 $('t26').innerHTML=M.months2026.map((o,i)=>{
@@ -305,10 +306,10 @@ $('res27').innerHTML=[
   {t:'Продающих менеджеров',d:`Сейчас продают двое, по&nbsp;${mlnU(K6.revPerMgr)} в&nbsp;месяц. Норма на&nbsp;2027: ${mlnU(A.rev_per_manager)} на&nbsp;человека.`,v:`${K6.managers} → ${K7.managers}`,s:'hyp'},
   {t:'Доля одного менеджера',d:'Чтобы уход или отпуск одного человека не&nbsp;обрушил месяц.',v:`${K6.topShare}% → ≤${K7.topShare}%`,s:'hyp'},
   {t:'Новых дилеров в&nbsp;месяц',d:'Без притока не&nbsp;набрать 43 активных: в&nbsp;2026 каждый месяц часть дилеров переставала платить.',v:`${n1(K6.newDealers)} → ${K7.newDealers}`,s:'hyp'},
-  {t:'Сделок в&nbsp;месяц на&nbsp;производство',d:'Мощность под&nbsp;такой объём не&nbsp;подтверждена. Это первое, что нужно проверить.',v:`${K6.deals} → ${K7.deals}`,s:'goal'},
+  {t:'Сделок в&nbsp;месяц на&nbsp;производство',d:'Мощность под&nbsp;такой объём не&nbsp;подтверждена. Это первое, что нужно проверить.',v:`${K6.deals} → ${K7.deals}`,s:'calc'},
   {t:'Срок от&nbsp;оплаты до&nbsp;отгрузки',d:'Медиана с&nbsp;июля 2026. При росте объёма срок не&nbsp;должен расти.',v:`${K6.lead} → ≤${K7.lead} дн.`,s:'hyp'},
   {t:'Себестоимость от&nbsp;выручки',d:`Валовая прибыль вырастет с&nbsp;${mlnU(K6.gross)} до&nbsp;${mlnU(K7.gross)}, если доля не&nbsp;поднимется.`,v:`${K6.cost}% → ≤${K7.cost}%`,s:'hyp'},
-  {t:'Сделки без ФИО и&nbsp;без суммы ДГ',d:'Без этого план нельзя отслеживать по&nbsp;клиентам и&nbsp;марже.',v:'11% → 0%',s:'goal'},
+  {t:'Сделки без ФИО клиента',d:'Доля сделок сентября–ноября 2026 без ФИО. Без этого план нельзя отслеживать по&nbsp;клиентам.',v:'11% → 0%',s:'hyp'},
 ].map(r=>`<li><div><b>${r.t} ${chip(r.s)}</b><span>${r.d}</span></div><span class="num">${r.v}</span></li>`).join('');
 
 /* ---------- кварталы 2027 ---------- */
@@ -317,7 +318,7 @@ $('q27').innerHTML=[0,1,2,3].map(q=>{const v=M.mo27*3;acc+=v;
   return `<tr><td>${['I','II','III','IV'][q]} квартал</td><td class="num strong">${mln(v)}${nb}млн</td><td class="num">${mln(acc)}${nb}млн</td><td class="num">${K7.deals*3}</td><td class="num">${K7.newDealers*3}</td></tr>`}).join('');
 
 $('gap27').innerHTML=`<b>Главный риск плана: январь</b>
-  <p>В&nbsp;ноябре 2026 платили ${M.nov2026.active} дилеров, в&nbsp;январе их должно быть ${K7.active}. Это рост в&nbsp;${(K7.active/M.nov2026.active).toLocaleString('ru-RU',{maximumFractionDigits:1})} раза за&nbsp;полтора месяца, а&nbsp;январь в&nbsp;2026 был самым слабым месяцем года. Без обзвона ушедших дилеров в&nbsp;декабре и&nbsp;найма до&nbsp;Нового года январская норма не&nbsp;выполнима.</p>
+  <p>В&nbsp;октябре 2026, последнем полном месяце, платили ${M.nov2026.activeOct} дилеров, по&nbsp;19&nbsp;ноября ${M.nov2026.active}. В&nbsp;январе их должно быть ${K7.active}: это ×${(K7.active/M.nov2026.activeOct).toLocaleString('ru-RU',{maximumFractionDigits:1})} к&nbsp;октябрю за&nbsp;два с&nbsp;половиной месяца, а&nbsp;январь в&nbsp;2026 был самым слабым месяцем года. Без обзвона ушедших дилеров в&nbsp;декабре и&nbsp;найма до&nbsp;Нового года январская норма не&nbsp;выполнима.</p>
   <p>Если ровный план с&nbsp;января невозможен, честнее поставить разгон: I&nbsp;квартал ×2, со&nbsp;II&nbsp;квартала ×3,3. Годовая сумма при этом сохраняется.</p>`;
 
 /* ---------- сравнение ---------- */
@@ -325,19 +326,20 @@ const rows=[
   ['Деньги'],
   ['Выручка за&nbsp;год',mlnU(M.y26),mlnU(M.y27),xf(M.y26,M.y27),'goal'],
   ['Выручка в&nbsp;месяц',mlnU(M.y26/12),mlnU(M.mo27),xf(M.y26,M.y27),'goal'],
-  ['Дилерский канал',mlnU(K6.dealerRev),mlnU(K7.dealerRev),xf(K6.dealerRev,K7.dealerRev),'goal'],
-  ['Розница',mlnU(K6.retailRev),mlnU(K7.retailRev),xf(K6.retailRev,K7.retailRev),'goal'],
+  ['Дилерский канал',mlnU(K6.dealerRev),mlnU(K7.dealerRev),xf(K6.dealerRev,K7.dealerRev),'calc'],
+  ['Розница',mlnU(K6.retailRev),mlnU(K7.retailRev),xf(K6.retailRev,K7.retailRev),'calc'],
+  ['Доля дилеров в&nbsp;выручке',K6.dealerShare+'%',K7.dealerShare+'%','','hyp'],
   ['Валовая прибыль',mlnU(K6.gross),mlnU(K7.gross),xf(K6.gross,K7.gross),'hyp'],
   ['Дилеры'],
-  ['Активных дилеров в&nbsp;месяц',n1(K6.active),n1(K7.active),xf(K6.active,K7.active),'goal'],
+  ['Активных дилеров в&nbsp;месяц',n1(K6.active),n1(K7.active),xf(K6.active,K7.active),'calc'],
   ['Сделок на&nbsp;дилера в&nbsp;месяц',n1(K6.freq),n1(K7.freq),xf(K6.freq,K7.freq),'hyp'],
   ['Чек дилера',tysU(K6.checkD),tysU(K7.checkD),xf(K6.checkD,K7.checkD),'hyp'],
   ['Новых дилеров в&nbsp;месяц',n1(K6.newDealers),K7.newDealers,xf(K6.newDealers,K7.newDealers),'hyp'],
   ['Розница'],
-  ['Розничных сделок в&nbsp;месяц',n1(K6.retailN),K7.retailN,xf(K6.retailN,K7.retailN),'goal'],
+  ['Розничных сделок в&nbsp;месяц',n1(K6.retailN),K7.retailN,xf(K6.retailN,K7.retailN),'calc'],
   ['Чек розницы',tysU(K6.checkR),tysU(K7.checkR),xf(K6.checkR,K7.checkR),'hyp'],
   ['Отдел и&nbsp;производство'],
-  ['Сделок в&nbsp;месяц',K6.deals,K7.deals,xf(K6.deals,K7.deals),'goal'],
+  ['Сделок в&nbsp;месяц',K6.deals,K7.deals,xf(K6.deals,K7.deals),'calc'],
   ['Продающих менеджеров',K6.managers,K7.managers,xf(K6.managers,K7.managers),'hyp'],
   ['Доля лучшего менеджера',K6.topShare+'%','≤'+K7.topShare+'%','','hyp'],
   ['Срок оплата → отгрузка',K6.lead+nb+'дн.','≤'+K7.lead+nb+'дн.','','hyp'],

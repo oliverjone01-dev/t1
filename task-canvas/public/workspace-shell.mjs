@@ -1,4 +1,4 @@
-import {SHELL_KEY,readShell} from './workspace-model.mjs?rev=20261120-canon-20';
+import {SHELL_KEY,readShell} from './workspace-model.mjs?rev=20261120-dnd-21';
 export function installWorkspaceShell({storage=localStorage,toast=()=>{},summaryState=null,observeSelectors=null}={}){
  const desktopQuery=matchMedia('(min-width:768px)'),shellDefaults=()=>({top:!desktopQuery.matches});let state=readShell(storage,shellDefaults()),animation=null;const html=document.documentElement,side=document.querySelector('#sidebar-content'),panel=document.querySelector('#workspace-controls'),left=document.querySelector('#sidebar-toggle'),top=document.querySelector('#controls-toggle'),summary=document.querySelector('#workspace-summary'),desktop=desktopQuery,reduced=matchMedia('(prefers-reduced-motion:reduce)');
  const svg=kind=>`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/>${kind==='left'?'<path d="M9 4v16m7-11-3 3 3 3"/>':'<path d="M3 10h18m-6 6-3-3-3 3"/>'}</svg>`;

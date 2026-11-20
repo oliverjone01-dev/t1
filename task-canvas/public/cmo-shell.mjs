@@ -1,4 +1,4 @@
-import {icon} from './icons.mjs?rev=20261120-canon-20';
+import {icon} from './icons.mjs?rev=20261120-dnd-21';
 // Layout only: existing controls move with their handlers into one toolbar row and two context blocks.
 // Nothing here owns task data; the triage chips are filled by productivity.mjs. The strip sits outside
 // the foldable panel, so a folded phone layout still shows the morning questions.

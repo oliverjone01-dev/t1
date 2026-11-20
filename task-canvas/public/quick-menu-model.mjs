@@ -1,5 +1,5 @@
-import {shiftSchedule} from './gantt-model.mjs?rev=20261120-canon-20';
-import {shiftDate} from './model.mjs?rev=20261120-canon-20';
+import {shiftSchedule} from './gantt-model.mjs?rev=20261120-dnd-21';
+import {shiftDate} from './model.mjs?rev=20261120-dnd-21';
 // Pure rules for the quick edit menu: deadline shortcuts and a minimal, validated patch.
 export function dueShortcuts(today){
  const day=new Date(`${today}T12:00:00`).getDay(),toFriday=(5-day+7)%7||7;

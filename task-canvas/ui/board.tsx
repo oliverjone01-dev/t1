@@ -91,6 +91,8 @@ function Board(props:any){
   pointer.current=args.pointerCoordinates;
   if(surface==='map'&&!args.pointerCoordinates&&keyboardTarget.current)return closestCenter({...args,droppableContainers:args.droppableContainers.filter(c=>c.id===keyboardTarget.current)});
   if(surface==='map'&&args.pointerCoordinates&&document.elementFromPoint(args.pointerCoordinates.x,args.pointerCoordinates.y)?.closest('.map-controls'))return [];
+  // Over the «Куда перенести» dock no quadrant is a target: the dock takes the drop.
+  if(args.pointerCoordinates&&document.elementFromPoint(args.pointerCoordinates.x,args.pointerCoordinates.y)?.closest('.drop-dock'))return [];
   return collisions(args);
  };
  const mapDrop=(event)=>overviewPlacement({targetId:event.over?.id,activeId:drag?.id,ids:drag?.ids||[],tasks:props.tasks,today:props.today,pointerY:pointer.current?.y,rect:event.over?.rect});

@@ -88,7 +88,6 @@
 .triage-strip .work-context[hidden],.triage-strip #active-focus{display:none}
 .triage-strip .work-context :is(button,.text-button){min-height:32px;font-size:14px}
 /* Every view names itself in the toolbar; the calendar adds its month below. */
-.toolbar-heading #view-title[hidden]{display:block}
 /* List row on one line: select, grip, title with meta, progress, urgency. The title comes first to the eye. */
 @media(min-width:768px){
  #task-list .list-task-main{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;align-items:center;column-gap:8px}
@@ -285,3 +284,74 @@
 /* A drag overlay rendered inside a zoomed view cancels the zoom, so the lifted card stays under the pointer. */
 #board-ui div:has(>.matrix-drag-preview){zoom:calc(1 / var(--board-zoom,1))}
 .quick-menu.is-sheet footer [type=submit]{margin-left:auto;min-width:160px}
+
+/* «Куда перенести»: appears only while a card is dragged. It floats, so glass and the lift shadow are allowed. */
+.drop-dock{position:fixed;left:50%;bottom:16px;z-index:900;display:grid;gap:8px;width:max-content;max-width:calc(100vw - 32px);padding:12px 16px;border-radius:16px;background:var(--raised);box-shadow:var(--lift);transform:translateX(-50%);animation:dock-in .16s var(--ease-out)}
+@supports(backdrop-filter:blur(16px)){.drop-dock{background:color-mix(in srgb,var(--raised) 88%,transparent);backdrop-filter:blur(16px) saturate(160%)}}
+.drop-dock[hidden]{display:none}
+.drop-dock-title{display:flex;align-items:center;gap:8px;margin:0;font-size:12px;color:var(--muted)}
+.drop-dock-title .ui-icon{width:14px;height:14px}
+.drop-dock-groups{display:flex;gap:16px;align-items:flex-start}
+.drop-dock-group{display:grid;gap:4px;min-width:0}
+.drop-dock-label{font-size:12px;font-weight:600;color:var(--muted)}
+.drop-dock-targets{display:flex;gap:4px}
+.drop-dock-target{display:grid;align-content:center;justify-items:center;gap:2px;min-width:72px;min-height:48px;padding:6px 10px;border-radius:var(--radius-control);background:var(--fill);color:var(--text);text-align:center;cursor:copy;transition:background-color .12s,box-shadow .12s,transform .12s var(--ease-out)}
+.drop-dock-target b{font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
+.drop-dock-target small{font-size:12px;color:var(--muted);white-space:nowrap}
+.drop-dock-target[data-dock-status]{background:var(--status-badge,var(--fill));color:var(--status-ink,var(--text))}
+.drop-dock-target[data-dock-status="В работе"]{--status-badge:#ffd9ad;--status-ink:#774015}
+.drop-dock-target[data-dock-status="В ожидании"]{--status-badge:#cce6ff;--status-ink:#245578}
+.drop-dock-target[data-dock-status="Приостановлено"]{--status-badge:#f8ccda;--status-ink:#84334e}
+.drop-dock-target[data-dock-status="Готово"]{--status-badge:#c6e7d1;--status-ink:#246342}
+.drop-dock-target[data-dock-status="Отменено"]{--status-badge:#e6dfe5;--status-ink:#665362}
+:root[data-theme=dark] .drop-dock-target[data-dock-status="В работе"]{--status-badge:#644326;--status-ink:#ffdbb5}
+:root[data-theme=dark] .drop-dock-target[data-dock-status="В ожидании"]{--status-badge:#234962;--status-ink:#c6e7ff}
+:root[data-theme=dark] .drop-dock-target[data-dock-status="Приостановлено"]{--status-badge:#643346;--status-ink:#ffd0df}
+:root[data-theme=dark] .drop-dock-target[data-dock-status="Готово"]{--status-badge:#285239;--status-ink:#c6efd3}
+:root[data-theme=dark] .drop-dock-target[data-dock-status="Отменено"]{--status-badge:#433a42;--status-ink:#e6dfe5}
+.drop-dock-target.is-hover{background:var(--primary);color:var(--panel);box-shadow:0 0 0 2px var(--primary);transform:scale(1.04)}
+.drop-dock-target.is-hover small{color:inherit;opacity:.85}
+:root[data-dragging=true] .board-zoom{opacity:0;pointer-events:none}
+@keyframes dock-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translateX(-50%)}}
+@media(max-width:1100px){.drop-dock-groups{flex-wrap:wrap}}
+@media(max-width:767px){.drop-dock{left:8px;right:8px;bottom:8px;width:auto;max-width:none;transform:none;padding:8px}.drop-dock-groups{flex-direction:column;gap:8px}.drop-dock-targets{overflow-x:auto;scrollbar-width:none}.drop-dock-target{min-height:44px;min-width:64px}@keyframes dock-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+@media(prefers-reduced-motion:reduce){.drop-dock,.drop-dock-target{animation:none;transition:none}.drop-dock-target.is-hover{transform:none}}
+/* The dock never runs off screen: groups wrap and the dock keeps a readable width. */
+.drop-dock{max-width:min(1040px,calc(100vw - 32px))}
+.drop-dock-groups{flex-wrap:wrap;justify-content:center;gap:12px 16px}
+.drop-dock-targets{flex-wrap:wrap}
+.drop-dock-target{min-width:64px}
+/* Compact dock: one row. The open group shows its targets; closed groups are labels that open on approach. */
+.drop-dock{max-width:calc(100vw - 32px);padding:8px;border-radius:14px}
+.drop-dock-groups{flex-wrap:nowrap;align-items:stretch;gap:8px}
+.drop-dock-group{display:flex;align-items:center;gap:4px;padding:0 4px;border-radius:10px;background:transparent}
+.drop-dock-group:not(.is-open){padding:0}
+.drop-dock-group:not(.is-open) .drop-dock-targets{display:none}
+.drop-dock-label{display:grid;place-items:center;min-height:48px;padding:0 12px;border-radius:var(--radius-control);font-size:13px;font-weight:600;color:var(--text);background:var(--fill);white-space:nowrap}
+.drop-dock-group.is-open .drop-dock-label{background:transparent;color:var(--muted);padding:0 8px 0 4px;font-size:12px}
+.drop-dock-targets{flex-wrap:nowrap}
+.drop-dock-target{min-width:0;padding:6px 12px}
+@media(max-width:767px){.drop-dock{left:8px;right:8px;width:auto}.drop-dock-groups{flex-direction:row;overflow-x:auto;scrollbar-width:none}.drop-dock-label{min-height:44px}}
+/* Every card an editor sees can be dragged: the grip is always visible in day and week boards. */
+:root :is(#calendar-view,#grouped-board) .day-board-card .day-board-footer .planning-grip{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:32px;margin-left:auto;cursor:grab}
+@media(pointer:coarse){:root :is(#calendar-view,#grouped-board) .day-board-card .day-board-footer .planning-grip{min-width:44px;min-height:44px}}
+/* Targets keep their size; on a narrow screen the row scrolls instead of squeezing labels. */
+.drop-dock-group,.drop-dock-target,.drop-dock-label{flex:0 0 auto}
+.drop-dock-groups{overflow-x:auto;scrollbar-width:none;max-width:100%}
+.drop-dock-groups::-webkit-scrollbar{display:none}
+@media(max-width:767px){.drop-dock-target{min-width:64px;padding:4px 8px}.drop-dock-target b{font-size:12px}}
+/* While a card is dragged, the matrix selection bar steps aside for the dock. */
+:root[data-dragging=true] .matrix-bulk{visibility:hidden}
+/* Phone: a finger holding a card cannot scroll the dock, so nothing hides off screen. The open group wraps;
+   the other groups stay as labels in the first row. */
+@media(max-width:767px){
+ .drop-dock-groups{flex-wrap:wrap;overflow:visible;gap:6px}
+ .drop-dock-group:not(.is-open){order:0}
+ .drop-dock-group.is-open{order:1;flex:1 1 100%;flex-wrap:wrap;padding:0}
+ .drop-dock-group.is-open .drop-dock-label{min-height:0;padding:0 4px;flex:1 1 100%;justify-items:start}
+ .drop-dock-group.is-open .drop-dock-targets{flex-wrap:wrap;gap:6px}
+ .drop-dock-group.is-open .drop-dock-target{flex:1 1 30%;min-height:44px}
+ .drop-dock-label{min-height:40px}
+}
+/* The matrix tray duplicated the dock's targets; while the dock is up it is the only place to drop outside quadrants. */
+:root[data-dragging=true] .matrix-drop-tray{display:none}

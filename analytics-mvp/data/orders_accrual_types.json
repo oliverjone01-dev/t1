@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -90850181,
-  "n": 3650
+  "sum": -90890639,
+  "n": 3652
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2954360,
-  "n": 1776
+  "sum": -2955521,
+  "n": 1778
  },
  {
   "type_id": 3,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -441723,
-  "n": 1993
+  "sum": -442246,
+  "n": 1995
  },
  {
   "type_id": 74,
@@ -66,8 +66,8 @@
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -188657,
-  "n": 329
+  "sum": -189182,
+  "n": 330
  },
  {
   "type_id": 116,
@@ -108,15 +108,15 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21770,
-  "n": 1424
+  "sum": -21790,
+  "n": 1426
  },
  {
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -8096,
-  "n": 902
+  "sum": -8118,
+  "n": 904
  },
  {
   "type_id": 14,

@@ -355,3 +355,15 @@
 }
 /* The matrix tray duplicated the dock's targets; while the dock is up it is the only place to drop outside quadrants. */
 :root[data-dragging=true] .matrix-drop-tray{display:none}
+/* Phone, final layout (Feniks F9): the three labels keep fixed places in the first row; the open group's targets
+   form the second row. Opening a group never moves a label under the finger. */
+@media(max-width:767px){
+ .drop-dock-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible}
+ .drop-dock-group,.drop-dock-group.is-open{display:contents}
+ .drop-dock-label,.drop-dock-group.is-open .drop-dock-label{grid-row:1;display:grid;place-items:center;min-height:40px;padding:0 8px;flex:none;font-size:13px;color:var(--text);background:var(--fill)}
+ .drop-dock-group[data-dock-group=due] .drop-dock-label{grid-column:1}
+ .drop-dock-group[data-dock-group=priority] .drop-dock-label{grid-column:2}
+ .drop-dock-group[data-dock-group=status] .drop-dock-label{grid-column:3}
+ .drop-dock-group.is-open .drop-dock-label{background:var(--primary-soft);color:var(--primary)}
+ .drop-dock-group.is-open .drop-dock-targets{grid-row:2;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+}

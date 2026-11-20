@@ -16,9 +16,10 @@ export function dockTargets(today){
 }
 // One drop = one change for every dragged task. Only the target field (and what keeps it valid) is written;
 // a view's remembered card position for that field is dropped so the card lands in its new group.
-export const DROP_FIELDS=['due','priority','status','importance','unit'];
-// A closed task brought to a priority or a date comes back to work, exactly as a matrix quadrant drop does.
-export const reopens=(t,{field,value})=>!!statusGroup(t)&&(field==='priority'||field==='due'&&!!value);
+export const DROP_FIELDS=['due','priority','status','importance','unit','owner'];
+// Only an explicit dock drop brings a closed task back to work (as a matrix quadrant does) and the toast says so.
+// A calendar cell or a list row keeps the status, as before: moving a finished task's date must not reopen it.
+export const reopens=(t,{field,value,reopen})=>!!reopen&&!!statusGroup(t)&&(field==='priority'||field==='due'&&!!value);
 function applyField(t,patch){
  if(reopens(t,patch))t={...t,status:'В работе'};
  const {field,value}=patch,positions={...(t.positions||{})};
@@ -27,6 +28,7 @@ function applyField(t,patch){
  if(field==='due'&&patch.from&&t.due&&value){const delta=dayDistance(patch.from,value);if(!delta)return t;return applyField(t,{field:'due',value:shiftDate(t.due,delta)})}
  if(field==='due'){if((t.due||'')===(value||''))return t;delete positions.time;return {...shiftSchedule(t,value||''),dueNote:'',positions}}
  if(field==='priority'){const v=value||null;if((t.priority||null)===v)return t;delete positions.priority;return {...t,priority:v,positions}}
+ if(field==='owner'){if((t.owner||'')===(value||''))return t;delete positions.owners;return {...t,owner:value||'',ownerNote:'',positions}}
  if(field==='importance'){const v=Number(value)||0;if((Number(t.importance)||0)===v)return t;return {...t,importance:v}}
  if((t[field]||'')===(value||''))return t;return {...t,[field]:value||''};
 }
@@ -37,7 +39,7 @@ export function applyFields(tasks,ids,patches){
  if(!tasks.some(t=>set.has(t.id)))throw new Error('Задачи уже убраны с доски.');
  return validateBoard(tasks.map(t=>set.has(t.id)?patches.reduce(applyField,t):t));
 }
-export const applyDock=(tasks,ids,target)=>applyFields(tasks,ids,[target]);
+export const applyDock=(tasks,ids,target)=>applyFields(tasks,ids,[{...target,reopen:true}]);
 // What a drop into a grouped section sets. Owner sections are left out: their key may be a directory id.
 export function sectionTarget(key){
  if(!key||key==='all')return null;

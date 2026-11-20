@@ -63,11 +63,21 @@ test('calendar: a multi-day task moves by the distance between the day taken and
   assert.equal(applyFields(tasks,['a'],[{field:'due',value:'2026-11-25',from:'2026-11-25'},{field:'priority',value:'plan'}])[0].due,'2026-11-27');
 });
 
-test('a closed task brought to a priority or a date comes back to work; a status or no-date drop does not (Feniks F3)',async()=>{
-  const {applyFields,reopens}=await import('../public/dock-model.mjs');
+test('only a dock drop reopens a closed task; calendar and list drops keep it closed (Feniks F3, F8)',async()=>{
+  const {applyFields,applyDock,reopens}=await import('../public/dock-model.mjs');
   const done={id:'a',title:'A',status:'Готово',priority:'do',due:'2026-11-20'};
-  assert.equal(applyFields([done],['a'],[{field:'priority',value:'plan'}])[0].status,'В работе');
-  assert.equal(applyFields([done],['a'],[{field:'due',value:'2026-11-21'}])[0].status,'В работе');
-  assert.equal(applyFields([done],['a'],[{field:'due',value:''}])[0].status,'Готово');
-  assert.equal(reopens(done,{field:'status',value:'Отменено'}),false);
+  assert.equal(applyDock([done],['a'],{field:'priority',value:'plan'})[0].status,'В работе');
+  assert.equal(applyDock([done],['a'],{field:'due',value:'2026-11-21'})[0].status,'В работе');
+  assert.equal(applyDock([done],['a'],{field:'due',value:''})[0].status,'Готово');
+  assert.equal(reopens(done,{field:'status',value:'Отменено',reopen:true}),false);
+  // F8: a calendar cell or list row keeps a closed task closed
+  assert.equal(applyFields([done],['a'],[{field:'due',value:'2026-11-19',from:'2026-11-20'}])[0].status,'Готово');
+});
+
+test('a list sorted by owner or urgency lends that field to the dropped task (Feniks F10)',async()=>{
+  const {applyFields}=await import('../public/dock-model.mjs');
+  const tasks=[{id:'a',title:'A',status:'В работе',owner:'Иван',importance:2,priority:'do',positions:{owners:{group:'owner:Иван',x:24,y:96}}}];
+  const o=applyFields(tasks,['a'],[{field:'owner',value:'Софа'}]);
+  assert.deepEqual([o[0].owner,o[0].priority,o[0].positions.owners],['Софа','do',undefined]);
+  assert.equal(applyFields(tasks,['a'],[{field:'importance',value:5}])[0].importance,5);
 });

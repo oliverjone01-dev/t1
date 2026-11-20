@@ -54,3 +54,20 @@ test('linked fields revert together or not at all (Feniks F2)',()=>{
   const reopened=revertRecord(board([t('a',{status:'Отменено',progress:100,closedAt:'2026-11-20'})]),closing);
   assert.deepEqual([reopened.tasks[0].status,reopened.tasks[0].progress,reopened.tasks[0].closedAt],['Отменено',100,'2026-11-20']);assert.equal(reopened.skipped,1);
 });
+
+test('an own date step stays undoable after the Sheet rewrites dueNote on sync (Feniks F7)',()=>{
+  const record={before:board([t('a',{due:'2026-11-25',dueNote:'25.11'})]),after:board([t('a',{due:'2026-11-23',dueNote:''})])};
+  const synced=board([t('a',{due:'2026-11-23',dueNote:'23.11.2026'})]);
+  const r=revertRecord(synced,record);
+  assert.equal(r.applied,1);assert.equal(r.skipped,0);
+  assert.deepEqual([r.tasks[0].due,r.tasks[0].dueNote],['2026-11-25','23.11.2026']);
+  const owner={before:board([t('a',{owner:'Иван',ownerNote:''})]),after:board([t('a',{owner:'Софа',ownerNote:''})])};
+  const o=revertRecord(board([t('a',{owner:'Софа',ownerNote:'Софа'})]),owner);
+  assert.equal(o.tasks[0].owner,'Иван');assert.equal(o.skipped,0);
+});
+
+test('a task a colleague deleted is not counted as skipped when the step did not touch it',()=>{
+  const record={before:board([t('a'),t('b')]),after:board([t('a',{priority:'plan'}),t('b')])};
+  const r=revertRecord(board([t('a',{priority:'plan'})]),record);
+  assert.equal(r.skipped,0);assert.equal(r.tasks[0].priority,'do');
+});

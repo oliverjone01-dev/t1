@@ -1,0 +1,70 @@
+
+.gg-deal-score-layout{display:grid!important;grid-template-columns:minmax(260px,340px) minmax(0,1fr)!important;gap:24px;align-items:center;margin:12px 0 24px;padding:20px;border:1px solid var(--border);border-radius:14px;background:var(--bg-base)}
+.gg-deal-radar-figure{margin:0!important}.gg-review-priority h4{margin:16px 0 6px;font-size:12px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px}.gg-review-priority h4:first-child{margin-top:0}.gg-review-priority .dsum-v{font-size:15px!important;margin:0!important}.gg-review-priority .dsum-r,.gg-review-priority .dsum-p{margin:6px 0!important;padding:12px!important;line-height:1.6}.gg-review-audit-title{font-size:16px;margin:24px 0 12px}.gg-deal-review>.sc-grid{display:none!important}.gg-deal-review .da-cols{gap:16px}.gg-review-details{padding:16px!important}.gg-review-details h4{margin:0 0 14px;font-size:15px}.gg-deal-review .da-cols .da-col{min-width:0}@media(max-width:800px){.gg-deal-score-layout{grid-template-columns:1fr!important}.gg-deal-radar-figure{max-width:320px;margin:auto!important}}
+
+
+.gg-deal-drawer>.gg-deal-branches{top:210px!important;bottom:12px!important;width:48px!important;padding:6px!important;gap:0!important;justify-content:center!important}
+.gg-deal-branches button{height:10px!important;min-height:10px!important;max-height:10px!important;flex:0 1 10px!important;width:14px!important}
+.gg-deal-branches button:before{top:4px!important;width:14px!important;height:2px!important;transition:width .10s,height .10s,background .10s!important}
+.gg-deal-branches:hover button:before{width:20px!important}
+.gg-deal-branches button:hover:before,.gg-deal-branches button:focus-visible:before{width:34px!important;height:3px!important;background:var(--accent)!important}
+
+
+.gg-event-status{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:50%;font-size:14px;font-weight:700;margin-right:6px;cursor:help;transition:transform .12s,background .12s}.gg-status-error{color:#ed8797;background:rgba(237,135,151,.10)}.gg-status-good{color:#83c9ae;background:rgba(131,201,174,.10)}.gg-event-status:hover{transform:scale(1.18)}
+
+
+.gg-deal-branches button{isolation:isolate;width:34px!important}
+.gg-deal-branches button.gg-zone-bad{background:linear-gradient(90deg,rgba(237,135,151,.20),rgba(237,135,151,.07) 65%,transparent)!important}
+.gg-deal-branches button.gg-zone-good{background:linear-gradient(90deg,rgba(131,201,174,.18),rgba(131,201,174,.06) 65%,transparent)!important}
+.gg-deal-branches button.gg-zone-neutral{background:linear-gradient(90deg,rgba(160,170,185,.09),transparent)!important}
+.gg-deal-branches button.gg-zone-bad:before{background:#d98293}
+.gg-deal-branches button.gg-zone-good:before{background:#83c9ae}
+.gg-deal-branches button.gg-zone-neutral:before{background:#81909f}
+.gg-deal-branches:hover button{opacity:.8!important}
+.gg-deal-branches button:hover{opacity:1!important}
+.gg-deal-branches button.gg-zone-bad:hover:before{background:#ed8797!important}
+.gg-deal-branches button.gg-zone-good:hover:before{background:#83c9ae!important}
+
+
+/* Thin navigation strokes: color belongs to the mark, not its hit area. */
+.gg-deal-branches button.gg-zone-bad,.gg-deal-branches button.gg-zone-good,.gg-deal-branches button.gg-zone-neutral,.gg-deal-branches button{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important}
+.gg-deal-branches button:before{display:block!important;content:""!important;position:absolute!important;left:2px!important;top:4px!important;width:14px!important;height:2px!important;border-radius:2px!important;opacity:.65;box-shadow:none!important}
+.gg-deal-branches button.gg-zone-bad:before{background:linear-gradient(90deg,#ed8797b3,#ed879733)!important}
+.gg-deal-branches button.gg-zone-good:before{background:linear-gradient(90deg,#83c9aeb3,#83c9ae33)!important}
+.gg-deal-branches button.gg-zone-neutral:before{background:linear-gradient(90deg,#81909f99,#81909f33)!important}
+.gg-deal-branches:hover button:before{width:19px!important;opacity:.8}
+.gg-deal-branches button:hover:before,.gg-deal-branches button:focus-visible:before,.gg-deal-branches button.gg-branch-selected:before{width:32px!important;height:3px!important;opacity:1}
+
+
+.gg-extra-deal-filters{margin-top:20px}.gg-extra-deal-filters label{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--ink-2)}.gg-extra-deal-filters select,.gg-extra-deal-filters input{width:100%;min-width:0;background:var(--bg-card);color:var(--ink-1);border:1px solid var(--border);border-radius:8px;padding:11px;font:inherit}.gg-filter-date-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gg-deal-quick-filters{grid-template-columns:minmax(180px,460px) auto!important;justify-content:start;padding:12px 16px!important}.gg-deal-quick-filters label[hidden]{display:none!important}.gg-extra-deal-filters .gg-filter-section-title{margin:18px 0 10px}.gg-filter-panel .gg-drawer-body{overflow-y:auto}
+
+
+/* Clearer resting marks and responsive focus, with readable tooltips. */
+.gg-deal-drawer>.gg-deal-branches{opacity:.72!important;transition:opacity .12s!important}
+.gg-deal-drawer>.gg-deal-branches:hover,.gg-deal-drawer>.gg-deal-branches:focus-within{opacity:1!important}
+.gg-deal-branches button{opacity:.58!important}
+.gg-deal-branches button:before{opacity:.9!important;width:17px!important;transition:width .12s,opacity .12s,box-shadow .12s!important}
+.gg-deal-branches button.gg-zone-bad:before{background:linear-gradient(90deg,#ed8797e6,#ed879773)!important}
+.gg-deal-branches button.gg-zone-good:before{background:linear-gradient(90deg,#83c9aee6,#83c9ae73)!important}
+.gg-deal-branches button.gg-zone-neutral:before{background:linear-gradient(90deg,#9aa7b9cc,#9aa7b95c)!important}
+.gg-deal-branches:hover button{opacity:.78!important}
+.gg-deal-branches button:hover,.gg-deal-branches button:focus-visible,.gg-deal-branches button.gg-branch-selected{opacity:1!important}
+.gg-deal-branches button:hover:before,.gg-deal-branches button:focus-visible:before{width:35px!important;height:3px!important;filter:brightness(1.18);box-shadow:0 0 9px #9aa7b955!important}
+.gg-deal-branches button.gg-zone-bad:hover:before{box-shadow:0 0 11px #ed879777!important}
+.gg-deal-branches button.gg-zone-good:hover:before{box-shadow:0 0 11px #83c9ae77!important}
+.gg-deal-branches button:after{background:#202730!important;color:#edf2f7!important;border:1px solid #536172!important;box-shadow:0 8px 28px #0009!important;z-index:20!important;opacity:1!important;font-size:12px!important}
+
+
+/* Deal audit: full-width reading layout, plain text first. */
+.gg-deal-review .gg-deal-score-layout{display:block!important;width:100%!important;max-width:none!important;padding:22px!important}
+.gg-deal-review .gg-deal-radar-figure,.gg-deal-review .sc-grid{display:none!important}
+.gg-deal-review .gg-review-priority{width:100%!important;max-width:none!important;grid-column:1/-1!important}
+.gg-deal-review .gg-review-priority .dsum-v,.gg-deal-review .gg-review-priority .dsum-r,.gg-deal-review .gg-review-priority .dsum-p{width:100%!important;max-width:none!important;font-weight:400!important;font-size:15px!important;line-height:1.8!important}
+.gg-deal-review .gg-review-priority h4{font-weight:500!important;font-size:13px!important;letter-spacing:.2px!important;margin-top:24px!important}
+.gg-deal-review .gg-review-priority h4:first-child{margin-top:0!important}
+.gg-deal-review .da-cols{display:block!important}.gg-deal-review .da-col{width:100%!important;margin:0 0 16px!important}
+.gg-deal-review .gg-review-details{padding:20px!important;font-size:15px;line-height:1.75;font-weight:400}
+.gg-deal-review .gg-review-details h4,.gg-deal-review .gg-review-details b{font-weight:500!important}
+.gg-deal-review .gg-review-details ul{padding-left:20px}.gg-deal-review .gg-review-details li{margin:0 0 18px!important}
+.gg-deal-review .mk-q{font-weight:400!important;font-style:normal!important;line-height:1.7}
+.gg-deal-review .gg-review-summary{font-weight:400!important}.gg-deal-review .gg-review-audit-title{font-weight:500!important}

@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Native ROP workspace; presentation changes and explicitly requested plan-target correction."""
+import hashlib, html, json, re, shutil, sys
+from pathlib import Path
+
+template, style, behavior, site = map(Path, sys.argv[1:])
+target = site / 'rop/index.html'
+original = target.read_text(encoding='utf-8')
+def snapshot_hash(document):
+    start=document.index('const DATA=')+len('const DATA=')
+    _,length=json.JSONDecoder().raw_decode(document[start:])
+    return hashlib.sha256(document[start:start+length].encode()).hexdigest()
+source_snapshot=snapshot_hash(original)
+if 'id="gg-workspace"' in original:
+    raise SystemExit('Workspace already composed; rebuild from the original ROP source')
+source_scripts = re.findall(r'<script\b[^>]*>.*?</script>', original, re.S)
+# An empty month's CR2 must use the last explicitly entered norm, rather than the hidden 15% fallback.
+old_norm = 'const _pmH=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===String(S.end).slice(0,7));'
+new_norm = 'const _pmH=((DATA.plan&&DATA.plan.months)||[]).filter(x=>x.month<=String(S.end).slice(0,7)&&x.cr2>0).sort((a,b)=>a.month.localeCompare(b.month)).at(-1);'
+if original.count(old_norm) != 1:
+    raise SystemExit('Expected one health plan target lookup; source changed')
+original = original.replace(old_norm, new_norm)
+original = original.replace("const endDate=k=>{if(g===\"month\")return k+\"-31\";if(g===\"week\"){const dt=new Date(k+\"T00:00:00Z\");dt.setUTCDate(dt.getUTCDate()+6);return dt.toISOString().slice(0,10);}return k;};", "const endDate=k=>ggBucketEnd(k,g);")
+# Optional Google font CSS must not block the first dashboard paint.
+original = re.sub(r'<link\b(?=[^>]*fonts\.googleapis\.com)(?=[^>]*rel=["\']stylesheet["\'])[^>]*>', lambda m: re.sub(r'rel=["\']stylesheet["\']', 'rel="stylesheet" media="print" onload="this.media=\'all\'"', m[0]), original)
+
+# Large manager photos below the fold must not compete with the initial data load.
+original = original.replace('<img src="${photos[n]}"', '<img loading="lazy" decoding="async" src="${photos[n]}"')
+
+# Install all presentation wrappers before the initial render.
+original = original.replace("setPeriod('30');buildShell();const _rf=applyRopFocus();render();freshStamp();", "// Snapshot records are immutable for the lifetime of this page. Cache only date derivations.\nconst ggPrepayDates=new WeakMap(),ggProductionDates=new WeakMap(),ggSoldDates=new WeakMap();\nconst ggSourcePrepayDate=prepayDate,ggSourceProdDate=prodDate,ggSourceSoldDate=soldDate;\nprepayDate=function(d){if(!ggPrepayDates.has(d))ggPrepayDates.set(d,ggSourcePrepayDate(d));return ggPrepayDates.get(d);};\nprodDate=function(d){if(!ggProductionDates.has(d))ggProductionDates.set(d,ggSourceProdDate(d));return ggProductionDates.get(d);};\nsoldDate=function(d){let modes=ggSoldDates.get(d);if(!modes){modes=new Map();ggSoldDates.set(d,modes);}if(!modes.has(S.revMode))modes.set(S.revMode,ggSourceSoldDate(d));return modes.get(S.revMode);};\n\n// Cache pure snapshot selections by their complete filter state. Copy arrays for caller sorting.\nfunction ggCachedSelection(source,ranged=false){const cache=new Map();return function(...args){const key=JSON.stringify([ranged?(args[0]||S.start):S.start,ranged?(args[1]||S.end):S.end,S.fMgr,S.fSrc,S.fDir,S.fCli,S.dateBasis,S.revMode,S.amtMode,...(ranged?[]:args)]);if(!cache.has(key)){cache.set(key,source.apply(this,args));if(cache.size>512)cache.delete(cache.keys().next().value);}return cache.get(key).slice();};}\nconst ggBucketKeys=new Map(),ggOriginalBucketKey=bkey;\nbkey=function(date,gran){const key=gran+'|'+date;if(!ggBucketKeys.has(key))ggBucketKeys.set(key,ggOriginalBucketKey(date,gran));return ggBucketKeys.get(key);};\nconst ggBucketEnds=new Map(),ggHistoricalStages=new WeakMap();\nfunction ggBucketEnd(k,g){const key=g+'|'+k;if(!ggBucketEnds.has(key)){let value=k;if(g==='month')value=k+'-31';else if(g==='week'){const dt=new Date(k+'T00:00:00Z');dt.setUTCDate(dt.getUTCDate()+6);value=dt.toISOString().slice(0,10);}ggBucketEnds.set(key,value);}return ggBucketEnds.get(key);}\nfunction ggStageAtDate(d,date){const saved=ggHistoricalStages.get(d);if(saved&&saved.date===date)return saved.value;let value=null;for(const h of d.hist||[])if(h[1]&&h[1]<=date)value=h[0];ggHistoricalStages.set(d,{date,value});return value;}\n// Range indexes preserve the source's exact string comparisons and original record order.\nconst ggRangeIndexes=new Map();\nfunction ggIndexedRange(kind,rows,withClient,test,dateOf,a,b){\n a=a||S.start;b=b||S.end;\n const scope=JSON.stringify([kind,S.fMgr,S.fSrc,S.fDir,S.fCli,S.dateBasis,S.revMode]);\n let index=ggRangeIndexes.get(scope);\n if(!index){index=[];flt(rows,withClient).forEach((row,position)=>{if(!test(row))return;const date=dateOf(row);if(typeof date==='string')index.push({date,position,row});});index.sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:x.position-y.position);ggRangeIndexes.set(scope,index);if(ggRangeIndexes.size>48)ggRangeIndexes.delete(ggRangeIndexes.keys().next().value);}\n let lo=0,hi=index.length;while(lo<hi){const mid=(lo+hi)>>1;if(index[mid].date<a)lo=mid+1;else hi=mid;}const first=lo;hi=index.length;while(lo<hi){const mid=(lo+hi)>>1;if(index[mid].date<=b)lo=mid+1;else hi=mid;}\n return index.slice(first,lo).sort((x,y)=>x.position-y.position).map(x=>x.row);\n}\nFD=ggCachedSelection(function(){return ggIndexedRange('FD',AD,true,()=>true,d=>d.created);});\nFL=ggCachedSelection(function(){return ggIndexedRange('FL',AL,false,()=>true,d=>d.created);});\nPD=ggCachedSelection(function(){const[a,b]=prevWin();return ggIndexedRange('FD',AD,true,()=>true,d=>d.created,a,b);});\nPL=ggCachedSelection(function(){const[a,b]=prevWin();return ggIndexedRange('FL',AL,false,()=>true,d=>d.created,a,b);});\nSNAP=ggCachedSelection(SNAP);\nsoldSet=ggCachedSelection(function(a,b){return ggIndexedRange('sold',AD,true,SOLD,d=>S.dateBasis==='outcome'?(soldDate(d)||undefined):d.created,a,b);},true);\nlostSet=ggCachedSelection(function(a,b){return ggIndexedRange('lost',AD,true,d=>d.lost,d=>S.dateBasis==='outcome'?(d.closed||undefined):d.created,a,b);},true);\nprepaySet=ggCachedSelection(function(a,b){return ggIndexedRange('prepay',AD,true,d=>!!prepayDate(d),d=>S.dateBasis==='outcome'?prepayDate(d):d.created,a,b);},true);\nprodSet=ggCachedSelection(function(a,b){return ggIndexedRange('prod',AD,true,d=>!!prodDate(d),d=>S.dateBasis==='outcome'?prodDate(d):d.created,a,b);},true);\n\nsetPeriod('30');buildShell();const _rf=applyRopFocus();freshStamp();")
+scripts = re.findall(r'<script\b[^>]*>.*?</script>', original, re.S)
+if not scripts or 'let S=' not in ''.join(scripts) or 'id="root"' not in original:
+    raise SystemExit('ROP source structure changed')
+roster = []
+for row in (site / '.gg/managers.txt').read_text(encoding='utf-8').splitlines():
+    slug, _, name = row.partition('\t')
+    if not re.fullmatch(r'rop-[a-z0-9-]+', slug):
+        raise SystemExit('Invalid manager route')
+    roster.append(f'<a href="/{slug}/">{html.escape(name or slug)}</a>')
+from importlib.util import spec_from_file_location,module_from_spec
+_spec=spec_from_file_location('manager_grouping',style.parent/'manager-grouping.py');_group=module_from_spec(_spec);_spec.loader.exec_module(_group)
+_published=[html.unescape(re.search(r'>([^<]+)</a>',row)[1]) for row in roster]
+_rspec=spec_from_file_location('manager_roster',style.parent.parent/'tools/manager-roster.py');_roster=module_from_spec(_rspec);_rspec.loader.exec_module(_roster)
+original=_roster.rewrite_script(original,style.parent.parent/'conf/managers.conf')
+original=_group.apply_manager_grouping(original,_published)
+scripts=re.findall(r'<script\b[^>]*>.*?</script>',original,re.S)
+shell = template.read_text(encoding='utf-8').replace('<!-- MANAGERS -->', '\n'.join(roster))
+body = original.split('<body>', 1)[1].rsplit('</body>', 1)[0]
+# The original DOM, identifiers, events, charts and complete scripts stay intact.
+design_style = (style.parent / 'rop-approved-design.css').read_text(encoding='utf-8')
+design_behavior = (behavior.parent / 'rop-approved-design.js').read_text(encoding='utf-8')
+design_behavior = design_behavior.replace("const previous=render;render=function(){previous();sync();teamPlan();};render();", "const previous=render;render=function(){previous();sync();teamPlan();};")
+design_behavior += '\n' + (behavior.parent / 'rop-palette.js').read_text(encoding='utf-8')
+design_behavior += '\n' + (behavior.parent / 'rop-refinements.js').read_text(encoding='utf-8')
+design_behavior += '\n' + (behavior.parent / 'shared-shell.js').read_text(encoding='utf-8')
+font_source = style.parent / 'turbium-fonts'
+if font_source.is_dir():
+    shutil.copytree(font_source, site / 'turbium-fonts', dirs_exist_ok=True)
+page = original.split('<body>', 1)[0].replace('</head>', '<style>' + style.read_text(encoding='utf-8') + design_style + '</style></head>')
+page += '<body>' + shell.replace('<!-- DASHBOARD -->', '<div id="gg-dashboard">' + body + '</div>')
+page += '<script>' + behavior.read_text(encoding='utf-8') + '</script><script>' + design_behavior + '</script></body></html>'
+composed_scripts = re.findall(r'<script\b[^>]*>.*?</script>', page, re.S)
+if composed_scripts[:len(scripts)] != scripts:
+    raise SystemExit('Business script integrity failure')
+
+# Resolve the shared theme before styles and the large CRM snapshot are parsed.
+theme_bootstrap = "<script data-gg-theme-bootstrap>document.documentElement.dataset.sidebarMode='compact';try{document.documentElement.dataset.sidebarMode=localStorage.getItem('gg-sidebar-mode')||'compact';}catch(e){}document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
+ui_bootstrap = '<script data-gg-ui-bootstrap>document.documentElement.dataset.ggUi="pending";</script><style>html[data-gg-ui=pending] #root{visibility:hidden}html[data-gg-ui=pending] .gg-toolbar-top{visibility:hidden}</style>'
+page = page.replace('<head>', '<head>' + theme_bootstrap + ui_bootstrap, 1)
+if snapshot_hash(page)!=source_snapshot:
+    raise SystemExit('Raw CRM snapshot changed during workspace composition')
+def atomic(path, text):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + '.workspace-new')
+    temporary.write_text(text, encoding='utf-8')
+    temporary.replace(path)  # Never overwrite a hard-linked source/previous release inode.
+atomic(target, page)
+if snapshot_hash(target.read_text(encoding='utf-8'))!=source_snapshot:
+    raise SystemExit('Raw CRM snapshot verification failed after writing')
+for home in (site / 'index.html', site / 'dashboards/index.html'):
+    if home.is_file():
+        text = home.read_text(encoding='utf-8')
+        text = re.sub(r'<small class="org-status" data-status="rop">.*?</small>', '<small class="org-status" data-status="rop"><i class="org-dot live"></i>Дашборд есть</small>', text)
+        if 'data-gg-theme-bootstrap' not in text:
+            text = text.replace('<head>', '<head>' + theme_bootstrap, 1)
+        shared_style = '<style data-gg-shared-design>' + design_style + 'html[data-theme]{--bg:var(--bg-base);--surface:var(--bg-card);--soft:var(--bg-elevated);--text:var(--ink-2);--muted:var(--ink-3);--action:var(--ink)}</style>'
+        text = re.sub(r'<style data-gg-shared-design>.*?</style>', '', text, flags=re.S)
+        text = text.replace('</head>', shared_style + '</head>', 1)
+        # Use the same navigation and header on the structure page after native initialization.
+        common = shell[:shell.index('<main class="gg-main">')]
+        common = common.replace('href="#sec','href="/rop/#sec')
+        header = re.search(r'<header class="gg-topbar">.*?</header>', shell, re.S)[0].replace('/ Продажи / РОП GENGLASS', '/ Структура компании')
+        home_ui = "(function(){const old=document.querySelector('#sidebar'),main=document.querySelector('.workspace'),bar=main?.querySelector('.topbar'),content=main?.querySelector('.content');if(!old||!main||!bar)return;const brand=document.getElementById('brand');if(brand){brand.hidden=true;document.body.append(brand);}old.outerHTML="+json.dumps(common)+";main.classList.add('gg-main');bar.outerHTML="+json.dumps(header)+";content?.classList.add('gg-content');document.getElementById('backdrop')?.remove();const bd=document.createElement('button');bd.id='gg-backdrop';bd.hidden=true;document.body.append(bd);const root=document.getElementById('gg-workspace');root.append(main);})();"
+        shared_js = (behavior.parent/'workspace-pages.js').read_text(encoding='utf-8')+'\n'+(behavior.parent/'shared-shell.js').read_text(encoding='utf-8')
+        text = text.replace('<style data-gg-shared-design>', '<style>'+style.read_text(encoding='utf-8')+'</style><style data-gg-shared-design>', 1)
+        text = text.replace('</body>', '<script>'+home_ui+'</script><script>'+shared_js+'</script></body>', 1)
+        atomic(home, text)
+structure = site / 'index.html'
+if structure.is_file():
+    atomic(site / 'structure/index.html', structure.read_text(encoding='utf-8'))
+# The landing page is the company structure; ROP remains a section of the workspace.
+atomic(site / '.gg/workspace.json', json.dumps({
+    'version': 1, 'section': 'rop', 'managers': len(roster),
+    'source_sha256': hashlib.sha256(original.encode()).hexdigest(),
+    'business_scripts_sha256': hashlib.sha256(''.join(scripts).encode()).hexdigest(),
+    'business_scripts_unchanged': scripts == source_scripts, 'iframe': False,
+    'requested_business_change': 'Health CR2 last entered norm; lead and deal plan quantities without cycle coefficient; snapshot data unchanged; managers without published dashboards grouped as Другие before ratios/medians',
+}, ensure_ascii=False, indent=2))
+print('ROP native workspace composed; requested plan-target correction; managers:', len(roster))
+

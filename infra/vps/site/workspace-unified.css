@@ -1,0 +1,21 @@
+/* One frame for all GG pages, regardless of the native document's global CSS. */
+#gg-workspace,#gg-workspace *,#gg-menu{box-sizing:border-box}
+#gg-workspace{font-family:'Golos Text','Segoe UI',sans-serif;color:var(--ink)}
+#gg-workspace>.gg-main{display:block;max-width:none!important;width:auto!important;min-width:0!important;margin:0 0 0 var(--gg-sidebar)!important;padding:0!important}
+#gg-workspace>.gg-main>.gg-content{box-sizing:border-box;max-width:none!important;width:auto!important;margin:0!important;padding:28px 28px 60px!important}
+#gg-workspace .gg-topbar{height:58px!important;min-height:58px!important;padding:0 28px!important;margin:0!important;box-sizing:border-box}
+#gg-workspace .gg-sidebar{box-sizing:border-box!important}
+#gg-workspace .gg-heading{margin:0 0 20px;gap:20px}
+#gg-workspace .gg-heading h1,#gg-workspace .gallery-heading h1,#gg-workspace .org-title{font-family:inherit!important;font-size:27px!important;line-height:1.25!important;font-weight:600!important}
+#gg-workspace .gg-heading>div>p,#gg-workspace .gg-heading>p{line-height:1.55}
+#gg-workspace .gg-sidebar,#gg-workspace .gg-topbar,#gg-workspace button,#gg-workspace input,#gg-workspace select{font-family:'Golos Text','Segoe UI',sans-serif!important}
+#gg-workspace #gg-dashboard .card-title,#gg-workspace #gg-dashboard .card-t{font:600 14px/1.45 'Golos Text','Segoe UI',sans-serif!important}
+#gg-workspace #gg-dashboard .wrap{max-width:none!important;margin:0!important;padding:0!important}
+#gg-workspace #gg-dashboard>main{max-width:none!important;margin:0!important;padding:0!important}
+#gg-workspace #gg-dashboard{min-width:0;max-width:100%;overflow-x:auto}
+#gg-workspace .gg-empty-section{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg-card);color:var(--ink-3);font-size:13px}
+@media(max-width:800px){#gg-workspace>.gg-main{margin-left:0!important}#gg-workspace>.gg-main>.gg-content{padding:22px 14px 50px!important}#gg-workspace .gg-topbar{padding:0 16px!important}#gg-workspace .gg-heading h1,#gg-workspace .gallery-heading h1,#gg-workspace .org-title{font-size:24px!important}}
+/* Reserve navigation icon slots before the early shell script binds events. */
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary){font-size:0!important}
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary)>span{font-size:13px!important}
+#gg-sidebar:not([data-gg-shell-ready]) :is(.gg-nav>a,.gg-nav>details>summary):before{content:"";display:inline-flex;flex:0 0 22px;width:22px;height:22px}

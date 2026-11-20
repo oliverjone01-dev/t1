@@ -149,8 +149,8 @@ footer p{margin:0}
   </section>
 
   <section>
-    <h2>Выручка идёт за&nbsp;спросом</h2>
-    <p class="sub">Спрос в&nbsp;Яндексе по&nbsp;запросам «стеклянный памятник» и&nbsp;«памятник из&nbsp;стекла» и&nbsp;выручка 2026 по&nbsp;месяцам. Корреляция <b id="d-corr"></b> за&nbsp;январь–октябрь: пики в&nbsp;апреле и&nbsp;августе, провал в&nbsp;декабре–январе совпадают.</p>
+    <h2>Выручка и&nbsp;спрос движутся вместе</h2>
+    <p class="sub">Спрос в&nbsp;Яндексе по&nbsp;запросам «стеклянный памятник» и&nbsp;«памятник из&nbsp;стекла» и&nbsp;выручка 2026 по&nbsp;месяцам. Совпадает общая форма: зима низкая, март–август высокие, корреляция <b id="d-corr"></b> на&nbsp;10 месяцах. Пики по&nbsp;месяцам не&nbsp;совпадают: спрос пиковал в&nbsp;апреле и&nbsp;августе, выручка в&nbsp;марте, мае и&nbsp;июле.</p>
     <div class="chart">
       <ul class="legend">
         <li><span class="sw" style="background:var(--accent-soft)"></span>Выручка, млн&nbsp;₽</li>
@@ -183,7 +183,7 @@ footer p{margin:0}
     <div class="hero">
       <div><b id="h27-year"></b><p>цель на&nbsp;2027 год: три выручки 2026-го</p></div>
       <div><b id="h27-mo"></b><p>в среднем за&nbsp;месяц. По&nbsp;сезонности спроса от&nbsp;<span id="h27-min"></span> в&nbsp;декабре до&nbsp;<span id="h27-max"></span> в&nbsp;апреле</p></div>
-      <div><b class="neg" id="h27-gap"></b><p>столько нужно прибавить к&nbsp;темпу октября–ноября уже в&nbsp;январе</p></div>
+      <div><b class="neg" id="h27-gap"></b><p>столько нужно прибавить к&nbsp;темпу октября–ноября в&nbsp;январе по&nbsp;сезонному плану</p></div>
     </div>
   </section>
 
@@ -199,7 +199,7 @@ footer p{margin:0}
   </section>
 
   <section>
-    <h2>Спрос 2027: рынок вырастет на&nbsp;<span id="d-yoy"></span>, а&nbsp;не&nbsp;втрое</h2>
+    <h2>Спрос 2027 по&nbsp;прогнозу вырастет на&nbsp;<span id="d-yoy"></span>, а&nbsp;не&nbsp;втрое <span class="chip hyp">гипотеза</span></h2>
     <p class="sub">Прогноз запросов на&nbsp;2027: средний уровень последних 12 месяцев, рост как в&nbsp;2026 к&nbsp;2025 и&nbsp;та&nbsp;же сезонность. Значит, x3 по&nbsp;выручке придётся брать долей рынка: с&nbsp;каждой тысячи запросов нужно получать <span id="d-k27"></span> вместо <span id="d-k26"></span>.</p>
     <div class="chart">
       <ul class="legend">
@@ -216,8 +216,8 @@ footer p{margin:0}
   </section>
 
   <section>
-    <h2>План по&nbsp;месяцам с&nbsp;сезонностью</h2>
-    <p class="sub">Годовая цель разложена по&nbsp;сезонному коэффициенту спроса: среднее <span id="p27-mo"></span>, в&nbsp;апреле в&nbsp;1,4 раза больше среднего, в&nbsp;декабре и&nbsp;январе на&nbsp;треть меньше. Нормы дилеров, сделок и&nbsp;производства в&nbsp;дереве выше даны для среднего месяца, в&nbsp;каждом месяце их нужно умножать на&nbsp;тот&nbsp;же коэффициент.</p>
+    <h2>План по&nbsp;месяцам с&nbsp;сезонностью <span class="chip calc">расчёт</span></h2>
+    <p class="sub">Годовая цель разложена по&nbsp;сезонному коэффициенту спроса: среднее <span id="p27-mo"></span>, в&nbsp;апреле в&nbsp;1,4 раза больше среднего, в&nbsp;декабре и&nbsp;январе на&nbsp;треть меньше. Нормы дилеров, сделок и&nbsp;производства в&nbsp;дереве выше даны для среднего месяца, в&nbsp;каждом месяце их нужно умножать на&nbsp;тот&nbsp;же коэффициент. Коэффициенты февраля и&nbsp;августа ненадёжны: в&nbsp;2025 и&nbsp;2026 годах спрос в&nbsp;эти месяцы отличался в&nbsp;2 раза, план февраля может оказаться на&nbsp;треть ниже.</p>
     <div class="chart">
       <ul class="legend">
         <li><span class="sw" style="background:var(--plan)"></span>План месяца</li>
@@ -292,7 +292,7 @@ $('h26-mo').textContent=mlnU(M.y26/12);
 $('h26-now').textContent=mlnU(now);
 $('h27-year').textContent=mlnU(M.y27);
 $('h27-mo').textContent=mlnU(M.mo27);
-$('h27-gap').textContent='+'+mlnU(M.mo27-now);
+$('h27-gap').textContent='+'+mlnU(M.plan27[0]-now);
 $('p27-mo').textContent=mlnU(M.mo27);
 const DM=M.demand,P27=M.plan27,SE=M.season;
 $('h27-min').textContent=mlnU(P27[11]);$('h27-max').textContent=mlnU(P27[3]);
@@ -392,7 +392,7 @@ $('tcmp').innerHTML=rows.map(r=>r.length===1?`<tr class="sep"><td colspan="5">${
 
 {const mx=P27.map((p,i)=>[p/M.rev2026[i],i]).sort((a,b)=>b[0]-a[0]);const f=v=>'×'+v.toLocaleString('ru-RU',{maximumFractionDigits:1});
  const rest=mx.slice(3).map(x=>x[0]);
- $('tmon-sub').innerHTML=`Сильнее всего план растёт в&nbsp;месяцах, где 2026 был слабым: ${mx.slice(0,3).map(x=>MONF[x[1]].toLowerCase()+' '+f(x[0])).join(', ')}. В&nbsp;остальных месяцах рост от&nbsp;${f(Math.min(...rest))} до&nbsp;${f(Math.max(...rest))}. Начало 2026 года было разгоном бизнеса, поэтому январь и&nbsp;февраль к&nbsp;прошлому году выглядят особенно резко.`;}
+ $('tmon-sub').innerHTML=`Сильнее всего план растёт в&nbsp;месяцах, где 2026 был слабым: ${mx.slice(0,3).map(x=>MONF[x[1]].toLowerCase()+' '+f(x[0])).join(', ')}. В&nbsp;остальных месяцах рост от&nbsp;${f(Math.min(...rest))} до&nbsp;${f(Math.max(...rest))}.`;}
 $('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${SE[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(P27[i])}${nb}млн</td><td class="num x">${xf(v,P27[i])}</td></tr>`).join('');
 
 /* ---------- графики ---------- */

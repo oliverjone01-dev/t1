@@ -149,6 +149,19 @@ footer p{margin:0}
   </section>
 
   <section>
+    <h2>Выручка идёт за&nbsp;спросом</h2>
+    <p class="sub">Спрос в&nbsp;Яндексе по&nbsp;запросам «стеклянный памятник» и&nbsp;«памятник из&nbsp;стекла» и&nbsp;выручка 2026 по&nbsp;месяцам. Корреляция <b id="d-corr"></b> за&nbsp;январь–октябрь: пики в&nbsp;апреле и&nbsp;августе, провал в&nbsp;декабре–январе совпадают.</p>
+    <div class="chart">
+      <ul class="legend">
+        <li><span class="sw" style="background:var(--accent-soft)"></span>Выручка, млн&nbsp;₽</li>
+        <li><span class="sw" style="background:var(--plan);height:3px"></span>Запросов в&nbsp;месяц</li>
+      </ul>
+      <div id="c26d"></div>
+    </div>
+    <p class="note">Источник спроса: Яндекс Вордстат, все регионы, все устройства. Значения сняты с&nbsp;графиков и&nbsp;сверены с&nbsp;таблицей Вордстата за&nbsp;ноябрь 2024 – февраль 2025, точность около ±3%. Корреляция на&nbsp;10 месяцах показывает совпадение формы, а&nbsp;не&nbsp;причину.</p>
+  </section>
+
+  <section>
     <h2>Из&nbsp;чего сложилась выручка 2026</h2>
     <p class="sub">Средние за&nbsp;январь–ноябрь. Две трети денег приносят дилеры, треть розница.</p>
     <div class="tree" id="tree26"></div>
@@ -169,7 +182,7 @@ footer p{margin:0}
   <section>
     <div class="hero">
       <div><b id="h27-year"></b><p>цель на&nbsp;2027 год: три выручки 2026-го</p></div>
-      <div><b id="h27-mo"></b><p>каждый месяц, начиная с&nbsp;января</p></div>
+      <div><b id="h27-mo"></b><p>в среднем за&nbsp;месяц. По&nbsp;сезонности спроса от&nbsp;<span id="h27-min"></span> в&nbsp;декабре до&nbsp;<span id="h27-max"></span> в&nbsp;апреле</p></div>
       <div><b class="neg" id="h27-gap"></b><p>столько нужно прибавить к&nbsp;темпу октября–ноября уже в&nbsp;январе</p></div>
     </div>
   </section>
@@ -186,8 +199,25 @@ footer p{margin:0}
   </section>
 
   <section>
-    <h2>План по&nbsp;месяцам</h2>
-    <p class="sub">Норма ровная: <span id="p27-mo"></span> каждый месяц. Накопленным итогом видно, где должен быть отдел к&nbsp;концу каждого квартала.</p>
+    <h2>Спрос 2027: рынок вырастет на&nbsp;<span id="d-yoy"></span>, а&nbsp;не&nbsp;втрое</h2>
+    <p class="sub">Прогноз запросов на&nbsp;2027: средний уровень последних 12 месяцев, рост как в&nbsp;2026 к&nbsp;2025 и&nbsp;та&nbsp;же сезонность. Значит, x3 по&nbsp;выручке придётся брать долей рынка: с&nbsp;каждой тысячи запросов нужно получать <span id="d-k27"></span> вместо <span id="d-k26"></span>.</p>
+    <div class="chart">
+      <ul class="legend">
+        <li><span class="sw" style="background:var(--accent);height:3px"></span>Запросов в&nbsp;месяц, факт</li>
+        <li><span class="sw dash" style="height:3px;border-width:1.5px"></span>Прогноз</li>
+      </ul>
+      <div id="c27d"></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Запрос</th><th class="num">За&nbsp;ноябрь 2024 – октябрь 2025</th><th class="num">За&nbsp;ноябрь 2025 – октябрь 2026</th><th class="num">Рост</th></tr></thead>
+      <tbody id="tq"></tbody>
+    </table></div>
+    <p class="note">«Фото на&nbsp;стекле» шире ниши памятников (рамки, подарки), поэтому в&nbsp;ядро спроса не&nbsp;входит, но&nbsp;его сезонность та&nbsp;же. Прогноз спроса и&nbsp;выручка на&nbsp;тысячу запросов: <span class="chip hyp">гипотеза</span>.</p>
+  </section>
+
+  <section>
+    <h2>План по&nbsp;месяцам с&nbsp;сезонностью</h2>
+    <p class="sub">Годовая цель разложена по&nbsp;сезонному коэффициенту спроса: среднее <span id="p27-mo"></span>, в&nbsp;апреле в&nbsp;1,4 раза больше среднего, в&nbsp;декабре и&nbsp;январе на&nbsp;треть меньше. Нормы дилеров, сделок и&nbsp;производства в&nbsp;дереве выше даны для среднего месяца, в&nbsp;каждом месяце их нужно умножать на&nbsp;тот&nbsp;же коэффициент.</p>
     <div class="chart">
       <ul class="legend">
         <li><span class="sw" style="background:var(--plan)"></span>План месяца</li>
@@ -196,7 +226,7 @@ footer p{margin:0}
       <div id="c27"></div>
     </div>
     <div class="tbl"><table>
-      <thead><tr><th>Квартал</th><th class="num">Выручка плана</th><th class="num">Накопленно с&nbsp;начала года</th><th class="num">Сделок за&nbsp;квартал</th><th class="num">Новых дилеров за&nbsp;квартал</th></tr></thead>
+      <thead><tr><th>Квартал</th><th class="num">Выручка плана</th><th class="num">Накопленно с&nbsp;начала года</th><th class="num">Сделок за&nbsp;квартал</th><th class="num">Активных дилеров в&nbsp;среднем</th></tr></thead>
       <tbody id="q27"></tbody>
     </table></div>
   </section>
@@ -225,9 +255,9 @@ footer p{margin:0}
 
   <section>
     <h2>Месяц к&nbsp;месяцу</h2>
-    <p class="sub">При ровном плане январь и&nbsp;февраль 2027 должны вырасти в&nbsp;6–7 раз к&nbsp;прошлому году, а&nbsp;май и&nbsp;июль примерно вдвое. Самые трудные месяцы стоят в&nbsp;начале года.</p>
+    <p class="sub" id="tmon-sub"></p>
     <div class="tbl"><table>
-      <thead><tr><th>Месяц</th><th class="num">2026</th><th class="num">План 2027</th><th class="num">Рост</th></tr></thead>
+      <thead><tr><th>Месяц</th><th class="num">Сезонный коэффициент</th><th class="num">2026</th><th class="num">План 2027</th><th class="num">Рост</th></tr></thead>
       <tbody id="tmon"></tbody>
     </table></div>
   </section>
@@ -240,7 +270,7 @@ footer p{margin:0}
 </div>
 
 <script>
-const M={"months2026": [{"mo": 1, "rev": 991281, "n": 32, "dRev": 703721, "dN": 23, "rRev": 287560, "rN": 9, "act": 11, "mgrs": 2, "top": 56, "cost": 41, "lt": 192, "status": "факт"}, {"mo": 2, "rev": 1118449, "n": 44, "dRev": 928739, "dN": 40, "rRev": 189710, "rN": 4, "act": 13, "mgrs": 2, "top": 53, "cost": 36, "lt": 150, "status": "факт"}, {"mo": 3, "rev": 3209648, "n": 65, "dRev": 1628678, "dN": 54, "rRev": 1580970, "rN": 11, "act": 18, "mgrs": 3, "top": 41, "cost": 41, "lt": 136, "status": "факт"}, {"mo": 4, "rev": 2445096, "n": 78, "dRev": 1511675, "dN": 60, "rRev": 933421, "rN": 18, "act": 19, "mgrs": 2, "top": 63, "cost": 37, "lt": null, "status": "факт"}, {"mo": 5, "rev": 3478750, "n": 100, "dRev": 1915594, "dN": 74, "rRev": 1563156, "rN": 26, "act": 15, "mgrs": 2, "top": 59, "cost": 39, "lt": 73, "status": "факт"}, {"mo": 6, "rev": 2081055, "n": 74, "dRev": 1725355, "dN": 68, "rRev": 355700, "rN": 6, "act": 18, "mgrs": 2, "top": 88, "cost": 40, "lt": 43, "status": "факт"}, {"mo": 7, "rev": 3429365, "n": 92, "dRev": 2532014, "dN": 77, "rRev": 897351, "rN": 15, "act": 25, "mgrs": 4, "top": 66, "cost": 36, "lt": 41, "status": "факт"}, {"mo": 8, "rev": 2873517, "n": 81, "dRev": 1838942, "dN": 70, "rRev": 1034575, "rN": 11, "act": 20, "mgrs": 2, "top": 91, "cost": 36, "lt": 39, "status": "факт"}, {"mo": 9, "rev": 2132587, "n": 64, "dRev": 1233109, "dN": 55, "rRev": 899478, "rN": 9, "act": 24, "mgrs": 2, "top": 82, "cost": 34, "lt": 34, "status": "факт"}, {"mo": 10, "rev": 1599016, "n": 46, "dRev": 1274488, "dN": 39, "rRev": 324528, "rN": 7, "act": 17, "mgrs": 2, "top": 69, "cost": 41, "lt": 26, "status": "факт"}, {"mo": 11, "rev": 1412703, "n": 36, "dRev": 904703, "dN": 32, "rRev": 508000, "rN": 4, "act": 11, "mgrs": 2, "top": 80, "cost": 35, "lt": null, "status": "факт по 19.11 + прогноз по темпу", "fact_partial": 1412703, "rev_full": 2173389}, {"mo": 12, "rev": null, "rev_full": 1886202, "status": "гипотеза: среднее октября и прогноза ноября"}], "rev2026": [991281, 1118449, 3209648, 2445096, 3478750, 2081055, 3429365, 2873517, 2132587, 1599016, 2173389, 1886202], "y26": 27418355, "factJanNov": 24771467, "decRev": 1886202, "novFull": 2173389, "y27": 82255065, "mo27": 6854589, "assumptions": {"multiplier": 3, "dealer_share": "2026", "dealer_check_growth": 0.1, "deals_per_dealer": 3.5, "retail_check_growth": 0.1, "rev_per_manager": 1400000, "top_manager_cap": 40, "new_dealers_per_month": 10, "cost_share_cap": 38}, "k26": {"dealerRev": 17927706, "retailRev": 9490649, "dealerShare": 65, "active": 17.4, "freq": 3.1, "checkD": 27360, "retailN": 10.9, "checkR": 71454, "deals": 65, "managers": 2, "topShare": 68, "newDealers": 4.8, "cost": 38, "lead": 38, "gross": 17049232, "revPerMgr": 1142431}, "k27": {"dealerRev": 53783119, "retailRev": 28471946, "dealerShare": 65, "active": 43, "freq": 3.5, "checkD": 30096, "retailN": 30, "checkR": 78599, "deals": 179, "managers": 5, "topShare": 40, "newDealers": 10, "cost": 38, "lead": 38, "gross": 50998140, "revPerMgr": 1400000}, "bridge": [{"label": "Выручка 2026", "v": 27418355, "kind": "base"}, {"label": "Больше активных дилеров", "v": 25445838, "kind": "step"}, {"label": "Чаще заказывают", "v": 5555162, "kind": "step"}, {"label": "Чек дилера +10%", "v": 4854413, "kind": "step"}, {"label": "Розница", "v": 18981297, "kind": "step"}, {"label": "Цель 2027", "v": 82255065, "kind": "base"}], "nov2026": {"active": 11, "rev": 2173389, "oct": 1599016, "activeOct": 17}};
+const M={"months2026": [{"mo": 1, "rev": 991281, "n": 32, "dRev": 703721, "dN": 23, "rRev": 287560, "rN": 9, "act": 11, "mgrs": 2, "top": 56, "cost": 41, "lt": 192, "status": "факт"}, {"mo": 2, "rev": 1118449, "n": 44, "dRev": 928739, "dN": 40, "rRev": 189710, "rN": 4, "act": 13, "mgrs": 2, "top": 53, "cost": 36, "lt": 150, "status": "факт"}, {"mo": 3, "rev": 3209648, "n": 65, "dRev": 1628678, "dN": 54, "rRev": 1580970, "rN": 11, "act": 18, "mgrs": 3, "top": 41, "cost": 41, "lt": 136, "status": "факт"}, {"mo": 4, "rev": 2445096, "n": 78, "dRev": 1511675, "dN": 60, "rRev": 933421, "rN": 18, "act": 19, "mgrs": 2, "top": 63, "cost": 37, "lt": null, "status": "факт"}, {"mo": 5, "rev": 3478750, "n": 100, "dRev": 1915594, "dN": 74, "rRev": 1563156, "rN": 26, "act": 15, "mgrs": 2, "top": 59, "cost": 39, "lt": 73, "status": "факт"}, {"mo": 6, "rev": 2081055, "n": 74, "dRev": 1725355, "dN": 68, "rRev": 355700, "rN": 6, "act": 18, "mgrs": 2, "top": 88, "cost": 40, "lt": 43, "status": "факт"}, {"mo": 7, "rev": 3429365, "n": 92, "dRev": 2532014, "dN": 77, "rRev": 897351, "rN": 15, "act": 25, "mgrs": 4, "top": 66, "cost": 36, "lt": 41, "status": "факт"}, {"mo": 8, "rev": 2873517, "n": 81, "dRev": 1838942, "dN": 70, "rRev": 1034575, "rN": 11, "act": 20, "mgrs": 2, "top": 91, "cost": 36, "lt": 39, "status": "факт"}, {"mo": 9, "rev": 2132587, "n": 64, "dRev": 1233109, "dN": 55, "rRev": 899478, "rN": 9, "act": 24, "mgrs": 2, "top": 82, "cost": 34, "lt": 34, "status": "факт"}, {"mo": 10, "rev": 1599016, "n": 46, "dRev": 1274488, "dN": 39, "rRev": 324528, "rN": 7, "act": 17, "mgrs": 2, "top": 69, "cost": 41, "lt": 26, "status": "факт"}, {"mo": 11, "rev": 1412703, "n": 36, "dRev": 904703, "dN": 32, "rRev": 508000, "rN": 4, "act": 11, "mgrs": 2, "top": 80, "cost": 35, "lt": null, "status": "факт по 19.11 + прогноз по темпу", "fact_partial": 1412703, "rev_full": 2173389}, {"mo": 12, "rev": null, "rev_full": 1886202, "status": "гипотеза: среднее октября и прогноза ноября"}], "rev2026": [991281, 1118449, 3209648, 2445096, 3478750, 2081055, 3429365, 2873517, 2132587, 1599016, 2173389, 1886202], "y26": 27418355, "factJanNov": 24771467, "decRev": 1886202, "novFull": 2173389, "y27": 82255065, "mo27": 6854589, "assumptions": {"multiplier": 3, "dealer_share": "2026", "dealer_check_growth": 0.1, "deals_per_dealer": 3.5, "retail_check_growth": 0.1, "rev_per_manager": 1400000, "top_manager_cap": 40, "new_dealers_per_month": 10, "cost_share_cap": 38, "demand_growth": "yoy"}, "k26": {"dealerRev": 17927706, "retailRev": 9490649, "dealerShare": 65, "active": 17.4, "freq": 3.1, "checkD": 27360, "retailN": 10.9, "checkR": 71454, "deals": 65, "managers": 2, "topShare": 68, "newDealers": 4.8, "cost": 38, "lead": 38, "gross": 17049232, "revPerMgr": 1142431}, "k27": {"dealerRev": 53783119, "retailRev": 28471946, "dealerShare": 65, "active": 43, "freq": 3.5, "checkD": 30096, "retailN": 30, "checkR": 78599, "deals": 179, "managers": 5, "topShare": 40, "newDealers": 10, "cost": 38, "lead": 38, "gross": 50998140, "revPerMgr": 1400000}, "bridge": [{"label": "Выручка 2026", "v": 27418355, "kind": "base"}, {"label": "Больше активных дилеров", "v": 25445838, "kind": "step"}, {"label": "Чаще заказывают", "v": 5555162, "kind": "step"}, {"label": "Чек дилера +10%", "v": 4854413, "kind": "step"}, {"label": "Розница", "v": 18981297, "kind": "step"}, {"label": "Цель 2027", "v": 82255065, "kind": "base"}], "season": [0.675, 0.981, 0.993, 1.416, 1.15, 1.124, 1.153, 1.289, 1.016, 0.794, 0.745, 0.664], "plan27": [4628217, 6724196, 6809509, 9703356, 7884643, 7702384, 7902094, 8833748, 6965592, 5445474, 5107132, 4548721], "demand": {"months": ["2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"], "queries": {"стеклянный памятник": [1247, 1015, 1178, 1969, 1711, 1943, 1849, 1875, 1453, 1359, 1264, 1255, 1049, 1066, 843, 911, 1599, 2451, 1857, 1634, 2262, 2898, 2064, 1161], "памятник из стекла": [1524, 1524, 1638, 2893, 2076, 2351, 2475, 2332, 1866, 1743, 1648, 1572, 1448, 1087, 1115, 1163, 1638, 3264, 1952, 2104, 2570, 3112, 2209, 1629], "фото на стекле": [12062, 12032, 11605, 14808, 12246, 13496, 11971, 11727, 12093, 12459, 11208, 12368, 11636, 11117, 9622, 9928, 11636, 14838, 13160, 12672, 14564, 16607, 13648, 12825]}, "core": [2771, 2539, 2816, 4862, 3787, 4294, 4324, 4207, 3319, 3102, 2912, 2827, 2497, 2153, 1958, 2074, 3237, 5715, 3809, 3738, 4832, 6010, 4273, 2790], "core27": [2556, 3714, 3761, 5360, 4355, 4254, 4365, 4879, 3847, 3008, 2821, 2512], "yoy": 0.054, "growth": 0.054, "corr": 0.64, "revPerK26": 607731, "revPerK27": 1810509, "source": "Яндекс Вордстат, «Динамика», по месяцам, все регионы, все устройства, ноябрь 2024 - октябрь 2026. Скриншоты Ивана 20.11.2026.", "method": "Значения сняты с графика по пикселям и откалиброваны по строкам таблицы под графиком (ноябрь 2024 - февраль 2025 совпадают точно). Остальные месяцы - оценка с точностью около ±3%. Заменить на выгрузку CSV из Вордстата."}, "nov2026": {"active": 11, "rev": 2173389, "oct": 1599016, "activeOct": 17}};
 const MON=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 const MONF=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const nb=' ';
@@ -264,6 +294,13 @@ $('h27-year').textContent=mlnU(M.y27);
 $('h27-mo').textContent=mlnU(M.mo27);
 $('h27-gap').textContent='+'+mlnU(M.mo27-now);
 $('p27-mo').textContent=mlnU(M.mo27);
+const DM=M.demand,P27=M.plan27,SE=M.season;
+$('h27-min').textContent=mlnU(P27[11]);$('h27-max').textContent=mlnU(P27[3]);
+$('d-corr').textContent=DM.corr.toLocaleString('ru-RU');
+$('d-yoy').textContent=(DM.growth*100).toLocaleString('ru-RU',{maximumFractionDigits:0})+'%';
+$('d-k26').textContent=tysU(DM.revPerK26);$('d-k27').textContent=mlnU(DM.revPerK27).replace(nb+'₽','')+nb+'₽';
+$('tq').innerHTML=Object.entries(DM.queries).map(([q,v])=>{const a=v.slice(0,12).reduce((x,y)=>x+y,0),b=v.slice(12,24).reduce((x,y)=>x+y,0);
+  return `<tr><td>${q}</td><td class="num">${a.toLocaleString('ru-RU')}</td><td class="num">${b.toLocaleString('ru-RU')}</td><td class="num x">${(b/a-1>=0?'+':'')+((b/a-1)*100).toLocaleString('ru-RU',{maximumFractionDigits:0})}%</td></tr>`}).join('');
 $('cmp-add').textContent=mln(M.y27-M.y26)+nb+'млн'+nb+'₽';
 
 /* ---------- дерево ---------- */
@@ -314,12 +351,14 @@ $('res27').innerHTML=[
 
 /* ---------- кварталы 2027 ---------- */
 let acc=0;
-$('q27').innerHTML=[0,1,2,3].map(q=>{const v=M.mo27*3;acc+=v;
-  return `<tr><td>${['I','II','III','IV'][q]} квартал</td><td class="num strong">${mln(v)}${nb}млн</td><td class="num">${mln(acc)}${nb}млн</td><td class="num">${K7.deals*3}</td><td class="num">${K7.newDealers*3}</td></tr>`}).join('');
+$('q27').innerHTML=[0,1,2,3].map(q=>{const idx=[0,1,2].map(k=>q*3+k);const v=idx.reduce((a,k)=>a+P27[k],0);acc+=v;
+  const se=idx.reduce((a,k)=>a+SE[k],0)/3;
+  return `<tr><td>${['I','II','III','IV'][q]} квартал</td><td class="num strong">${mln(v)}${nb}млн</td><td class="num">${mln(acc)}${nb}млн</td><td class="num">${Math.round(K7.deals*3*se)}</td><td class="num">${Math.round(K7.active*se)}</td></tr>`}).join('');
 
+const jan=Math.round(K7.active*SE[0]);
 $('gap27').innerHTML=`<b>Главный риск плана: январь</b>
-  <p>В&nbsp;октябре 2026, последнем полном месяце, платили ${M.nov2026.activeOct} дилеров, по&nbsp;19&nbsp;ноября ${M.nov2026.active}. В&nbsp;январе их должно быть ${K7.active}: это ×${(K7.active/M.nov2026.activeOct).toLocaleString('ru-RU',{maximumFractionDigits:1})} к&nbsp;октябрю за&nbsp;два с&nbsp;половиной месяца, а&nbsp;январь в&nbsp;2026 был самым слабым месяцем года. Без обзвона ушедших дилеров в&nbsp;декабре и&nbsp;найма до&nbsp;Нового года январская норма не&nbsp;выполнима.</p>
-  <p>Если ровный план с&nbsp;января невозможен, честнее поставить разгон: I&nbsp;квартал ×2, со&nbsp;II&nbsp;квартала ×3,3. Годовая сумма при этом сохраняется.</p>`;
+  <p>Январь сезонно слабый, его план ${mlnU(P27[0])}, это ×${(P27[0]/M.nov2026.oct).toLocaleString('ru-RU',{maximumFractionDigits:1})} к&nbsp;октябрю 2026. Активных дилеров в&nbsp;январе нужно около ${jan}, а&nbsp;в&nbsp;октябре 2026 их было ${M.nov2026.activeOct}, по&nbsp;19&nbsp;ноября ${M.nov2026.active}. Это ×${(jan/M.nov2026.activeOct).toLocaleString('ru-RU',{maximumFractionDigits:1})} за&nbsp;два с&nbsp;половиной месяца.</p>
+  <p>Главная нагрузка приходится на&nbsp;апрель: план ${mlnU(P27[3])}, активных дилеров нужно около ${Math.round(K7.active*SE[3])}. Производство и&nbsp;команда должны быть готовы к&nbsp;этому пику в&nbsp;марте, то&nbsp;есть найм и&nbsp;обзвон ушедших дилеров нужно начинать в&nbsp;декабре.</p>`;
 
 /* ---------- сравнение ---------- */
 const rows=[
@@ -330,6 +369,9 @@ const rows=[
   ['Розница',mlnU(K6.retailRev),mlnU(K7.retailRev),xf(K6.retailRev,K7.retailRev),'calc'],
   ['Доля дилеров в&nbsp;выручке',K6.dealerShare+'%',K7.dealerShare+'%','','hyp'],
   ['Валовая прибыль',mlnU(K6.gross),mlnU(K7.gross),xf(K6.gross,K7.gross),'hyp'],
+  ['Спрос'],
+  ['Запросов ядра за&nbsp;год',DM.core.slice(12,24).reduce((a,b)=>a+b,0).toLocaleString('ru-RU'),DM.core27.reduce((a,b)=>a+b,0).toLocaleString('ru-RU'),xf(DM.core.slice(12,24).reduce((a,b)=>a+b,0),DM.core27.reduce((a,b)=>a+b,0)),'hyp'],
+  ['Выручка на&nbsp;1&nbsp;000 запросов',tysU(DM.revPerK26),tysU(DM.revPerK27),xf(DM.revPerK26,DM.revPerK27),'calc'],
   ['Дилеры'],
   ['Активных дилеров в&nbsp;месяц',n1(K6.active),n1(K7.active),xf(K6.active,K7.active),'calc'],
   ['Сделок на&nbsp;дилера в&nbsp;месяц',n1(K6.freq),n1(K7.freq),xf(K6.freq,K7.freq),'hyp'],
@@ -348,7 +390,10 @@ const rows=[
 $('tcmp').innerHTML=rows.map(r=>r.length===1?`<tr class="sep"><td colspan="5">${r[0]}</td></tr>`:
   `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num strong">${r[2]}</td><td class="num x">${r[3]}</td><td>${chip(r[4])}</td></tr>`).join('');
 
-$('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(M.mo27)}${nb}млн</td><td class="num x">${xf(v,M.mo27)}</td></tr>`).join('');
+{const mx=P27.map((p,i)=>[p/M.rev2026[i],i]).sort((a,b)=>b[0]-a[0]);const f=v=>'×'+v.toLocaleString('ru-RU',{maximumFractionDigits:1});
+ const rest=mx.slice(3).map(x=>x[0]);
+ $('tmon-sub').innerHTML=`Сильнее всего план растёт в&nbsp;месяцах, где 2026 был слабым: ${mx.slice(0,3).map(x=>MONF[x[1]].toLowerCase()+' '+f(x[0])).join(', ')}. В&nbsp;остальных месяцах рост от&nbsp;${f(Math.min(...rest))} до&nbsp;${f(Math.max(...rest))}. Начало 2026 года было разгоном бизнеса, поэтому январь и&nbsp;февраль к&nbsp;прошлому году выглядят особенно резко.`;}
+$('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${SE[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(P27[i])}${nb}млн</td><td class="num x">${xf(v,P27[i])}</td></tr>`).join('');
 
 /* ---------- графики ---------- */
 const NS='http://www.w3.org/2000/svg';
@@ -369,15 +414,42 @@ function chart26(){
   });
 }
 function chart27(){
-  const H=240,[s,W]=mk('c27',H),pt=28,pb=28,n=12,slot=W/n,bw=Math.min(22,slot*.32);
-  const max=M.mo27*1.12,y=v=>pt+(H-pt-pb)*(1-v/max);
+  const H=260,[s,W]=mk('c27',H),pt=28,pb=28,n=12,slot=W/n,bw=Math.min(22,slot*.32);
+  const max=Math.max(...P27)*1.12,y=v=>pt+(H-pt-pb)*(1-v/max);
   el(s,'line',{x1:0,x2:W,y1:H-pb,y2:H-pb,stroke:css('--grid')});
-  M.rev2026.forEach((v,i)=>{const cx=slot*i+slot/2;
+  P27.forEach((p,i)=>{const cx=slot*i+slot/2,v=M.rev2026[i];
     el(s,'rect',{x:cx-bw-1,y:y(v),width:bw,height:y(0)-y(v),fill:css('--accent-soft'),rx:3});
-    el(s,'rect',{x:cx+1,y:y(M.mo27),width:bw,height:y(0)-y(M.mo27),fill:css('--plan'),rx:3});
+    el(s,'rect',{x:cx+1,y:y(p),width:bw,height:y(0)-y(p),fill:css('--plan'),rx:3});
+    el(s,'text',{x:cx,y:y(p)-8,'text-anchor':'middle',class:'val','font-size':slot<44?11:13},mln(p));
     el(s,'text',{x:cx,y:H-8,'text-anchor':'middle','font-size':slot<36?11:13},MON[i]);
   });
-  el(s,'text',{x:W,y:y(M.mo27)-8,'text-anchor':'end',class:'val'},mln(M.mo27)+' млн в месяц');
+}
+function line(s,pts,stroke,dash){const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  el(s,'path',{d,fill:'none',stroke,'stroke-width':2.5,'stroke-linejoin':'round','stroke-dasharray':dash||''})}
+function chart26d(){
+  const H=240,[s,W]=mk('c26d',H),pt=24,pb=28,n=10,slot=W/n,bw=Math.min(40,slot*.5);
+  const rev=M.rev2026.slice(0,10),dem=DM.core.slice(14,24);
+  const rmax=Math.max(...rev)*1.15,dmax=Math.max(...dem)*1.15;
+  const yr=v=>pt+(H-pt-pb)*(1-v/rmax),yd=v=>pt+(H-pt-pb)*(1-v/dmax);
+  el(s,'line',{x1:0,x2:W,y1:H-pb,y2:H-pb,stroke:css('--grid')});
+  rev.forEach((v,i)=>{const cx=slot*i+slot/2;
+    el(s,'rect',{x:cx-bw/2,y:yr(v),width:bw,height:yr(0)-yr(v),fill:css('--accent-soft'),rx:4});
+    el(s,'text',{x:cx,y:H-8,'text-anchor':'middle','font-size':slot<36?11:13},MON[i]);});
+  const pts=dem.map((v,i)=>[slot*i+slot/2,yd(v)]);line(s,pts,css('--plan'));
+  dem.forEach((v,i)=>{el(s,'circle',{cx:pts[i][0],cy:pts[i][1],r:3.5,fill:css('--plan')});
+    if(i===3||i===7||i===0)el(s,'text',{x:pts[i][0],y:pts[i][1]-10,'text-anchor':'middle',class:'val','font-size':12},v.toLocaleString('ru-RU'))});
+}
+function chart27d(){
+  const H=240,[s,W]=mk('c27d',H),pt=24,pb=28;
+  const hist=DM.core,base=hist.slice(12,24).reduce((a,b)=>a+b,0)/12;
+  const tail=[base*SE[10],base*SE[11]].map(Math.round);
+  const all=hist.concat(tail,DM.core27),n=all.length,slot=W/n,max=Math.max(...all)*1.15,y=v=>pt+(H-pt-pb)*(1-v/max);
+  el(s,'line',{x1:0,x2:W,y1:H-pb,y2:H-pb,stroke:css('--grid')});
+  const P=all.map((v,i)=>[slot*i+slot/2,y(v)]);
+  line(s,P.slice(0,hist.length),css('--accent'));line(s,P.slice(hist.length-1),css('--accent'),'6 5');
+  const lab=['ноя 24','июл 25','янв 26','июл 26','янв 27','июл 27','дек 27'],at=[0,8,14,20,26,32,37];
+  at.forEach((k,j)=>{if(slot<14&&j%2)return;el(s,'text',{x:P[k][0],y:H-8,'text-anchor':k===n-1?'end':k===0?'start':'middle','font-size':12},lab[j])});
+  [17,21,29,33].forEach(k=>{el(s,'circle',{cx:P[k][0],cy:P[k][1],r:3.5,fill:css('--accent')});el(s,'text',{x:P[k][0],y:P[k][1]-10,'text-anchor':'middle',class:'val','font-size':12},all[k].toLocaleString('ru-RU'))});
 }
 function bridge(){
   const B=M.bridge,narrow=($('cBridge').clientWidth||600)<620;
@@ -397,7 +469,7 @@ function bridge(){
   });
 }
 function drawAll(){const vis=id=>!$(id).closest('.panel').hidden;
-  if(vis('c26'))chart26(); if(vis('c27'))chart27(); if(vis('cBridge'))bridge();}
+  if(vis('c26'))chart26(); if(vis('c26d'))chart26d(); if(vis('c27'))chart27(); if(vis('c27d'))chart27d(); if(vis('cBridge'))bridge();}
 
 /* ---------- вкладки ---------- */
 const TABS=['y2026','y2027','compare'];

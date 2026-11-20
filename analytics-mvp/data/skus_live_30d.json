@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-21",
   "dateTo": "2026-11-19",
-  "generated_at": "2026-11-20T13:24:25.127Z",
+  "generated_at": "2026-11-20T14:24:05.603Z",
   "totals": {
     "rev": 33305609,
     "units": 480,
@@ -9,7 +9,7 @@
     "canc": 60,
     "views": 5755513,
     "sk": 162,
-    "oos": 14,
+    "oos": 15,
     "ad_spend": 2295704,
     "ad_drr": 24.2
   },
@@ -1282,12 +1282,12 @@
       "convOrd": 0,
       "retp": 0,
       "aov": 60900,
-      "offer": "B-100-200-9003",
-      "stock": 1,
-      "pidx": 0.73,
-      "pcol": "SUPER",
-      "price": 60900,
-      "oos": 0
+      "offer": "",
+      "stock": 0,
+      "pidx": null,
+      "pcol": "",
+      "price": null,
+      "oos": 1
     },
     {
       "sku": "3564832777",

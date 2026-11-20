@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-20",
   "dateTo": "2026-11-18",
-  "generated_at": "2026-11-19T17:21:06.759Z",
+  "generated_at": "2026-11-19T23:38:17.424Z",
   "totals": {
     "rev": 34114692,
     "units": 496,
@@ -9,7 +9,7 @@
     "canc": 62,
     "views": 5818676,
     "sk": 162,
-    "oos": 12,
+    "oos": 13,
     "ad_spend": 2361522,
     "ad_drr": 24.4
   },
@@ -404,9 +404,9 @@
       "aov": 52880,
       "offer": "GGT-47-5-1-80",
       "stock": 22,
-      "pidx": 0.37,
+      "pidx": 0.36,
       "pcol": "SUPER",
-      "price": 53913,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -602,7 +602,7 @@
       "aov": 51807,
       "offer": "GGT-47-2-2-80",
       "stock": 22,
-      "pidx": 0.79,
+      "pidx": 0.8,
       "pcol": "SUPER",
       "price": 56900,
       "oos": 0
@@ -1086,9 +1086,9 @@
       "aov": 55900,
       "offer": "GGT-47-5-1-90",
       "stock": 26,
-      "pidx": 0.37,
+      "pidx": 0.35,
       "pcol": "SUPER",
-      "price": 58650,
+      "price": 55900,
       "oos": 0
     },
     {
@@ -1173,7 +1173,7 @@
       "retp": 0,
       "aov": 102723,
       "offer": "GGT-03-2-1-O-18090/MDF",
-      "stock": 28,
+      "stock": 27,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
       "price": 92133,
@@ -1350,7 +1350,7 @@
       "aov": 85874,
       "offer": "GGT-28-2-3-200-100",
       "stock": 46,
-      "pidx": 0.66,
+      "pidx": 0.71,
       "pcol": "SUPER",
       "price": 81900,
       "oos": 0
@@ -3044,7 +3044,7 @@
       "aov": 65816,
       "offer": "GGT-03-3-3-L-90",
       "stock": 28,
-      "pidx": 1.09,
+      "pidx": 1.08,
       "pcol": "RED",
       "price": 65816,
       "oos": 0
@@ -3131,11 +3131,11 @@
       "retp": 0,
       "aov": 63162,
       "offer": "GGM-23-1-1",
-      "stock": 1,
+      "stock": 0,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
       "price": 63162,
-      "oos": 0
+      "oos": 1
     },
     {
       "sku": "3563990310",

@@ -1,4 +1,4 @@
-import {groupFor,QUADRANTS} from './model.mjs?rev=20261120-dnd-21';
+import {groupFor,QUADRANTS,validateBoard} from './model.mjs?rev=20261120-dnd-21';
 import {dateInMonth,insertion,moveInContext,assertDragUnchanged} from './planning-order.mjs?rev=20261120-dnd-21';
 import {applyFields,sectionTarget,assertFieldsUnchanged} from './dock-model.mjs?rev=20261120-dnd-21';
 export function installPlanningDrag(host){
@@ -56,6 +56,8 @@ export function installPlanningDrag(host){
  function cancel(){if(!gesture)return;const g=gesture;gesture=null;cancelAnimationFrame(frame);g.ghost?.remove();clearTarget();root.querySelectorAll('.planning-source').forEach(el=>el.classList.remove('planning-source'));document.body.classList.remove('planning-dragging');if(g.active){host.cancel();if(g.keyboard)requestAnimationFrame(()=>root.querySelector(`[data-plan-grip="${CSS.escape(g.id)}"]`)?.focus({preventScroll:true}));}}
  async function finish(){if(!gesture)return;const g=gesture,target=g.target;cancel();if(!g.active)return;if(host.dockRelease?.(g.ids))return;if(!host.canEdit()||g.context!==host.context()){host.toast('Вид изменился. Повторите перенос.');return}blockedClick=true;setTimeout(()=>{blockedClick=false},0);if(!target){host.toast('Перенос отменён: место не выбрано.');return}if(target.refuse){host.toast(target.refuse);return}committing=true;try{
   if(target.patches&&target.label===NOOP){host.toast(NOOP);return}
+  // Several cards: compare the board before and after for every one of them; nothing changed means no step and no Cmd+Z.
+  if(target.patches){try{const now=host.tasks(),before=validateBoard(now),after=applyFields(now,g.ids,target.patches);if(g.ids.every(id=>JSON.stringify(before.find(t=>t.id===id))===JSON.stringify(after.find(t=>t.id===id)))){host.toast(NOOP);return}}catch{}}
   if(target.patches){const ok=await host.commit(current=>{if(!host.canEdit()||g.context!==host.context())throw Error('Вид изменился. Повторите перенос.');assertFieldsUnchanged(current,g.base,g.ids,target.patches);return applyFields(current,g.ids,target.patches)},g.basis);
    if(ok){const what=target.label||patchLabel(target.patches);host.toast(what+(g.ids.length>1?' · задач: '+g.ids.length:'')+'. Cmd+Z: отменить');live.textContent='Перемещение сохранено.'}return}
   const ok=await host.commit(current=>{if(!host.canEdit()||g.context!==host.context())throw Error('Вид изменился. Повторите перенос.');assertDragUnchanged(current,g.base,g.ids,target.field,target.taskId);return moveInContext(current,g.ids,target,host.today(),host.personName)},g.basis);

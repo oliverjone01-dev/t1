@@ -367,3 +367,15 @@
  .drop-dock-group.is-open .drop-dock-label{background:var(--primary-soft);color:var(--primary)}
  .drop-dock-group.is-open .drop-dock-targets{grid-row:2;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
 }
+/* Narrow tablets (768-900 px) use the phone dock grid: the one-row dock is wider than the screen there. */
+@media(min-width:768px) and (max-width:900px){
+ .drop-dock{left:16px;right:16px;width:auto;max-width:none;transform:none;animation:none}
+ .drop-dock-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible}
+ .drop-dock-group,.drop-dock-group.is-open{display:contents}
+ .drop-dock-label,.drop-dock-group.is-open .drop-dock-label{grid-row:1;display:grid;place-items:center;min-height:40px;padding:0 8px;font-size:13px;color:var(--text);background:var(--fill)}
+ .drop-dock-group[data-dock-group=due] .drop-dock-label{grid-column:1}
+ .drop-dock-group[data-dock-group=priority] .drop-dock-label{grid-column:2}
+ .drop-dock-group[data-dock-group=status] .drop-dock-label{grid-column:3}
+ .drop-dock-group.is-open .drop-dock-label{background:var(--primary-soft);color:var(--primary)}
+ .drop-dock-group.is-open .drop-dock-targets{grid-row:2;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+}

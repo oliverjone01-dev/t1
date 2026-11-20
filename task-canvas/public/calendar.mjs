@@ -1,15 +1,15 @@
-import {applyTileGrid} from './tile-layout.mjs?rev=20261120-canon-20';
-import {presentationCard,sectionMarkup,installTileActions} from './presentation-cards.mjs?rev=20261120-canon-20';
-import {taskSections} from './display-model.mjs?rev=20261120-canon-20';
-import {workProgress} from './work-progress.mjs?rev=20261120-canon-20';
-import {overlapsRange} from './task-dates.mjs?rev=20261120-canon-20';
-import {periodRange,shiftRange} from './range-model.mjs?rev=20261120-canon-20';
-import {statusBadge} from './quick-controls.mjs?rev=20261120-canon-20';
-import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261120-canon-20';
-import {sortTasks} from './productivity-model.mjs?rev=20261120-canon-20';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261120-canon-20';
-import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261120-canon-20';
-import {icon} from './icons.mjs?rev=20261120-canon-20';
+import {applyTileGrid} from './tile-layout.mjs?rev=20261120-dnd-21';
+import {presentationCard,sectionMarkup,installTileActions} from './presentation-cards.mjs?rev=20261120-dnd-21';
+import {taskSections} from './display-model.mjs?rev=20261120-dnd-21';
+import {workProgress} from './work-progress.mjs?rev=20261120-dnd-21';
+import {overlapsRange} from './task-dates.mjs?rev=20261120-dnd-21';
+import {periodRange,shiftRange} from './range-model.mjs?rev=20261120-dnd-21';
+import {statusBadge} from './quick-controls.mjs?rev=20261120-dnd-21';
+import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261120-dnd-21';
+import {sortTasks} from './productivity-model.mjs?rev=20261120-dnd-21';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261120-dnd-21';
+import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261120-dnd-21';
+import {icon} from './icons.mjs?rev=20261120-dnd-21';
 export function installCalendar(host){
  const $=s=>document.querySelector(s),esc=host.esc;
  let view=host.range?.().from?'range':'month',anchor=host.today(),undated=false,peek=null,rangePage=0;
@@ -17,7 +17,7 @@ export function installCalendar(host){
  const taskWord=n=>n%10===1&&n%100!==11?'задача':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'задачи':'задач';
  const dateText=(date,options)=>new Intl.DateTimeFormat('ru',options).format(new Date(date+'T12:00:00'));
  const isDayBoard=()=>view==='day'||view==='range'&&host.range?.().from===host.range?.().to;
- const standardTask=t=>`<article class="calendar-task-wrap" data-task-status="${esc(t.status)}" data-drop-task="${esc(t.id)}">${workProgress(t,host.canEdit())}${temperature(t,host.canEdit())}${statusBadge(t,host.canEdit())}<button class="calendar-task ${statusGroup(t)?'is-terminal':''}" data-calendar-task="${esc(t.id)}" data-priority="${esc(t.priority||'inbox')}" title="${esc(t.title)}"><span class="calendar-task-title">${esc(t.title)}</span><span>${t.avatar?`<img class="inline-avatar" src="${esc(t.avatar)}" alt="" loading="lazy">`:""}${esc(t.owner||'Не назначен')}${view==='months'&&t.due?' · '+t.due.slice(8)+'.'+t.due.slice(5,7):''}</span></button>${host.canEdit()&&host.canReorder()?`<button class="planning-grip" data-plan-grip="${esc(t.id)}" aria-label="Переместить в календаре: ${esc(t.title)}" title="Перенос меняет дату и очередь. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:''}</article>`;
+ const standardTask=t=>`<article class="calendar-task-wrap" data-task-status="${esc(t.status)}" data-drop-task="${esc(t.id)}">${workProgress(t,host.canEdit())}${temperature(t,host.canEdit())}${statusBadge(t,host.canEdit())}<button class="calendar-task ${statusGroup(t)?'is-terminal':''}" data-calendar-task="${esc(t.id)}" data-priority="${esc(t.priority||'inbox')}" title="${esc(t.title)}"><span class="calendar-task-title">${esc(t.title)}</span><span>${t.avatar?`<img class="inline-avatar" src="${esc(t.avatar)}" alt="" loading="lazy">`:""}${esc(t.owner||'Не назначен')}${view==='months'&&t.due?' · '+t.due.slice(8)+'.'+t.due.slice(5,7):''}</span></button>${host.canEdit()?`<button class="planning-grip" data-plan-grip="${esc(t.id)}" aria-label="Переместить в календаре: ${esc(t.title)}" title="Перенос меняет дату и очередь. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:''}</article>`;
  const taskButton=t=>presentationCard(t,{esc,editable:host.canEdit(),reorder:host.canReorder()});
  const renderSections=(shown,all=shown)=>{const sections=taskSections(shown,host.group()),totals=new Map(taskSections(all,host.group()).map(s=>[s.key,s.items.length]));return sectionMarkup(sections.map(s=>({...s,total:totals.get(s.key)})),taskButton,esc)};
  let fitFrame=0;

@@ -1,7 +1,7 @@
-import {icon} from './icons.mjs?rev=20261120-canon-20';
-import {QUADRANTS,STATUSES} from './model.mjs?rev=20261120-canon-20';
-import {statusStyle} from './status-model.mjs?rev=20261120-canon-20';
-import {dueShortcuts,quickPatch,applyQuickEdit,QUICK_FIELDS} from './quick-menu-model.mjs?rev=20261120-canon-20';
+import {icon} from './icons.mjs?rev=20261120-dnd-21';
+import {QUADRANTS,STATUSES} from './model.mjs?rev=20261120-dnd-21';
+import {statusStyle} from './status-model.mjs?rev=20261120-dnd-21';
+import {dueShortcuts,quickPatch,applyQuickEdit,QUICK_FIELDS} from './quick-menu-model.mjs?rev=20261120-dnd-21';
 // Quick edit without the full card: right click, the context-menu key or a long press on any task.
 // Every view renders a [data-quick-id] control inside its card, so the card is found by walking up to it.
 const CARD='.matrix-card,.task-card,.map-task,.day-board-card,.calendar-task-wrap,tr[data-row],.gantt-row';
@@ -14,7 +14,7 @@ export function installQuickMenu(host){
  function draw(){const t=context.base,today=host.today(),chips=dueShortcuts(today);
   dialog.innerHTML=`<form method="dialog" class="quick-menu-form">
  <header><h2 id="quick-menu-title" class="visually-hidden">Быстрая правка</h2><textarea name="title" rows="2" aria-label="Название задачи" maxlength="1000">${esc(t.title)}</textarea><button type="button" class="icon-button" data-qm-close aria-label="Закрыть">${icon('close')}</button></header>
- <fieldset class="qm-group"><legend>Приоритет</legend><div class="qm-segments qm-quadrants">${[['','Не разобрано'],...QUADRANTS.map(q=>[q.id,q.title])].map(([id,label])=>`<button type="button" data-qm-priority="${id}" aria-pressed="${(t.priority||'')===id}">${esc(label)}</button>`).join('')}</div></fieldset>
+ <fieldset class="qm-group"><legend>Приоритет</legend><div class="qm-segments qm-quadrants">${[['','Входящие'],...QUADRANTS.map(q=>[q.id,q.title])].map(([id,label])=>`<button type="button" data-qm-priority="${id}" aria-pressed="${(t.priority||'')===id}">${esc(label)}</button>`).join('')}</div></fieldset>
  <div class="qm-row"><label class="qm-group">Ответственный<input name="owner" list="qm-people" value="${esc(t.owner||'')}" placeholder="Не назначен" autocomplete="off"><datalist id="qm-people">${people().map(p=>`<option value="${esc(p)}"></option>`).join('')}</datalist></label>
  <label class="qm-group">Срок<input name="due" type="date" value="${esc(t.due||'')}"></label></div>
  <div class="qm-chips" role="group" aria-label="Быстрый срок">${chips.map(([label,date])=>`<button type="button" data-qm-due="${date}" aria-pressed="${(t.due||'')===date}">${label}</button>`).join('')}</div>

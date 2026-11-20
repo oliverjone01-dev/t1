@@ -1,4 +1,4 @@
-import {icon} from './icons.mjs?rev=20261120-canon-20';
+import {icon} from './icons.mjs?rev=20261120-dnd-21';
 // One zoom for every content view: a pill with −, slider, % and +, trackpad pinch (ctrl+wheel),
 // Safari gestures and a two-finger pinch on touch. Each view keeps its own scale on this device.
 // Canvas views (lanes on the zoomable map) keep their camera zoom; this pill hides there.

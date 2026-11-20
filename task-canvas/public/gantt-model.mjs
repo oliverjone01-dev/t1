@@ -1,6 +1,6 @@
-import {dateShift} from './task-signals.mjs?rev=20261120-canon-20';
-import {validateBoard} from './model.mjs?rev=20261120-canon-20';
-import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261120-canon-20';
+import {dateShift} from './task-signals.mjs?rev=20261120-dnd-21';
+import {validateBoard} from './model.mjs?rev=20261120-dnd-21';
+import {generateKeyBetween} from './vendor/fractional-indexing.mjs?rev=20261120-dnd-21';
 export const dayDistance=(a,b)=>Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
 export const taskSpan=t=>t.start||t.due?{start:t.start||t.due,end:t.due||t.start,milestone:!t.start||!t.due}:null;
 // A start-only task keeps its start unless the new deadline comes first: then the period collapses to that day.

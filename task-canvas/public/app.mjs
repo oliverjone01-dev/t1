@@ -1,27 +1,29 @@
-import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-canon-20';
-import {installDisplayControls} from './display-controls.mjs?rev=20261120-canon-20';
-import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-canon-20';
-import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-canon-20';
-import {installThemeToggle} from './appearance.mjs?rev=20261120-canon-20';
-import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-canon-20';
-import {installBoardZoom} from './board-zoom.mjs?rev=20261120-canon-20';
-import {installQuickMenu} from './quick-menu.mjs?rev=20261120-canon-20';
-import {installEditorLayout} from './editor-layout.mjs?rev=20261120-canon-20';
-import {installCmoShell} from './cmo-shell.mjs?rev=20261120-canon-20';
-import {installRangePicker} from './range-picker.mjs?rev=20261120-canon-20';
-import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-canon-20';
-import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-canon-20';
-import {installGantt} from './gantt.mjs?rev=20261120-canon-20';
-import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261120-canon-20';
-import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-canon-20';
-import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-canon-20';
-import {Directory} from './directory.mjs?rev=20261120-canon-20';
-import {installCalendar} from './calendar.mjs?rev=20261120-canon-20';
-import {installProductivity} from './productivity.mjs?rev=20261120-canon-20';
-import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-canon-20';
-import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-canon-20';
-import {renderBoard} from './board-ui.mjs?rev=20261120-canon-20';
-import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261120-canon-20';
+import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-dnd-21';
+import {installDisplayControls} from './display-controls.mjs?rev=20261120-dnd-21';
+import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-dnd-21';
+import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-dnd-21';
+import {installThemeToggle} from './appearance.mjs?rev=20261120-dnd-21';
+import {workProgress,installExecutionControls} from './work-progress.mjs?rev=20261120-dnd-21';
+import {installBoardZoom} from './board-zoom.mjs?rev=20261120-dnd-21';
+import {installQuickMenu} from './quick-menu.mjs?rev=20261120-dnd-21';
+import {installEditorLayout} from './editor-layout.mjs?rev=20261120-dnd-21';
+import {installDropDock} from './drop-dock.mjs?rev=20261120-dnd-21';
+import {revertRecord,invert} from './undo-model.mjs?rev=20261120-dnd-21';
+import {installCmoShell} from './cmo-shell.mjs?rev=20261120-dnd-21';
+import {installRangePicker} from './range-picker.mjs?rev=20261120-dnd-21';
+import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-dnd-21';
+import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-dnd-21';
+import {installGantt} from './gantt.mjs?rev=20261120-dnd-21';
+import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=20261120-dnd-21';
+import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-dnd-21';
+import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-dnd-21';
+import {Directory} from './directory.mjs?rev=20261120-dnd-21';
+import {installCalendar} from './calendar.mjs?rev=20261120-dnd-21';
+import {installProductivity} from './productivity.mjs?rev=20261120-dnd-21';
+import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-dnd-21';
+import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-dnd-21';
+import {renderBoard} from './board-ui.mjs?rev=20261120-dnd-21';
+import {ordered,reorderTasks,orderKey} from './order.mjs?rev=20261120-dnd-21';
 import {
   QUADRANTS,
   CARD,
@@ -36,20 +38,20 @@ import {
   dropTarget,
   fitCamera,
   importBoard,parseDelimited,
-} from "./model.mjs?rev=20261120-canon-20";
-import { SyncEngine } from "./sync-engine.mjs?rev=20261120-canon-20";
-import { TeamSyncEngine } from "./team-engine.mjs?rev=20261120-canon-20";
-import { TeamDraftStore } from "./team-drafts.mjs?rev=20261120-canon-20";
-import { BoardViewer } from "./board-viewer.mjs?rev=20261120-canon-20";
-import { remoteChanges } from "./changes.mjs?rev=20261120-canon-20";
-import { TeamApi } from "./team-api.mjs?rev=20261120-canon-20";
-import { TeamSourceBridge } from "./team-source.mjs?rev=20261120-canon-20";
-import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261120-canon-20";
-import { GoogleAuth } from "./google-auth.mjs?rev=20261120-canon-20";
-import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261120-canon-20";
-import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261120-canon-20";
-import { dataSignature, writeBoard } from "./storage.mjs?rev=20261120-canon-20";
-import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261120-canon-20";
+} from "./model.mjs?rev=20261120-dnd-21";
+import { SyncEngine } from "./sync-engine.mjs?rev=20261120-dnd-21";
+import { TeamSyncEngine } from "./team-engine.mjs?rev=20261120-dnd-21";
+import { TeamDraftStore } from "./team-drafts.mjs?rev=20261120-dnd-21";
+import { BoardViewer } from "./board-viewer.mjs?rev=20261120-dnd-21";
+import { remoteChanges } from "./changes.mjs?rev=20261120-dnd-21";
+import { TeamApi } from "./team-api.mjs?rev=20261120-dnd-21";
+import { TeamSourceBridge } from "./team-source.mjs?rev=20261120-dnd-21";
+import { GROUP_NAMES, groupValue } from "./team-model.mjs?rev=20261120-dnd-21";
+import { GoogleAuth } from "./google-auth.mjs?rev=20261120-dnd-21";
+import { SheetsApi, DirectSheetsApi } from "./sheets-api.mjs?rev=20261120-dnd-21";
+import { FIELD_NAMES, comparable, mergeBoards } from "./sync-model.mjs?rev=20261120-dnd-21";
+import { dataSignature, writeBoard } from "./storage.mjs?rev=20261120-dnd-21";
+import { ChangeInbox, CHANGE_FIELDS } from "./changes.mjs?rev=20261120-dnd-21";
 import {
   DraftStore,
   EDIT_FIELDS,
@@ -57,8 +59,8 @@ import {
   resumeDraft,
   editConflicts,
   planEdit,
-} from "./editor.mjs?rev=20261120-canon-20";
-import { parseAssignee } from "./people.mjs?rev=20261120-canon-20";
+} from "./editor.mjs?rev=20261120-dnd-21";
+import { parseAssignee } from "./people.mjs?rev=20261120-dnd-21";
 import {
   matchesTask,
   matchesWords,
@@ -67,8 +69,8 @@ import {
   importSummary,
   demoTasks,
   synchronizationHint,
-} from "./ui-model.mjs?rev=20261120-canon-20";
-import { icon } from "./icons.mjs?rev=20261120-canon-20";
+} from "./ui-model.mjs?rev=20261120-dnd-21";
+import { icon } from "./icons.mjs?rev=20261120-dnd-21";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
 const DEMO = new URLSearchParams(location.search).get("demo") === "1";
@@ -98,7 +100,7 @@ const canEdit = () =>
   DEMO || (accessMode === "edit" && (!!cloudEngine?.connected || SHEETS_ONLY&&googleAuth?.rememberedEmail===MODE_OWNER&&cloudEngine?.enabled) && !modePending(storageControl) && storageControl.ack.mode===STORAGE_MODE);
 const directory=new Directory();
 const personName=value=>directory.name(value),personAvatar=value=>directory.avatar(value);
-let productivity=null,calendar=null,gantt=null,groupedBoard=null,priorityEditor=null;
+let productivity=null,calendar=null,gantt=null,groupedBoard=null,priorityEditor=null,dropDock=null;
 let archiveScope="",dateRange={from:"",to:""},rangePicker=null,displayControls=null,signalState=new Map();
 function setDateRange(range,syncCalendar=true){dateRange={...range};if(syncCalendar)calendar?.setRange(range);rangePicker?.render();render()}
 const effectiveTask=t=>observedTask(t,signalState.get(t.id));
@@ -130,12 +132,14 @@ function renderMatrix(){
     onImportance:(id,value)=>change(()=>{tasks=tasks.map(t=>t.id===id?{...t,importance:Number(value)}:t)}),onStatus:setTaskStatus,onOpen:openTask,onSelect:selectTask,pins:productivity?.pins()||[],onPin:id=>productivity?.togglePin(id),onBulkEdit:()=>productivity?.openBulk(),
     onSelectGroup:(ids,enabled)=>{for(const id of ids)enabled?selectedIds.add(id):selectedIds.delete(id);render()},
     onClear:()=>{selectedIds.clear();render()},
-    onDragStart:(ids)=>{selectedIds=new Set(ids);matrixBasis=cloudEngine?.managed?cloudEngine.capture():null;matrixDragging=true},
-    onDragCancel:()=>{matrixBasis=null;matrixDragging=false;render()},
+    onDragStart:(ids)=>{selectedIds=new Set(ids);matrixBasis=cloudEngine?.managed?cloudEngine.capture():null;matrixDragging=true;dropDock?.start()},
+    onDragCancel:()=>{matrixBasis=null;matrixDragging=false;if(dropDock?.release([...selectedIds]))return;render()},
     onMove:moveSelection,onEdge:moveSelectionEdge});
 }
 async function moveSelection(ids,groupId,beforeId=null){
   const basis=matrixBasis;matrixBasis=null;matrixDragging=false;
+  // A drop over the «Куда перенести» dock wins over the quadrant dnd-kit found under it.
+  if(dropDock?.release(ids))return;
   if(!requireEditor()||matrixMutationBusy)return;
   const group=[{id:'inbox'},...QUADRANTS,...STATUS_LANES].find(g=>g.id===groupId);
   if(!group)return;
@@ -443,7 +447,7 @@ async function change(fn, versionBasis = null) {
           after: JSON.parse(snapshot()),
           basis: null,
         }
-      : before;
+      : { before: normalizedState(before), after: JSON.parse(snapshot()) };
     history.push(undo);
     if (history.length > 50) history.shift();
     future = [];
@@ -471,17 +475,40 @@ async function change(fn, versionBasis = null) {
   render();
   return ok;
 }
+// Both sides of an undo record go through the same normalisation, so only real edits differ.
+function normalizedState(raw) {
+  const state = JSON.parse(raw);
+  try { state.tasks = validateBoard(state.tasks); } catch {}
+  return state;
+}
 async function restore(from, to) {
   if (!requireEditor()) return;
-  if (!from.length) return;
+  if (!from.length) {
+    toast(from === future ? "Нечего повторять." : "Нечего отменять.");
+    return;
+  }
   if (!cloudEngine?.managed) {
-    to.push(snapshot());
-    const state = JSON.parse(from.pop());
-    tasks = state.tasks;
-    extraOwners = state.owners;
+    // Field-level undo: a colleague edit pulled from the Sheet after the step is never rolled back.
+    const redo = from === future, record = from.pop();
+    const result = revertRecord({ tasks, owners: extraOwners }, record);
+    if (!result.applied) {
+      toast(result.skipped ? "Нечего вернуть: эти поля уже изменили." : "Нечего вернуть.");
+      render();
+      return;
+    }
+    try {
+      tasks = validateBoard(result.tasks);
+    } catch (error) {
+      from.push(record);
+      toast("Не удалось вернуть: " + error.message);
+      return;
+    }
+    extraOwners = result.owners;
+    to.push(invert(record));
     cloudEngine?.changed();
     persist();
     render();
+    toast((redo ? "Повторено" : "Отменено") + (result.skipped ? `. Не вернул полей: ${result.skipped}, их уже изменили` : "") + ".");
     return;
   }
   const record = from.pop(),
@@ -801,7 +828,7 @@ function listMarkup(visible) {
   return `<table role="table" aria-label="Задачи команды"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="title-col">Задача</th><th role="columnheader" scope="col" class="owner-col">Ответственный</th><th role="columnheader" scope="col" class="created-col">Поставлена</th><th role="columnheader" scope="col" class="date-col">Срок</th><th role="columnheader" scope="col" class="status-col">Статус</th></tr></thead><tbody role="rowgroup">${sections.map(section=>(section.label?`<tr class="list-section"><th scope="rowgroup" colspan="5">${esc(section.label)} <span>${section.items.length}</span></th></tr>`:"" )+section.items
     .map((task) => {
       const notice = inbox.get(task.id);
-      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><div class="list-task-main"><div class="list-task-tools">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()&&canReorderView()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Очередь внутри приоритета. Пробел и стрелки — с клавиатуры.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="list-task-copy"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></div></div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
+      return `<tr role="row" data-task-status="${esc(task.status)}" data-row="${esc(task.id)}" data-drop-task="${esc(task.id)}" class="${notice ? (notice.kind === "new" ? "unread-new" : "unread-updated") : ""}"><td role="cell" data-label="Задача"><div class="list-task-main"><div class="list-task-tools">${canEdit()?`<input type="checkbox" data-select="${esc(task.id)}" ${selectedIds.has(task.id)?"checked":""} aria-label="Выбрать: ${esc(task.title)}"/>`:""}${canEdit()?`<button class="planning-grip" data-plan-grip="${esc(task.id)}" aria-label="Переместить в списке: ${esc(task.title)}" title="Перетащите на строку, дату или цель внизу экрана. С клавиатуры: пробел и стрелки.">${icon('grip')}</button>`:""}${workProgress(task,canEdit())}${temperature(task,canEdit())}</div><div class="list-task-copy"><button class="row-open" data-open="${esc(task.id)}">${esc(task.title)}</button><div class="row-meta">${notice ? `<span class="row-change">${notice.kind === "new" ? "Новая" : "Обновлена"}</span>` : ""}${esc([task.unit, task.sourceId ? "#" + task.sourceId : ""].filter(Boolean).join(" · "))}</div></div></div></td><td role="cell" data-label="Ответственный">${personAvatar(task.owner)?`<img class="inline-avatar" src="${esc(personAvatar(task.owner))}" alt="" loading="lazy">`:""}${esc(personName(task.owner) || (task.ownerNote ? "Уточнить в деталях" : "Не назначен"))}</td><td role="cell" data-label="Поставлена">${task.createdAt?esc(formatDate(createdDay(task.createdAt))):"—"}</td><td role="cell" data-label="Срок" class="${task.due && task.due < today() && !statusGroup(task) ? "overdue" : ""}">${esc(formatDate(task.due))}</td><td role="cell" data-label="Статус">${statusBadge(task,canEdit())}</td></tr>`;
     })
     .join("")).join("")}</tbody></table>`;
 }
@@ -862,7 +889,7 @@ function render() {
   }[mode];
   text("#view-kicker", info[0]);
   text("#view-title", info[1]);
-  $("#view-title").hidden=mode==="calendar";
+  $("#view-title").hidden=false; // every view names itself; the calendar adds its month below
   text(
     "#view-hint",
     canEdit() ? info[2] : "Просмотр. Откройте карточку для подробностей.",
@@ -1084,6 +1111,7 @@ $("#viewport").addEventListener("pointermove", (e) => {
     !gesture.moved
   )
     return;
+  if (!gesture.moved) dropDock?.start();
   gesture.moved = true;
   gesture.card.classList.add("dragging");
   const p = worldPoint(e);
@@ -1124,7 +1152,13 @@ async function endGesture(e, cancelled = false) {
     persist();
     return;
   }
+  if (!current.moved || cancelled) dropDock?.end();
   if (current.moved && !cancelled) {
+    if (dropDock?.release(selectedIds.has(current.id) ? [...selectedIds] : [current.id])) {
+      current.card.classList.remove("dragging");
+      render();
+      return;
+    }
     const p = worldPoint(e),
       x = p.x - current.dx,
       y = p.y - current.dy;
@@ -1992,6 +2026,11 @@ window.addEventListener("keydown", (e) => {
     e.shiftKey ? restore(future, history) : restore(history, future);
     return;
   }
+  if (e.ctrlKey && !e.metaKey && e.code === "KeyY") {
+    e.preventDefault();
+    restore(future, history);
+    return;
+  }
   if (e.code === "Space" && !e.target.closest("button,a,.task-card")) {
     e.preventDefault();
     space = true;
@@ -2332,10 +2371,7 @@ function applyCloud(board, cache) {
   tasks = board.tasks;
   extraOwners = board.owners;
   cloudCache = cache;
-  if (changed && !cloudEngine?.managed) {
-    history = [];
-    future = [];
-  }
+  // History survives a pull: undo records are field-group diffs and never overwrite what arrived from the Sheet.
   if ($("#editor").open) {
     const current = tasks.find((t) => t.id === editing),
       values = formValues(),
@@ -2723,10 +2759,11 @@ rangePicker=installRangePicker({root:$('#period-picker'),today,getRange:()=>date
 calendar=installCalendar({settings:()=>displayControls.settings(),presentationChanged:()=>displayControls.render(),report:info=>displayControls.report(info),applyFit:info=>displayControls.applyFit(info),esc,today,group:currentGroup,order:items=>presentationOrder(items,'calendar'),canReorder:canReorderView,range:()=>dateRange,setRange:setDateRange,unfiltered:()=>tasks.filter(t=>matchesFilters(t)&&presentationRegistry(effectiveTask(t),{archive:archiveScope,hideDone:$('#hide-done').checked})).map(t=>({...presentationTask(t),owner:personName(t.owner)})),setStatus:setTaskStatus,mode:()=>mode,canEdit,visible:()=>tasks.filter(isVisible).map(t=>({...presentationTask(t),owner:personName(t.owner)})),openTask,
  createOn:date=>{if(!requireEditor())return;let existing;try{existing=memoryDrafts.get(null)||drafts.read(null)}catch{existing=true}if(existing){toast('Сначала завершите черновик новой задачи через «Черновики».');return}openTask();field('due').value=date;saveDraft();field('title').focus()},
 });
-installPlanningDrag({context:()=>[mode,currentSort(),currentGroup()].join('|'),tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit:()=>canEdit()&&canReorderView(),selection:()=>[...selectedIds],toast,
- capture:()=>cloudEngine?.managed?cloudEngine.capture():null,start:()=>{matrixDragging=true},cancel:()=>{matrixDragging=false;render()},
+installPlanningDrag({context:()=>[mode,currentSort(),currentGroup()].join('|'),tasks:()=>tasks,mode:()=>mode,sort:()=>productivity.sortKind(),personName,today,canEdit:()=>canEdit(),canReorder:()=>canReorderView(),selection:()=>[...selectedIds],toast,
+ capture:()=>cloudEngine?.managed?cloudEngine.capture():null,start:()=>{matrixDragging=true;dropDock?.start()},cancel:()=>{matrixDragging=false;dropDock?.end();render()},dockRelease:ids=>!!dropDock?.release(ids),
  commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis),manualOrder:()=>productivity.manualOrder(),
 });
+dropDock=installDropDock({today,canEdit,toast,tasks:()=>tasks,capture:()=>cloudEngine?.managed?cloudEngine.capture():null,revealClosed:()=>{$('#hide-done').checked=false},commit:(update,basis)=>change(()=>{tasks=update(tasks)},basis)});
 $('#owner-note').insertAdjacentHTML('afterend','<div id="owner-profile" class="owner-profile" hidden></div>');
 function renderOwnerProfile(){const input=field('owner'),person=directory.resolve(input.value),box=$('#owner-profile');if(!box)return;box.hidden=!person;if(!person)return;box.innerHTML=`${person.avatar?`<img src="${esc(person.avatar)}" alt="">`:''}<span><strong>${esc(person.name)}</strong><small>${esc(person.department)} · Bitrix24</small></span>${canEdit()&&input.value!==person.name?'<button type="button" class="text-button" id="use-full-name">Использовать полное имя</button>':''}`;const button=$('#use-full-name');if(button)button.onclick=()=>{input.value=person.name;saveDraft();renderOwnerProfile()};}
 $('#source-dialog').insertAdjacentHTML('beforeend','<p id="directory-state" class="source-meta"></p>');

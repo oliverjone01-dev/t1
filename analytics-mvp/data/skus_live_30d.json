@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-22",
   "dateTo": "2026-11-20",
-  "generated_at": "2026-11-21T03:25:16.077Z",
+  "generated_at": "2026-11-21T12:59:01.329Z",
   "totals": {
     "rev": 34009077,
     "units": 487,
@@ -95,9 +95,9 @@
       "retp": 0,
       "aov": 115596,
       "offer": "GGT-35-5-1-100-180",
-      "stock": 18,
-      "pidx": 0.62,
-      "pcol": "SUPER",
+      "stock": 17,
+      "pidx": 0,
+      "pcol": "WITHOUT_INDEX",
       "price": 115803,
       "oos": 0
     },
@@ -140,7 +140,7 @@
       "aov": 120492,
       "offer": "GGT-35-2-2-100-180",
       "stock": 27,
-      "pidx": 0.67,
+      "pidx": 0.66,
       "pcol": "SUPER",
       "price": 121900,
       "oos": 0
@@ -228,8 +228,8 @@
       "aov": 109900,
       "offer": "GGT-03-3-3-O-20090",
       "stock": 191,
-      "pidx": 0.96,
-      "pcol": "GREEN",
+      "pidx": 0.95,
+      "pcol": "SUPER",
       "price": 109900,
       "oos": 0
     },
@@ -272,7 +272,7 @@
       "aov": 72191,
       "offer": "GGM-24-1",
       "stock": 122,
-      "pidx": 0.83,
+      "pidx": 0.82,
       "pcol": "SUPER",
       "price": 72900,
       "oos": 0
@@ -294,7 +294,7 @@
       "aov": 59786,
       "offer": "GGM-16-1-3",
       "stock": 98,
-      "pidx": 0.81,
+      "pidx": 0.8,
       "pcol": "SUPER",
       "price": 61281,
       "oos": 0
@@ -360,8 +360,8 @@
       "aov": 93615,
       "offer": "GGT-03-3-3-E-16080",
       "stock": 154,
-      "pidx": 0.96,
-      "pcol": "GREEN",
+      "pidx": 0.95,
+      "pcol": "SUPER",
       "price": 96900,
       "oos": 0
     },
@@ -382,7 +382,7 @@
       "aov": 55702,
       "offer": "GGL-09-2",
       "stock": 23,
-      "pidx": 0.82,
+      "pidx": 0.81,
       "pcol": "SUPER",
       "price": 59900,
       "oos": 0
@@ -404,7 +404,7 @@
       "aov": 108527,
       "offer": "GGT-03-2-2-O-20090",
       "stock": 188,
-      "pidx": 1.03,
+      "pidx": 1.04,
       "pcol": "GREEN",
       "price": 109900,
       "oos": 0
@@ -491,8 +491,8 @@
       "retp": 0,
       "aov": 78415,
       "offer": "GGT-03-5-1-E-12080",
-      "stock": 25,
-      "pidx": 0.36,
+      "stock": 24,
+      "pidx": 0.37,
       "pcol": "SUPER",
       "price": 82877,
       "oos": 0
@@ -558,7 +558,7 @@
       "aov": 61605,
       "offer": "GGM-18-1-2",
       "stock": 132,
-      "pidx": 0.85,
+      "pidx": 0.84,
       "pcol": "SUPER",
       "price": 61900,
       "oos": 0
@@ -580,7 +580,7 @@
       "aov": 52802,
       "offer": "GGM-18-2-1",
       "stock": 114,
-      "pidx": 0.85,
+      "pidx": 0.84,
       "pcol": "SUPER",
       "price": 52349,
       "oos": 0
@@ -646,7 +646,7 @@
       "aov": 46355,
       "offer": "GGK-02-2-2-80",
       "stock": 326,
-      "pidx": 0.8,
+      "pidx": 0.79,
       "pcol": "SUPER",
       "price": 47337,
       "oos": 0
@@ -712,7 +712,7 @@
       "aov": 61033,
       "offer": "GGM-16-2-3",
       "stock": 92,
-      "pidx": 0.85,
+      "pidx": 0.84,
       "pcol": "SUPER",
       "price": 61281,
       "oos": 0
@@ -734,7 +734,7 @@
       "aov": 41551,
       "offer": "GGM-02-2-2",
       "stock": 111,
-      "pidx": 0.79,
+      "pidx": 0.78,
       "pcol": "SUPER",
       "price": 43900,
       "oos": 0
@@ -843,8 +843,8 @@
       "retp": 0,
       "aov": 69441,
       "offer": "GGT-03-3-3-L-120",
-      "stock": 217,
-      "pidx": 0.65,
+      "stock": 216,
+      "pidx": 0.64,
       "pcol": "SUPER",
       "price": 74500,
       "oos": 0
@@ -866,7 +866,7 @@
       "aov": 91512,
       "offer": "GGM-20-2",
       "stock": 225,
-      "pidx": 0.83,
+      "pidx": 0.82,
       "pcol": "SUPER",
       "price": 98900,
       "oos": 0
@@ -910,7 +910,7 @@
       "aov": 51787,
       "offer": "GGT-47-3-5-80",
       "stock": 23,
-      "pidx": 0.92,
+      "pidx": 0.91,
       "pcol": "SUPER",
       "price": 56900,
       "oos": 0
@@ -1086,7 +1086,7 @@
       "aov": 109900,
       "offer": "GGT-03-2-1-O-20090",
       "stock": 190,
-      "pidx": 0.73,
+      "pidx": 0.67,
       "pcol": "SUPER",
       "price": 109900,
       "oos": 0
@@ -1174,7 +1174,7 @@
       "aov": 29253,
       "offer": "GGR-11-1",
       "stock": 110,
-      "pidx": 0.76,
+      "pidx": 0.75,
       "pcol": "SUPER",
       "price": 30900,
       "oos": 0
@@ -1548,7 +1548,7 @@
       "aov": 74384,
       "offer": "GGM-16-1-2-LED",
       "stock": 28,
-      "pidx": 0.99,
+      "pidx": 0.98,
       "pcol": "GREEN",
       "price": 74900,
       "oos": 0
@@ -2164,7 +2164,7 @@
       "aov": 94024,
       "offer": "GGT-03-5-1-E-14080",
       "stock": 29,
-      "pidx": 0.38,
+      "pidx": 0.39,
       "pcol": "SUPER",
       "price": 92900,
       "oos": 0
@@ -2208,7 +2208,7 @@
       "aov": 30730,
       "offer": "GGR-11-3",
       "stock": 132,
-      "pidx": 0.81,
+      "pidx": 0.8,
       "pcol": "SUPER",
       "price": 30730,
       "oos": 0
@@ -2318,7 +2318,7 @@
       "aov": 43025,
       "offer": "GGM-03-2-2",
       "stock": 8,
-      "pidx": 0.84,
+      "pidx": 0.83,
       "pcol": "SUPER",
       "price": 43313,
       "oos": 0
@@ -2846,7 +2846,7 @@
       "aov": 70900,
       "offer": "GGM-23-3-1",
       "stock": 131,
-      "pidx": 0.87,
+      "pidx": 0.86,
       "pcol": "SUPER",
       "price": 70900,
       "oos": 0

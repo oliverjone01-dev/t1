@@ -1,16 +1,16 @@
 {
   "platform": "ym",
-  "dateFrom": "2026-10-22",
-  "dateTo": "2026-11-20",
-  "skuCount": 61,
-  "singleItemOps": 134,
+  "dateFrom": "2026-10-23",
+  "dateTo": "2026-11-21",
+  "skuCount": 65,
+  "singleItemOps": 141,
   "multiItemOps": 1,
   "bySku": {
     "GGT-35-5-1-100-180": {
-      "accruals": 1589327,
-      "commission": -7346,
-      "amount": 647766,
-      "ops": 28
+      "accruals": 1385301,
+      "commission": -6417,
+      "amount": 573742,
+      "ops": 24
     },
     "GGT-28-2-2-180-90": {
       "accruals": 79584,
@@ -19,10 +19,10 @@
       "ops": 2
     },
     "GGT-35-3-3-100-180": {
-      "accruals": 802940,
-      "commission": -3731,
-      "amount": 289338,
-      "ops": 14
+      "accruals": 691339,
+      "commission": -3210,
+      "amount": 253624,
+      "ops": 12
     },
     "GGL-11": {
       "accruals": 0,
@@ -32,8 +32,8 @@
     },
     "GGL-09-2": {
       "accruals": 411496,
-      "commission": -31743,
-      "amount": 95681,
+      "commission": -32306,
+      "amount": 89826,
       "ops": 9
     },
     "GGR-11-2": {
@@ -103,10 +103,10 @@
       "ops": 5
     },
     "GGT-47-2-2-80": {
-      "accruals": 109056,
+      "accruals": 165956,
       "commission": -523,
-      "amount": 29741,
-      "ops": 2
+      "amount": 81797,
+      "ops": 3
     },
     "GGT-47-3-3-80": {
       "accruals": 157100,
@@ -206,8 +206,8 @@
     },
     "GGT-47-2-2-90": {
       "accruals": 242518,
-      "commission": -872,
-      "amount": 73735,
+      "commission": -1164,
+      "amount": 70651,
       "ops": 3
     },
     "GGL-04-S-2": {
@@ -223,16 +223,16 @@
       "ops": 1
     },
     "GGR-11-3": {
-      "accruals": 53101,
+      "accruals": 79247,
       "commission": -260,
-      "amount": 18183,
-      "ops": 2
+      "amount": 28978,
+      "ops": 3
     },
     "GGT-35-2-1-100-180": {
-      "accruals": 452713,
+      "accruals": 568386,
       "commission": -2089,
-      "amount": 190991,
-      "ops": 8
+      "amount": 242840,
+      "ops": 10
     },
     "GGT-03-5-1-O-20090": {
       "accruals": 225348,
@@ -253,10 +253,10 @@
       "ops": 2
     },
     "GGT-47-5-1-80": {
-      "accruals": 56900,
+      "accruals": 110916,
       "commission": -273,
-      "amount": 17989,
-      "ops": 1
+      "amount": 38012,
+      "ops": 2
     },
     "GGK-05-2-2-7040": {
       "accruals": 30398,
@@ -266,14 +266,14 @@
     },
     "GGM-18-2-2": {
       "accruals": 177700,
-      "commission": -597,
-      "amount": 71232,
+      "commission": -871,
+      "amount": 68359,
       "ops": 3
     },
     "GGT-03-2-2-O-20090": {
       "accruals": 222359,
-      "commission": -525,
-      "amount": 102505,
+      "commission": -1029,
+      "amount": 98880,
       "ops": 4
     },
     "GGM-20-1": {
@@ -331,10 +331,10 @@
       "ops": 2
     },
     "GGT-47-3-5-90": {
-      "accruals": 60903,
+      "accruals": 121806,
       "commission": -292,
-      "amount": 19261,
-      "ops": 1
+      "amount": 42509,
+      "ops": 2
     },
     "GGT-47-2-5-80": {
       "accruals": 52632,
@@ -343,10 +343,10 @@
       "ops": 1
     },
     "GGT-03-2-2-O-18090": {
-      "accruals": 105419,
+      "accruals": 211338,
       "commission": -484,
-      "amount": 45973,
-      "ops": 2
+      "amount": 95962,
+      "ops": 4
     },
     "GGT-03-5-1-L-80": {
       "accruals": 67900,
@@ -366,10 +366,34 @@
       "amount": 35137,
       "ops": 1
     },
+    "GGT-47-2-3-80": {
+      "accruals": 52632,
+      "commission": 0,
+      "amount": 24618,
+      "ops": 1
+    },
     "GGT-03-2-2-L-120": {
       "accruals": 79900,
+      "commission": -384,
+      "amount": 28981,
+      "ops": 1
+    },
+    "GGT-12-3": {
+      "accruals": 29939,
       "commission": 0,
-      "amount": 32695,
+      "amount": 14501,
+      "ops": 1
+    },
+    "GGK-02-2-4-100": {
+      "accruals": 52670,
+      "commission": 0,
+      "amount": 24405,
+      "ops": 1
+    },
+    "GGT-03-2-2-L-110": {
+      "accruals": 80900,
+      "commission": 0,
+      "amount": 33311,
       "ops": 1
     }
   },

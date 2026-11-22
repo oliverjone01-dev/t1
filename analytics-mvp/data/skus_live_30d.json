@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-23",
   "dateTo": "2026-11-21",
-  "generated_at": "2026-11-22T17:59:25.254Z",
+  "generated_at": "2026-11-22T22:32:24.120Z",
   "totals": {
     "rev": 34123905,
     "units": 486,
@@ -1856,7 +1856,7 @@
       "aov": 27620,
       "offer": "GGR-10-1",
       "stock": 0,
-      "pidx": 0.82,
+      "pidx": 0.84,
       "pcol": "SUPER",
       "price": 27900,
       "oos": 1

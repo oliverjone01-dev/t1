@@ -1376,7 +1376,9 @@
 {"d":"2026-11-21","sku":"GGT-03-2-2-O-18090","units":1,"pay":45442,"accruals":105919,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-55929,"promo":0,"otherSvc":0,"amount":49989,"platform":"ym"}
 {"d":"2026-11-21","sku":"GGT-12-3","units":1,"pay":13790,"accruals":29939,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-15438,"promo":0,"otherSvc":0,"amount":14501,"platform":"ym"}
 {"d":"2026-11-21","sku":"GGT-35-2-1-100-180","units":1,"pay":53774,"accruals":115673,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-63825,"promo":0,"otherSvc":0,"amount":51848,"platform":"ym"}
-{"d":"2026-11-21","sku":"GGT-47-2-2-80","units":1,"pay":25360,"accruals":56900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-4844,"promo":0,"otherSvc":0,"amount":52055,"platform":"ym"}
+{"d":"2026-11-21","sku":"GGT-47-2-2-80","units":1,"pay":25360,"accruals":56900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-34887,"promo":0,"otherSvc":0,"amount":22013,"platform":"ym"}
 {"d":"2026-11-21","sku":"GGT-47-2-3-80","units":1,"pay":23225,"accruals":52632,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-28014,"promo":0,"otherSvc":0,"amount":24618,"platform":"ym"}
 {"d":"2026-11-21","sku":"GGT-47-3-5-90","units":1,"pay":24210,"accruals":60903,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-37655,"promo":0,"otherSvc":0,"amount":23248,"platform":"ym"}
 {"d":"2026-11-21","sku":"GGT-47-5-1-80","units":1,"pay":19724,"accruals":54016,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-33993,"promo":0,"otherSvc":0,"amount":20023,"platform":"ym"}
+{"d":"2026-11-22","sku":"GGM-15-2-2","units":1,"pay":28321,"accruals":64414,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":64414,"platform":"ym"}
+{"d":"2026-11-22","sku":"GGT-03-2-1-E-14080/MDF","units":1,"pay":41858,"accruals":92089,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":92089,"platform":"ym"}

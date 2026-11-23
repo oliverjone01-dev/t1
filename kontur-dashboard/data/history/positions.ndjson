@@ -118,3 +118,7 @@
 {"ai_answers": 69, "date": "2026-11-10", "project": "gg", "source": "keys.so", "top1": 27, "top10": 520, "top3": 110, "top50": 2454, "visibility": 93}
 {"ai_answers": 68, "date": "2026-11-11", "project": "gg", "source": "keys.so", "top1": 28, "top10": 525, "top3": 111, "top50": 2460, "visibility": 93}
 {"ai_answers": 8, "date": "2026-11-17", "project": "gm", "source": "keys.so", "top1": 8, "top10": 60, "top3": 15, "top50": 597, "visibility": 2}
+{"ai_answers": 91, "date": "2026-11-22", "project": "gg", "source": "keys.so git", "top1": 32, "top10": 542, "top3": 115, "top50": 2566, "visibility": 51}
+{"ai_answers": 10, "date": "2026-11-22", "project": "gm", "source": "keys.so git", "top1": 7, "top10": 60, "top3": 15, "top50": 598, "visibility": 2}
+{"ai_answers": 91, "date": "2026-11-23", "project": "gg", "source": "keys.so", "top1": 32, "top10": 542, "top3": 115, "top50": 2566, "visibility": 51}
+{"ai_answers": 11, "date": "2026-11-23", "project": "gm", "source": "keys.so", "top1": 7, "top10": 60, "top3": 15, "top50": 598, "visibility": 2}

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="application-version" content="20261120-dnd-21" />
+    <meta name="application-version" content="20261123-weekly-report-22" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
@@ -48,6 +48,7 @@
       </div>
       <div class="panel-toggles" role="group" aria-label="Панели рабочего пространства"><button type="button" id="sidebar-toggle" class="icon-button" aria-controls="sidebar-content" aria-expanded="true" aria-label="Свернуть боковую панель" title="Свернуть боковую панель"></button><button type="button" id="controls-toggle" class="icon-button" aria-controls="workspace-controls" aria-expanded="true" aria-label="Свернуть верхнюю панель" title="Свернуть верхнюю панель"></button></div>
       <div class="header-actions">
+        <a id="board-report-back" class="text-button" hidden>К отчёту</a>
         <button
           id="commands-open"
           class="button quiet command-button"
@@ -88,7 +89,7 @@
       <aside class="sidebar" aria-label="Управление доской"><div class="sidebar-content" id="sidebar-content">
         <h1 class="sidebar-title">Рабочая доска</h1>
         <nav class="views" aria-label="Вид доски">
-          <a class="view" href="./weekly/" style="text-decoration:none;color:inherit"><span data-icon="report"></span><span>План/факт</span></a>
+          <a class="view" href="./weekly/" style="text-decoration:none;color:inherit"><span data-icon="report"></span><span>Недельный отчёт</span></a>
           <button data-mode="priority" class="view active" aria-pressed="true">
             <span data-icon="grid"></span><span>Приоритеты</span>
           </button>
@@ -330,6 +331,7 @@
             </select></label
           >
         </div>
+        <a id="editor-report-back" class="text-button" hidden>Вернуться в недельный отчёт</a>
         <div id="editor-work"></div><label>Готовность задачи <output id="editor-progress-value">0%</output><input name="progress" type="range" min="0" max="100" step="1" value="0" aria-label="Готовность задачи от 0 до 100 процентов"></label><label>Срочность задачи<select name="importance"><option value="">Не оценена</option><option value="1">1 · Низкая</option><option value="2">2 · Умеренная</option><option value="3">3 · Обычная</option><option value="4">4 · Высокая</option><option value="5">5 · Критичная</option></select></label>
         <p id="due-note" class="source-note"></p>
         <label
@@ -789,7 +791,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <script type="module" src="./workspace-start.mjs?rev=20261120-dnd-21"></script>
-    <script type="module" src="./app.mjs?rev=20261120-dnd-21"></script>
+    <script type="module" src="./app.mjs?rev=20261123-weekly-report-22"></script>
     <dialog id="access-dialog" aria-labelledby="access-title">
       <div class="dialog-head"><h2 id="access-title">Доступ к доске</h2><button class="icon-button" data-close="access-dialog" aria-label="Закрыть">×</button></div>
       <p class="access-intro">Просмотр актуальной доски открыт всем по ссылке. Редактировать могут только Google-аккаунты из списка команды. Списком управляет владелец.</p>

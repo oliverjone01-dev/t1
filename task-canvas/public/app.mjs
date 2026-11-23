@@ -2859,8 +2859,20 @@ $('#storage-cancel-change').onclick=()=>changeStorageMode(storageControl.ack.mod
 renderStorageMode();if(!DEMO)modeMonitor=setTimeout(monitorStorageMode,30000);
 
 // Open links from the weekly report after the source finishes loading.
-const linkedTask=new URLSearchParams(location.search).get("task");
-if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id===linkedTask)){clearInterval(timer);openTask(linkedTask);const desiredStatus=new URLSearchParams(location.search).get("setStatus");if(canEdit()&&["Готово","Отменено"].includes(desiredStatus)){field("status").value=desiredStatus;saveDraft()}const desiredImportance=new URLSearchParams(location.search).get("setImportance");if(canEdit()&&desiredImportance!==null&&/^[0-5]$/.test(desiredImportance)){field("importance").value=desiredImportance==="0"?"":desiredImportance;saveDraft();field("importance").focus()}const desiredProgress=new URLSearchParams(location.search).get("setProgress");if(canEdit()&&desiredProgress!==null&&/^(100|[1-9]?\d)$/.test(desiredProgress)){field("progress").value=desiredProgress;saveDraft();field("progress").focus()}const desiredAction=new URLSearchParams(location.search).get("setWorkAction");if(canEdit()&&["play","pause"].includes(desiredAction)){field("status").value=desiredAction==="play"?"В работе":"Приостановлено";saveDraft();field("status").focus()}}else if(++attempts>=60)clearInterval(timer)},1000);}
+const linkedParams=new URLSearchParams(location.search);
+const linkedTask=linkedParams.get("task"), reportWeek=linkedParams.get("reportWeek");
+const reportBack=$("#editor-report-back");
+if(linkedTask&&/^\d{4}-\d{2}-\d{2}$/.test(reportWeek||"")){
+  const reportURL=new URL("./weekly/",location.href);
+  reportURL.searchParams.set("week",reportWeek);
+  reportBack.href=reportURL.href;
+  reportBack.onclick=event=>{if(!saveDraft())event.preventDefault()};
+  const boardBack=$("#board-report-back");
+  boardBack.href=reportURL.href;
+  boardBack.hidden=false;
+}
+
+if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id===linkedTask)){clearInterval(timer);openTask(linkedTask);if(reportBack.href&&$("#editor").open){reportBack.hidden=false;if(linkedParams.get("focus")==="status")field("status").focus()}const desiredStatus=new URLSearchParams(location.search).get("setStatus");if(canEdit()&&["Готово","Отменено"].includes(desiredStatus)){field("status").value=desiredStatus;saveDraft()}const desiredImportance=new URLSearchParams(location.search).get("setImportance");if(canEdit()&&desiredImportance!==null&&/^[0-5]$/.test(desiredImportance)){field("importance").value=desiredImportance==="0"?"":desiredImportance;saveDraft();field("importance").focus()}const desiredProgress=new URLSearchParams(location.search).get("setProgress");if(canEdit()&&desiredProgress!==null&&/^(100|[1-9]?\d)$/.test(desiredProgress)){field("progress").value=desiredProgress;saveDraft();field("progress").focus()}const desiredAction=new URLSearchParams(location.search).get("setWorkAction");if(canEdit()&&["play","pause"].includes(desiredAction)){field("status").value=desiredAction==="play"?"В работе":"Приостановлено";saveDraft();field("status").focus()}}else if(++attempts>=60)clearInterval(timer)},1000);}
 
 function setTaskStatus(id,status){if(!STATUSES.includes(status))return;return change(()=>{tasks=tasks.map(t=>t.id===id?{...t,status}:t)})}
 document.addEventListener('change',e=>{const el=e.target;if(el?.dataset?.importanceId){e.stopPropagation();change(()=>{tasks=tasks.map(t=>t.id===decodeURIComponent(el.dataset.importanceId)?{...t,importance:Number(el.value)}:t)})}},true);

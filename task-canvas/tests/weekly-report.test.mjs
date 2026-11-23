@@ -16,6 +16,8 @@ test('report uses live date overlap for plan and preserves the closed result whe
   assert.deepEqual(report.planRows.map(t=>t.id),['reopened','spans','start']);
   assert.equal(report.factRows[0].outcome,'done');
   assert.equal(report.factRows[0].liveStatus,'В работе');
+  assert.equal(report.factRows[0].due,'2026-11-19');
+  assert.deepEqual(report.factRows[0].liveSchedule,{start:'',due:'2026-11-24'});
   assert.equal(report.fact.done,1);
 });
 
@@ -32,4 +34,5 @@ test('archived plan selection uses that week’s snapshot instead of unrelated l
   const data={tasks:[task('live')],snapshots:[{week,kind:'plan',tasks:[task('snapshot')]}],events:[]};
   const report=composeReport(data,{week,currentWeek:'2026-11-30',prefs:reportPreferences()});
   assert.deepEqual(report.planRows.map(t=>[t.id,t.liveStatus]),[['snapshot','Нет на доске']]);
+  assert.equal(report.planRows[0].liveSchedule,null);
 });

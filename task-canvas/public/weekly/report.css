@@ -17,13 +17,17 @@
 .report-side-count{margin:var(--space-1) 0 var(--space-2)}
 .report-tiles{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
 @container (min-width: 450px){.report-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.report-task{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:var(--space-1) var(--space-2);padding:var(--space-2);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card)}
-.report-task-symbol{display:grid;place-items:center;min-width:24px;min-height:24px;color:var(--muted)}
+.report-task{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:var(--space-1) var(--space-2);padding:var(--space-2);background:var(--status-card,var(--panel));border:1px solid var(--line);border-radius:var(--radius-card)}
+.report-task-symbol{display:grid;place-items:center;min-width:24px;min-height:24px;color:var(--status-ink,var(--muted))}
 .report-task-symbol>.ui-icon{width:20px;height:20px}
 .report-task-title{font-size:var(--font-compact);color:var(--text);font-weight:500;line-height:1.35;overflow-wrap:anywhere}
 .report-task-title a{color:inherit;text-decoration:none}
 .report-task-title a:hover{text-decoration:underline}
 .report-task-meta{margin-top:var(--space-1);line-height:1.35;overflow-wrap:anywhere}
+.report-task-shortcuts{display:flex;flex-wrap:wrap;gap:0 var(--space-2);margin-block-start:var(--space-1)}
+.report-task-link{display:inline-flex;align-items:center;gap:var(--space-1);min-height:var(--control-compact);padding-inline:var(--space-1);border-radius:var(--radius-control);color:var(--text);font-size:var(--font-caption);line-height:1.35;text-decoration:none}
+.report-task-link:is(:hover,:focus-visible){background:var(--panel);text-decoration:underline}
+.report-task-link .ui-icon{width:14px;height:14px;flex:none;color:var(--status-ink,var(--muted))}
 .report-task-actions{grid-column:2;display:flex;align-items:center;justify-content:space-between;gap:var(--space-1);flex-wrap:wrap}
 .report-task-actions .task-status{min-height:var(--control-compact);white-space:normal}
 .report-status-link{display:inline-flex;align-items:center;gap:var(--space-1);padding-inline-end:var(--space-1);border-radius:var(--radius-control);color:var(--muted);text-decoration:none}
@@ -67,11 +71,13 @@
  .week-main .segments{flex-wrap:wrap;width:100%}
  .week-header .panel-toggles{margin-left:auto}
  .report-pair{grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
- .report-task-actions :is(.task-status,.report-hide-task){min-height:var(--control-touch)}
+ .report-task-actions :is(.task-status,.report-hide-task),.report-task-link{min-height:var(--control-touch)}
  .report-rule-grid{grid-template-columns:1fr}
 }
 @media print{
  .report-tools,.report-hide-task,.report-status-link>.ui-icon,.segments,.list-heading,#report-dialog,#report-editor-dialog,#report-editor-notice{display:none!important}
+ .report-conditions-link,.report-task-link .ui-icon,.report-task:has(.report-snapshot-date) .report-task-shortcuts{display:none!important}
+ .report-task-link{padding:0;min-height:0}
  #report-grid{zoom:1}
  .report-pair,.report-headings{grid-template-columns:repeat(2,minmax(0,1fr))}
  .report-task{break-inside:avoid;print-color-adjust:exact}

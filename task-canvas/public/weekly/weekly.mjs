@@ -1,4 +1,4 @@
-import {installReport} from './report.mjs?rev=20261123-weekly-editor-23';
+import {installReport} from './report.mjs?rev=20261123-weekly-task-controls-24';
 import {filterWeeklyRows,weeklyMetrics,weeklyError} from '../weekly-scope.mjs?rev=20261120-dnd-21';
 import {installThemeToggle} from '../appearance.mjs?rev=20261120-dnd-21';
 import {workProgress,installExecutionControls} from '../work-progress.mjs?rev=20261120-dnd-21';
@@ -22,13 +22,14 @@ const stamp=d=>new Intl.DateTimeFormat('ru-RU',{dateStyle:'short',timeStyle:'sho
 const range=w=>`${fmt(w)} — ${fmt(weekEnd(w))} ${w.slice(0,4)}`;
 const editorDialog=$('#report-editor-dialog'), editorFrame=$('#report-editor-frame'),
   editorLoading=$('#report-editor-loading'), editorFallback=$('#report-editor-fallback');
-let editorTask, editorTimer, editorTrigger, editorStatusFocus;
+let editorTask, editorTimer, editorTrigger, editorFocus;
 function openReportEditor(url, trigger) {
  const src=new URL(url, location.href);
  if(editorDialog.open||src.origin!==location.origin||src.pathname!==new URL('../',location.href).pathname)return;
  editorTask=src.searchParams.get('task');
  if(!editorTask)return;
- editorStatusFocus=src.searchParams.get('focus')==='status';
+ const focus=src.searchParams.get('focus');
+ editorFocus=['status','start','due','description'].includes(focus)?focus:null;
  editorTrigger=trigger;
  editorFrame.hidden=true;
  editorLoading.hidden=false;
@@ -65,8 +66,8 @@ window.addEventListener('message',event=>{
   editorLoading.hidden=true;
   editorFrame.hidden=false;
   const editor=editorFrame.contentDocument?.querySelector('#editor');
-  const status=editor?.querySelector('select[name=status]:enabled');
-  (editorStatusFocus&&status||editor?.querySelector('#editor-title'))?.focus();
+  const field=editorFocus&&editor?.querySelector(`[name="${editorFocus}"]:enabled`);
+  (field||editor?.querySelector('#editor-title'))?.focus();
  }else if(state==='unavailable'){
   clearTimeout(editorTimer);
   $('#report-editor-state').textContent='Задача недоступна в текущей доске.';

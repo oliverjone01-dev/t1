@@ -50,8 +50,9 @@ export function composeReport(data, {week, currentWeek, prefs}) {
   const isArchived = task => task?.archived || !!task?.archiveKind;
   const withLive = task => {
     const current = live.get(task.id);
+    const canOpen = !!current && !isArchived(current);
     return {...task, liveStatus: current ? isArchived(current) ? 'В архиве' : current.status || 'Не указан' : 'Нет на доске',
-      canOpen: !!current && !isArchived(current)};
+      canOpen, liveSchedule: canOpen ? {start: current.start || '', due: current.due || ''} : null};
   };
   const candidates = {
     fact: new Map([...factSources.flatMap(s => s?.tasks || []), ...fact.rows].map(t => [t.id, t])),

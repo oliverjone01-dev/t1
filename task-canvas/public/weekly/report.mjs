@@ -1,5 +1,6 @@
-import {REPORT_KEY, REPORT_ZOOMS, FACT_OUTCOMES, reportPreferences, composeReport} from '../weekly-report-model.mjs?rev=20261123-weekly-report-22';
+import {REPORT_KEY, REPORT_ZOOMS, FACT_OUTCOMES, reportPreferences, composeReport} from '../weekly-report-model.mjs?rev=20261123-weekly-task-controls-24';
 import {statusBadge} from '../quick-controls.mjs?rev=20261120-dnd-21';
+import {STATUS_STYLE} from '../status-model.mjs?rev=20261120-dnd-21';
 import {workProgress} from '../work-progress.mjs?rev=20261120-dnd-21';
 import {icon} from '../icons.mjs?rev=20261120-dnd-21';
 
@@ -27,30 +28,43 @@ export function installReport({$, esc, ownerName, range, stamp, fmt, redraw}) {
   $('#zoom-in').onclick = () => applyZoom(REPORT_ZOOMS[REPORT_ZOOMS.indexOf(prefs.zoom) + 1]);
   applyZoom(prefs.zoom);
 
-  function taskLink(task, focusStatus = false) {
+  function taskLink(task, focus) {
     const params = new URLSearchParams({task:task.id, reportWeek:context.week});
-    if (focusStatus) params.set('focus','status');
+    if (focus) params.set('focus',focus);
     return '../?' + params.toString();
+  }
+  function dateLabel({start, due}) {
+    if (start && due && start !== due) return fmt(start) + ' – ' + fmt(due);
+    return due ? 'до ' + fmt(due) : start ? 'с ' + fmt(start) : 'Без рабочих дат';
   }
   function tile(task, section) {
     const isFact = section === 'fact';
     const archival = ['В архиве','Нет на доске'].includes(task.liveStatus);
+    const palette = Object.hasOwn(STATUS_STYLE,task.liveStatus) ? task.liveStatus : 'Не указан';
     const badge = archival
       ? `<span class="task-status none">${esc(task.liveStatus)}</span>`
       : statusBadge({status:task.liveStatus});
     const badgeControl = task.canOpen
-      ? `<a class="report-status-link" data-report-edit href="${esc(taskLink(task, true))}" aria-haspopup="dialog" aria-label="Изменить статус: ${esc(task.title)}. Сейчас: ${esc(task.liveStatus)}">${badge}${icon('edit')}</a>` : badge;
+      ? `<a class="report-status-link" data-report-edit href="${esc(taskLink(task,'status'))}" aria-haspopup="dialog" aria-label="Изменить статус: ${esc(task.title)}. Сейчас: ${esc(task.liveStatus)}">${badge}${icon('edit')}</a>` : badge;
     const title = task.canOpen ? `<a data-report-edit aria-haspopup="dialog" href="${esc(taskLink(task))}">${esc(task.title)}</a>` : esc(task.title);
-    const date = task.start && task.due && task.start !== task.due
-      ? fmt(task.start) + ' – ' + fmt(task.due) : task.due ? 'до ' + fmt(task.due) : task.start ? 'с ' + fmt(task.start) : 'Без рабочих дат';
+    const date = dateLabel(task);
+    const liveDate = task.liveSchedule && dateLabel(task.liveSchedule);
+    const showReportDate = task.liveSchedule && (
+      task.liveSchedule.start !== (task.start || '') || task.liveSchedule.due !== (task.due || ''));
+    const shortcuts = task.liveSchedule ? `<div class="report-task-shortcuts">
+      <a class="report-task-link" data-report-edit aria-haspopup="dialog" href="${esc(taskLink(task,task.liveSchedule.start && !task.liveSchedule.due ? 'start' : 'due'))}" aria-label="Изменить рабочие даты: ${esc(task.title)}. ${esc(liveDate)}" title="Изменить рабочие даты">${icon('calendar')}<span>${esc(liveDate)}</span></a>
+      <a class="report-task-link report-conditions-link" data-report-edit aria-haspopup="dialog" href="${esc(taskLink(task,'description'))}" aria-label="Изменить условия задачи: ${esc(task.title)}" title="Ожидаемый результат и комментарий">${icon('edit')}<span>Условия</span></a>
+    </div>` : '';
     const visual = isFact
       ? icon(task.outcome === 'done' ? 'check' : task.outcome === 'moved' ? 'arrow-right' : 'calendar')
       : workProgress(task);
-    return `<article class="report-task">
+    return `<article class="report-task" data-task-status="${esc(palette)}">
       <div class="report-task-symbol" aria-hidden="true">${visual}</div>
       <div class="report-task-copy"><div class="report-task-title">${title}</div>
-        <div class="report-task-meta">${esc(ownerName(task) || 'Не назначен')} · ${esc(date)}${task.manual ? ' · Добавлена вручную' : ''}</div>
+        <div class="report-task-meta">${esc(ownerName(task) || 'Не назначен')}${!liveDate ? ' · ' + esc(date) : ''}${task.manual ? ' · Добавлена вручную' : ''}</div>
         ${isFact ? `<div class="report-task-meta">Итог недели · ${esc(FACT_OUTCOMES[task.outcome] || 'Итог не подтверждён')}</div>` : ''}
+        ${showReportDate ? `<div class="report-task-meta report-snapshot-date">Даты в отчёте · ${esc(date)}</div>` : ''}
+        ${shortcuts}
       </div>
       <div class="report-task-actions">${badgeControl}<button type="button" class="icon-button report-hide-task" data-report-hide="${esc(task.id)}" data-report-section="${section}" aria-label="Исключить из отчёта: ${esc(task.title)}" title="Исключить из отчёта">${icon('close')}</button></div>
     </article>`;

@@ -1,5 +1,12 @@
 {
-  "release": "20261120-dnd-21",
+  "release": "20261123-weekly-report-22",
   "default": "20261120-dnd-21",
-  "assets": {}
+  "assets": {
+    "weekly-report-model.mjs": "20261123-weekly-report-22",
+    "weekly/report.mjs": "20261123-weekly-report-22",
+    "weekly/weekly.mjs": "20261123-weekly-report-22",
+    "weekly/weekly-shell.mjs": "20261123-weekly-report-22",
+    "weekly/report.css": "20261123-weekly-report-22",
+    "app.mjs": "20261123-weekly-report-22"
+  }
 }

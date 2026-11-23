@@ -39,18 +39,18 @@ export function installReport({$, esc, ownerName, range, stamp, fmt, redraw}) {
       ? `<span class="task-status none">${esc(task.liveStatus)}</span>`
       : statusBadge({status:task.liveStatus});
     const badgeControl = task.canOpen
-      ? `<a class="report-status-link" href="${esc(taskLink(task, true))}" aria-label="Изменить статус: ${esc(task.title)}. Сейчас: ${esc(task.liveStatus)}">${badge}</a>` : badge;
-    const title = task.canOpen ? `<a href="${esc(taskLink(task))}">${esc(task.title)}</a>` : esc(task.title);
+      ? `<a class="report-status-link" data-report-edit href="${esc(taskLink(task, true))}" aria-haspopup="dialog" aria-label="Изменить статус: ${esc(task.title)}. Сейчас: ${esc(task.liveStatus)}">${badge}${icon('edit')}</a>` : badge;
+    const title = task.canOpen ? `<a data-report-edit aria-haspopup="dialog" href="${esc(taskLink(task))}">${esc(task.title)}</a>` : esc(task.title);
     const date = task.start && task.due && task.start !== task.due
       ? fmt(task.start) + ' – ' + fmt(task.due) : task.due ? 'до ' + fmt(task.due) : task.start ? 'с ' + fmt(task.start) : 'Без рабочих дат';
-    const historicStyle = {done:'Готово', open:'В работе', moved:'В работе', cancelled:'Отменено'}[task.outcome] || 'Не указан';
     const visual = isFact
       ? icon(task.outcome === 'done' ? 'check' : task.outcome === 'moved' ? 'arrow-right' : 'calendar')
       : workProgress(task);
-    return `<article class="report-task" data-task-status="${esc(isFact ? historicStyle : task.liveStatus)}">
+    return `<article class="report-task">
       <div class="report-task-symbol" aria-hidden="true">${visual}</div>
       <div class="report-task-copy"><div class="report-task-title">${title}</div>
-        <div class="report-task-meta">${esc(ownerName(task) || 'Не назначен')} · ${esc(date)}${isFact ? ' · ' + esc(FACT_OUTCOMES[task.outcome] || '') : ''}${task.manual ? ' · Добавлена вручную' : ''}</div>
+        <div class="report-task-meta">${esc(ownerName(task) || 'Не назначен')} · ${esc(date)}${task.manual ? ' · Добавлена вручную' : ''}</div>
+        ${isFact ? `<div class="report-task-meta">Итог недели · ${esc(FACT_OUTCOMES[task.outcome] || 'Итог не подтверждён')}</div>` : ''}
       </div>
       <div class="report-task-actions">${badgeControl}<button type="button" class="icon-button report-hide-task" data-report-hide="${esc(task.id)}" data-report-section="${section}" aria-label="Исключить из отчёта: ${esc(task.title)}" title="Исключить из отчёта">${icon('close')}</button></div>
     </article>`;
@@ -81,9 +81,9 @@ export function installReport({$, esc, ownerName, range, stamp, fmt, redraw}) {
         return `<div class="report-side" role="group" aria-label="${label}: ${esc(unit)}"><p class="report-side-count">${label} · ${items.length}</p><div class="report-tiles">${items.map(t=>tile(t,section)).join('')}</div></div>`;
       }).join('')}</div></section>`).join('') || '<p class="empty">По текущим настройкам задач нет.</p>'}`;
     $('#report-count').textContent = `Факт: ${fact.length} · План: ${plan.length}`;
-    $('#section-note').textContent = 'Цвет плитки в факте показывает итог недели. Бейдж показывает текущий статус на доске.';
+    $('#section-note').textContent = '';
     if (!report.fact.historical && report.fact.baseline?.quality === 'late') {
-      $('#section-note').textContent += ` Первый снимок плана сделан ${stamp(report.fact.baseline.at)} МСК.`;
+      $('#section-note').textContent = `Первый снимок плана сделан ${stamp(report.fact.baseline.at)} МСК.`;
     }
   }
 

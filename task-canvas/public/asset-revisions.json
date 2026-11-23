@@ -1,12 +1,12 @@
 {
-  "release": "20261123-weekly-editor-23",
+  "release": "20261123-weekly-task-controls-24",
   "default": "20261120-dnd-21",
   "assets": {
-    "weekly-report-model.mjs": "20261123-weekly-report-22",
-    "weekly/report.mjs": "20261123-weekly-editor-23",
-    "weekly/weekly.mjs": "20261123-weekly-editor-23",
+    "weekly-report-model.mjs": "20261123-weekly-task-controls-24",
+    "weekly/report.mjs": "20261123-weekly-task-controls-24",
+    "weekly/weekly.mjs": "20261123-weekly-task-controls-24",
     "weekly/weekly-shell.mjs": "20261123-weekly-report-22",
-    "weekly/report.css": "20261123-weekly-editor-23",
+    "weekly/report.css": "20261123-weekly-task-controls-24",
     "app.mjs": "20261123-weekly-editor-23"
   }
 }

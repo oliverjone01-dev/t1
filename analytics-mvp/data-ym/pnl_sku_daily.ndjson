@@ -1382,4 +1382,6 @@
 {"d":"2026-11-21","sku":"GGT-47-5-1-80","units":1,"pay":19724,"accruals":54016,"commission":-259,"delivery":-1030,"acquiring":-1513,"storage":0,"cofin":-33993,"promo":-54,"otherSvc":0,"amount":17167,"platform":"ym"}
 {"d":"2026-11-22","sku":"GGM-15-2-2","units":1,"pay":28321,"accruals":64414,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-35264,"promo":0,"otherSvc":0,"amount":29150,"platform":"ym"}
 {"d":"2026-11-22","sku":"GGT-03-2-1-E-14080/MDF","units":1,"pay":41858,"accruals":92089,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-49373,"promo":0,"otherSvc":0,"amount":42715,"platform":"ym"}
+{"d":"2026-11-23","sku":"GGM-24-2","units":1,"pay":27703,"accruals":63268,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":63268,"platform":"ym"}
 {"d":"2026-11-23","sku":"GGT-03-2-2-O-20090","units":1,"pay":50280,"accruals":109461,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":109461,"platform":"ym"}
+{"d":"2026-11-23","sku":"GGT-47-2-2-80","units":1,"pay":21026,"accruals":52632,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":52632,"platform":"ym"}

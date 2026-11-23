@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-11-23T08:27:19.800Z",
+  "generated_at": "2026-11-23T18:54:21.810Z",
   "today": "2026-11-23",
   "periods": [
     {
@@ -586,11 +586,11 @@
     "fee_source": {
       "orders_from_netting": 1785,
       "orders_from_commissions": 352,
-      "accruals_from_netting": 75780765,
+      "accruals_from_netting": 75896665,
       "accruals_from_commissions": 0,
       "fees_from_netting": 41582355.97,
       "fees_from_commissions": 0,
-      "rate_netting": 54.9,
+      "rate_netting": 54.8,
       "rate_order": null,
       "by_month": {
         "2026-01": {
@@ -696,16 +696,16 @@
         "2026-11": {
           "orders_netting": 149,
           "orders_order": 19,
-          "accruals_netting": 6770609,
+          "accruals_netting": 6886509,
           "accruals_order": 0,
           "fees_netting": 4063815.08,
           "fees_order": 0,
-          "rate_netting": 60,
+          "rate_netting": 59,
           "rate_order": null
         }
       },
       "gaps": [],
-      "accruals_total": 75780765,
+      "accruals_total": 75896665,
       "pct_accruals_from_commissions": 0,
       "months_mostly_commissions": [],
       "gaps_named": [],
@@ -727,16 +727,16 @@
         "orders": 481,
         "rows": 676,
         "revenue": 24965470,
-        "delivered": 292,
-        "payout": 4632003,
+        "delivered": 293,
+        "payout": 4695271,
         "skus": 94
       },
       "74986385": {
         "orders": 1656,
         "rows": 2674,
         "revenue": 100293739,
-        "delivered": 1148,
-        "payout": 29566406,
+        "delivered": 1149,
+        "payout": 29619038,
         "skus": 345
       }
     },

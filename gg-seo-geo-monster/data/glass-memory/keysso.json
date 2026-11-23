@@ -1,8 +1,8 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-11-22",
+ "measured": "2026-11-23",
  "visibility": 2,
- "ai_answers": 10,
+ "ai_answers": 11,
  "keywords_total": 598,
  "top1": 7,
  "top3": 15,
@@ -366,6 +366,11 @@
    "date": "2026-11-22",
    "visibility": 2,
    "top10": 60
+  },
+  {
+   "date": "2026-11-23",
+   "visibility": 2,
+   "top10": 60
   }
  ],
  "keywords": [
@@ -435,31 +440,31 @@
    "domain": "m.avito.ru",
    "visibility": 2330172,
    "common_keywords": 438,
-   "delta_visibility": -0.1
+   "delta_visibility": 0
   },
   {
    "domain": "livemaster.ru",
    "visibility": 79389,
    "common_keywords": 312,
-   "delta_visibility": 0.1
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
    "visibility": 1824283,
    "common_keywords": 310,
-   "delta_visibility": -2.4
+   "delta_visibility": 0
   },
   {
    "domain": "ozon.ru",
    "visibility": 3187707,
    "common_keywords": 302,
-   "delta_visibility": -1.2
+   "delta_visibility": 0
   },
   {
    "domain": "market.yandex.ru",
    "visibility": 1070740,
    "common_keywords": 296,
-   "delta_visibility": -2.5
+   "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
@@ -471,13 +476,13 @@
    "domain": "ru.pinterest.com",
    "visibility": 871976,
    "common_keywords": 172,
-   "delta_visibility": 1.6
+   "delta_visibility": 0
   },
   {
    "domain": "uslugi.yandex.ru",
    "visibility": 492503,
    "common_keywords": 170,
-   "delta_visibility": -2
+   "delta_visibility": 0
   },
   {
    "domain": "yandex.ru",
@@ -501,19 +506,19 @@
    "domain": "dzen.ru",
    "visibility": 4709565,
    "common_keywords": 11,
-   "delta_visibility": 0.3
+   "delta_visibility": 0
   },
   {
    "domain": "pqd.ru",
    "visibility": 1098,
    "common_keywords": 9,
-   "delta_visibility": 6.7
+   "delta_visibility": 0
   },
   {
    "domain": "talkingstone.ru",
    "visibility": 499,
    "common_keywords": 8,
-   "delta_visibility": 0.8
+   "delta_visibility": 0
   },
   {
    "domain": "organizator24-granit.ru",
@@ -525,11 +530,6 @@
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "pqd.ru",
-    "delta": 6.7
-   }
-  ]
+  "competitor_up": []
  }
 }

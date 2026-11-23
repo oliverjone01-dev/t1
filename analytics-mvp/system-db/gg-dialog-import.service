@@ -1,0 +1,12 @@
+[Unit]
+Description=Synchronize canonical dialogue data before PostgreSQL page conversion
+After=postgresql.service
+[Service]
+Type=oneshot
+User=gg
+Group=gg
+ExecStart=/usr/bin/python3 /srv/gg/system-db/current/server.py dialog-sync
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

@@ -1,0 +1,21 @@
+[Unit]
+Description=GENGROUP dashboard access administration
+After=network.target
+[Service]
+User=gg-access
+Group=www-data
+RuntimeDirectory=gg-access
+RuntimeDirectoryMode=0750
+ExecStart=/usr/bin/python3 /srv/gg/access-api/current/server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/gg/access /run/gg-access
+RestrictAddressFamilies=AF_UNIX
+UMask=0027
+[Install]
+WantedBy=multi-user.target

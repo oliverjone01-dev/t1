@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# gg-backup [--check]  (root, gg-backup.timer ежедневно)
+# Бэкап в S3-хранилище (например, Timeweb Object Storage) через restic: шифрование на сервере,
+# дедупликация, ротация 14 дней / 8 недель / 12 месяцев.
+# Сохраняем: данные (/srv/gg/data вместе с их git-историей), секреты и настройки (/etc/gg), nginx.
+# Код не бэкапим: он в GitHub, зеркало восстанавливается одной командой.
+# Как и gg-apply-timers, ставится КОПИЕЙ в /usr/local/sbin (работает от root, из git не обновляется).
+# Нужны в /etc/gg/secrets.env: RESTIC_REPOSITORY, RESTIC_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+# --check: проверка целостности с пробным чтением 5% данных (раз в месяц, см. README).
+set -euo pipefail
+[ -r /etc/gg/gg.env ] && . /etc/gg/gg.env
+GG_ROOT=${GG_ROOT:-/srv/gg}
+set -a; . /etc/gg/secrets.env; set +a
+: "${RESTIC_REPOSITORY:?нет RESTIC_REPOSITORY в /etc/gg/secrets.env}" "${RESTIC_PASSWORD:?нет RESTIC_PASSWORD}"
+
+alert() {
+  [ -n "${GG_ALERT_BOT_TOKEN:-}" ] && [ -n "${GG_ALERT_CHAT_ID:-}" ] || return 0
+  curl -fsS -m 20 -X POST "https://api.telegram.org/bot${GG_ALERT_BOT_TOKEN}/sendMessage" \
+    --data-urlencode "chat_id=${GG_ALERT_CHAT_ID}" --data-urlencode "text=[$(hostname -s)] $*" >/dev/null || true
+}
+
+if [ "${1:-}" = --check ]; then
+  restic check --read-data-subset=5% || { alert "❌ проверка бэкапа не прошла"; exit 1; }
+  exit 0
+fi
+
+restic cat config >/dev/null 2>&1 || restic init
+if ! restic backup --tag gg --one-file-system "$GG_ROOT/data" /etc/gg /etc/nginx/sites-available /etc/nginx/gg.htpasswd; then
+  alert "❌ бэкап не выполнен"; exit 1
+fi
+restic forget --tag gg --keep-daily 14 --keep-weekly 8 --keep-monthly 12 --prune
+echo "бэкап ok"

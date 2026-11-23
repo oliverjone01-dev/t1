@@ -1,0 +1,22 @@
+[Unit]
+Description=Generate lightweight local dashboard previews
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=gg
+Group=gg
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/gg-previews/browsers
+WorkingDirectory=/opt/gg-previews
+ExecStart=/usr/bin/node /opt/gg-previews/generate.mjs
+ExecStartPost=/usr/local/bin/gg-site
+Nice=15
+CPUQuota=75%
+MemoryMax=2G
+TimeoutStartSec=15min
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+

@@ -124,24 +124,37 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
     }
   }
   const nb: [string, string, string, number][] = [];
-  const nbSkuDay: Record<string, number> = {};
+  const nbSkuDay: Record<string, { order: string; amount: number; rounded: number }[]> = {};
   for (const [k, v] of Object.entries(nbF)) {
     const [d, sku, o] = k.split("|") as [string, string, string];
-    const a = Math.round(v); if (!a) continue;
-    nb.push([d, sku, o, a]);
-    nbSkuDay[sku + "|" + d] = (nbSkuDay[sku + "|" + d] || 0) + a;
+    (nbSkuDay[sku + "|" + d] ||= []).push({ order: o, amount: v, rounded: Math.round(v) });
   }
-  nb.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   const own: Record<string, [string, number][]> = {};
   const totDay: Record<string, number> = {}, nbDay: Record<string, number> = {};
   for (const [k, v] of Object.entries(skuDay)) {
     const [sku, d] = k.split("|") as [string, string];
-    const tot = Math.round(v), n = nbSkuDay[k] || 0;
-    // Инвариант: доля соседей не больше расхода этого SKU в этот день (иначе задвоение, К4).
-    if (n > tot + 1) throw new Error(`cpc-card-spread ${sku} ${d}: соседям ${n} при расходе ${tot}`);
+    const tot = Math.round(v);
+    const shares = nbSkuDay[k] || [];
+    const exact = shares.reduce((sum, share) => sum + share.amount, 0);
+    // Проверяем задвоение до округления. Допуск только на погрешность float.
+    if (exact > v + 1e-6) throw new Error(`cpc-card-spread ${sku} ${d}: соседям ${exact} при расходе ${v} до округления`);
+    let n = shares.reduce((sum, share) => sum + share.rounded, 0);
+    if (n > tot) {
+      // Если отдельные округления превысили расход, убираем лишние рубли с самых
+      // завышенных округлений. Остальные доли сохраняют обычное округление.
+      const roundedUp = shares.filter((share) => share.rounded > share.amount)
+        .sort((a, b) => (b.rounded - b.amount) - (a.rounded - a.amount));
+      for (const share of roundedUp.slice(0, n - tot)) {
+        share.rounded--;
+        n--;
+      }
+    }
+    if (n > tot) throw new Error(`cpc-card-spread ${sku} ${d}: соседям ${n} при расходе ${tot} после округления`);
+    for (const share of shares) if (share.rounded) nb.push([d, sku, share.order, share.rounded]);
     (own[sku] ||= []).push([d, tot - n]);
     totDay[d] = (totDay[d] || 0) + tot; nbDay[d] = (nbDay[d] || 0) + n;
   }
+  nb.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   for (const sku in own) own[sku]!.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   const stat: CardSpread["stat"] = Object.keys(st).sort().map((d) => {
     const s = st[d]!;

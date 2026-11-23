@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-16T10:10:43.347Z",
+  "measured": "2026-11-23T11:11:25.574Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,109 +12,91 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5099,
-        "it50": 49686252,
-        "vis": 5003373,
-        "perc": 0.01026239612518972
+        "cnt": 5069,
+        "it50": 49766383,
+        "vis": 4709879,
+        "perc": 0.010185590542113538
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 4592,
-        "it50": 20668494,
-        "vis": 2319777,
-        "perc": 0.02221739039138507
+        "cnt": 4576,
+        "it50": 20732086,
+        "vis": 2330934,
+        "perc": 0.02207206742244847
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3796,
-        "it50": 50279585,
-        "vis": 3523352,
-        "perc": 0.007549783873514469
+        "cnt": 3769,
+        "it50": 50345735,
+        "vis": 3222174,
+        "perc": 0.007486234931320399
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3005,
-        "it50": 17551679,
-        "vis": 1188553,
-        "perc": 0.017120869177245094
-      },
-      {
-        "did": 29918164,
-        "name": "yandex.ru",
-        "cnt": 2988,
-        "it50": 47111823,
-        "vis": 10197334,
-        "perc": 0.006342356991789514
+        "cnt": 2971,
+        "it50": 17542018,
+        "vis": 1071552,
+        "perc": 0.016936477889830007
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
+        "cnt": 2963,
+        "it50": 1424544,
+        "vis": 18591,
+        "perc": 0.20799638340409282
+      },
+      {
+        "did": 29918164,
+        "name": "yandex.ru",
         "cnt": 2959,
-        "it50": 1422290,
-        "vis": 18960,
-        "perc": 0.2080447728662931
+        "it50": 47089514,
+        "vis": 9618275,
+        "perc": 0.006283776893513914
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2892,
-        "it50": 3099943,
-        "vis": 387452,
-        "perc": 0.09329203795037522
+        "cnt": 2855,
+        "it50": 3091455,
+        "vis": 392134,
+        "perc": 0.09235133618312413
       },
       {
         "did": 31079457,
         "name": "vk.ru",
-        "cnt": 2514,
-        "it50": 49579338,
-        "vis": 6159294,
-        "perc": 0.005070660685304027
+        "cnt": 2528,
+        "it50": 49901580,
+        "vis": 5599907,
+        "perc": 0.00506597185900727
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2186,
-        "it50": 18848864,
-        "vis": 3480390,
-        "perc": 0.011597515903345686
+        "cnt": 2164,
+        "it50": 18914982,
+        "vis": 3190946,
+        "perc": 0.011440666451599055
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
-        "cnt": 2136,
-        "it50": 883544,
-        "vis": 13623,
-        "perc": 0.24175366478636037
+        "cnt": 2132,
+        "it50": 881638,
+        "vis": 12548,
+        "perc": 0.2418226074647418
       }
     ],
-    "it1": 228,
-    "it3": 625,
-    "it5": 1040,
-    "it10": 2225,
-    "it50": 9637,
+    "it1": 225,
+    "it3": 619,
+    "it5": 1034,
+    "it10": 2218,
+    "it50": 9569,
     "childsCount": 1,
     "keys": [
-      {
-        "pos": 1,
-        "word": "высота перил на террасе",
-        "ws": 1362,
-        "wsk": 509
-      },
-      {
-        "pos": 1,
-        "word": "высота перил",
-        "ws": 12775,
-        "wsk": 479
-      },
-      {
-        "pos": 1,
-        "word": "высота перил на лестнице",
-        "ws": 2787,
-        "wsk": 431
-      },
       {
         "pos": 1,
         "word": "стеклянная дверь в баню размеры",
@@ -153,66 +135,84 @@
       },
       {
         "pos": 1,
+        "word": "высота ограждения",
+        "ws": 33905,
+        "wsk": 72
+      },
+      {
+        "pos": 1,
         "word": "высота перил на веранде",
         "ws": 286,
         "wsk": 72
+      },
+      {
+        "pos": 1,
+        "word": "стеклянные двери и перегородки офисные",
+        "ws": 91,
+        "wsk": 64
+      },
+      {
+        "pos": 1,
+        "word": "стеклянный фасад в алюминиевом профиле",
+        "ws": 214,
+        "wsk": 62
       }
     ],
-    "topkeys": 42897,
+    "topkeys": 43181,
     "pages": [
       {
-        "it50": 315,
+        "it50": 312,
         "url": "/"
       },
       {
-        "it50": 256,
+        "it50": 258,
         "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 253,
+        "it50": 242,
         "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
-        "it50": 191,
-        "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
-      },
-      {
-        "it50": 190,
+        "it50": 189,
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 185,
+        "it50": 189,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
+      },
+      {
+        "it50": 183,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "it50": 143,
+        "it50": 140,
         "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
       },
       {
-        "it50": 126,
+        "it50": 128,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "it50": 102,
+        "it50": 103,
         "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
       },
       {
-        "it50": 95,
+        "it50": 99,
         "url": "/steklyannye-dveri-dlya-doma/dver-v-parnuyu-razmery"
       }
     ],
-    "pagesinindex": 1186,
-    "vis": 134,
-    "topvis": 52665,
+    "pagesinindex": 1193,
+    "vis": 133,
+    "topvis": 52901,
     "adconcs": [
       {
         "did": 29969733,
         "name": "ofimall.ru",
         "cnt": 11,
-        "it50": 2317,
-        "vis": 9,
-        "adkeyscnt": 2528,
-        "adscnt": 389
+        "it50": 2305,
+        "vis": 12,
+        "adkeyscnt": 2848,
+        "adscnt": 394
       }
     ],
     "adkeys": [
@@ -395,11 +395,11 @@
       },
       {
         "facts": "",
-        "header": "Стеклянные перегородки и стеклянные двери от производителя в Москве",
-        "id": 4043665282,
+        "header": "Стеклянные перегородки в Москве от производителя!",
+        "id": 268521267,
         "keyscnt": 1,
         "links": "Гарантия качества, Сроков, Скидки до 30%, Замеры бесплатно",
-        "txt": "Двойные звукоизоляционные стеклянные перегородки для офиса. Зонирование пространства с помощью каркасных стеклянных перегородок в офисе."
+        "txt": "Перегородки стеклянные в Москве под ключ. От 2200 р/м2. Скидка 30% от 100м2.Заходите!"
       },
       {
         "facts": "",
@@ -628,16 +628,16 @@
         "aiCnt": 1247
       },
       "2026.11": {
-        "it1": 228,
-        "it3": 625,
-        "it5": 1040,
-        "it10": 2225,
-        "it50": 9637,
-        "pagesInIndex": 1186,
+        "it1": 225,
+        "it3": 619,
+        "it5": 1034,
+        "it10": 2218,
+        "it50": 9569,
+        "pagesInIndex": 1193,
         "adsCount": 11,
         "adKeysCount": 12,
-        "visAvg": 134,
-        "aiCnt": 993
+        "visAvg": 133,
+        "aiCnt": 1112
       }
     },
     "linksHistory": {
@@ -768,14 +768,14 @@
         1344
       ],
       "2026.11": [
-        3692,
-        29230,
-        488,
+        3664,
+        29945,
+        489,
         25,
-        1314
+        1306
       ]
     },
-    "aiAnswersCnt": 993,
+    "aiAnswersCnt": 1112,
     "aiState": 0,
     "dr": 26,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

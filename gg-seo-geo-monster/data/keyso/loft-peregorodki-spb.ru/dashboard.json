@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-11-16T10:07:20.894Z",
+  "measured": "2026-11-23T11:08:08.358Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -13,81 +13,81 @@
         "did": 30654137,
         "name": "m.avito.ru",
         "cnt": 11,
-        "it50": 20668494,
-        "vis": 2319777,
-        "perc": 0.00005322110067622731
+        "it50": 20732086,
+        "vis": 2330934,
+        "perc": 0.000053057854380885746
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
         "cnt": 10,
-        "it50": 47111823,
-        "vis": 10197334,
-        "perc": 0.00002122609435003184
+        "it50": 47089514,
+        "vis": 9618275,
+        "perc": 0.000021236150366724956
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
         "cnt": 9,
-        "it50": 2769684,
-        "vis": 79762,
-        "perc": 0.0003249468170376115
+        "it50": 2761787,
+        "vis": 79307,
+        "perc": 0.00032587596364238084
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 8,
-        "it50": 308,
+        "it50": 300,
         "vis": 5,
-        "perc": 2.5974025974025974
-      },
-      {
-        "did": 30880413,
-        "name": "ginterio.ru",
-        "cnt": 7,
-        "it50": 584,
-        "vis": 2,
-        "perc": 1.1986301369863015
-      },
-      {
-        "did": 29917497,
-        "name": "market.yandex.ru",
-        "cnt": 7,
-        "it50": 17551679,
-        "vis": 1188553,
-        "perc": 0.0000398822243729503
-      },
-      {
-        "did": 244319620,
-        "name": "peregorodka78.ru",
-        "cnt": 7,
-        "it50": 107,
-        "vis": 0,
-        "perc": 6.5420560747663545
-      },
-      {
-        "did": 31466309,
-        "name": "steklodel-spb.ru",
-        "cnt": 7,
-        "it50": 357,
-        "vis": 1,
-        "perc": 1.9607843137254903
+        "perc": 2.6666666666666665
       },
       {
         "did": 31079457,
         "name": "vk.ru",
         "cnt": 7,
-        "it50": 49579338,
-        "vis": 6159294,
-        "perc": 0.000014118784724394666
+        "it50": 49901580,
+        "vis": 5599907,
+        "perc": 0.000014027611951365068
       },
       {
-        "did": 30965690,
-        "name": "peregorodkalab.ru",
-        "cnt": 6,
-        "it50": 156,
+        "did": 244319620,
+        "name": "peregorodka78.ru",
+        "cnt": 7,
+        "it50": 104,
         "vis": 0,
-        "perc": 3.846153846153846
+        "perc": 6.730769230769231
+      },
+      {
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
+        "cnt": 7,
+        "it50": 358,
+        "vis": 1,
+        "perc": 1.9553072625698324
+      },
+      {
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 7,
+        "it50": 592,
+        "vis": 2,
+        "perc": 1.1824324324324325
+      },
+      {
+        "did": 29917497,
+        "name": "market.yandex.ru",
+        "cnt": 7,
+        "it50": 17542018,
+        "vis": 1071552,
+        "perc": 0.00003990418890232583
+      },
+      {
+        "did": 30146789,
+        "name": "petralum.ru",
+        "cnt": 6,
+        "it50": 914,
+        "vis": 8,
+        "perc": 0.6564551422319475
       }
     ],
     "it1": 0,

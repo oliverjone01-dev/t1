@@ -66,6 +66,7 @@ on:
     - cron: "47 9 * * *"
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -767,11 +768,13 @@ jobs:
       - name: Wait for Pages artifact metadata
         env:
           PAGES_ARTIFACT_ID: ${{ steps.pages-artifact.outputs.artifact_id }}
+          PAGES_METADATA_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           test -n "$PAGES_ARTIFACT_ID"
           curl --fail --silent --show-error --output /dev/null \
             --retry 5 --retry-all-errors --retry-delay 5 --max-time 10 \
+            --header "Authorization: Bearer $PAGES_METADATA_TOKEN" \
             --header 'Cache-Control: no-cache' \
             "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$PAGES_ARTIFACT_ID"
       - id: deploy

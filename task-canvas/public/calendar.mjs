@@ -3,11 +3,11 @@ import {presentationCard,sectionMarkup,installTileActions} from './presentation-
 import {taskSections} from './display-model.mjs?rev=20261120-dnd-21';
 import {workProgress} from './work-progress.mjs?rev=20261120-dnd-21';
 import {overlapsRange} from './task-dates.mjs?rev=20261120-dnd-21';
-import {periodRange,shiftRange} from './range-model.mjs?rev=20261120-dnd-21';
+import {periodRange,shiftRange} from './range-model.mjs?rev=20261124-active-focus-25';
 import {statusBadge} from './quick-controls.mjs?rev=20261120-dnd-21';
 import {temperature,weekStart,closedDay,inWeek} from './task-signals.mjs?rev=20261120-dnd-21';
-import {sortTasks} from './productivity-model.mjs?rev=20261120-dnd-21';
-import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261120-dnd-21';
+import {sortTasks} from './productivity-model.mjs?rev=20261124-active-focus-25';
+import {calendarDays,monthStart,shiftMonth,movePeriod,dayTasks,monthSummary,rangePage as pageForRange} from './calendar-model.mjs?rev=20261124-active-focus-25';
 import {QUADRANTS,statusGroup,shiftDate} from './model.mjs?rev=20261120-dnd-21';
 import {icon} from './icons.mjs?rev=20261120-dnd-21';
 export function installCalendar(host){

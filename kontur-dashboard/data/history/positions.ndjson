@@ -122,3 +122,4 @@
 {"ai_answers": 10, "date": "2026-11-22", "project": "gm", "source": "keys.so git", "top1": 7, "top10": 60, "top3": 15, "top50": 598, "visibility": 2}
 {"ai_answers": 91, "date": "2026-11-23", "project": "gg", "source": "keys.so", "top1": 32, "top10": 542, "top3": 115, "top50": 2566, "visibility": 51}
 {"ai_answers": 11, "date": "2026-11-23", "project": "gm", "source": "keys.so", "top1": 7, "top10": 60, "top3": 15, "top50": 598, "visibility": 2}
+{"ai_answers": 90, "date": "2026-11-24", "project": "gg", "source": "keys.so", "top1": 32, "top10": 541, "top3": 115, "top50": 2558, "visibility": 51}

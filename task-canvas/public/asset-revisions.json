@@ -1,5 +1,5 @@
 {
-  "release": "20261123-weekly-task-controls-24",
+  "release": "20261124-active-focus-25",
   "default": "20261120-dnd-21",
   "assets": {
     "weekly-report-model.mjs": "20261123-weekly-task-controls-24",
@@ -7,6 +7,13 @@
     "weekly/weekly.mjs": "20261123-weekly-task-controls-24",
     "weekly/weekly-shell.mjs": "20261123-weekly-report-22",
     "weekly/report.css": "20261123-weekly-task-controls-24",
-    "app.mjs": "20261123-weekly-editor-23"
+    "app.mjs": "20261124-active-focus-25",
+    "calendar-model.mjs": "20261124-active-focus-25",
+    "calendar.mjs": "20261124-active-focus-25",
+    "display-controls.mjs": "20261124-active-focus-25",
+    "productivity-model.mjs": "20261124-active-focus-25",
+    "productivity.mjs": "20261124-active-focus-25",
+    "range-model.mjs": "20261124-active-focus-25",
+    "range-picker.mjs": "20261124-active-focus-25"
   }
 }

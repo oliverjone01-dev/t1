@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -92718531,
-  "n": 3706
+  "sum": -92834227,
+  "n": 3714
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2995914,
-  "n": 1802
+  "sum": -3011051,
+  "n": 1811
  },
  {
   "type_id": 3,
@@ -38,8 +38,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -466583,
-  "n": 2048
+  "sum": -469185,
+  "n": 2056
  },
  {
   "type_id": 74,
@@ -52,8 +52,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -327136,
-  "n": 222
+  "sum": -327464,
+  "n": 223
  },
  {
   "type_id": 22,
@@ -66,8 +66,8 @@
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -190233,
-  "n": 331
+  "sum": -191180,
+  "n": 332
  },
  {
   "type_id": 116,
@@ -87,8 +87,8 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -65800,
-  "n": 237
+  "sum": -66360,
+  "n": 239
  },
  {
   "type_id": 68,
@@ -108,15 +108,15 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -22010,
-  "n": 1448
+  "sum": -22090,
+  "n": 1456
  },
  {
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -8270,
-  "n": 920
+  "sum": -8300,
+  "n": 924
  },
  {
   "type_id": 14,
@@ -143,15 +143,15 @@
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -3375,
-  "n": 137
+  "sum": -3400,
+  "n": 138
  },
  {
   "type_id": 45,
   "name": "PickUpPointReturnAcceptance",
   "bucket": "delivery",
-  "sum": -1365,
-  "n": 91
+  "sum": -1380,
+  "n": 92
  },
  {
   "type_id": 6,

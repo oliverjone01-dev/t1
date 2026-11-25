@@ -17,7 +17,7 @@ test('every triage chip is a real focus and the strip starts with all tasks',()=
 
 test('triage counts match what the focus opens and skip finished tasks',()=>{
   const counts=focusCounts(tasks,today,['c'],id=>id==='b');
-  assert.deepEqual(counts,{all:4,today:1,overdue:1,inbox:1,unassigned:1,waiting:1,unread:1,pinned:1});
+  assert.deepEqual(counts,{all:4,today:0,overdue:1,inbox:1,unassigned:1,waiting:1,unread:1,pinned:1});
   for(const [id] of TRIAGE)assert.equal(counts[id],tasks.filter(t=>matchesFocus(t,id,today,['c'],t.id==='b')).length,id);
   assert.equal(matchesFocus(tasks[3],'inbox',today),false);
 });

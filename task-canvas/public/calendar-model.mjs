@@ -1,6 +1,7 @@
 import {overlapsRange} from './task-dates.mjs?rev=20261120-dnd-21';
 import {ordered} from './order.mjs?rev=20261120-dnd-21';
 import {localDate,shiftDate,statusGroup} from './model.mjs?rev=20261120-dnd-21';
+import {isActiveTask} from './productivity-model.mjs?rev=20261124-active-focus-25';
 export function monthStart(date){return date.slice(0,7)+'-01'}
 export function shiftMonth(date,n){const d=new Date(date+'T12:00:00');d.setDate(1);d.setMonth(d.getMonth()+n);return localDate(d)}
 export function weekStart(date){const day=new Date(date+'T12:00:00').getDay();return shiftDate(date,-((day+6)%7))}
@@ -10,7 +11,7 @@ export function calendarDays(anchor,view){
 }
 export function movePeriod(date,view,n){return view==='day'?shiftDate(date,n):view==='week'?shiftDate(date,7*n):shiftMonth(date,n*(view==='months'?12:1))}
 export function dayTasks(tasks,date,today=date){return ordered(tasks.filter(t=>overlapsRange(t,date,date)),'time',today)}
-export function monthSummary(tasks,month,today){const items=tasks.filter(t=>overlapsRange(t,month+'-01',shiftDate(shiftMonth(month+'-01',1),-1)));return {total:items.length,active:items.filter(t=>!statusGroup(t)).length,overdue:items.filter(t=>!statusGroup(t)&&!!t.due&&t.due<today).length,done:items.filter(t=>t.status==='Готово').length}}
+export function monthSummary(tasks,month,today){const items=tasks.filter(t=>overlapsRange(t,month+'-01',shiftDate(shiftMonth(month+'-01',1),-1)));return {total:items.length,active:items.filter(isActiveTask).length,overdue:items.filter(t=>!statusGroup(t)&&!!t.due&&t.due<today).length,done:items.filter(t=>t.status==='Готово').length}}
 // A long selected range is paged, never silently truncated.
 export function rangePage(range,page=0,size=42){
  if(!range.from||!range.to)return {days:[],page:0,pages:0,total:0};

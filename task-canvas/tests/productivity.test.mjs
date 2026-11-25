@@ -6,6 +6,20 @@ test('focus dates have explicit boundaries and exclude completed/cancelled',()=>
  const today='2026-11-09';assert.equal(matchesFocus(task('a'),'today',today),true);assert.equal(matchesFocus(task('a',{status:'Готово'}),'today',today),false);assert.equal(matchesFocus(task('a',{due:'2026-11-08'}),'overdue',today),true);assert.equal(matchesFocus(task('a',{due:''}),'overdue',today),false);
  assert.equal(matchesFocus(task('a',{due:'2026-11-15'}),'week',today),true);assert.equal(matchesFocus(task('a',{due:'2026-11-16'}),'week',today),false);assert.equal(matchesFocus(task('a',{due:'2026-11-08'}),'week',today),false);
 });
+test('active day, active week and the calendar counter exclude waiting and paused statuses',()=>{
+  const today='2026-11-09';
+  const items=[
+    task('working',{start:'2026-11-08',due:'2026-11-12'}),
+    task('waiting',{status:'В ожидании',start:'2026-11-08',due:'2026-11-12'}),
+    task('paused',{status:'Приостановлено',start:'2026-11-08',due:'2026-11-12'}),
+    task('legacy',{status:' В Ожидании ',due:'2026-11-09'}),
+    task('archived',{archived:true}),
+  ];
+  for(const focus of ['today','week'])assert.deepEqual(items.filter(t=>matchesFocus(t,focus,today)).map(t=>t.id),['working']);
+  assert.equal(monthSummary(items,'2026-11',today).active,1);
+  assert.equal(matchesFocus(items[1],'waiting',today),true);
+  assert.equal(matchesFocus(items[2],'all',today),true);
+});
 test('personal pins and unread can include terminal tasks; other attention filters cannot',()=>{const t=task('a',{owner:'',due:'',status:'Отменено'});assert(matchesFocus(t,'pinned','2026-11-09',['a']));assert(matchesFocus(t,'unread','2026-11-09',[],true));assert(!matchesFocus(t,'unassigned','2026-11-09'));assert(!matchesFocus(t,'undated','2026-11-09'));assert(matchesFocus(task('b',{owner:''}),'unassigned','2026-11-09'))});
 test('sort is stable, non-mutating, dates and owners missing last',()=>{const tasks=[task('no',{due:''}),task('late',{due:'2026-12-01'}),task('done',{due:'2020-01-01',status:'Готово'}),task('early')],before=structuredClone(tasks);assert.deepEqual(sortTasks(tasks,'due').map(t=>t.id),['done','early','late','no']);assert.deepEqual(tasks,before);assert.deepEqual(sortTasks(tasks,'manual').map(t=>t.id),['early','late','no','done']);assert.equal(sortTasks([task('a',{owner:''}),task('b')],'owner')[0].id,'b')});
 test('personal data is sanitized, limited, and does not carry board content',()=>{const p=cleanPersonal({pins:['a','a',1],views:[{id:'x',name:' тест ',view:{mode:'calendar',focus:'nonsense',query:'Иван'}}],tasks:[task('secret')]});assert.deepEqual(p.pins,['a']);assert.equal(p.views[0].view.focus,'all');assert.equal(p.views[0].view.mode,'calendar');assert.equal(p.tasks,undefined);assert.equal(cleanView().sort,'manual')});

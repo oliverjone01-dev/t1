@@ -1,78 +1,78 @@
 {
- "dateFrom": "2026-10-20",
- "dateTo": "2026-11-18",
- "generated_at": "2026-11-19T15:47:12.790Z",
+ "dateFrom": "2026-10-25",
+ "dateTo": "2026-11-23",
+ "generated_at": "2026-11-24T17:49:19.495Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 3105,
-  "ad_visits_30d": 7119,
-  "yd_visits_30d": 5612,
-  "ad_leads_30d": 96
+  "direct_clicks_30d": 3130,
+  "ad_visits_30d": 7225,
+  "yd_visits_30d": 5745,
+  "ad_leads_30d": 102
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 5458,
-   "users": 4752,
-   "leads": 93,
-   "contacts": 86
+   "visits": 5599,
+   "users": 4900,
+   "leads": 100,
+   "contacts": 85
   },
   {
    "engine": "Other ad: identified by tags",
-   "visits": 1497,
-   "users": 623,
+   "visits": 1473,
+   "users": 614,
    "leads": 0,
    "contacts": 0
   },
   {
    "engine": "Yandex Direct: Not defined",
-   "visits": 154,
-   "users": 136,
+   "visits": 146,
+   "users": 137,
    "leads": 1,
    "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 10,
-   "users": 9,
-   "leads": 2,
+   "visits": 7,
+   "users": 6,
+   "leads": 1,
    "contacts": 0
   }
  ],
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2945,
-   "leads": 61,
-   "contacts": 50
+   "visits": 3109,
+   "leads": 65,
+   "contacts": 56
   },
   {
    "utm": "genglass",
-   "visits": 1488,
+   "visits": 1466,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_714445486",
-   "visits": 1297,
+   "visits": 1302,
    "leads": 4,
    "contacts": 2
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 413,
-   "leads": 11,
-   "contacts": 16
+   "visits": 402,
+   "leads": 13,
+   "contacts": 12
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 315,
-   "leads": 8,
-   "contacts": 6
+   "visits": 297,
+   "leads": 9,
+   "contacts": 7
   },
   {
    "utm": "peregorodki_712877517",
@@ -82,20 +82,20 @@
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 164,
+   "visits": 165,
    "leads": 1,
    "contacts": 1
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 106,
-   "leads": 3,
-   "contacts": 6
+   "visits": 115,
+   "leads": 2,
+   "contacts": 3
   },
   {
    "utm": "organization",
-   "visits": 46,
-   "leads": 4,
+   "visits": 41,
+   "leads": 3,
    "contacts": 3
   },
   {
@@ -141,13 +141,13 @@
    "contacts": 0
   },
   {
-   "utm": "razdelit'_komnatu_bez_sten_i_remonta",
-   "visits": 13,
+   "utm": "loft_peregorodki_v_kvartire",
+   "visits": 12,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "loft_peregorodki_v_kvartire",
+   "utm": "razdelit'_komnatu_bez_sten_i_remonta",
    "visits": 12,
    "leads": 0,
    "contacts": 0
@@ -207,7 +207,7 @@
    "contacts": 0
   },
   {
-   "utm": "test",
+   "utm": "tm_campaign=reklama_na_transporte",
    "visits": 3,
    "leads": 0,
    "contacts": 0
@@ -220,6 +220,12 @@
   },
   {
    "utm": "instrukciya",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "kakoe_steklo_ne_carapaetsya",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -256,12 +262,6 @@
   },
   {
    "utm": "pyat_oshibok_s_zerkalami",
-   "visits": 2,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "tm_campaign=reklama_na_transporte",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -309,31 +309,13 @@
    "contacts": 0
   },
   {
-   "utm": "kakoe_steklo_ne_carapaetsya",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "krugloe_zerkalo_v_rame",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "mirors",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "name_705494663",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "name_706370721",
+   "utm": "osen_svet_i_uyut",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -351,19 +333,13 @@
    "contacts": 0
   },
   {
-   "utm": "primer_zonirovaniya_prostranstva",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "razdelit\\'_komnatu_bez_sten_i_remonta",
    "visits": 1,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "zerkala_na_shtange",
+   "utm": "test",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -372,73 +348,73 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 7119,
-   "users": 5496,
-   "bounce": 19.87638713,
-   "leads": 96,
-   "contacts": 87
+   "visits": 7225,
+   "users": 5621,
+   "bounce": 20.08304498,
+   "leads": 102,
+   "contacts": 86
   },
   {
    "source": "Link traffic",
-   "visits": 4457,
-   "users": 4364,
-   "bounce": 1.39107023,
-   "leads": 15,
-   "contacts": 22
+   "visits": 4102,
+   "users": 4007,
+   "bounce": 1.43832277,
+   "leads": 11,
+   "contacts": 14
   },
   {
    "source": "Search engine traffic",
-   "visits": 3718,
-   "users": 2836,
-   "bounce": 17.83216783,
-   "leads": 146,
+   "visits": 3699,
+   "users": 2806,
+   "bounce": 17.76155718,
+   "leads": 150,
    "contacts": 127
   },
   {
    "source": "Direct traffic",
-   "visits": 3002,
-   "users": 2649,
-   "bounce": 48.46768821,
-   "leads": 57,
-   "contacts": 41
+   "visits": 2910,
+   "users": 2568,
+   "bounce": 50.17182131,
+   "leads": 62,
+   "contacts": 47
   },
   {
    "source": "Internal traffic",
-   "visits": 612,
-   "users": 315,
-   "bounce": 15.68627451,
-   "leads": 13,
+   "visits": 582,
+   "users": 306,
+   "bounce": 15.80756014,
+   "leads": 9,
    "contacts": 7
   },
   {
    "source": "Social network traffic",
-   "visits": 25,
-   "users": 21,
-   "bounce": 52,
+   "visits": 22,
+   "users": 17,
+   "bounce": 45.45454545,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Messenger traffic",
-   "visits": 15,
-   "users": 6,
-   "bounce": 6.66666667,
+   "visits": 22,
+   "users": 5,
+   "bounce": 9.09090909,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Recommendation system traffic",
-   "visits": 4,
-   "users": 4,
+   "visits": 5,
+   "users": 5,
    "bounce": 0,
    "leads": 0,
    "contacts": 0
   },
   {
    "source": "Clicks by QR code",
-   "visits": 2,
-   "users": 1,
-   "bounce": 50,
+   "visits": 3,
+   "users": 2,
+   "bounce": 33.33333333,
    "leads": 0,
    "contacts": 0
   },

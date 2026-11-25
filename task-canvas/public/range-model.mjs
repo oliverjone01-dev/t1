@@ -1,5 +1,5 @@
 import {localDate,shiftDate} from './model.mjs?rev=20261120-dnd-21';
-import {weekStart,monthStart,shiftMonth} from './calendar-model.mjs?rev=20261120-dnd-21';
+import {weekStart,monthStart,shiftMonth} from './calendar-model.mjs?rev=20261124-active-focus-25';
 import {validDay} from './task-dates.mjs?rev=20261120-dnd-21';
 export function periodRange(kind,date=localDate()){
  if(kind==='all')return {from:'',to:''};

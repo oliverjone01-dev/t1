@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -90850181,
-  "n": 3650
+  "sum": -92718531,
+  "n": 3706
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2954360,
-  "n": 1776
+  "sum": -2995914,
+  "n": 1802
  },
  {
   "type_id": 3,
@@ -24,22 +24,22 @@
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -1156873,
-  "n": 1816
+  "sum": -1157842,
+  "n": 1817
  },
  {
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
   "bucket": "partner",
-  "sum": -915540,
-  "n": 177
+  "sum": -925258,
+  "n": 178
  },
  {
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -441723,
-  "n": 1993
+  "sum": -466583,
+  "n": 2048
  },
  {
   "type_id": 74,
@@ -52,8 +52,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -324499,
-  "n": 218
+  "sum": -327136,
+  "n": 222
  },
  {
   "type_id": 22,
@@ -66,8 +66,8 @@
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -188657,
-  "n": 329
+  "sum": -190233,
+  "n": 331
  },
  {
   "type_id": 116,
@@ -87,15 +87,15 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -64680,
-  "n": 233
+  "sum": -65800,
+  "n": 237
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -35860,
-  "n": 1793
+  "sum": -36500,
+  "n": 1825
  },
  {
   "type_id": 10,
@@ -108,15 +108,15 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -21770,
-  "n": 1424
+  "sum": -22010,
+  "n": 1448
  },
  {
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -8096,
-  "n": 902
+  "sum": -8270,
+  "n": 920
  },
  {
   "type_id": 14,
@@ -136,22 +136,22 @@
   "type_id": 63,
   "name": "RfbsDomesticAgentFee",
   "bucket": "partner",
-  "sum": -3480,
-  "n": 174
+  "sum": -3500,
+  "n": 175
  },
  {
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -3300,
-  "n": 134
+  "sum": -3375,
+  "n": 137
  },
  {
   "type_id": 45,
   "name": "PickUpPointReturnAcceptance",
   "bucket": "delivery",
-  "sum": -1320,
-  "n": 88
+  "sum": -1365,
+  "n": 91
  },
  {
   "type_id": 6,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 2426263,
-  "n": 612
+  "sum": 2604346,
+  "n": 658
  }
 ]

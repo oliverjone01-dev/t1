@@ -1,32 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-11-20",
+ "measured": "2026-11-25",
  "visits_30d": [
-  {
-   "date": "2026-10-21",
-   "visits": 712,
-   "search_visits": 123
-  },
-  {
-   "date": "2026-10-22",
-   "visits": 733,
-   "search_visits": 111
-  },
-  {
-   "date": "2026-10-23",
-   "visits": 677,
-   "search_visits": 109
-  },
-  {
-   "date": "2026-10-24",
-   "visits": 546,
-   "search_visits": 81
-  },
-  {
-   "date": "2026-10-25",
-   "visits": 545,
-   "search_visits": 98
-  },
   {
    "date": "2026-10-26",
    "visits": 744,
@@ -151,59 +126,80 @@
    "date": "2026-11-19",
    "visits": 641,
    "search_visits": 91
+  },
+  {
+   "date": "2026-11-20",
+   "visits": 571,
+   "search_visits": 89
+  },
+  {
+   "date": "2026-11-21",
+   "visits": 542,
+   "search_visits": 67
+  },
+  {
+   "date": "2026-11-22",
+   "visits": 542,
+   "search_visits": 99
+  },
+  {
+   "date": "2026-11-23",
+   "visits": 729,
+   "search_visits": 125
+  },
+  {
+   "date": "2026-11-24",
+   "visits": 702,
+   "search_visits": 123
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 51
+   "visits": 60
   },
   {
    "phrase": "генгласс",
-   "visits": 30
+   "visits": 32
   },
   {
    "phrase": "genglass",
-   "visits": 15
+   "visits": 16
   },
   {
    "phrase": "генгласс зеркала",
-   "visits": 12
+   "visits": 10
   },
   {
    "phrase": "зеркало на заказ",
    "visits": 10
   },
   {
+   "phrase": "genglass официальный",
+   "visits": 7
+  },
+  {
    "phrase": "дженгласс",
-   "visits": 8
+   "visits": 7
   },
   {
    "phrase": "gen glass",
    "visits": 6
   },
   {
-   "phrase": "genglass стол",
-   "visits": 6
-  },
-  {
-   "phrase": "дженгласс ру",
-   "visits": 6
-  },
-  {
-   "phrase": "genglass официальный",
-   "visits": 5
-  },
-  {
    "phrase": "genglass.ru",
-   "visits": 5
-  },
-  {
-   "phrase": "генгласс столы",
-   "visits": 5
+   "visits": 6
   },
   {
    "phrase": "зеркала на заказ",
+   "visits": 6
+  },
+  {
+   "phrase": "genglass стол",
+   "visits": 5
+  },
+  {
+   "phrase": "дженгласс ру",
    "visits": 5
   },
   {
@@ -211,8 +207,24 @@
    "visits": 5
   },
   {
+   "phrase": "обеденный стол на заказ по индивидуальным размерам",
+   "visits": 5
+  },
+  {
    "phrase": "столы на заказ",
    "visits": 5
+  },
+  {
+   "phrase": "генгласс столы",
+   "visits": 4
+  },
+  {
+   "phrase": "раздвижные перегородки",
+   "visits": 4
+  },
+  {
+   "phrase": "реечные перегородки для зонирования купить в москве",
+   "visits": 4
   },
   {
    "phrase": "стол genglass",
@@ -223,7 +235,7 @@
    "visits": 3
   },
   {
-   "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
+   "phrase": "где купить реечные перегородки для зонирования",
    "visits": 3
   },
   {
@@ -231,27 +243,15 @@
    "visits": 3
   },
   {
-   "phrase": "генглас",
-   "visits": 3
-  },
-  {
    "phrase": "зеркала genglass",
    "visits": 3
   },
   {
-   "phrase": "зеркало на заказ по индивидуальным размерам",
-   "visits": 3
-  },
-  {
-   "phrase": "обеденный стол на заказ по индивидуальным размерам",
+   "phrase": "зеркало genglass",
    "visits": 3
   },
   {
    "phrase": "перегородки межкомнатные",
-   "visits": 3
-  },
-  {
-   "phrase": "раздвижные перегородки",
    "visits": 3
   },
   {
@@ -263,23 +263,15 @@
    "visits": 3
   },
   {
-   "phrase": "стол на заказ по индивидуальным размерам",
+   "phrase": "стол konux",
    "visits": 3
   },
   {
-   "phrase": "genglass стол кухонный раздвижной konux 100",
+   "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
    "visits": 2
   },
   {
-   "phrase": "genglass стол кухонный раздвижной konux 100 180 х100х75 см обеденный раскладной",
-   "visits": 2
-  },
-  {
-   "phrase": "Перегородка гармошка",
-   "visits": 2
-  },
-  {
-   "phrase": "Перегородка для зонирования",
+   "phrase": "genglass столы",
    "visits": 2
   },
   {
@@ -299,11 +291,7 @@
    "visits": 2
   },
   {
-   "phrase": "зеркало genglass",
-   "visits": 2
-  },
-  {
-   "phrase": "интернет магазин зеркало в раме",
+   "phrase": "зеркало на заказ по индивидуальным размерам",
    "visits": 2
   },
   {
@@ -312,14 +300,6 @@
   },
   {
    "phrase": "лучшие зеркала 2026",
-   "visits": 2
-  },
-  {
-   "phrase": "магнитная доска на заказ по индивидуальным размерам",
-   "visits": 2
-  },
-  {
-   "phrase": "обеденный стол на заказ",
    "visits": 2
   },
   {
@@ -335,7 +315,15 @@
    "visits": 2
   },
   {
+   "phrase": "путпдфыы",
+   "visits": 2
+  },
+  {
    "phrase": "распашные перегородки межкомнатные",
+   "visits": 2
+  },
+  {
+   "phrase": "реечные перегородки цена",
    "visits": 2
   },
   {
@@ -343,113 +331,121 @@
    "visits": 2
   },
   {
-   "phrase": "стеклянная перегородка в комнату",
-   "visits": 2
-  },
-  {
    "phrase": "стеклянная раздвижная перегородка",
    "visits": 2
   },
   {
+   "phrase": "стеклянные перегородки",
+   "visits": 2
+  },
+  {
    "phrase": "стол на заказ",
+   "visits": 2
+  },
+  {
+   "phrase": "стол на заказ по индивидуальным размерам",
+   "visits": 2
+  },
+  {
+   "phrase": "стол раздвижной обеденный konux d100/180 х 100см, бронзовый/экошпон",
+   "visits": 2
+  },
+  {
+   "phrase": "столы genglass",
    "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 462
+   "visits": 461
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 112
-  },
-  {
-   "url": "/stoly-na-zakaz/",
-   "visits": 83
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 80
+   "visits": 125
   },
   {
    "url": "/product-category/tables/",
+   "visits": 79
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
    "visits": 73
+  },
+  {
+   "url": "/stoly-na-zakaz/",
+   "visits": 71
   },
   {
    "url": "/product-category/mirrors/",
    "visits": 67
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 62
-  },
-  {
-   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-   "visits": 60
-  },
-  {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 55
+   "visits": 59
+  },
+  {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 58
   },
   {
    "url": "/blog/peregorodka-garmoshka-ili-razdvizhnaya-sistema-chto-udobnee-dlya-shirokogo-proyoma/",
    "visits": 48
   },
   {
+   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
+   "visits": 46
+  },
+  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
-   "visits": 41
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 38
-  },
-  {
-   "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 37
+   "visits": 45
   },
   {
    "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
-   "visits": 35
+   "visits": 40
   },
   {
-   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 40
+  },
+  {
+   "url": "/stellazhi-i-polki-na-zakaz/",
+   "visits": 36
+  },
+  {
+   "url": "/blog/zerkalo-nad-rakovinoj-kak-podobrat-shirinu-i-vysotu-pod-tumbu/",
+   "visits": 32
+  },
+  {
+   "url": "/product-category/mezhkomnatnye-peregorodki/reechnye-peregorodki/",
    "visits": 32
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 32
-  },
-  {
-   "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 28
-  },
-  {
-   "url": "/product-category/mirrors/rotatable/",
-   "visits": 28
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 28
+   "visits": 29
   },
   {
    "url": "/product-category/mezhkomnatnye-peregorodki/",
-   "visits": 27
+   "visits": 29
   },
   {
-   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
-   "visits": 27
-  },
-  {
-   "url": "/blog/zerkalo-nad-rakovinoj-kak-podobrat-shirinu-i-vysotu-pod-tumbu/",
-   "visits": 26
-  },
-  {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 25
+   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
+   "visits": 28
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 28
+  },
+  {
+   "url": "/product-category/mirrors/dizajnerskie/",
+   "visits": 25
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
+   "visits": 25
+  },
+  {
+   "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm/",
    "visits": 25
   },
   {
@@ -457,27 +453,31 @@
    "visits": 24
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki/",
+   "url": "/product-category/mirrors/rotatable/",
+   "visits": 24
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+   "visits": 24
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
    "visits": 23
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 23
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki/",
+   "visits": 22
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 20
+   "visits": 21
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 20
-  },
-  {
-   "url": "/blog/luchshie-varianty-zerkal-2026/",
+   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-ekoshpon-bronza/",
    "visits": 18
   }
  ],
  "goals": [],
- "bounce_rate": 19.7,
+ "bounce_rate": 20.1,
  "depth": 2.4
 }

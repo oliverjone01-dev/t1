@@ -19,6 +19,28 @@ const nbOf = (sku: string, o: string) => sum(R.nb.filter((r) => SEP(r[0]) && r[1
 // Округление по SKU x день: на месяц расхождение с эталоном до 1 ₽ на день пары.
 const near = (v: number, e: number) => expect(Math.abs(v - e)).toBeLessThanOrEqual(15);
 
+describe("cpc-card-spread: лимит дневного расхода", () => {
+  const d = "2026-11-01";
+  const spend = [{ d, cid: "campaign", sku: "main", sp: 3094.24 }];
+  const orders = Array.from({ length: 4 }, (_, i) => ({
+    d, order: String(i), sku: "neighbor", units: 1, revenue: 100,
+  }));
+  const groups = [{ main: "main", skus: [{ sku: "main" }, { sku: "neighbor" }] }];
+  const attribution = { d, id: "campaign", sku: "main", soldM: 4, omM: 400 };
+
+  it("распределяет 3094 ₽, когда округление каждой доли дало бы 3096 ₽", () => {
+    const result = cardSpread(spend, [attribution], orders, groups);
+    expect(result.own.main).toEqual([[d, 0]]);
+    expect(result.nb.map((row) => row[3]).sort()).toEqual([773, 773, 774, 774]);
+    expect(result.stat[0]?.slice(0, 3)).toEqual([d, 3094, 3094]);
+  });
+
+  it("останавливает расчёт при превышении расхода до округления", () => {
+    const overspent = { ...attribution, sold: -1 };
+    expect(() => cardSpread(spend, [overspent], orders, groups)).toThrow("до округления");
+  });
+});
+
 describe("cpc-card-spread: эталон сентября", () => {
   it("1) GGT-47-3-3-80, кампания 37007560: 8 шт по 8 079, отменённый сосед получает долю", () => {
     const p = R.pairs["2026-09|4865596071|37007560"]!;

@@ -8,12 +8,20 @@ import {normalizeQuery} from './ui-model.mjs?rev=20261120-dnd-21';
 
 export const FOCUS = [['all','Все задачи'],['today','Активные сегодня'],['overdue','Просрочено'],['inbox','Входящие'],['week','Активные на 7 дней'],['unassigned','Без ответственного'],['undated','Без рабочих дат'],['waiting','В ожидании'],['unread','Новые и изменённые'],['pinned','Избранное']];
 export const SORTS = [['manual','Порядок доски'],['due','Ближайший срок'],['priority','Сначала важные'],['importance','Срочность 5 → 1'],['owner','По ответственному'],['title','По названию']];
+export function isActiveTask(task) {
+  const status = String(task.status ?? '').trim().toLowerCase();
+  return !task.archived && !task.archiveKind && !statusGroup(task)
+    && status !== 'в ожидании' && status !== 'приостановлено';
+}
 export function matchesFocus(task, focus, today, pins=[], unread=false) {
   if(focus==='all')return true;
   if(focus==='pinned')return pins.includes(task.id);
   if(focus==='unread')return !!unread;
+  if(focus==='today'||focus==='week'){
+    return isActiveTask(task)&&overlapsRange(task,today,focus==='today'?today:shiftDate(today,6));
+  }
   if(statusGroup(task))return false;
-  return ({today:()=>overlapsRange(task,today,today),overdue:()=>!!task.due&&task.due<today,week:()=>overlapsRange(task,today,shiftDate(today,6)),inbox:()=>!task.priority,unassigned:()=>!task.owner,undated:()=>!task.due&&!task.start,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
+  return ({overdue:()=>!!task.due&&task.due<today,inbox:()=>!task.priority,unassigned:()=>!task.owner,undated:()=>!task.due&&!task.start,waiting:()=>task.status==='В ожидании'}[focus]||(()=>true))();
 }
 // The triage strip: the questions a manager asks every morning, each with its count in the current scope.
 export const TRIAGE = [['all','Все'],['today','Сегодня'],['overdue','Просрочено'],['inbox','Входящие'],['unassigned','Без ответственного'],['waiting','В ожидании'],['unread','Новые'],['pinned','Избранное']];

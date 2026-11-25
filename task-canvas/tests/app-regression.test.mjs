@@ -15,6 +15,7 @@ test("a failed new-card save leaves a draft and retries cannot create duplicate 
     creates = 0;
   const context = vm.createContext({
     requireEditor:()=>true,
+    reportEditor: false,
     tasks: [],
     extraOwners: [],
     editing: null,
@@ -48,4 +49,51 @@ test("a failed new-card save leaves a draft and retries cannot create duplicate 
   assert.equal(context.history.length, 0);
   assert.equal(draftCalls, 2);
   assert.equal(creates, 2);
+});
+
+test("the report editor distinguishes a confirmed save from a pending sync", async () => {
+  const start = source.indexOf("async function submitTask(");
+  const end = source.indexOf('$("#task-form").onsubmit', start);
+  for (const synced of [true, false]) {
+    const form = { inert: false };
+    let closed = false, whileFlushing;
+    const task = { id: "report-task", title: "Task" };
+    const context = vm.createContext({
+      reportEditor: true,
+      reportEditorResult: "closed",
+      reportEditorFlushing: false,
+      DEMO: false,
+      requireEditor: () => true,
+      tasks: [task],
+      editing: task.id,
+      editingBase: {},
+      editingVersionBasis: null,
+      formValues: () => ({ title: "Edited" }),
+      planEdit: () => ({ kind: "update", task, tasks: [task] }),
+      statusGroup: () => null,
+      snapshot: () => "{}",
+      history: [],
+      $: selector => selector === "#task-form" ? form : { close: () => { closed = true; } },
+      change: fn => { fn(); return true; },
+      text: () => {},
+      renewingSession: null,
+      drafts: { remove: () => {} },
+      memoryDrafts: new Map(),
+      draftFailed: false,
+      renderDraftBanner: () => {},
+      savedToast: () => {},
+      cloudEngine: {
+        status: synced ? "synced" : "pending",
+        pending: () => synced ? 0 : 1,
+        flush() {
+          whileFlushing = { closed, inert: form.inert, flushing: context.reportEditorFlushing };
+        },
+      },
+    });
+    await vm.runInContext(source.slice(start, end) + ";submitTask()", context);
+    assert.deepEqual(whileFlushing, { closed: false, inert: true, flushing: true });
+    assert.equal(context.reportEditorResult, synced ? "saved" : "queued");
+    assert.equal(closed, true);
+    assert.equal(form.inert, false);
+  }
 });

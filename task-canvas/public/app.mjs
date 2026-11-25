@@ -1,5 +1,5 @@
 import {installGroupedBoard} from './grouped-board.mjs?rev=20261120-dnd-21';
-import {installDisplayControls} from './display-controls.mjs?rev=20261120-dnd-21';
+import {installDisplayControls} from './display-controls.mjs?rev=20261124-active-focus-25';
 import {taskSections,effectiveGroup,canReorderPresentation,reconcileRegistry,terminalRegistry,presentationRegistry} from './display-model.mjs?rev=20261120-dnd-21';
 import {googleStatusLabel,sheetFailureStatus,connectionAction} from './sync-indicator.mjs?rev=20261120-dnd-21';
 import {installThemeToggle} from './appearance.mjs?rev=20261120-dnd-21';
@@ -10,7 +10,7 @@ import {installEditorLayout} from './editor-layout.mjs?rev=20261120-dnd-21';
 import {installDropDock} from './drop-dock.mjs?rev=20261120-dnd-21';
 import {revertRecord,invert} from './undo-model.mjs?rev=20261120-dnd-21';
 import {installCmoShell} from './cmo-shell.mjs?rev=20261120-dnd-21';
-import {installRangePicker} from './range-picker.mjs?rev=20261120-dnd-21';
+import {installRangePicker} from './range-picker.mjs?rev=20261124-active-focus-25';
 import {createdDay,overlapsRange} from './task-dates.mjs?rev=20261120-dnd-21';
 import {installPriorityEditor,editorBlocksSync} from './priority-editor.mjs?rev=20261120-dnd-21';
 import {installGantt} from './gantt.mjs?rev=20261120-dnd-21';
@@ -18,8 +18,8 @@ import {statusBadge,installQuickControls} from './quick-controls.mjs?rev=2026112
 import {temperature,trackStatus,inWeek,weekStart,observedTask,registryMatch} from './task-signals.mjs?rev=20261120-dnd-21';
 import {installPlanningDrag} from './planning-drag.mjs?rev=20261120-dnd-21';
 import {Directory} from './directory.mjs?rev=20261120-dnd-21';
-import {installCalendar} from './calendar.mjs?rev=20261120-dnd-21';
-import {installProductivity} from './productivity.mjs?rev=20261120-dnd-21';
+import {installCalendar} from './calendar.mjs?rev=20261124-active-focus-25';
+import {installProductivity} from './productivity.mjs?rev=20261124-active-focus-25';
 import {PublicSheetsApi,SheetViewer} from './sheet-viewer.mjs?rev=20261120-dnd-21';
 import {MODES,MODE_OWNER,LEGACY_CONTROL,modePending} from './storage-mode.mjs?rev=20261120-dnd-21';
 import {renderBoard} from './board-ui.mjs?rev=20261120-dnd-21';
@@ -73,7 +73,14 @@ import {
 import { icon } from "./icons.mjs?rev=20261120-dnd-21";
 const $ = (selector) => document.querySelector(selector),
   $$ = (selector) => [...document.querySelectorAll(selector)];
-const DEMO = new URLSearchParams(location.search).get("demo") === "1";
+const linkedParams = new URLSearchParams(location.search);
+const DEMO = linkedParams.get("demo") === "1";
+const reportEditor = document.documentElement.dataset.reportEditor === "true";
+const linkedTask = linkedParams.get("task");
+let reportEditorResult = "closed", reportEditorFlushing = false;
+function notifyReportEditor(state) {
+  if (reportEditor) window.parent.postMessage({type:"gengroup:report-editor",taskId:linkedTask,state},location.origin);
+}
 const MODE_KEY='gengroup.task-canvas.storage-mode.v1';
 const publicSheets=new PublicSheetsApi();
 let modeBootstrap=null,storageControl=structuredClone(LEGACY_CONTROL),modeReadError='';
@@ -615,11 +622,14 @@ for (const id of ["theme-choice", "density-choice"])
   };
 function showDialog(id) {
   const dialog = $("#" + id);
-  if(id === "editor" && priorityEditor) priorityEditor.open();
+  if(id === "editor" && priorityEditor && !reportEditor) priorityEditor.open();
   else if (!dialog.open) dialog.showModal();
 }
 function closeDialog(id) {
-  if (id === "editor") saveDraft();
+  if (id === "editor") {
+    if (reportEditor && submitTask.busy) return;
+    if (!saveDraft() && reportEditor) return;
+  }
   if (id === "cloud-dialog") cancelConnection();
   $("#" + id).close();
 }
@@ -627,8 +637,11 @@ $$("[data-close]").forEach(
   (b) => (b.onclick = () => closeDialog(b.dataset.close)),
 );
 $$("dialog").forEach((dialog) =>
-  dialog.addEventListener("cancel", () => {
-    if (dialog.id === "editor") saveDraft();
+  dialog.addEventListener("cancel", (event) => {
+    if (dialog.id === "editor") {
+      if (reportEditor && (submitTask.busy || !saveDraft())) event.preventDefault();
+      else if (!reportEditor) saveDraft();
+    }
     if (dialog.id === "cloud-dialog") cancelConnection();
   }),
 );
@@ -636,6 +649,7 @@ $("#editor").addEventListener("close", () => {
   if($("#editor").open)return;
   renderDraftBanner();
   if (cloudEngine?.connected) cloudEngine.later(250);
+  notifyReportEditor(reportEditorResult);
 });
 $("#settings-open").onclick=()=>showDialog("appearance-dialog");
 installThemeToggle({button:$("#appearance-open"),storage,onChange:theme=>{preferences=cleanPreferences({...preferences,theme});applyPreferences()},onError:()=>toast("Тема не сохранилась: хранилище браузера недоступно.")});
@@ -1464,9 +1478,20 @@ async function submitTask(forceNew = false) {
   const before = snapshot(),
     undoCount = history.length;
   submitTask.busy = true;
-  const ok = await change(() => (tasks = plan.tasks), editingVersionBasis);
-  submitTask.busy = false;
+  if (reportEditor) $("#task-form").inert = true;
+  let ok = false;
+  try {
+    ok = await change(() => (tasks = plan.tasks), editingVersionBasis);
+  } catch (error) {
+    submitTask.busy = false;
+    if (reportEditor) $("#task-form").inert = false;
+    saveDraft();
+    text("#editor-error", error.message);
+    return;
+  }
   if (!ok) {
+    submitTask.busy = false;
+    if (reportEditor) $("#task-form").inert = false;
     const prior = JSON.parse(before);
     tasks = prior.tasks;
     extraOwners = prior.owners;
@@ -1479,6 +1504,21 @@ async function submitTask(forceNew = false) {
     );
     return;
   }
+  if (reportEditor && !DEMO) {
+    text("#draft-state", "Отправляем изменения…");
+    reportEditorFlushing = true;
+    try {
+      if (renewingSession) await renewingSession;
+      await cloudEngine?.flush();
+    } catch {
+      // The board already persisted the local change. A failed flush is still pending.
+    } finally {
+      reportEditorFlushing = false;
+    }
+    reportEditorResult = cloudEngine?.status === "synced" && !cloudEngine.pending() ? "saved" : "queued";
+  } else if (reportEditor) reportEditorResult = "saved";
+  submitTask.busy = false;
+  if (reportEditor) $("#task-form").inert = false;
   try {
     drafts.remove(editing);
     memoryDrafts.delete(editing);
@@ -2344,7 +2384,7 @@ $("#view-retry").onclick = () => viewer?.start();
 $("#source-info").onclick=()=>showDialog("source-dialog");
 $("#view-signin").onclick = () => {closeDialog("source-dialog");showDialog("cloud-dialog")};
 $("#editor-signin").onclick = () => {
-  $("#editor").close();
+  if (!reportEditor) $("#editor").close();
   showDialog("cloud-dialog");
 };
 const businessSignature = (board) =>
@@ -2423,7 +2463,7 @@ cloudEngine.flush = async () => {
   }
   if (
     !cloudEngine.managed &&
-    (gesture || editorBlocksSync($("#editor")) || $("#import-dialog").open || document.querySelector("dialog.quick-menu")?.open)
+    (gesture || (!reportEditorFlushing && editorBlocksSync($("#editor"))) || $("#import-dialog").open || document.querySelector("dialog.quick-menu")?.open)
   ) {
     cloudEngine.later(1500);
     return;
@@ -2509,6 +2549,7 @@ $("#google-authorize").onclick = async () => {
         sourceState: cloudEngine.sourceState,
       },
     });
+    if (reportEditor && $("#editor").open) openTask(linkedTask);
   } catch (error) {
     if (accessMode === "connecting") {
       await cloudEngine.disconnect();
@@ -2720,6 +2761,7 @@ async function restorePersonalSession(){
   viewer?.stop();tasks=structuredClone(editorLocalBoard.tasks);extraOwners=[...editorLocalBoard.owners];accessMode='connecting';
   if(valid)await cloudEngine.connect();else {cloudEngine.enabled=true;cloudEngine.state('signin',message);}
   accessMode='edit';$('#view-access').hidden=true;$('#google-disconnect').hidden=false;persist();render();cloudState({...syncState,status:cloudEngine.status,conflicts:cloudEngine.conflicts,pending:cloudEngine.pending()});
+  if (reportEditor && $("#editor").open) openTask(linkedTask);
  }catch(error){text('#google-error',error.message);startViewer()}
 }
 function renewPersonalSession(){
@@ -2859,8 +2901,40 @@ $('#storage-cancel-change').onclick=()=>changeStorageMode(storageControl.ack.mod
 renderStorageMode();if(!DEMO)modeMonitor=setTimeout(monitorStorageMode,30000);
 
 // Open links from the weekly report after the source finishes loading.
-const linkedTask=new URLSearchParams(location.search).get("task");
-if(linkedTask){let attempts=0;const timer=setInterval(()=>{if(tasks.some(t=>t.id===linkedTask)){clearInterval(timer);openTask(linkedTask);const desiredStatus=new URLSearchParams(location.search).get("setStatus");if(canEdit()&&["Готово","Отменено"].includes(desiredStatus)){field("status").value=desiredStatus;saveDraft()}const desiredImportance=new URLSearchParams(location.search).get("setImportance");if(canEdit()&&desiredImportance!==null&&/^[0-5]$/.test(desiredImportance)){field("importance").value=desiredImportance==="0"?"":desiredImportance;saveDraft();field("importance").focus()}const desiredProgress=new URLSearchParams(location.search).get("setProgress");if(canEdit()&&desiredProgress!==null&&/^(100|[1-9]?\d)$/.test(desiredProgress)){field("progress").value=desiredProgress;saveDraft();field("progress").focus()}const desiredAction=new URLSearchParams(location.search).get("setWorkAction");if(canEdit()&&["play","pause"].includes(desiredAction)){field("status").value=desiredAction==="play"?"В работе":"Приостановлено";saveDraft();field("status").focus()}}else if(++attempts>=60)clearInterval(timer)},1000);}
+const reportWeek=linkedParams.get("reportWeek");
+const reportBack=$("#editor-report-back");
+if(!reportEditor&&linkedTask&&/^\d{4}-\d{2}-\d{2}$/.test(reportWeek||"")){
+  const reportURL=new URL("./weekly/",location.href);
+  reportURL.searchParams.set("week",reportWeek);
+  reportBack.href=reportURL.href;
+  reportBack.onclick=event=>{if(!saveDraft())event.preventDefault()};
+  const boardBack=$("#board-report-back");
+  boardBack.href=reportURL.href;
+  boardBack.hidden=false;
+}
+
+if(linkedTask){
+  let attempts=0;
+  const timer=setInterval(()=>{
+    if(!tasks.some(t=>t.id===linkedTask)){
+      if(++attempts>=60){clearInterval(timer);notifyReportEditor("unavailable")}
+      return;
+    }
+    clearInterval(timer);
+    openTask(linkedTask);
+    if(reportBack.href&&$("#editor").open)reportBack.hidden=false;
+    if(linkedParams.get("focus")==="status")field("status").focus();
+    if(canEdit()){
+      const status=linkedParams.get("setStatus"),importance=linkedParams.get("setImportance"),
+        progress=linkedParams.get("setProgress"),action=linkedParams.get("setWorkAction");
+      if(["Готово","Отменено"].includes(status)){field("status").value=status;saveDraft()}
+      if(importance!==null&&/^[0-5]$/.test(importance)){field("importance").value=importance==="0"?"":importance;saveDraft();field("importance").focus()}
+      if(progress!==null&&/^(100|[1-9]?\d)$/.test(progress)){field("progress").value=progress;saveDraft();field("progress").focus()}
+      if(["play","pause"].includes(action)){field("status").value=action==="play"?"В работе":"Приостановлено";saveDraft();field("status").focus()}
+    }
+    notifyReportEditor("ready");
+  },1000);
+}
 
 function setTaskStatus(id,status){if(!STATUSES.includes(status))return;return change(()=>{tasks=tasks.map(t=>t.id===id?{...t,status}:t)})}
 document.addEventListener('change',e=>{const el=e.target;if(el?.dataset?.importanceId){e.stopPropagation();change(()=>{tasks=tasks.map(t=>t.id===decodeURIComponent(el.dataset.importanceId)?{...t,importance:Number(el.value)}:t)})}},true);

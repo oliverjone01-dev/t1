@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-26",
   "dateTo": "2026-11-24",
-  "generated_at": "2026-11-25T01:39:44.863Z",
+  "generated_at": "2026-11-25T15:08:22.658Z",
   "totals": {
     "rev": 34077429,
     "units": 480,
@@ -96,8 +96,8 @@
       "aov": 115577,
       "offer": "GGT-35-5-1-100-180",
       "stock": 15,
-      "pidx": 0,
-      "pcol": "WITHOUT_INDEX",
+      "pidx": 0.66,
+      "pcol": "SUPER",
       "price": 121900,
       "oos": 0
     },
@@ -250,9 +250,9 @@
       "aov": 64302,
       "offer": "GGM-24-1",
       "stock": 30,
-      "pidx": 1.35,
-      "pcol": "RED",
-      "price": 137900,
+      "pidx": 0,
+      "pcol": "WITHOUT_INDEX",
+      "price": 98900,
       "oos": 0
     },
     {
@@ -535,7 +535,7 @@
       "retp": 12.5,
       "aov": 52521,
       "offer": "GGT-47-2-2-80",
-      "stock": 21,
+      "stock": 20,
       "pidx": 0.77,
       "pcol": "SUPER",
       "price": 56900,
@@ -865,10 +865,10 @@
       "retp": 0,
       "aov": 91512,
       "offer": "GGM-20-2",
-      "stock": 4,
-      "pidx": 0.59,
-      "pcol": "SUPER",
-      "price": 70900,
+      "stock": 30,
+      "pidx": 1.11,
+      "pcol": "RED",
+      "price": 134900,
       "oos": 0
     },
     {
@@ -1108,7 +1108,7 @@
       "aov": 23583,
       "offer": "GGM-02-1-1",
       "stock": 7,
-      "pidx": 0.56,
+      "pidx": 0.54,
       "pcol": "SUPER",
       "price": 18900,
       "oos": 0
@@ -1195,11 +1195,11 @@
       "retp": 0,
       "aov": 98900,
       "offer": "GGM-20-1",
-      "stock": 0,
-      "pidx": 0.66,
-      "pcol": "SUPER",
-      "price": 70900,
-      "oos": 1
+      "stock": 30,
+      "pidx": 1.2,
+      "pcol": "RED",
+      "price": 134900,
+      "oos": 0
     },
     {
       "sku": "6045906824",
@@ -1349,7 +1349,7 @@
       "retp": 0,
       "aov": 55900,
       "offer": "GGT-47-2-2-90",
-      "stock": 26,
+      "stock": 25,
       "pidx": 0.93,
       "pcol": "SUPER",
       "price": 60900,
@@ -1459,11 +1459,11 @@
       "retp": 0,
       "aov": 76900,
       "offer": "GGL-10",
-      "stock": 1,
+      "stock": 0,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
       "price": 76900,
-      "oos": 0
+      "oos": 1
     },
     {
       "sku": "3564845156",
@@ -1965,7 +1965,7 @@
       "retp": 0,
       "aov": 98900,
       "offer": "GGM-20-3",
-      "stock": 3,
+      "stock": 2,
       "pidx": 0.63,
       "pcol": "SUPER",
       "price": 70900,

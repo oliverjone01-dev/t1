@@ -104,6 +104,23 @@ tr.sep td{padding-top:24px;font-weight:700;color:var(--muted);font-size:13px;bor
 .list b{display:block}
 .list span{color:var(--muted);font-size:15px}
 .list .num{font-weight:800;font-size:22px;text-align:right;white-space:nowrap}
+.finds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.finds{grid-template-columns:1fr}}
+.finds div{background:var(--tint);border-radius:16px;padding:16px 24px;display:grid;gap:8px;align-content:start}
+.finds b{font-size:17px;line-height:1.3}
+.finds p{margin:0;color:var(--muted);font-size:15px}
+.tier{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.tier li{background:var(--panel);border-radius:16px;padding:16px 24px;display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:8px 24px}
+@media (max-width:760px){.tier li{grid-template-columns:1fr}}
+.tier .nm{font-weight:700}
+.tier .cd{font-size:13px;color:var(--muted);font-weight:500;margin-left:8px;white-space:nowrap}
+.tier .why{color:var(--muted);font-size:15px;grid-column:1}
+.tier .meta{grid-column:2;grid-row:1 / span 2;display:grid;gap:4px;align-content:start;font-size:14px}
+@media (max-width:760px){.tier .meta{grid-column:1;grid-row:auto}}
+.tier .meta b{font-weight:700}
+.tier .meta span{color:var(--muted)}
+.tierC li{background:transparent;box-shadow:inset 0 0 0 1px var(--grid)}
+.notes{margin:0;padding-left:20px;display:grid;gap:8px;max-width:760px}
 .gap{background:var(--tint);border-radius:16px;padding:24px;display:grid;gap:8px}
 .gap b{font-size:18px}
 .gap p{margin:0}
@@ -124,6 +141,7 @@ footer p{margin:0}
   <button role="tab" id="tab-y2026" aria-controls="y2026" aria-selected="true">2026</button>
   <button role="tab" id="tab-y2027" aria-controls="y2027" aria-selected="false">2027</button>
   <button role="tab" id="tab-compare" aria-controls="compare" aria-selected="false">Сравнение</button>
+  <button role="tab" id="tab-tasks" aria-controls="tasks" aria-selected="false">Задачи 2027</button>
 </nav>
 
 <!-- ===================== 2026 ===================== -->
@@ -264,6 +282,21 @@ footer p{margin:0}
   </section>
 </div>
 
+<!-- ===================== Задачи 2027 ===================== -->
+<div class="panel" id="tasks" role="tabpanel" aria-labelledby="tab-tasks" hidden>
+  <section>
+    <h2>Что из планов 2026 берём в 2027</h2>
+    <p class="sub">Все задачи GM из маркетингового плана 2026 и отчёта CMO, проранжированные по влиянию на рычаги плана x3: активные дилеры, розничные сделки, конверсия, сезонность.</p>
+    <div class="finds" id="t-finds"></div>
+  </section>
+  <div id="t-tiers"></div>
+  <section>
+    <h2>Что ещё видно по файлам</h2>
+    <ul class="notes" id="t-notes"></ul>
+    <p class="note" id="t-src"></p>
+  </section>
+</div>
+
 <footer>
   <p>Источник: Google-таблица «Отчет отдела продаж2», 1&nbsp;390 строк, выгрузка 20.11.2026. В&nbsp;расчёт идут сделки с&nbsp;датой оплаты в&nbsp;2026 году и&nbsp;суммой больше нуля. Пересчёт: <code>python3 gm-plan-x3/build.py</code>.</p>
   <p>Статус: черновик к&nbsp;обсуждению. Нормы с&nbsp;пометкой «гипотеза» не&nbsp;согласованы, мощность производства под&nbsp;x3 не&nbsp;подтверждена.</p>
@@ -398,6 +431,16 @@ $('tcmp').innerHTML=rows.map(r=>r.length===1?`<tr class="sep"><td colspan="5">${
  $('tmon-sub').innerHTML=`Сильнее всего план растёт в&nbsp;месяцах, где 2026 был слабым: ${mx.slice(0,3).map(x=>MONF[x[1]].toLowerCase()+' '+f(x[0])).join(', ')}. В&nbsp;остальных месяцах рост от&nbsp;${f(Math.min(...rest))} до&nbsp;${f(Math.max(...rest))}.`;}
 $('tmon').innerHTML=M.rev2026.map((v,i)=>`<tr><td>${MONF[i]} ${i===10?chip('est'):i===11?chip('hyp'):''}</td><td class="num">${M.seasonWs[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${M.seasonRev[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num strong">${SE[i].toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="num">${mln(v)}${nb}млн</td><td class="num strong">${mln(P27[i])}${nb}млн</td><td class="num x">${xf(v,P27[i])}</td></tr>`).join('');
 
+/* ---------- задачи 2027 ---------- */
+{const T=M.tasks,esc=v=>String(v).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+ $('t-finds').innerHTML=T.findings.map(f=>`<div><b>${esc(f.t)}</b><p>${esc(f.d)}</p></div>`).join('');
+ $('t-tiers').innerHTML=T.tiers.map(t=>`<section><h2><span class="chip ${t.id==='A'?'goal':t.id==='B'?'calc':'hyp'}">${t.id}</span> ${esc(t.title)}</h2>
+  <ol class="tier ${t.id==='C'?'tierC':''}">${t.items.map(i=>`<li><div class="nm">${esc(i.n)}<span class="cd">${esc(i.codes)}</span></div>
+   <div class="why">${esc(i.why)}</div>
+   <div class="meta">${i.lever?`<span>Рычаг</span><b>${esc(i.lever)}</b>`:''}${i.when?`<span>Срок</span><b>${esc(i.when)}</b>`:''}</div></li>`).join('')}</ol></section>`).join('');
+ $('t-notes').innerHTML=T.notes.map(n=>`<li>${esc(n)}</li>`).join('');
+ $('t-src').textContent='Источник: '+T.source;}
+
 /* ---------- графики ---------- */
 const NS='http://www.w3.org/2000/svg';
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -475,13 +518,13 @@ function drawAll(){const vis=id=>!$(id).closest('.panel').hidden;
   if(vis('c26'))chart26(); if(vis('c26d'))chart26d(); if(vis('c27'))chart27(); if(vis('c27d'))chart27d(); if(vis('cBridge'))bridge();}
 
 /* ---------- вкладки ---------- */
-const TABS=['y2026','y2027','compare'];
+const TABS=['y2026','y2027','compare','tasks'];
 function show(id,focus){if(!TABS.includes(id))id='y2026';
   TABS.forEach(t=>{const on=t===id;$(t).hidden=!on;const b=$('tab-'+t);b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;if(on&&focus)b.focus()});
   drawAll();}
 TABS.forEach((t,i)=>{const b=$('tab-'+t);
   b.addEventListener('click',()=>{history.replaceState(null,'','#'+t);show(t)});
-  b.addEventListener('keydown',e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;const n=TABS[(i+d+3)%3];history.replaceState(null,'','#'+n);show(n,true)});
+  b.addEventListener('keydown',e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;const n=TABS[(i+d+TABS.length)%TABS.length];history.replaceState(null,'','#'+n);show(n,true)});
 });
 addEventListener('hashchange',()=>show(location.hash.slice(1)));
 show(location.hash.slice(1));

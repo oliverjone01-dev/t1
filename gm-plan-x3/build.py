@@ -122,6 +122,8 @@ demand_corr = corr(core[14:24], rev_jan_oct)
 rev_per_k26 = sum(rev_jan_oct) / sum(core[14:24]) * 1000
 rev_per_k27 = y27 / sum(demand27) * 1000
 
+tasks = json.loads((ROOT / "data/tasks-2027.json").read_text(encoding="utf-8"))
+
 model = {
     "months2026": months,
     "rev2026": rev_by_month,
@@ -148,6 +150,7 @@ model = {
     },
     "bridge": [{**b, "v": round(b["v"])} for b in bridge],
     "season": [round(x, 3) for x in season_plan],
+    "tasks": tasks,
     "seasonWs": [round(x, 3) for x in season_ws],
     "seasonRev": [round(x, 3) for x in season_rev],
     "wWs": w,

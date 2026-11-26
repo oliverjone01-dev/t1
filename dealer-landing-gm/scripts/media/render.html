@@ -1,0 +1,80 @@
+<!doctype html><meta charset="utf-8"><title>render</title>
+<body style="margin:0;background:#111;color:#ddd;font:12px monospace">
+<canvas id="c" style="max-width:100%;display:block"></canvas><pre id="log"></pre>
+<script>
+const log = (...a) => { document.getElementById('log').textContent += a.join(' ') + '\n'; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function prep(src, at) {
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = src;
+  await new Promise((r, j) => { v.onloadeddata = r; v.onerror = j; });
+  v.currentTime = at; await new Promise(r => v.onseeked = r);
+  return v;
+}
+function cover(ctx, v, W, H, fx = .5, fy = .5, alpha = 1) {
+  const sw = v.videoWidth, sh = v.videoHeight, ar = W / H;
+  let cw = sw, ch = sh;
+  if (sw / sh > ar) cw = sh * ar; else ch = sw / ar;
+  const sx = (sw - cw) * fx, sy = (sh - ch) * fy;
+  ctx.globalAlpha = alpha; ctx.drawImage(v, sx, sy, cw, ch, 0, 0, W, H); ctx.globalAlpha = 1;
+}
+async function put(name, blob) {
+  const r = await fetch('/out/' + name, { method: 'PUT', body: blob });
+  if (!r.ok) throw new Error('put ' + r.status);
+}
+/* film: {name, W, H, bitrate, x, clips:[{src,in,out,fx,fy}]} - бесшовная петля */
+async function render(film) {
+  const { W, H, x } = film;
+  const c = document.getElementById('c'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d', { alpha: false });
+  ctx.imageSmoothingQuality = 'high';
+  const segs = []; let T = 0;
+  film.clips.forEach((cl, i) => {
+    const start = i === 0 ? cl.in + x : cl.in;
+    const d = cl.out - start;
+    segs.push({ ...cl, start, d, T });
+    T += d - x;
+  });
+  const end = T + x;
+  const first = film.clips[0];
+  segs.push({ ...first, start: first.in, d: x, T: end - x });
+  for (const s of segs) s.v = await prep(s.src, s.start);
+  // постер: первый кадр петли
+  cover(ctx, segs[0].v, W, H, segs[0].fx, segs[0].fy);
+  const poster = await new Promise(r => c.toBlob(r, 'image/webp', .82));
+  await put(film.name + '.webp', poster);
+  const stream = c.captureStream(30);
+  const rec = new MediaRecorder(stream, { mimeType: 'video/mp4;codecs=avc1.640028', videoBitsPerSecond: film.bitrate });
+  const chunks = []; rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  rec.start(500);
+  const t0 = performance.now(); let frames = 0;
+  await new Promise(resolve => {
+    function tick() {
+      const t = (performance.now() - t0) / 1000;
+      for (const s of segs) {
+        if (!s.playing && t >= s.T - .04) { s.playing = true; s.v.play(); }
+        if (s.playing && t > s.T + s.d + .1) s.v.pause();
+      }
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      for (const s of segs) {
+        if (t < s.T || t > s.T + s.d) continue;
+        const a = s === segs[0] ? 1 : Math.min(1, (t - s.T) / x);
+        cover(ctx, s.v, W, H, s.fx, s.fy, a);
+      }
+      frames++;
+      if (t >= end) return resolve();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+  rec.stop(); await done;
+  const blob = new Blob(chunks, { type: 'video/mp4' });
+  await put(film.name + '.mp4', blob);
+  const res = { name: film.name, sec: +end.toFixed(2), kb: Math.round(blob.size / 1024), fps: +(frames / end).toFixed(1) };
+  log(JSON.stringify(res));
+  return res;
+}
+window.render = render;
+</script>

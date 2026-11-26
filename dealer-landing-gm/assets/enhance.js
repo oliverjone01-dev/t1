@@ -41,15 +41,20 @@
 
   /* ---------- Каталог: при наведении рисунок сменяется фотокопией изделия ---------- */
   const PHOTO = { '3ad21.webp': '3ad21-photo.webp', '157d4.webp': '157d4-photo.webp', 'b096b.webp': 'b096b-photo.webp', '87b59.webp': '87b59-photo.webp', '791dc.webp': '791dc-photo.webp' };
-  if (fine) for (const img of $$('.product-card [data-name="Large graphic"] img')) {
-    const file = img.getAttribute('src').split('/').pop();
-    if (!PHOTO[file]) continue;
-    const photo = img.cloneNode(false);
-    photo.src = img.getAttribute('src').replace(file, PHOTO[file]);
-    photo.removeAttribute('srcset'); photo.alt = ''; photo.setAttribute('aria-hidden', 'true');
-    photo.classList.add('m-photo'); img.classList.add('m-icon');
-    img.after(photo);
-  }
+  const catalog = $('#products');
+  const addPhotos = () => {
+    for (const img of $$('.product-card [data-name="Large graphic"] img:not(.m-icon)')) {
+      const file = img.getAttribute('src').split('/').pop();
+      if (!PHOTO[file]) continue;
+      const photo = img.cloneNode(false);
+      photo.removeAttribute('srcset'); photo.removeAttribute('loading'); photo.alt = ''; photo.setAttribute('aria-hidden', 'true');
+      photo.src = img.getAttribute('src').replace(file, PHOTO[file]);
+      photo.classList.add('m-photo'); img.classList.add('m-icon');
+      img.after(photo);
+    }
+  };
+  /* Фотокопии грузятся только после первого наведения на каталог */
+  if (fine && catalog) catalog.addEventListener('pointerenter', addPhotos, { once: true });
 
   /* ---------- Видео: грузим только рядом с экраном, играем только в кадре ---------- */
   const conn = navigator.connection || {};
@@ -60,36 +65,23 @@
     const v = $('video', box), btn = $('.m-vbtn', box);
     const frame = box.matches('[data-film-frame]') ? box : $('[data-film-frame]', box);
     if (!v || !btn) continue;
-    if (phone && v.dataset.posterM) v.poster = v.dataset.posterM;
-    let wanted = !reduced && !lite, loaded = false, visible = false;
+    let wanted = !reduced && !lite, loaded = false, visible = false, postered = false;
+    const poster = () => { if (postered) return; postered = true; v.poster = phone && v.dataset.posterM ? v.dataset.posterM : v.dataset.poster; };
     const load = () => {
-      if (loaded) return; loaded = true;
+      if (loaded) return; loaded = true; poster();
       v.src = phone && v.dataset.srcM ? v.dataset.srcM : v.dataset.src; v.preload = 'auto';
     };
     const sync = () => {
       box.classList.toggle('is-paused', !wanted);
-      btn.setAttribute('aria-pressed', String(!wanted));
       btn.setAttribute('aria-label', wanted ? 'Остановить видео' : 'Включить видео');
       if (wanted && visible) { load(); v.play().catch(() => {}); } else v.pause();
     };
     btn.addEventListener('click', () => { wanted = !wanted; sync(); });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && wanted) load(); }, { rootMargin: '900px 0px' }).observe(frame);
+      new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { poster(); if (wanted) load(); } }, { rootMargin: '900px 0px' }).observe(frame);
       new IntersectionObserver(es => { for (const e of es) visible = e.isIntersecting; sync(); }, { threshold: .15 }).observe(frame);
-    }
+    } else poster();
     sync();
-    const cap = $('[data-caps]', box);
-    if (cap) {
-      const caps = cap.dataset.caps.split('|').map(s => { const i = s.indexOf(':'); return [Number(s.slice(0, i)), s.slice(i + 1)]; });
-      let shown = cap.textContent;
-      v.addEventListener('timeupdate', () => {
-        let text = caps[0][1];
-        for (const [t, s] of caps) if (v.currentTime >= t) text = s;
-        if (text === shown) return; shown = text;
-        cap.classList.add('is-swap');
-        setTimeout(() => { cap.textContent = text; cap.classList.remove('is-swap'); }, 300);
-      });
-    }
   }
   const reel = $('[data-reel]');
   if (reel && !reduced) reel.style.setProperty('--m-t', '0');
@@ -122,7 +114,9 @@
       current = now;
     }
     if (cta) {
-      const typing = d.activeElement && d.activeElement.matches('input, textarea');
+      const el = d.activeElement;
+      /* Не закрываем поле ввода и элемент в фокусе клавиатуры */
+      const typing = el && el !== cta && (el.matches('input, textarea') || el.matches(':focus-visible'));
       cta.classList.toggle('is-on', y > home.offsetHeight * .8 && contact.getBoundingClientRect().top > vh * .85 && !typing);
     }
   }

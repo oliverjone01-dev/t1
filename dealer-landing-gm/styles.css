@@ -634,7 +634,7 @@
   #landing #technology h2,#landing #contact h2{letter-spacing:-.04em}
   #home h1{font-size:clamp(38px,12vw,46px)!important}
   #landing .catalog-grid+.catalog-grid{margin-top:0}
-  #frames [data-name="Stand CTA / copy"]>p{line-height:1.5}
+  #frames [data-name="Stand CTA / copy"]>:is(p,h3){line-height:1.5}
   .header-inner{grid-template-columns:124px minmax(0,1fr) 56px;gap:8px 16px;grid-template-rows:66px 44px}
   .logo,.logo img{width:124px}
   .logo{flex-basis:124px}

@@ -117,11 +117,7 @@ html{scroll-padding-top:104px}
  #home .n12{animation:m-rise .9s var(--m-ease) both .05s}
  #home .n16{animation:m-rise 1s var(--m-ease) both .5s}
  #home .n17{animation:m-rise 1s var(--m-ease) both .64s}
- #home .n4{animation:m-settle 2.4s var(--m-ease) both}
- #home .n5{animation:m-fg 1.6s var(--m-ease) both .1s}
  @keyframes m-line{from{transform:translateY(108%);clip-path:inset(0 0 108% 0)}to{transform:none;clip-path:inset(-8% -4% -18% -4%)}}
- @keyframes m-settle{from{transform:scale(1.1)}to{transform:scale(1.04)}}
- @keyframes m-fg{from{transform:translate3d(0,34px,0)}}
  /* Блик по стеклу стелы */
  #home .n8::after{content:"";position:absolute;inset:0;pointer-events:none;-webkit-mask:url(9b437.webp) center/cover no-repeat;mask:url(9b437.webp) center/cover no-repeat;clip-path:inset(4% 19% 40% 64%);background:linear-gradient(105deg,transparent 48.2%,rgba(255,255,255,.6) 50%,transparent 51.8%) no-repeat;background-size:300% 100%;background-position:52% 0;animation:m-glare 2s cubic-bezier(.45,0,.2,1) 1.25s both}
  #home.is-glare .n8::after{animation:m-glare2 1.8s cubic-bezier(.45,0,.2,1) both}
@@ -190,7 +186,7 @@ html{scroll-padding-top:104px}
 .m-film--stacked .m-film-frame{aspect-ratio:16/9;border-radius:16px}
 .m-film-shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(6,30,24,.7),rgba(6,30,24,0) 45%);pointer-events:none}
 .m-film-cap{position:absolute;left:28px;bottom:24px;right:88px;color:#fff;font-size:22px;line-height:1.3;font-weight:500;transition:opacity .45s ease,transform .6s var(--m-ease)}
-.m-film-cap.is-swap{opacity:0;transform:translateY(8px)}
+.m-film-cap--sm{font-size:16px;left:20px;bottom:18px}
 
 /* Цветник: ролик вместо повторного фото */
 .m-cover{position:absolute;inset:0;border-radius:24px;overflow:hidden}

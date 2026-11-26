@@ -2,8 +2,8 @@
  "sources": {
   "keysso": {
    "status": "genglass: empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном) · glass-memory: empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном)",
-   "date": "2026-11-25",
-   "requests_used": 15,
+   "date": "2026-11-26",
+   "requests_used": 14,
    "limit": 3000,
    "pending_rid": {
     "genglass": "d8a2759dfe3c1d687d2200cf833ff9c0"
@@ -11,12 +11,12 @@
   },
   "metrika": {
    "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
-   "date": "2026-11-25"
+   "date": "2026-11-26"
   },
   "direct": {
    "status": "genglass: ok · glass-memory: ok",
-   "date": "2026-11-25"
+   "date": "2026-11-26"
   }
  },
- "updated": "2026-11-25"
+ "updated": "2026-11-26"
 }

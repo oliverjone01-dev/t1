@@ -52,8 +52,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -327464,
-  "n": 223
+  "sum": -330861,
+  "n": 225
  },
  {
   "type_id": 22,
@@ -150,8 +150,8 @@
   "type_id": 45,
   "name": "PickUpPointReturnAcceptance",
   "bucket": "delivery",
-  "sum": -1380,
-  "n": 92
+  "sum": -1410,
+  "n": 94
  },
  {
   "type_id": 6,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 2604346,
-  "n": 658
+  "sum": 2640545,
+  "n": 665
  }
 ]

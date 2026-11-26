@@ -58,8 +58,9 @@
 
   /* ---------- Видео: грузим только рядом с экраном, играем только в кадре ---------- */
   const conn = navigator.connection || {};
-  /* Экономия трафика или медленная сеть: только постер, ролик по кнопке */
-  const lite = !!conn.saveData || /(^|-)[23]g$/.test(conn.effectiveType || '') || (conn.downlink > 0 && conn.downlink < 1.5);
+  /* Экономия трафика или 2G: только постер, ролик по кнопке.
+     Оценку «3g» Chrome часто даёт на нормальной сети (VPN, высокий rtt), поэтому её не учитываем. */
+  const lite = !!conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '');
   const phone = matchMedia('(max-width: 767px)').matches;
   for (const box of $$('[data-film]')) {
     const v = $('video', box), btn = $('.m-vbtn', box);

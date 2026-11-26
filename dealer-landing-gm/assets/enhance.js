@@ -3,6 +3,7 @@
 (() => {
   'use strict';
   const d = document;
+  d.documentElement.classList.add('m-js'); /* без скрипта кнопки паузы не показываем */
   const $ = (s, r = d) => r.querySelector(s);
   const $$ = (s, r = d) => [...r.querySelectorAll(s)];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -66,10 +67,9 @@
     const v = $('video', box), btn = $('.m-vbtn', box);
     const frame = box.matches('[data-film-frame]') ? box : $('[data-film-frame]', box);
     if (!v || !btn) continue;
-    let wanted = !reduced && !lite, loaded = false, visible = false, postered = false;
-    const poster = () => { if (postered) return; postered = true; v.poster = phone && v.dataset.posterM ? v.dataset.posterM : v.dataset.poster; };
+    let wanted = !reduced && !lite, loaded = false, visible = false;
     const load = () => {
-      if (loaded) return; loaded = true; poster();
+      if (loaded) return; loaded = true;
       v.src = phone && v.dataset.srcM ? v.dataset.srcM : v.dataset.src; v.preload = 'auto';
     };
     const sync = () => {
@@ -79,13 +79,13 @@
     };
     btn.addEventListener('click', () => { wanted = !wanted; sync(); });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { poster(); if (wanted) load(); } }, { rootMargin: '900px 0px' }).observe(frame);
+      new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && wanted) load(); }, { rootMargin: '900px 0px' }).observe(frame);
       new IntersectionObserver(es => { for (const e of es) visible = e.isIntersecting; sync(); }, { threshold: .15 }).observe(frame);
-    } else poster();
+    }
     sync();
   }
   const reel = $('[data-reel]');
-  if (reel && !reduced) reel.style.setProperty('--m-t', '0');
+  if (reel && !reduced) { reel.style.setProperty('--m-t', '0'); reel.style.setProperty('--m-e', '1'); }
 
   /* ---------- Шапка, прогресс, активный раздел, мобильная кнопка ---------- */
   const navLinks = $$('.desktop-nav a[href^="#"]').map(a => ({ a, s: $(a.getAttribute('href')) })).filter(x => x.s);

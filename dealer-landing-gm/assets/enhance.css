@@ -158,7 +158,12 @@ html{scroll-padding-top:104px}
 }
 
 /* ================= Видео ================= */
-.m-video{display:block;width:100%;height:100%;object-fit:cover;background:#142e28}
+.m-poster,.m-poster img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
+.m-video{position:relative;z-index:1;display:block;width:100%;height:100%;object-fit:cover;background:transparent}
+.m-reel-frame,.m-film-frame,.m-cover{background:#142e28}
+.m-vbtn{display:none!important}
+.m-js .m-vbtn{display:grid!important}
+.m-reel-shade,.m-film-shade,.m-film-cap,.m-reel-copy{z-index:2}
 .m-vbtn{position:absolute;right:16px;bottom:16px;z-index:3;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(10,24,20,.55);color:#fff;transition:background-color .3s ease,transform .4s var(--m-ease)}
 .m-vbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;grid-area:1/1}
 .m-vbtn .i-play{fill:currentColor;stroke-width:1.5;opacity:0}
@@ -170,14 +175,14 @@ html{scroll-padding-top:104px}
 /* Пролёт стекла: кадр раскрывается на весь экран по мере прокрутки */
 .m-reel{position:relative;height:210vh;background:#f6f7ed}
 .m-reel-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center}
-.m-reel-frame{position:absolute;inset:0;clip-path:inset(calc(var(--m-e,1)*13%) calc(var(--m-e,1)*max(var(--gutter),(100% - 1280px)/2)) round calc(var(--m-e,1)*32px));will-change:clip-path}
-.m-reel-frame .m-video{transform:scale(calc(1 + var(--m-e,1)*.22));will-change:transform}
-.m-reel-shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,20,17,.78) 0%,rgba(8,20,17,.25) 45%,rgba(8,20,17,0) 70%);opacity:calc(1 - var(--m-e,1))}
+.m-reel-frame{position:absolute;inset:0;clip-path:inset(calc(var(--m-e,0)*13%) calc(var(--m-e,0)*max(var(--gutter),(100% - 1280px)/2)) round calc(var(--m-e,0)*32px));will-change:clip-path}
+.m-reel-frame :is(.m-video,.m-poster){transform:scale(calc(1 + var(--m-e,0)*.22));will-change:transform}
+.m-reel-shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,20,17,.78) 0%,rgba(8,20,17,.25) 45%,rgba(8,20,17,0) 70%);opacity:calc(1 - var(--m-e,0))}
 .m-reel-copy{position:absolute;left:max(var(--gutter),calc((100% - 1280px)/2));right:max(var(--gutter),calc((100% - 1280px)/2));bottom:clamp(56px,10vh,112px);color:#fff;opacity:var(--m-t,1);transform:translate3d(0,calc((1 - var(--m-t,1))*40px),0)}
 .m-reel-kicker{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#b8e3cc;margin-bottom:16px}
 .m-reel-title{font-size:clamp(36px,5.6vw,80px);line-height:1.02;letter-spacing:-.035em;font-weight:400}
 .m-reel-title span{display:block}
-.m-reel .m-vbtn{right:max(var(--gutter),calc((100% - 1280px)/2));bottom:clamp(56px,10vh,112px);opacity:calc(1 - var(--m-e,1))}
+.m-reel .m-vbtn{right:max(var(--gutter),calc((100% - 1280px)/2));bottom:clamp(56px,10vh,112px);opacity:calc(1 - var(--m-e,0))}
 
 /* Монтаж печати и наборного стекла */
 .m-film{width:100%}
@@ -193,7 +198,7 @@ html{scroll-padding-top:104px}
 
 @media(max-width:767px){
  .m-reel{height:170vh}
- .m-reel-frame{clip-path:inset(calc(var(--m-e,1)*10%) calc(var(--m-e,1)*20px) round calc(var(--m-e,1)*24px))}
+ .m-reel-frame{clip-path:inset(calc(var(--m-e,0)*10%) calc(var(--m-e,0)*20px) round calc(var(--m-e,0)*24px))}
  .m-reel-copy{bottom:96px}
  .m-reel .m-vbtn{bottom:auto;top:88px;right:20px}
  .m-film-frame{aspect-ratio:4/5}
@@ -204,7 +209,7 @@ html{scroll-padding-top:104px}
  .m-reel{height:auto}
  .m-reel-stage{position:relative;height:70vh}
  .m-reel-frame{clip-path:none}
- .m-reel-frame .m-video{transform:none}
+ .m-reel-frame :is(.m-video,.m-poster){transform:none}
  .m-reel-shade,.m-reel .m-vbtn{opacity:1}
  .m-reel-copy{opacity:1;transform:none}
 }

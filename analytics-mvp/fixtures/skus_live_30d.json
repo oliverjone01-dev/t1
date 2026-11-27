@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-10-28",
   "dateTo": "2026-11-26",
-  "generated_at": "2026-11-27T01:14:49.721Z",
+  "generated_at": "2026-11-27T04:20:40.560Z",
   "totals": {
     "rev": 35119127,
     "units": 496,
@@ -10,7 +10,7 @@
     "views": 5011121,
     "sk": 155,
     "oos": 14,
-    "ad_spend": 2320176,
+    "ad_spend": 2320169,
     "ad_drr": 23.4
   },
   "by_line": [
@@ -47,7 +47,7 @@
       "units": 40,
       "ret": 1,
       "sk": 10,
-      "ad_spend": 2319719,
+      "ad_spend": 2319712,
       "ad_drr": 23.4
     },
     {
@@ -162,7 +162,7 @@
       "aov": 120930,
       "offer": "GGT-35-2-2-100-180",
       "stock": 25,
-      "pidx": 0.67,
+      "pidx": 0.66,
       "pcol": "SUPER",
       "price": 121900,
       "oos": 0
@@ -2032,7 +2032,7 @@
       "aov": 96900,
       "offer": "GGT-03-2-4-E-16080",
       "stock": 176,
-      "pidx": 0.75,
+      "pidx": 0.74,
       "pcol": "SUPER",
       "price": 96900,
       "oos": 0

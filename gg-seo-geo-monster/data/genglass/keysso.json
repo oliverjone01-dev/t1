@@ -1,21 +1,21 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-11-24",
- "visibility": 51,
- "ai_answers": 90,
- "keywords_total": 2558,
- "top1": 32,
- "top3": 115,
- "top10": 541,
- "top50": 2558,
+ "measured": "2026-11-27",
+ "visibility": 56,
+ "ai_answers": 97,
+ "keywords_total": 2580,
+ "top1": 34,
+ "top3": 117,
+ "top10": 542,
+ "top50": 2580,
  "top_pages": [
   {
    "url": "/product-category/mirrors",
-   "keywords_top50": 154
+   "keywords_top50": 156
   },
   {
    "url": "/product-category/mirrors/floor",
-   "keywords_top50": 147
+   "keywords_top50": 144
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz",
@@ -27,11 +27,11 @@
   },
   {
    "url": "/zerkala-na-zakaz",
-   "keywords_top50": 85
+   "keywords_top50": 83
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu",
-   "keywords_top50": 77
+   "keywords_top50": 76
   },
   {
    "url": "/stoly-na-zakaz",
@@ -43,11 +43,11 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty",
-   "keywords_top50": 61
+   "keywords_top50": 62
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-stellazhi",
-   "keywords_top50": 60
+   "keywords_top50": 61
   }
  ],
  "ad_keywords": [
@@ -94,12 +94,6 @@
    "url": ""
   },
   {
-   "phrase": "дизайн перегородки",
-   "pos": 0,
-   "freq": 2767,
-   "url": ""
-  },
-  {
    "phrase": "интерьерные перегородки",
    "pos": 0,
    "freq": 1168,
@@ -110,86 +104,87 @@
    "pos": 0,
    "freq": 484,
    "url": ""
+  },
+  {
+   "phrase": "межкомнатные перегородки для зонирования",
+   "pos": 1,
+   "freq": 1519,
+   "url": ""
   }
  ],
  "ad_competitors": [
   {
    "domain": "ofimall.ru",
-   "common_ad_keywords": 164,
-   "ads_count": 394,
-   "ad_keywords_count": 2848,
+   "common_ad_keywords": 182,
+   "ads_count": 396,
+   "ad_keywords_count": 2989,
    "visibility": 12
   },
   {
    "domain": "union.ru",
-   "common_ad_keywords": 130,
-   "ads_count": 3277,
-   "ad_keywords_count": 15431,
-   "visibility": 228
+   "common_ad_keywords": 138,
+   "ads_count": 3392,
+   "ad_keywords_count": 16263,
+   "visibility": 227
   },
   {
    "domain": "alfaporta.ru",
-   "common_ad_keywords": 128,
-   "ads_count": 1032,
-   "ad_keywords_count": 4075,
-   "visibility": 948
+   "common_ad_keywords": 132,
+   "ads_count": 1053,
+   "ad_keywords_count": 4206,
+   "visibility": 779
   },
   {
    "domain": "invisible-doors.ru",
-   "common_ad_keywords": 85,
-   "ads_count": 1091,
-   "ad_keywords_count": 1894,
-   "visibility": 69
+   "common_ad_keywords": 93,
+   "ads_count": 1102,
+   "ad_keywords_count": 1915,
+   "visibility": 70
   },
   {
    "domain": "glassmontage.ru",
-   "common_ad_keywords": 83,
+   "common_ad_keywords": 84,
    "ads_count": 54,
-   "ad_keywords_count": 1075,
-   "visibility": 0
-  },
-  {
-   "domain": "ddveri.pro",
-   "common_ad_keywords": 69,
-   "ads_count": 404,
-   "ad_keywords_count": 727,
+   "ad_keywords_count": 1107,
    "visibility": 0
   },
   {
    "domain": "garderobsystem.ru",
-   "common_ad_keywords": 66,
-   "ads_count": 124,
-   "ad_keywords_count": 439,
+   "common_ad_keywords": 74,
+   "ads_count": 123,
+   "ad_keywords_count": 462,
    "visibility": 4
   },
   {
+   "domain": "ddveri.pro",
+   "common_ad_keywords": 69,
+   "ads_count": 393,
+   "ad_keywords_count": 704,
+   "visibility": 0
+  },
+  {
    "domain": "shkaffkupe.ru",
-   "common_ad_keywords": 63,
-   "ads_count": 993,
-   "ad_keywords_count": 7440,
+   "common_ad_keywords": 69,
+   "ads_count": 997,
+   "ad_keywords_count": 7559,
    "visibility": 9
   },
   {
    "domain": "stekloart.com",
-   "common_ad_keywords": 58,
-   "ads_count": 141,
-   "ad_keywords_count": 370,
+   "common_ad_keywords": 60,
+   "ads_count": 147,
+   "ad_keywords_count": 411,
    "visibility": 0
   },
   {
    "domain": "raloft.ru",
-   "common_ad_keywords": 53,
-   "ads_count": 90,
-   "ad_keywords_count": 188,
+   "common_ad_keywords": 60,
+   "ads_count": 98,
+   "ad_keywords_count": 213,
    "visibility": 0
   }
  ],
  "history": [
-  {
-   "date": "2026-07-27",
-   "visibility": 15,
-   "top10": 256
-  },
   {
    "date": "2026-07-30",
    "visibility": 15,
@@ -484,9 +479,20 @@
    "date": "2026-11-24",
    "visibility": 51,
    "top10": 541
+  },
+  {
+   "date": "2026-11-27",
+   "visibility": 56,
+   "top10": 542
   }
  ],
  "keywords": [
+  {
+   "phrase": "перегородка в комнату для зонирования купить",
+   "pos": 1,
+   "freq": 2430,
+   "url": ""
+  },
   {
    "phrase": "раздвижные стеклянные перегородки",
    "pos": 1,
@@ -540,109 +546,108 @@
    "pos": 1,
    "freq": 121,
    "url": ""
-  },
-  {
-   "phrase": "полукруглая перегородка",
-   "pos": 1,
-   "freq": 264,
-   "url": ""
   }
  ],
  "competitors": [
   {
    "domain": "rosestar.ru",
-   "visibility": 199,
-   "common_keywords": 57,
+   "visibility": 258,
+   "common_keywords": 904,
+   "delta_visibility": 29.6
+  },
+  {
+   "domain": "zerkala-m.ru",
+   "visibility": 255,
+   "common_keywords": 69,
    "delta_visibility": 0
   },
   {
-   "domain": "msk-zerkala.ru",
-   "visibility": 74,
-   "common_keywords": 25,
+   "domain": "зеркаласподсветкой.рф",
+   "visibility": 157,
+   "common_keywords": 55,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "union.ru",
+   "visibility": 227,
+   "common_keywords": 13,
    "delta_visibility": 0
   },
   {
    "domain": "m.avito.ru",
-   "visibility": 2330934,
-   "common_keywords": 1714,
+   "visibility": 2331620,
+   "common_keywords": 1735,
    "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
-   "visibility": 392134,
-   "common_keywords": 1573,
-   "delta_visibility": -0.1
-  },
-  {
-   "domain": "livemaster.ru",
-   "visibility": 79307,
-   "common_keywords": 1157,
-   "delta_visibility": -0.1
-  },
-  {
-   "domain": "hoff.ru",
-   "visibility": 105561,
-   "common_keywords": 1132,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "inmyroom.ru",
-   "visibility": 8503,
-   "common_keywords": 1046,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "vseinstrumenti.ru",
-   "visibility": 530274,
-   "common_keywords": 926,
-   "delta_visibility": 0.1
-  },
-  {
-   "domain": "ozon.ru",
-   "visibility": 3190946,
-   "common_keywords": 178,
-   "delta_visibility": 0.1
-  },
-  {
-   "domain": "market.yandex.ru",
-   "visibility": 1071552,
-   "common_keywords": 170,
-   "delta_visibility": 0.1
+   "visibility": 407653,
+   "common_keywords": 1580,
+   "delta_visibility": 4
   },
   {
    "domain": "wildberries.ru",
-   "visibility": 1826971,
-   "common_keywords": 130,
-   "delta_visibility": 0.1
+   "visibility": 1887940,
+   "common_keywords": 1524,
+   "delta_visibility": 3.3
   },
   {
-   "domain": "lain-loft.ru",
-   "visibility": 352,
-   "common_keywords": 63,
+   "domain": "livemaster.ru",
+   "visibility": 79642,
+   "common_keywords": 1161,
+   "delta_visibility": 0.4
+  },
+  {
+   "domain": "hoff.ru",
+   "visibility": 106339,
+   "common_keywords": 1147,
+   "delta_visibility": 0.7
+  },
+  {
+   "domain": "inmyroom.ru",
+   "visibility": 8212,
+   "common_keywords": 1049,
+   "delta_visibility": -3.4
+  },
+  {
+   "domain": "vseinstrumenti.ru",
+   "visibility": 528370,
+   "common_keywords": 931,
+   "delta_visibility": -0.4
+  },
+  {
+   "domain": "ozon.ru",
+   "visibility": 3177946,
+   "common_keywords": 178,
+   "delta_visibility": -0.4
+  },
+  {
+   "domain": "market.yandex.ru",
+   "visibility": 1075697,
+   "common_keywords": 173,
+   "delta_visibility": 0.4
+  },
+  {
+   "domain": "fdmebel.ru",
+   "visibility": 114,
+   "common_keywords": 71,
    "delta_visibility": 0
   },
   {
-   "domain": "dvertsov.ru",
-   "visibility": 711,
-   "common_keywords": 43,
-   "delta_visibility": 0.1
-  },
-  {
-   "domain": "profiledoors.ru",
-   "visibility": 528,
-   "common_keywords": 33,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "fantasia-stekla.ru",
-   "visibility": 139,
-   "common_keywords": 32,
+   "domain": "uslugi.yandex.ru",
+   "visibility": 497171,
+   "common_keywords": 62,
    "delta_visibility": 0
   }
  ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": []
+  "competitor_up": [
+   {
+    "domain": "rosestar.ru",
+    "delta": 29.6
+   }
+  ]
  }
 }

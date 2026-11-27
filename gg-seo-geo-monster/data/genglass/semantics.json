@@ -1,6 +1,14 @@
 {
- "measured": "2026-11-24",
+ "measured": "2026-11-27",
  "phrases": [
+  {
+   "phrase": "перегородка в комнату для зонирования купить",
+   "pos": 1,
+   "freq": 2430,
+   "url": "",
+   "cluster": "перегородка",
+   "intent": "transactional"
+  },
   {
    "phrase": "раздвижные стеклянные перегородки",
    "pos": 1,
@@ -72,14 +80,6 @@
    "url": "",
    "cluster": "стеклянный",
    "intent": "transactional"
-  },
-  {
-   "phrase": "полукруглая перегородка",
-   "pos": 1,
-   "freq": 264,
-   "url": "",
-   "cluster": "полукруглая",
-   "intent": "commercial"
   }
  ]
 }

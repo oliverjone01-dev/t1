@@ -1398,5 +1398,9 @@
 {"d":"2026-11-26","sku":"GGT-03-2-1-E-16080/MDF","units":1,"pay":47705,"accruals":99339,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-46246,"promo":0,"otherSvc":0,"amount":53092,"platform":"ym"}
 {"d":"2026-11-26","sku":"GGT-35-3-3-100-180","units":1,"pay":33639,"accruals":114634,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-64089,"promo":0,"otherSvc":0,"amount":50545,"platform":"ym"}
 {"d":"2026-11-26","sku":"GGT-35-5-1-100-180","units":1,"pay":54229,"accruals":114463,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-52967,"promo":0,"otherSvc":0,"amount":61496,"platform":"ym"}
-{"d":"2026-11-26","sku":"GGT-48-5-1-100-180","units":1,"pay":40202,"accruals":77900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-35117,"promo":0,"otherSvc":0,"amount":42782,"platform":"ym"}
+{"d":"2026-11-26","sku":"GGT-48-5-1-100-180","units":1,"pay":40202,"accruals":77900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-37097,"promo":0,"otherSvc":0,"amount":40802,"platform":"ym"}
+{"d":"2026-11-27","sku":"GGL-09-2","units":1,"pay":26149,"accruals":56762,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":56762,"platform":"ym"}
+{"d":"2026-11-27","sku":"GGT-03-2-2-E-16080","units":1,"pay":44576,"accruals":93684,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":93684,"platform":"ym"}
+{"d":"2026-11-27","sku":"GGT-03-3-3-O-20090","units":1,"pay":50778,"accruals":110782,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":110782,"platform":"ym"}
+{"d":"2026-11-27","sku":"GGT-20-5-1-18090","units":1,"pay":38658,"accruals":80092,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":80092,"platform":"ym"}
 {"d":"2026-11-27","sku":"GGT-35-5-1-100-180","units":1,"pay":55723,"accruals":119854,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"promo":0,"otherSvc":0,"amount":119854,"platform":"ym"}

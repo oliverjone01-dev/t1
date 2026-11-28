@@ -1,8 +1,8 @@
 {
  "sources": {
   "keysso": {
-   "status": "genglass: ok (фразы: срез сводки, полный список группового отчёта доберём следующим прогоном) · glass-memory: ok",
-   "date": "2026-11-27",
+   "status": "genglass: empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном) · glass-memory: empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном)",
+   "date": "2026-11-28",
    "requests_used": 16,
    "limit": 3000,
    "pending_rid": {
@@ -11,12 +11,12 @@
   },
   "metrika": {
    "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
-   "date": "2026-11-27"
+   "date": "2026-11-28"
   },
   "direct": {
    "status": "genglass: ok · glass-memory: ok",
-   "date": "2026-11-27"
+   "date": "2026-11-28"
   }
  },
- "updated": "2026-11-27"
+ "updated": "2026-11-28"
 }
